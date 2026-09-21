@@ -1,0 +1,60 @@
+# CIMENTA
+
+> SaaS de control de costos y operación de obra para una constructora de subcontrato especializado en tablaroca que trabaja bajo contratos a precio alzado máximo garantizado. Congela el presupuesto de venta como línea base inmutable, bloquea todo gasto que la exceda sin autorización explícita, y expone el costo real por obra contra lo presupuestado en tiempo real.
+
+Proyecto final del máster IA4Devs. Desarrollado con Spec-Driven Development: la especificación precede al código y nada se implementa sin criterios de aceptación que cubran también los caminos de error.
+
+**Estado:** Entrega 1 — documentación técnica. Sin código todavía.
+
+**Pendiente conocido:** en la obra no hay internet (`PA-13`, `RNF-18`, [ADR-015](docs/adr/20260919-captura-diferida-sin-conexion.md)). El requisito y la decisión están escritos; el **backlog de captura sin conexión no está descompuesto** — escenarios, tickets y sprints pendientes en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md#pendiente-de-descomponer--captura-sin-conexión). No dar por resuelto ese trabajo al implementar HDU-005 ni HDU-008.
+
+## Antes de escribir código en este repositorio
+
+Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados: el dominio tiene vocabulario propio (*destajo*, *explosión de insumos*, *rendimiento*, *partida*) que no significa lo que parece.
+
+- [Glosario del dominio](docs/glosario.md): lenguaje ubicuo. Define concepto, partida, APU, rendimiento, destajo, explosión de insumos, consignación y pago agrupado
+- [Descripción del producto](docs/01-descripcion-producto.md): objetivo, roles, 7 capacidades, alcance del MVP, catálogo de 25 reglas de negocio `RN-01`…`RN-25` y 18 requisitos no funcionales `RNF-01`…`RNF-18`. Las doce preguntas de la especificación funcional están resueltas por el cliente; sigue abierta `PA-12`, sobre objetivos de recuperación, que no bloquea la implementación. Las decisiones con disparador de revisión están listadas al final
+- [Arquitectura](docs/02-arquitectura.md): monolito modular, 9 contextos delimitados, capas por módulo, flujos clave y aspectos transversales
+- [Modelo de datos](docs/03-modelo-datos.md): esquema relacional, 22 invariantes declarados en base de datos, máquinas de estado y la consulta del semáforo
+- [Convenciones](docs/convenciones.md): docs-as-code, backlog AI-ready, formato de criterios de aceptación, DoD por tipo de trabajo, estimación
+- [Stack tecnológico](docs/06-stack-tecnologico.md): criterios de elección, herramientas por capa, seguridad y lo que se descartó
+- [Decisiones de arquitectura](docs/adr/README.md): 15 ADRs en formato MADR
+
+## Reglas que ninguna implementación puede romper
+
+- La línea base congelada es inmutable. Se copia físicamente, no se marca con una bandera
+- Todo gasto lleva `obra_id`, y toda requisición además `tipo_partida_id`, con restricción `NOT NULL` en base de datos. El control presupuestal es por obra y tipo de partida, no por ubicación
+- Los límites **bloquean**, no advierten. Una operación que excede lo presupuestado se detiene y exige autorización registrada. `consumido = requisiciones vivas + comprometido + ejercido`, con cada peso contado una sola vez: una requisición evaluada ya reserva presupuesto
+- El avance físico se divide entre el **alcance** —m² contratados de todas las áreas por todas las etapas—, nunca entre los m² de contrato de lo ya medido. Sin avance validado es nulo, no cero
+- El dinero nunca es coma flotante. Decimal de precisión fija en base de datos, cadena en JSON
+- Las reglas de negocio viven en `dominio/`, sin dependencias de framework, ORM ni HTTP, y llevan su identificador `RN-xx` en el docstring
+- Un módulo solo habla con otro a través de su interfaz de aplicación publicada
+- El inventario es un libro mayor de solo-anexado. No existe columna de existencia
+- La sesión tiene estado en el servidor: quitar un rol surte efecto en la petición siguiente. Ni JWT ni cookie firmada autocontenida
+- SQLAlchemy en modo síncrono, con rutas `def`. Nunca `async def` con una sesión síncrona dentro
+- En la obra no hay internet: solo `avance` y `entrada_almacen` se capturan sin conexión. El cliente **nunca** evalúa una regla; lo encolado pasa por los mismos casos de uso y puede volver rechazado
+- Ningún criterio de aceptación cubre solo el camino feliz
+
+## Stack
+
+Detalle completo y alternativas descartadas en [`docs/06-stack-tecnologico.md`](docs/06-stack-tecnologico.md).
+
+- **Backend:** Python 3.13+ · FastAPI · Pydantic v2 en la frontera · SQLAlchemy 2.0 síncrono con patrón Data Mapper · Alembic
+- **Base de datos:** PostgreSQL — [ADR-002](docs/adr/20260918-postgresql.md)
+- **Seguridad:** pwdlib con Argon2id · sesión con estado en tabla — [ADR-014](docs/adr/20260919-sesion-con-estado.md) · CSRF por doble envío · tres roles de PostgreSQL
+- **Frontend:** React 19 · TypeScript · Vite · React Router · TanStack Query y Table · Tailwind CSS v4 · shadcn/ui · decimal.js · tipos generados del OpenAPI
+- **Lectura de Excel:** openpyxl en modo `read_only` y `data_only`, que expone `#REF!` como valor legible
+- **Testing:** pytest · testcontainers con PostgreSQL real · Vitest · Playwright
+- **Herramientas:** uv · Ruff · mypy · import-linter · pip-audit · GitHub Actions
+- **Observabilidad:** structlog con identificador de correlación · Sentry. No es la bitácora y no puede serlo
+- **Documentación:** OpenAPI de FastAPI + Scalar · docstrings + mkdocstrings · interrogate · markdownlint-cli2 · Vale · lychee
+
+## Instrucciones de proyecto
+
+[`CLAUDE.md`](CLAUDE.md) en la raíz: orden de lectura, comandos, convenciones de código y qué no hacer.
+
+## Contexto del cliente
+
+Documentación fuente real en `Doc de contexto/`: cuestionario de requerimientos, catálogos de conceptos de dos obras (Union Square Fase 2 y ENITI Torre 5), análisis de precios unitarios, explosión de insumos y nómina semanal con destajo. Toda afirmación sobre el negocio en la documentación es trazable a estos archivos.
+
+**Esa carpeta no está en el repositorio** —nómina con nombres y salarios reales, precios de obras en curso, y el repositorio es público (`RNF-07`)—. No la busques: si necesitas un dato del cliente que la documentación no recoge, pregunta en lugar de asumirlo.
