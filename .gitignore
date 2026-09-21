@@ -1,0 +1,36 @@
+# Artefactos generados por los verificadores de documentación
+tools/mermaid-check.html
+tools/mermaid.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+
+# Entorno
+.env
+.env.local
+
+# Ajustes locales de Claude Code (CLAUDE.md sí se versiona)
+.claude/settings.local.json
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Ofimática
+~$*.xlsx
+~$*.docx
+
+# Documentación fuente del cliente: nómina con nombres y salarios reales,
+# y precios unitarios de obras en curso. El repositorio es público (RNF-07)
+Doc de contexto/
