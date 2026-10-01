@@ -86,12 +86,12 @@ Plantillas completas en [`convenciones.md` §6](convenciones.md#6-definition-of-
 **Qué hace.** Monta el esqueleto del backend con los diez módulos y las cuatro capas de cada uno, y añade la verificación automática de que ningún módulo cruza la frontera de otro.
 
 **Criterios técnicos**
-- [ ] Un paquete por módulo: `identidad`, `auditoria`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`
+- [ ] Un paquete por módulo: `identidad`, `auditoria`, `archivos`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`
 - [ ] Cada módulo con sus carpetas `api/`, `aplicacion/`, `dominio/`, `infraestructura/`
 - [ ] Cada módulo expone su interfaz de aplicación publicada en un único punto de entrada
 - [ ] Verificación automática de dependencias que falla si un módulo importa de `dominio/` o `infraestructura/` de otro
 - [ ] La verificación falla también si `dominio/` importa del framework web o del ORM
-- [ ] El grafo declarado coincide con el de [arquitectura §4](02-arquitectura.md#nivel-3--componentes-del-api): `analitica` solo lee
+- [ ] El grafo declarado coincide con el de [arquitectura §4](02-arquitectura.md#nivel-3--componentes-del-api): `analitica` solo lee y `archivos` no conoce a nadie
 
 > Sin esta verificación, el monolito modular degenera en monolito con carpetas en pocos sprints. Es el ticket que sostiene [ADR-001](adr/20260918-monolito-modular.md).
 
