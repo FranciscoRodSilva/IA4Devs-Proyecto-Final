@@ -106,6 +106,26 @@ npm --prefix frontend run dev    # frontend
 - **No inventes reglas de negocio.** Si algo no está en el PRD, pregunta. Lo que se asume se marca `(asumido)` y se escala.
 - **No amplíes el alcance de un ticket.** Cada uno declara sus *non-goals*; respétalos.
 
+## Cómo se trabaja: el pipeline SDD
+
+El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de control. El núcleo del método está en [`sdd/metodologia.md`](sdd/metodologia.md); el diseño y su porqué, en [`sdd/00-propuesta-toolkit.md`](sdd/00-propuesta-toolkit.md).
+
+| Comando | Qué hace | Produce |
+|---|---|---|
+| `/sdd-definir TKT-xxx` | Spec: historia, alcance MoSCoW, criterios Gherkin con su rechazo, invariantes en riesgo | `_index.md`, `spec.md` |
+| `/sdd-disenar TKT-xxx` | Plan técnico: qué capa, qué archivos, en qué orden, cómo se verifica cada paso | `design.md` |
+| `/sdd-ejecutar TKT-xxx` | Implementa paso a paso y genera los tests con el código. Admite `--lote` sobre un rango | `impl.md` |
+| `/sdd-revisar TKT-xxx` | Verifica criterio por criterio, corre la suite, despacha las auditorías, cierra el ciclo de corrección | veredictos |
+| `/sdd-completar TKT-xxx` | Delta del sistema, aprendizajes, documentación y PR | `delta.md`, PR |
+| `/sdd-avance` | Qué está hecho, qué falta, qué está esperando una decisión | — |
+| `/sdd-escalar TKT-xxx` | Pausa y pide la decisión que no le corresponde al agente | — |
+
+**Dos transiciones tienen dueño humano:** aprobar el diseño y resolver lo escalado. Ningún agente las mueve.
+
+Los agentes especializados viven en [`.claude/agents/`](.claude/agents/) y las convenciones por stack en [`.claude/skills/conv-*`](.claude/skills/). Cada agente carga **solo** las convenciones de su capa.
+
+**Caveman se aplica a la conversación, nunca a los artefactos.** Un hook lo recuerda en cada turno. Lo que se escribe a disco —specs, diseños, ADRs, docstrings, documentación, mensajes de commit— va en prosa completa: es el entregable y pasa por Vale.
+
 ## Documentación
 
 Vive en el repositorio y se valida en CI: `markdownlint-cli2`, `Vale`, `lychee`, más los verificadores propios de [`tools/`](tools/README.md). Un PR que cambia comportamiento actualiza la documentación afectada en el mismo cambio.
