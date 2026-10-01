@@ -19,10 +19,11 @@
 9. [Proveedores](#9-proveedores--v11)
 10. [Identidad y auditoría](#10-identidad-y-auditoría)
 11. [Importación](#11-importación)
-12. [Invariantes en base de datos](#12-invariantes-en-base-de-datos)
-13. [Máquinas de estado](#13-máquinas-de-estado)
-14. [La consulta del semáforo](#14-la-consulta-del-semáforo)
-15. [Trazabilidad reglas ↔ esquema](#15-trazabilidad-reglas--esquema)
+12. [Archivos adjuntos](#12-archivos-adjuntos)
+13. [Invariantes en base de datos](#13-invariantes-en-base-de-datos)
+14. [Máquinas de estado](#14-máquinas-de-estado)
+15. [La consulta del semáforo](#15-la-consulta-del-semáforo)
+16. [Trazabilidad reglas ↔ esquema](#16-trazabilidad-reglas--esquema)
 
 ---
 
@@ -81,6 +82,7 @@ graph TB
         IDE["usuario › rol"]
         BIT["bitacora"]
         AUT["solicitud_autorizacion"]
+        ARC["archivo"]
     end
 
     OBRA --> APU --> LB
@@ -89,6 +91,8 @@ graph TB
     PER --> OBRA
     CMP -.-> AUT
     ALM -.-> AUT
+    ALM -.-> ARC
+    AVA -.-> ARC
 
     style NUC fill:#1e3a5f,color:#fff
     style TRA fill:#4a4a4a,color:#fff
@@ -490,7 +494,6 @@ erDiagram
         numeric costo_unitario
         text motivo "NOT NULL · RN-09"
         uuid responsable_id FK "NOT NULL · RN-09"
-        string evidencia_url
     }
 ```
 
@@ -915,8 +918,6 @@ erDiagram
     IMPORTACION {
         uuid id PK
         uuid obra_id FK
-        string archivo_nombre
-        string archivo_url
         enum estado "RECIBIDO|ANALIZANDO|VALIDADO|CON_ERRORES|CONFIRMADO|DESCARTADO"
         int filas_leidas
         int filas_validas
@@ -937,6 +938,8 @@ erDiagram
     }
 ```
 
+**El Excel ya no cuelga de esta tabla con dos cadenas sueltas.** `archivo_nombre` y `archivo_url` eran el hueco que `C8` cierra: no decían quién subió el archivo, ni cuánto pesaba, ni si seguía siendo el mismo. El adjunto vive ahora en [`archivo`](#12-archivos-adjuntos) con `referencia_tipo = 'IMPORTACION'`, y la importación no empieza a analizar hasta que ese adjunto está `DISPONIBLE`.
+
 El tipo `REF_ROTA` no es hipotético: el catálogo de Union Square tiene `#REF!` en todas sus columnas de precio. El importador tiene que reportarlo fila por fila, no fallar en bloque.
 
 **`latido` y `PROCESO_INTERRUMPIDO` existen para un fallo que no es del archivo, sino del servidor** (`RNF-17`). El análisis corre dentro del proceso del API; si ese proceso se reinicia a mitad, la fila se queda en `ANALIZANDO` y no hay nadie que la mueva — y mientras tanto la obra no admite otra importación. Al arrancar, la aplicación barre las importaciones en `ANALIZANDO` con el latido vencido, las pasa a `CON_ERRORES` y les añade un error de este tipo.
@@ -945,7 +948,84 @@ Es el mínimo que hace falta: la fase de análisis no escribe en el modelo real,
 
 ---
 
-## 12. Invariantes en base de datos
+## 12. Archivos adjuntos
+
+```mermaid
+erDiagram
+    OBRA ||--o{ ARCHIVO : "agrupa el expediente de"
+    USUARIO ||--o{ ARCHIVO : "sube"
+
+    ARCHIVO {
+        uuid id PK
+        uuid obra_id FK "NOT NULL · todo archivo pertenece a una obra"
+        enum referencia_tipo "AVANCE|ENTRADA_ALMACEN|MERMA|FACTURA_PROVEEDOR|IMPORTACION|OBRA"
+        uuid referencia_id "NULL solo cuando el tipo es OBRA"
+        enum estado "PENDIENTE|DISPONIBLE|ANULADO"
+        string clave_objeto "UNIQUE · la genera el sistema, nunca el usuario"
+        string nombre_original "dato que se muestra, jamás una ruta"
+        string tipo_mime "determinado leyendo los bytes"
+        bigint tamano_bytes
+        char hash_sha256 "CHAR(64) · hex · verificado al confirmar"
+        uuid subido_por_id FK "NOT NULL"
+        timestamptz creado_en
+        timestamptz confirmado_en
+        uuid anulado_por_id FK
+        text motivo_anulacion
+        timestamptz anulado_en
+    }
+```
+
+**Una sola tabla para los seis tipos de adjunto de `C8`, y la referencia es polimórfica.** `referencia_tipo` + `referencia_id` dicen a qué documento pertenece. No hay clave foránea, y no la hay por la misma razón que `archivos` es un módulo transversal: una clave de `archivo` hacia `avance`, `entrada_almacen` y `factura_proveedor` convertiría a `archivos` en el módulo del que dependen todos, y el grafo de la [arquitectura §5](02-arquitectura.md#5-contextos-delimitados) dejaría de ser acíclico.
+
+Es el mismo recurso que `movimiento_inventario` ya usa para los movimientos que no cuelgan de una orden, **con una diferencia deliberada**: allí `referencia_tipo` es texto libre, aquí es `ENUM`. El conjunto de cosas a las que se puede adjuntar es cerrado y lo decide el diseño, no el usuario; y el invariante 26 necesita comparar contra un valor que el motor conozca.
+
+El precio está declarado en la [arquitectura §7.7](02-arquitectura.md#77-archivos-y-evidencia): **la integridad referencial del adjunto no la da el motor**. Es el único punto del esquema donde eso se acepta. La alternativa —una tabla de adjuntos por cada módulo— daría claves foráneas reales a cambio de repetir cinco veces la subida, la validación de tipo, la confirmación por hash y el barrido de caducados.
+
+**`obra_id` sí es `NOT NULL`, y es lo que hace útil el expediente.** Todo archivo pertenece a una obra, incluidos los documentos generales de `F8.4`, que son los únicos con `referencia_id` nulo. Se puede exigir porque **las cinco tablas adjuntables ya lo tienen `NOT NULL`** —`avance`, `entrada_almacen`, `merma`, `factura_proveedor` e `importacion`—, así que copiarlo nunca falla. Sin esa columna, `F8.5` —consultar el expediente de una obra— tendría que recorrer esas cinco tablas para saber qué archivos le pertenecen.
+
+### Dos índices, y los dos hacen falta
+
+| Índice | Para qué |
+|---|---|
+| `(obra_id, estado, creado_en DESC)` | El expediente de `F8.5`: los adjuntos `DISPONIBLE` de una obra, los últimos primero. Es la consulta de la pantalla |
+| `(referencia_tipo, referencia_id)` | La contraria y la más frecuente: los adjuntos **de este avance**, **de esta entrada**. Se ejecuta cada vez que se abre un documento |
+
+Un tercero, parcial, para el barrido: `(creado_en) WHERE estado = 'PENDIENTE'`. Sin él, la tarea de arranque recorre la tabla entera para encontrar un puñado de filas, y la tabla crece con cada foto de cada medición de cada obra.
+
+### El estado, y por qué hay tres
+
+| Estado | Qué significa | Quién lo pone |
+|---|---|---|
+| `PENDIENTE` | La fila existe, el objeto puede que no | El caso de uso que emite la URL prefirmada, sea el que crea el documento o uno posterior que adjunta sobre él |
+| `DISPONIBLE` | El objeto existe y su tamaño y su hash coinciden con lo que se declaró | La confirmación, tras verificar contra el almacén |
+| `ANULADO` | El adjunto ya no cuenta, pero su rastro permanece con autor y motivo | Quien lo anula, nunca un `DELETE` |
+
+**La escritura no es transaccional y el estado es lo que lo hace visible.** El objeto vive fuera de PostgreSQL, así que no hay forma de que la fila y los bytes se escriban juntos ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)). Un `PENDIENTE` cuya subida nunca llegó se barre al arrancar la aplicación, exactamente igual que una importación con el latido vencido (`RNF-17`): es el mismo problema —un trabajo en dos pasos cuyo segundo paso puede no ocurrir— y se resuelve con el mismo patrón en vez de con uno nuevo.
+
+**El adjunto puede nacer después que el documento, y tiene que poder.** La octava regla de ADR-016 obliga: el avance capturado en obra se sincroniza sin esperar a sus fotos, y estas se adjuntan contra una medición que ya existe. Por eso el caso de uso que crea la fila `PENDIENTE` no es siempre el que crea el documento, y **lo único que se exige es que el documento exista** — un adjunto no puede referenciar lo que todavía no se ha guardado.
+
+**Un archivo no se borra nunca.** Es el principio del libro mayor ([ADR-005](adr/20260918-ledger-inventario.md)) aplicado a la evidencia: en un sistema cuyo valor es la trazabilidad, poder borrar la foto de una merma o la remisión de una entrada discutida es poder borrar justo lo que alguien querría que desapareciera.
+
+### El hash no es higiene, es la prueba
+
+`hash_sha256` se verifica al confirmar y **se asienta en la bitácora junto al adjunto**. Es lo que separa *"la bitácora dice que se adjuntó el archivo 7f3a…"* de *"la bitácora dice que se adjuntó un archivo cuyo contenido era exactamente este"*. La primera afirmación no se puede comprobar dentro de dos años; la segunda sí, y `RNF-19` exige la segunda.
+
+Sirve además para dos cosas que salen gratis: detectar un objeto corrompido en una restauración, y reconocer el mismo archivo subido dos veces.
+
+### Qué cambia respecto del modelo anterior
+
+Dos columnas desaparecen y las sustituye esta tabla:
+
+| Antes | Ahora |
+|---|---|
+| `merma.evidencia_url` | `archivo` con `referencia_tipo = 'MERMA'`. La evidencia de `RN-09` deja de ser una cadena suelta y pasa a tener tipo verificado, tamaño, autor, hash y estado |
+| `importacion.archivo_url` | `archivo` con `referencia_tipo = 'IMPORTACION'`. El Excel importado entra por la misma puerta que todo lo demás |
+
+Ninguna de las dos guardaba quién subió el archivo, ni cuánto pesaba, ni qué era. Eran el hueco que la capacidad `C8` cierra.
+
+---
+
+## 13. Invariantes en base de datos
 
 Estos invariantes se declaran en el esquema porque **un invariante que solo vive en el código se rompe el día que alguien escribe por otra vía** — un script de migración, una corrección manual, un endpoint nuevo que olvidó la validación.
 
@@ -973,6 +1053,10 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 20 | El registro de intentos de acceso no se altera desde la aplicación | Permisos: el rol de aplicación tiene `INSERT` y `SELECT` sobre `intento_acceso`, no `UPDATE` ni `DELETE` | `RNF-04` |
 | 21 | Las consultas de analítica no pueden escribir | Rol de PostgreSQL con solo `SELECT`, que es con el que `analitica` se conecta | `RNF-09` |
 | 22 | El alcance de destajo es único por área y etapa: precargarlo dos veces duplicaría el denominador del avance | `UNIQUE (area_id, etapa_destajo_id)` sobre `alcance_destajo` | RN-21 |
+| 23 | Un archivo disponible tiene hash, tamaño y fecha de confirmación | `CHECK (estado <> 'DISPONIBLE' OR (hash_sha256 IS NOT NULL AND tamano_bytes IS NOT NULL AND confirmado_en IS NOT NULL))` | `RNF-19` |
+| 24 | Anular un adjunto exige autor y motivo | `CHECK (estado <> 'ANULADO' OR (anulado_por_id IS NOT NULL AND motivo_anulacion IS NOT NULL))` | `RNF-19` |
+| 25 | Dos filas no comparten objeto | `UNIQUE (clave_objeto)` sobre `archivo` | `RNF-19` |
+| 26 | Todo adjunto señala a un documento, salvo los del expediente general de la obra | `CHECK (referencia_tipo = 'OBRA' OR referencia_id IS NOT NULL)` | — |
 
 **El invariante 15 se apoya en una tabla que existe solo para sostenerlo.** `modalidad_pago_semana` guarda una fila por obra, cuadrilla y semana con la modalidad reclamada (`DESTAJO` o `NOMINA`). El primer pago de la semana la inserta; el segundo, si es de la otra modalidad, choca contra la restricción única y falla. Sin ella la regla dependería de una comprobación en la aplicación que cualquier ruta nueva podría saltarse, y la consecuencia —contabilizar dos veces el mismo trabajo en el semáforo— es silenciosa.
 
@@ -985,13 +1069,15 @@ modalidad_pago_semana
 
 El invariante 14 merece una nota: es el único que necesita un disparador en lugar de una restricción declarativa, porque PostgreSQL no permite marcar filas como inmutables de forma nativa. Dado que el principio 1 es el más importante del producto, el disparador está justificado.
 
+**Los invariantes 23 a 26 protegen el adjunto, y hay uno que deliberadamente no está.** Ninguno garantiza que `referencia_id` apunte a una fila que exista: la referencia es polimórfica y el motor no puede comprobarla ([§12](#12-archivos-adjuntos)). Es la única integridad referencial de todo el esquema que se deja en manos del caso de uso, está declarada como coste en [ADR-016](adr/20261001-almacenamiento-de-objetos.md), y se compensa con lo que sí se puede declarar: que un archivo `DISPONIBLE` tenga hash verificado, que anularlo exija motivo y que ningún objeto se reutilice.
+
 **Los invariantes 10, 20 y 21 no son restricciones: son permisos.** Los tres dicen lo mismo desde ángulos distintos —hay escrituras que el rol de aplicación simplemente no puede hacer— y los tres se crean en la migración inicial, no a mano en el servidor. El 21 es el que cierra un hueco viejo: que `analitica` solo lea era hasta ahora una propiedad dibujada en un diagrama, porque `import-linter` comprueba quién importa a quién y no quién escribe.
 
 Para que sirvan de algo, **las pruebas de integración se conectan con el rol de aplicación**, no con el propietario del esquema. Con el propietario, el `UPDATE` sobre la bitácora funcionaría y la prueba que lo intenta quedaría verde por no tener nada que verificar.
 
 ---
 
-## 13. Máquinas de estado
+## 14. Máquinas de estado
 
 ### Requisición
 
@@ -1064,7 +1150,7 @@ Una línea base `CONGELADA` **nunca vuelve a `BORRADOR`**. Solo puede ser sustit
 
 ---
 
-## 14. La consulta del semáforo
+## 15. La consulta del semáforo
 
 El entregable del producto se resuelve con una consulta por obra, agrupada por **tipo de partida** (PA-01). Expresada conceptualmente:
 
@@ -1221,7 +1307,7 @@ Se presenta como **fila propia al nivel de la obra**, marcada como no imputada a
 
 ---
 
-## 15. Trazabilidad reglas ↔ esquema
+## 16. Trazabilidad reglas ↔ esquema
 
 Cada regla del [PRD §8](01-descripcion-producto.md#8-catálogo-de-reglas-de-negocio) y dónde se hace cumplir.
 
@@ -1229,13 +1315,13 @@ Cada regla del [PRD §8](01-descripcion-producto.md#8-catálogo-de-reglas-de-neg
 |---|---|---|
 | RN-01 | `linea_base`, `linea_base_concepto`, `explosion_presupuesto` | Copia física + índice único parcial + disparador de inmutabilidad |
 | RN-02 | Todas las de movimiento | `NOT NULL` en `obra_id` y en `requisicion.tipo_partida_id` |
-| RN-03 | `presupuesto_control`, `explosion_presupuesto`, `requisicion`, `solicitud_autorizacion`, `bitacora` | Dominio + bloqueo de fila en transacción sobre las dos tablas de presupuesto · `consumido` definido en §14 y compartido con el semáforo · la recaptura de un tope se asienta con esta misma regla |
+| RN-03 | `presupuesto_control`, `explosion_presupuesto`, `requisicion`, `solicitud_autorizacion`, `bitacora` | Dominio + bloqueo de fila en transacción sobre las dos tablas de presupuesto · `consumido` definido en §15 y compartido con el semáforo · la recaptura de un tope se asienta con esta misma regla |
 | RN-04 | `bitacora`, `solicitud_autorizacion` | Escritura en la misma transacción + permisos + `CHECK` de motivo |
 | RN-05 | `entrada_almacen.folio_remision` | `NOT NULL` |
 | RN-06 | `orden_compra_renglon`, `entrada_renglon`, `reprogramacion_entrega` | Estado derivado de cantidades · sin transición de cierre con saldo |
 | RN-07 | `orden_compra_renglon` | `CHECK (cantidad_recibida <= cantidad_ordenada)` |
 | RN-08 | `traspaso`, `movimiento_inventario` | Dos movimientos en una transacción |
-| RN-09 | `merma` | `NOT NULL` en motivo y responsable |
+| RN-09 | `merma`, `archivo` | `NOT NULL` en motivo y responsable · la evidencia es un adjunto con tipo verificado y hash, no una cadena ([§12](#12-archivos-adjuntos)) |
 | RN-10 | `avance`, `pago_destajo_avance` | Estado `VALIDADO` + clave foránea compuesta |
 | RN-11 | `pago_destajo`, `obra.retencion_destajo_pct` | Cálculo en dominio con porcentaje por obra |
 | RN-12 | `fondo_garantia` | `CHECK` sobre las dos banderas |

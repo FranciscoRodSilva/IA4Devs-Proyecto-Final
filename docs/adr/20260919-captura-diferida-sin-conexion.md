@@ -2,7 +2,7 @@
 
 ## Estado
 
-Aceptado
+Aceptado · **ampliado el 2026-10-01 por [ADR-016](20261001-almacenamiento-de-objetos.md)**, que añade una octava regla: la evidencia fotográfica **no viaja en la cola**. Las siete reglas de abajo siguen vigentes sin cambios.
 
 ## Contexto y problema
 

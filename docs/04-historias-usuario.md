@@ -59,6 +59,8 @@ Nueve historias que recorren el ciclo de valor completo: alta de obra → línea
 
 **Total: 70 SP · 137 escenarios, cerca de la mitad de ellos de rechazo, error o borde.**
 
+> **Este total está incompleto a propósito y hay que decirlo.** Dos revisiones posteriores —la captura sin conexión del 2026-09-19 y la evidencia documental del 2026-10-01— decidieron comportamiento que **ninguna historia describe todavía**: `RNF-18` con [ADR-015](adr/20260919-captura-diferida-sin-conexion.md), y `C8` con `RNF-19` y [ADR-016](adr/20261001-almacenamiento-de-objetos.md). Faltan unos quince escenarios repartidos entre HDU-001, HDU-002, HDU-005 y HDU-008, y están enumerados uno a uno en el [bloque pendiente del backlog](05-tickets-trabajo.md#pendiente-de-descomponer--captura-sin-conexión-y-evidencia-documental). No se escriben aquí todavía porque uno de ellos —si un avance se puede validar sin foto— **depende de `PA-14`, que sigue abierta**, y escribirlo antes de la respuesta sería inventar la regla de negocio que la pregunta existe para no inventar.
+
 > **Segunda revisión, 2026-09-18.** El cliente respondió las once preguntas abiertas y **cinco respuestas contradijeron los supuestos**. Las historias están reescritas en consecuencia:
 >
 > - **HDU-001** gana la captura del presupuesto de control, que deja de derivarse del precio de venta (PA-03), y el indicador de IVA acreditable por obra (PA-05).
@@ -173,7 +175,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 → Se incorpora **`RN-22`** al PRD —exclusividad de modalidad de pago por cuadrilla y semana— y sus escenarios de rechazo a HDU-008 y HDU-009.
 
-**Hallazgo 3 · La mano de obra no tenía partida, pero el semáforo agrupa por partida.** La nómina se imputa a obra vía cuadrilla; el destajo, a área y etapa. Ninguna de las dos llegaba al nivel al que el semáforo agrupa y al que `RN-03` bloquea. La consulta de [§14 del modelo de datos](03-modelo-datos.md#14-la-consulta-del-semáforo) dejaba esas dos ramas sin resolver.
+**Hallazgo 3 · La mano de obra no tenía partida, pero el semáforo agrupa por partida.** La nómina se imputa a obra vía cuadrilla; el destajo, a área y etapa. Ninguna de las dos llegaba al nivel al que el semáforo agrupa y al que `RN-03` bloquea. La consulta de [§15 del modelo de datos](03-modelo-datos.md#15-la-consulta-del-semáforo) dejaba esas dos ramas sin resolver.
 
 → Se planteó como **`PA-08`** y el cliente lo resolvió: **cada etapa de destajo pertenece a un tipo de partida concreto**, así que `etapa_destajo` se define por obra y tipo de partida con precios propios. El destajo sí llega al tablero agrupado. La nómina no —un tablaroquero de sueldo fijo trabaja el día en lo que haga falta— y se muestra en fila propia a nivel de obra, algo que el cliente confirmó como aceptable en `PA-10`. Recogido en HDU-006 esc. 5.
 
@@ -386,8 +388,8 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 - Módulo `presupuesto`, capas `api` / `aplicacion` / `dominio` / `infraestructura`
 - Tablas: `obra`, `nivel`, `area`, `partida`, `tipo_partida`, `concepto`, `insumo`, `apu`, `apu_insumo`, `apu_cargo`, `linea_base`, `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`, `importacion`, `importacion_error`
-- Invariantes 5, 13 y 14 del [modelo de datos §12](03-modelo-datos.md#12-invariantes-en-base-de-datos)
-- Máquinas de estado de importación y línea base: [§13](03-modelo-datos.md#13-máquinas-de-estado)
+- Invariantes 5, 13 y 14 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos)
+- Máquinas de estado de importación y línea base: [§14](03-modelo-datos.md#14-máquinas-de-estado)
 - Archivos de prueba reales: `AP-058-25 SEGUNDA ETAPA P.U UNION SQUERE.xlsx` (con `#REF!` en todas las columnas de precio) y `Presupuesto Base Tablaroca Eniti T5 AP 2.xlsx` (íntegro)
 - Los porcentajes de retención (15 %) y fondo de garantía (5 %) son **dos conceptos distintos** (PA-02) y viven en la obra, no en el código
 
@@ -522,7 +524,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - [ ] Cubre los 13 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
 - [ ] Al menos un test por escenario
 - [ ] El escenario 9 se prueba con concurrencia real, no simulada con dobles de prueba
-- [ ] **Un único cálculo de `consumido`**, el de [modelo de datos §14](03-modelo-datos.md#14-la-consulta-del-semáforo), compartido con el semáforo. Un test verifica que el disponible que devuelve el endpoint de consulta y el que aplica la evaluación coinciden al céntimo
+- [ ] **Un único cálculo de `consumido`**, el de [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo), compartido con el semáforo. Un test verifica que el disponible que devuelve el endpoint de consulta y el que aplica la evaluación coinciden al céntimo
 - [ ] La regla `RN-03` está aislada en `dominio/` y se prueba sin base de datos
 - [ ] Todas las respuestas de rechazo cumplen el contrato de error
 - [ ] PR enlazado al ticket · revisión de al menos un humano
@@ -532,7 +534,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - Módulo `compras`; consulta a `presupuesto` solo por su interfaz de aplicación publicada
 - Tablas: `requisicion`, `requisicion_renglon`, `solicitud_autorizacion`, lectura de `presupuesto_control` y `explosion_presupuesto`
 - **El control es por obra y tipo de partida** (PA-01): cuatro bolsas por obra, no una por ubicación
-- **`consumido = requisiciones vivas + comprometido + ejercido`**, definido una sola vez en [modelo de datos §14](03-modelo-datos.md#14-la-consulta-del-semáforo) y compartido con el semáforo. Una requisición `EVALUADA` o `AUTORIZADA` sin convertir **sí consume**: sin eso, las dos peticiones simultáneas del escenario 9 pasarían las dos
+- **`consumido = requisiciones vivas + comprometido + ejercido`**, definido una sola vez en [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo) y compartido con el semáforo. Una requisición `EVALUADA` o `AUTORIZADA` sin convertir **sí consume**: sin eso, las dos peticiones simultáneas del escenario 9 pasarían las dos
 - **Una sola bolsa por tipo de partida**: el destajo de esa partida consume el mismo tope que el material. La nómina no, porque no llega a partida (PA-10)
 - El control por **importe** lee `presupuesto_control.importe_tope`, que es un valor **capturado** por Dirección (PA-03), no derivado del precio de venta
 - El control por **volumen** lee `explosion_presupuesto.cantidad_presupuestada`, que sí es derivado del APU
@@ -657,7 +659,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 - Módulo `compras`; autorización transversal desde `identidad`
 - Tablas: `solicitud_autorizacion`, `requisicion`, `bitacora`
-- Invariante 9 del [modelo de datos §12](03-modelo-datos.md#12-invariantes-en-base-de-datos): motivo obligatorio al resolver
+- Invariante 9 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos): motivo obligatorio al resolver
 - `solicitud_autorizacion` es genérica y servirá también a `RN-07` y `RN-15`: no acoplarla a requisiciones
 
 ---
@@ -789,7 +791,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - Módulo `compras`; el catálogo de proveedores vive en `proveedores` y se consulta por su interfaz publicada
 - Tablas: `proveedor`, `orden_compra`, `orden_compra_renglon`, `requisicion`
 - Los campos `tope_consignacion`, `dia_corte` y `dia_pago` se capturan ya aunque su lógica llegue en v1.1
-- Máquina de estados de la orden de compra: [modelo de datos §13](03-modelo-datos.md#13-máquinas-de-estado)
+- Máquina de estados de la orden de compra: [modelo de datos §14](03-modelo-datos.md#14-máquinas-de-estado)
 
 ---
 
@@ -937,7 +939,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 - Módulo `almacen`; consulta a `compras` solo por su interfaz publicada
 - Tablas: `entrada_almacen`, `entrada_renglon`, `movimiento_inventario`, `orden_compra_renglon`, `reprogramacion_entrega`
-- Invariante 2 del [modelo de datos §12](03-modelo-datos.md#12-invariantes-en-base-de-datos)
+- Invariante 2 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos)
 - Libro mayor de solo-anexado: [ADR-005](adr/20260918-ledger-inventario.md)
 - El estado de la orden se **deriva** de las cantidades, nunca se asigna a mano
 - **No existe transición de cierre con saldo** (PA-07): una orden solo llega a `CERRADA` al entregarse completa
@@ -1069,14 +1071,14 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - [ ] Cubre los 13 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
 - [ ] Al menos un test por escenario
 - [ ] La consulta se prueba con el volumen real de una obra: ~4,900 conceptos
-- [ ] Los índices de [§14 del modelo de datos](03-modelo-datos.md#14-la-consulta-del-semáforo) están creados y verificados con plan de ejecución
+- [ ] Los índices de [§15 del modelo de datos](03-modelo-datos.md#15-la-consulta-del-semáforo) están creados y verificados con plan de ejecución
 - [ ] Ningún importe viaja como número JSON: todos como cadena
 - [ ] PR enlazado al ticket · revisión de al menos un humano
 
 ### Contexto técnico
 
 - Módulo `analitica`, **solo lectura**: no puede escribir en ningún otro módulo
-- Consulta base y sus índices: [modelo de datos §14](03-modelo-datos.md#14-la-consulta-del-semáforo)
+- Consulta base y sus índices: [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo)
 - Agrupa por `tipo_partida` a nivel de obra (PA-01): cuatro filas, no ~572
 - El destajo llega a partida vía `etapa_destajo.tipo_partida_id` (PA-08); la nómina llega solo a obra vía `imputacion_nomina_obra` (PA-10)
 - Se calcula en tiempo de consulta, sin proceso nocturno ni tabla de resumen
@@ -1213,7 +1215,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 - Módulo `personal`
 - Tablas: `rol_oficio`, `empleado`, `cuadrilla`, `cuadrilla_empleado`, `credito_empleado`
-- Invariantes 3 y 4 del [modelo de datos §12](03-modelo-datos.md#12-invariantes-en-base-de-datos)
+- Invariantes 3 y 4 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos)
 - `cuadrilla_empleado` lleva `desde` y `hasta` precisamente para el escenario 8
 - Datos reales de referencia: las hojas de nómina muestran ~20 empleados por semana con roles de tablaroquero, pastero y ayudante
 
@@ -1386,7 +1388,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 - Módulo `avance`; consulta a `presupuesto` y `personal` por sus interfaces publicadas
 - Tablas: `etapa_destajo`, `alcance_destajo`, `avance`, `pago_destajo`, `pago_destajo_avance`
-- Invariantes 11 y 22 del [modelo de datos §12](03-modelo-datos.md#12-invariantes-en-base-de-datos)
+- Invariantes 11 y 22 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos)
 - `alcance_destajo` es el **denominador del avance físico** de todo el semáforo: se precarga de la línea base al configurar las etapas y solo el Director de Proyectos lo corrige. `avance.m2_contrato` se **copia** de ahí al capturar, para que una corrección posterior no reescriba mediciones validadas
 - La exclusividad de modalidad de pago (`RN-22`) se reclama llamando a la interfaz publicada de `personal`, que es el módulo dueño de `modalidad_pago_semana`: la arista `avance → personal` ya existe y la inversa rompería el grafo acíclico
 - `obra.retencion_destajo_pct` (15 %) y `obra.fondo_garantia_pct` (5 %) son **dos conceptos distintos** confirmados en PA-02: retención operativa en cada pago semanal frente a fondo de garantía contractual liberado al entregar y cobrar. No fijar ninguna constante en el código
@@ -1573,7 +1575,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 - Módulo `personal`; imputa costo a `presupuesto` por su interfaz publicada
 - Tablas: `nomina_semana`, `nomina_renglon`, `descuento_nomina`, `pago_nomina`, `pago_nomina_detalle`
-- Invariantes 3, 4 y 7 del [modelo de datos §12](03-modelo-datos.md#12-invariantes-en-base-de-datos)
+- Invariantes 3, 4 y 7 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos)
 - Datos reales de referencia: `NOMINA FASE II.xlsx`, hojas `15.08.26` y `21.08.26`, donde aparecen los pagos agrupados `OMAR Y JUAN`, `LUPE Y JULIO` y `TABLAROQUEROS TOÑO Y NERI`
 - **PA-04 resuelta**: el reparto multi-obra se **deriva** de las jornadas diarias, no se captura a mano. `imputacion_nomina_obra` es el resultado de ese cálculo y es lo que lee el semáforo
 - **PA-10 resuelta**: la nómina llega a obra, no a tipo de partida. Se muestra en fila propia del semáforo

@@ -75,7 +75,7 @@ A eso se suma que el equipo es de una persona y la carga es de decenas de operac
 
 ### Por qué no un monolito sin fronteras
 
-Porque las siete capacidades del PRD se reparten en nueve contextos con reglas propias que evolucionan a ritmos distintos, y porque el backlog se va a implementar en buena parte con agentes. Un agente que trabaja sobre un módulo con frontera explícita tiene un contexto acotado; uno que trabaja sobre un monolito plano acaba tocando lo que no debía. Las fronteras son tanto disciplina de diseño como reducción de la superficie sobre la que un agente puede equivocarse.
+Porque las ocho capacidades del PRD se reparten en diez contextos con reglas propias que evolucionan a ritmos distintos, y porque el backlog se va a implementar en buena parte con agentes. Un agente que trabaja sobre un módulo con frontera explícita tiene un contexto acotado; uno que trabaja sobre un monolito plano acaba tocando lo que no debía. Las fronteras son tanto disciplina de diseño como reducción de la superficie sobre la que un agente puede equivocarse.
 
 ### La regla de fronteras
 
@@ -126,21 +126,25 @@ graph TB
 
     subgraph SRV["Servidor"]
         API["<b>API</b><br/>Python · REST/JSON<br/><i>Reglas de negocio, autorización,<br/>trabajos en segundo plano</i>"]
-        FS["<b>Almacén de archivos</b><br/><i>Excels importados,<br/>evidencia de mermas</i>"]
     end
 
     DB[("<b>Base de datos</b><br/>PostgreSQL<br/><i>Estado transaccional<br/>y bitácora</i>")]
+    OBJ["<b>Almacén de objetos</b><br/>compatible con S3<br/><i>Evidencia de avance, remisiones,<br/>Excels importados, facturas</i>"]
 
     SPA -->|"HTTPS · JSON<br/>token de sesión"| API
     API -->|"SQL · transacciones<br/>con bloqueo de fila"| DB
-    API -->|"lee y escribe"| FS
+    API -->|"metadatos y permisos<br/><b>nunca los bytes</b>"| OBJ
+    SPA -->|"sube y lee directo<br/>con URL prefirmada"| OBJ
 
     style SPA fill:#2d5a3d,color:#fff
     style API fill:#1e3a5f,color:#fff
     style DB fill:#7a4a1e,color:#fff
+    style OBJ fill:#5a4a2d,color:#fff
 ```
 
 **Cuatro contenedores, ni uno más.** No hay cola de mensajes, no hay caché distribuida, no hay servicio de búsqueda. La importación de Excel, que es la única operación pesada, se ejecuta como trabajo en segundo plano **dentro del propio proceso del API**, con su estado persistido en base de datos. El umbral que obligaría a introducir una cola externa está documentado en [ADR-001](adr/20260918-monolito-modular.md).
+
+**La flecha que va del navegador al almacén de objetos sin pasar por el API no es un atajo: es la decisión.** El API emite una URL prefirmada y se aparta; los bytes nunca lo atraviesan. Si lo hicieran, cada descarga de un video retendría un hilo del grupo de FastAPI mientras dura —las rutas son `def` ([ADR-013](adr/20260919-sqlalchemy-sincrono.md))— y una galería de evidencia consultada desde obra competiría por hilos con la evaluación de `RN-03`. El razonamiento completo, en [ADR-016](adr/20261001-almacenamiento-de-objetos.md).
 
 ### Nivel 3 · Componentes del API
 
@@ -149,6 +153,7 @@ graph TB
     subgraph TRANS["Transversales"]
         ID["<b>identidad</b><br/>Usuarios, roles, permisos"]
         AU["<b>auditoría</b><br/>Bitácora de solo-anexado"]
+        AR["<b>archivos</b><br/>Adjuntos, evidencia,<br/>URL prefirmadas"]
     end
 
     subgraph NUC["Núcleo"]
@@ -193,6 +198,7 @@ Las dependencias forman un grafo dirigido acíclico. `presupuesto` es el núcleo
 |---|---|---|---|
 | **identidad** | Autenticación, roles y permisos | — | — |
 | **auditoría** | Bitácora inmutable de toda acción relevante | RN-04 | — |
+| **archivos** | Adjuntos y evidencia: alta, confirmación, anulación y emisión de URL prefirmadas. **No conoce a nadie**: la referencia al documento adjuntado es una pareja tipo + identificador, no una clave foránea | — | — |
 | **presupuesto** | Obra, jerarquía, conceptos, APU, línea base, explosión por partida, presupuesto de control, rendimiento observado | RN-01, RN-18, RN-19, RN-24, RN-25 | — |
 | **compras** | Requisición, evaluación presupuestal, solicitud de autorización, orden de compra | RN-02, RN-03, RN-04 | presupuesto |
 | **almacén** | Entrada contra remisión, saldo de recepción parcial, traspasos, mermas, inventario | RN-05, RN-06, RN-07, RN-08, RN-09 | compras, presupuesto |
@@ -357,6 +363,18 @@ Los requisitos están en el [PRD §9](01-descripcion-producto.md#9-requisitos-no
 
 La inmutabilidad de la línea base no descansa aquí, sino en el **disparador del invariante 14**, que rechaza `UPDATE` y `DELETE` sobre las copias congeladas venga de donde venga. El permiso protege lo que un disparador no puede proteger —`bitacora` e `intento_acceso`, donde el propio `INSERT` es el registro— y el disparador protege lo que el permiso no puede sin romper el bloqueo. Son dos mecanismos para dos problemas distintos, y confundirlos deja uno de los dos sin cubrir.
 
+### 7.7. Archivos y evidencia
+
+El contenedor de archivos del nivel 2 es un **almacén de objetos compatible con S3** y el API se mantiene fuera del camino de los bytes ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)). Tres consecuencias estructurales, que son las que afectan a cómo se escribe el resto del sistema:
+
+**El módulo `archivos` no conoce a ningún otro, y ninguno lo conoce a él por dentro.** Un adjunto referencia el documento al que pertenece con una pareja `referencia_tipo` + `referencia_id`, no con una clave foránea. Es el mismo recurso que `movimiento_inventario` ya usa para los movimientos que no cuelgan de una orden, y aquí es además lo que mantiene el grafo acíclico: una clave foránea de `archivos` hacia `avance`, `almacen`, `presupuesto` y `proveedores` lo convertiría en el módulo del que todos dependen.
+
+El precio está declarado: **la integridad referencial del adjunto no la da el motor**, la da el caso de uso que lo crea. Es el único sitio del esquema donde se acepta eso, y se acepta porque la alternativa —una tabla de adjuntos por cada módulo— multiplicaría por cinco la lógica de subida, validación y caducidad.
+
+**La escritura es en dos pasos y no es transaccional.** La fila nace `PENDIENTE` **antes que el objeto** —en la transacción que crea el documento, o en una posterior que adjunta sobre un documento ya guardado—, el objeto se sube después, y la confirmación verifica tamaño y hash antes de pasarla a `DISPONIBLE`. Las filas `PENDIENTE` caducadas se barren al arrancar, con el mismo mecanismo que las importaciones con el latido vencido (`RNF-17`).
+
+**La evidencia no viaja en la cola sin conexión.** El avance y la entrada de almacén se sincronizan sin esperar a sus archivos; la evidencia se adjunta después contra el documento ya sincronizado. Es la octava regla que ADR-016 añade a [ADR-015](adr/20260919-captura-diferida-sin-conexion.md), y su coste aceptado —un avance puede validarse antes de que llegue su evidencia— depende de que la evidencia **no** sea condición para validar, que es `PA-14` y está abierta.
+
 ---
 
 ## 8. Flujos clave
@@ -405,7 +423,7 @@ sequenceDiagram
 
 **La requisición bloqueada se persiste.** No se descarta: queda registrada en estado `BLOQUEADA` con su solicitud de autorización asociada. RN-03 dice *bloquear y solicitar autorización*, no *rechazar*. Descartarla perdería la trazabilidad de cuántas veces se intentó sobregirar una partida, que es justamente el dato que le falta a la dirección.
 
-**El `consumido` cuenta cada peso una sola vez a lo largo del ciclo del gasto.** Una requisición evaluada consume; al convertirse en orden deja de contar como requisición y pasa a contar como saldo pendiente; al recibirse el material deja de contar como saldo y pasa a contar como entrada. Sumar "órdenes + entradas" sin más contaría dos veces lo mismo, y omitir las requisiciones vivas dejaría pasar las dos peticiones concurrentes del escenario 9 de [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de-presupuesto), que es exactamente el fallo que este bloqueo existe para impedir. La fórmula está escrita una sola vez en el [modelo de datos §14](03-modelo-datos.md#14-la-consulta-del-semáforo) y la comparten la regla y el tablero.
+**El `consumido` cuenta cada peso una sola vez a lo largo del ciclo del gasto.** Una requisición evaluada consume; al convertirse en orden deja de contar como requisición y pasa a contar como saldo pendiente; al recibirse el material deja de contar como saldo y pasa a contar como entrada. Sumar "órdenes + entradas" sin más contaría dos veces lo mismo, y omitir las requisiciones vivas dejaría pasar las dos peticiones concurrentes del escenario 9 de [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de-presupuesto), que es exactamente el fallo que este bloqueo existe para impedir. La fórmula está escrita una sola vez en el [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo) y la comparten la regla y el tablero.
 
 ### 8.2. Recepción parcial — RN-06 y RN-07
 
@@ -518,8 +536,9 @@ No hace falta más: la fase de análisis no escribe en el modelo real, así que 
 | **Seguridad** | Quien no tiene el rol no ejecuta la operación, y quitarle el rol surte efecto de inmediato *(`RNF-01`…`RNF-09`)* | Sesión con estado en servidor · autoridad sobre la excepción en `dominio/` · privilegio mínimo en tres roles de base de datos · [§7.6](#76-seguridad-de-la-frontera) |
 | **Recuperabilidad** | Restaurar a un punto en el tiempo con ≤ 1 h de pérdida, ensayado cada trimestre *(`RNF-10`, `RNF-11`)* | Respaldo continuo de PostgreSQL · ensayo de restauración como puerta de despliegue |
 | **Operación sin conexión** | El residente y el almacén capturan en obra, donde no hay internet, y nada de lo que capturan se da por permitido sin pasar por el servidor *(`RNF-18`)* | Caché de lectura persistida y cola local acotada a `avance` y `entrada_almacen` · sincronización idempotente por los mismos casos de uso · [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) |
+| **Integridad de la evidencia** | Lo que la bitácora dice que se adjuntó es lo que se puede recuperar, y se puede demostrar *(`RNF-19`)* | Hash SHA-256 verificado al confirmar y asentado en la bitácora · adjunto que se anula, nunca se borra · respaldo del almacén de objetos independiente del de la base · [§7.7](#77-archivos-y-evidencia) |
 
-**Los dos últimos son nuevos y llegan tarde a propósito de nada.** Faltaban: esta tabla describía siete atributos y ninguno cubría qué pasa si alguien entra sin permiso o si el disco se pierde. Un sistema cuya propuesta de valor es *"la línea base es inmutable y la bitácora es irrefutable"* hace dos afirmaciones que dependen por completo de estos dos atributos.
+**Los tres últimos son añadidos y llegan tarde a propósito de nada.** Faltaban: esta tabla describía siete atributos y ninguno cubría qué pasa si alguien entra sin permiso, si el disco se pierde o si la foto que la bitácora dice que existe ya no está. Un sistema cuya propuesta de valor es *"la línea base es inmutable y la bitácora es irrefutable"* hace dos afirmaciones que dependen por completo de estos atributos.
 
 ---
 
@@ -554,5 +573,6 @@ Las decisiones que un desarrollador nuevo se preguntaría *"¿por qué lo hicier
 | [ADR-008](adr/20260918-despliegue-single-tenant.md) | Despliegue de un solo inquilino con `empresa_id` desde el día uno |
 | [ADR-014](adr/20260919-sesion-con-estado.md) | Sesión con estado en servidor, en lugar de credencial autocontenida |
 | [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | Captura diferida sin conexión, acotada a `avance` y `entrada_almacen` |
+| [ADR-016](adr/20261001-almacenamiento-de-objetos.md) | Almacenamiento de objetos compatible con S3, con el API fuera del camino de los bytes |
 
 Las decisiones de herramienta —framework, ORM, modo de ejecución— viven en el [stack tecnológico](06-stack-tecnologico.md) y en [ADR-009](adr/20260918-fastapi.md) … [ADR-013](adr/20260919-sqlalchemy-sincrono.md).

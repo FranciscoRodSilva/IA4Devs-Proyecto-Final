@@ -7,10 +7,10 @@ SaaS de control de costos de obra para una constructora de tablaroca que trabaja
 Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: el dominio tiene vocabulario propio que no significa lo que parece.
 
 1. [`docs/glosario.md`](docs/glosario.md) — *concepto*, *partida*, *APU*, *rendimiento*, *destajo*, *explosión de insumos*
-2. [`docs/01-descripcion-producto.md`](docs/01-descripcion-producto.md) — 25 reglas `RN-01`…`RN-25` y 18 requisitos no funcionales `RNF-01`…`RNF-18`
+2. [`docs/01-descripcion-producto.md`](docs/01-descripcion-producto.md) — 25 reglas `RN-01`…`RN-25` y 19 requisitos no funcionales `RNF-01`…`RNF-19`
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
-4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 22 invariantes
-5. [`docs/adr/`](docs/adr/) — 14 decisiones con su porqué
+4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 26 invariantes
+5. [`docs/adr/`](docs/adr/) — 16 decisiones con su porqué
 
 ## Reglas que ninguna implementación puede romper
 
@@ -18,7 +18,7 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 2. **`dominio/` no importa nada.** Ni FastAPI, ni SQLAlchemy, ni Pydantic. Las reglas reciben objetos de valor y devuelven resultados. `import-linter` falla el pipeline si se cruza.
 3. **Un módulo solo habla con otro por su interfaz de aplicación publicada.** Nunca por sus repositorios, modelos o tablas.
 4. **La línea base congelada es inmutable.** Se copia físicamente al congelar; un disparador rechaza `UPDATE` y `DELETE`.
-5. **Los límites bloquean, no advierten.** Una operación que excede lo presupuestado se detiene y exige autorización registrada. Nunca se deja pasar con un aviso. El `disponible` es `presupuestado − consumido`, y **`consumido = requisiciones vivas + comprometido + ejercido`** — definido una sola vez en [modelo de datos §14](docs/03-modelo-datos.md#14-la-consulta-del-semáforo) y compartido por la regla y el tablero. Una requisición `EVALUADA` **sí** consume: si no, dos requisiciones simultáneas pasan las dos.
+5. **Los límites bloquean, no advierten.** Una operación que excede lo presupuestado se detiene y exige autorización registrada. Nunca se deja pasar con un aviso. El `disponible` es `presupuestado − consumido`, y **`consumido = requisiciones vivas + comprometido + ejercido`** — definido una sola vez en [modelo de datos §15](docs/03-modelo-datos.md#15-la-consulta-del-semáforo) y compartido por la regla y el tablero. Una requisición `EVALUADA` **sí** consume: si no, dos requisiciones simultáneas pasan las dos.
 6. **Todo gasto lleva `obra_id`**, y toda requisición además `tipo_partida_id`. El control presupuestal es por **obra y tipo de partida**, no por ubicación.
 7. **El inventario es un libro mayor de solo-anexado.** No existe columna de existencia. Las correcciones son movimientos `AJUSTE`, nunca ediciones ni borrados.
 8. **La bitácora se escribe en la misma transacción que el cambio**, y no admite `UPDATE` ni `DELETE`.
@@ -28,6 +28,8 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 12. **El avance físico se divide entre el alcance, nunca entre lo ya medido.** El denominador es `alcance_destajo` —los m² contratados de todas las áreas por todas las etapas—, no `SUM(avance.m2_contrato)`, que es el índice de desviación de volumen y da siempre cerca del 100 %. Sin avance validado el porcentaje es `NULL`, no cero, o la desviación sale igual al ejercido.
 13. **Quien mide no fija el número contra el que se le mide.** El residente captura `m2_real`; `m2_contrato` se copia del alcance y solo el Director de Proyectos lo corrige, con motivo.
 14. **Ningún criterio de aceptación cubre solo el camino feliz.** Cada regla necesita su escenario de rechazo.
+15. **Los archivos no pasan por el API ni viven en PostgreSQL.** Almacén de objetos compatible con S3 (R2 en producción, MinIO en local y tests), con URL prefirmadas: el servidor firma y se aparta. Las rutas son `def`, así que servir un video retendría un hilo del grupo mientras dura. El tipo se lee **de los bytes**, nunca de la extensión ni de lo que declare el cliente, y `SVG` está prohibido. Un adjunto se anula con motivo, **nunca se borra** ([ADR-016](docs/adr/20261001-almacenamiento-de-objetos.md)).
+16. **La evidencia no condiciona ninguna regla y no viaja en la cola sin conexión.** El avance sincroniza sin esperar a sus fotos; estas suben después. Que una foto no sea condición para validar un avance es un **supuesto abierto** (`PA-14`): no lo conviertas en regla por tu cuenta.
 
 ## Stack
 
@@ -53,7 +55,7 @@ backend/cimenta/<modulo>/
 └── infraestructura/  Modelos SQLAlchemy, repositorios, adaptadores
 ```
 
-Módulos: `identidad`, `auditoria`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`.
+Módulos: `identidad`, `auditoria`, `archivos`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`.
 
 `presupuesto` es el núcleo y no depende de nadie. `analitica` depende de todos pero **solo lee**.
 
@@ -93,11 +95,13 @@ npm --prefix frontend run dev    # frontend
 
 ## Qué no hacer
 
-- **No uses SQLite en tests.** Probaría contra garantías distintas de las de producción, y 22 invariantes viven en esas garantías. Los tests construyen el esquema con `alembic upgrade head`, nunca con `create_all()`, y **se conectan con el rol de aplicación**: con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
+- **No uses SQLite en tests.** Probaría contra garantías distintas de las de producción, y 26 invariantes viven en esas garantías. Los tests construyen el esquema con `alembic upgrade head`, nunca con `create_all()`, y **se conectan con el rol de aplicación**: con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
 - **No escribas un esquema Zod que espeje un modelo de Pydantic.** Los tipos del cliente se generan del OpenAPI. Zod valida formularios, no respuestas.
 - **No uses `passlib`.** Es `pwdlib[argon2]`.
 - **No pongas reglas de negocio en controladores ni en modelos del ORM.** Van en `dominio/`.
 - **No añadas una columna de existencia de inventario.** Su ausencia es el diseño.
+- **No guardes archivos en el disco del servidor ni en una columna de PostgreSQL**, ni los sirvas a través de una ruta del API. Las tres opciones están descartadas con su porqué en [ADR-016](docs/adr/20261001-almacenamiento-de-objetos.md).
+- **No interpretes el XML del CFDI.** Se guarda, no se concilia. Conciliarlo contra la orden de compra son reglas de negocio que el PRD no tiene.
 - **No cierres una orden de compra con saldo pendiente.** El faltante se reprograma; la orden solo se cierra al entregarse completa.
 - **No inventes reglas de negocio.** Si algo no está en el PRD, pregunta. Lo que se asume se marca `(asumido)` y se escala.
 - **No amplíes el alcance de un ticket.** Cada uno declara sus *non-goals*; respétalos.

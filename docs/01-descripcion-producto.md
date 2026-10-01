@@ -148,7 +148,7 @@ Cortar cualquier eslabón rompe el tablero. Esta es la razón por la que el MVP 
 
 ## 6. Capacidades del producto
 
-Siete capacidades. Cada una lista sus funcionalidades y la evidencia que la justifica.
+Ocho capacidades. Cada una lista sus funcionalidades y la evidencia que la justifica. Las siete primeras controlan el costo; la octava —añadida el 2026-10-01— guarda la prueba documental de la que las otras dependían sin decirlo.
 
 ---
 
@@ -294,6 +294,26 @@ La nómina va en fila aparte porque no llega a partida: un trabajador de sueldo 
 
 ---
 
+### C8 · Expediente documental de la obra
+
+**Por qué.** Porque el sistema ya exige evidencia en varios sitios y hasta el 2026-10-01 no decía dónde guardarla. `F3.5` pide documentar una merma *"con motivo, responsable y evidencia"*, `F3.1` da entrada al material *"validando contra la remisión del proveedor"*, y `F4.3` hace que el Director de Proyectos valide una medición que no presenció. Las tres frases dan por hecho un archivo que ninguna capacidad guardaba.
+
+Esta capacidad no añade control de costo: **añade la prueba de lo que las demás afirman**. Una desviación de volumen de +1.95 m² en el departamento 212 es un número hasta que alguien puede ver la foto de la medición.
+
+**Funcionalidades**
+
+- **F8.1** Adjuntar **fotos y video** a una medición de avance, capturados con el teléfono en obra.
+- **F8.2** Adjuntar la **remisión del proveedor** a la entrada de almacén, que es el documento contra el que `F3.1` valida.
+- **F8.3** Conservar el **PDF y el XML** de cada factura de proveedor *(v1.1)*. **Se guardan, no se interpretan:** CIMENTA no lee el CFDI ni lo concilia contra la orden de compra.
+- **F8.4** Conservar los **documentos generales de la obra** —contrato, planos, permisos, actas— ligados a la obra y no a una transacción.
+- **F8.5** Consultar el **expediente de una obra**: todo lo adjuntado, con quién lo adjuntó, cuándo y a qué documento.
+
+> **Evidencia.** `F3.5`: *"Documentar mermas, desperdicios y robos con motivo, responsable y evidencia"* · `F3.1`: *"Remisión del proveedor"* · `F4.3`: *"Audita el residente SR y valida director de proyectos"* · Petición del cliente del 2026-10-01: evidencia fotográfica y de video del avance, y resguardo de PDF y XML de facturas.
+
+**La evidencia no es obligatoria para validar un avance** *(asumido, `PA-14`)*. Si lo fuera, la medición no podría sincronizarse sin sus fotos y la captura sin conexión de `RNF-18` dejaría de funcionar en obra, que es el único sitio donde hace falta. La decisión técnica está en [ADR-016](adr/20261001-almacenamiento-de-objetos.md).
+
+---
+
 ## 7. Alcance: MVP y evolución
 
 El cuestionario describe siete dominios de negocio completos. Implementarlos todos es construir un ERP, y no cabe en un proyecto final ni entrega valor incremental. El criterio de recorte es uno solo:
@@ -311,6 +331,7 @@ El cuestionario describe siete dominios de negocio completos. Implementarlos tod
 | **C5 Nómina** | F5.1 – F5.7. Completa: es costo directo mayoritario |
 | **C6 Proveedores** | F6.1 y F6.5. Catálogo mínimo y consulta de lo pedido por proveedor y obra. **Sin catálogo de proveedores no hay a quién emitir la orden de compra de F2.5** |
 | **C7 Tablero** | F7.1 – F7.3. Semáforo, desglose y alerta |
+| **C8 Expediente** | F8.1, F8.2, F8.4 y F8.5. Evidencia de avance, remisión y documentos de obra. **F8.3 —PDF y XML de factura— va con C6 a la v1.1**, porque la carga de facturas no existe antes |
 
 Con esto la dirección puede responder *"¿gano o pierdo en esta obra?"* con datos de hoy. Es el mínimo que justifica el producto.
 
@@ -319,6 +340,7 @@ Con esto la dirección puede responder *"¿gano o pierdo en esta obra?"* con dat
 Amplían el control pero no son necesarias para que el ciclo cierre:
 
 - **C6 restante** — facturas con corte semanal, anticipos y consignación con tope (F6.2 – F6.4). El catálogo de proveedores y la consulta por obra ya están en el MVP
+- **F8.3** — PDF y XML de la factura de proveedor, que viaja con F6.2 porque no hay factura que adjuntar antes. El almacén de archivos que lo recibe ya existe desde el MVP
 - **F1.6, F1.7** — versionado de línea base y trabajos extra
 - **F1.8** — rendimiento observado y su divergencia contra el congelado (`RN-24`). El MVP captura los datos que lo hacen calculable; el cálculo y su uso en proyecciones llegan aquí
 - **F3.4, F3.5** — traspasos entre obras y baja documentada de mermas
@@ -372,7 +394,7 @@ Estas son las reglas duras del negocio. Son la fuente de la que se derivan los c
 | **RN-24** | El consumo esperado de cada insumo se recalibra con la ejecución real. La línea base conserva el rendimiento congelado para medir desviación; la proyección de costo usa el rendimiento observado. Los dos coexisten y nunca se sobrescriben entre sí. | PA-06 |
 | **RN-25** | Cuando el IVA no es acreditable para una obra, forma parte del costo y permanece dentro del precio unitario. El tratamiento se configura **por obra**, no es una constante del sistema. | PA-05 |
 
-> **RN-03 · Qué es exactamente el "presupuesto disponible".** `disponible = presupuestado − consumido`, y las dos mitades tienen definición fija. **Presupuestado** es el importe tope capturado por Dirección para ese tipo de partida, y la cantidad presupuestada de cada insumo en la explosión. **Consumido** es todo el gasto ya asignado a ese tipo de partida, contado **una sola vez** a lo largo de su ciclo: la requisición evaluada o autorizada que todavía no se convirtió en orden, el saldo aún no recibido de las órdenes abiertas y parciales, el material ya recibido en almacén, y los pagos de destajo de las etapas de esa partida. La fórmula computable está en el [modelo de datos §14](03-modelo-datos.md#14-la-consulta-del-semáforo) y es la misma que usan el bloqueo y el tablero: si divergieran, el semáforo mostraría un disponible que la regla no respeta.
+> **RN-03 · Qué es exactamente el "presupuesto disponible".** `disponible = presupuestado − consumido`, y las dos mitades tienen definición fija. **Presupuestado** es el importe tope capturado por Dirección para ese tipo de partida, y la cantidad presupuestada de cada insumo en la explosión. **Consumido** es todo el gasto ya asignado a ese tipo de partida, contado **una sola vez** a lo largo de su ciclo: la requisición evaluada o autorizada que todavía no se convirtió en orden, el saldo aún no recibido de las órdenes abiertas y parciales, el material ya recibido en almacén, y los pagos de destajo de las etapas de esa partida. La fórmula computable está en el [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo) y es la misma que usan el bloqueo y el tablero: si divergieran, el semáforo mostraría un disponible que la regla no respeta.
 >
 > **Una requisición reserva presupuesto desde que se evalúa**, no desde que se emite la orden. Es lo que hace que de dos requisiciones simultáneas que juntas no caben, solo pase una. La reserva se libera al cancelar la requisición, **nunca por caducidad**: una requisición evaluada y olvidada retiene presupuesto hasta que alguien la cancele, y por eso Compras dispone de la consulta de requisiciones evaluadas sin convertir. Es una decisión consciente y su disparador de revisión está en §10.
 >
@@ -401,7 +423,7 @@ Se declaran **aquí** y no en el documento de stack por la misma razón que las 
 | **RNF-03** | Las contraseñas se guardan con una función de derivación **lenta y con parámetros declarados en configuración**, nunca con un hash de propósito general | Seis roles con capacidad de autorizar gasto. Una filtración de la tabla de usuarios no puede ser además una filtración de contraseñas |
 | **RNF-04** | Los intentos de acceso están **limitados por cuenta y por origen**, con bloqueo temporal y registro del intento | Sin límite, `RNF-03` protege la contraseña pero convierte el inicio de sesión en la operación más cara del servidor: cada intento cuesta memoria y tiempo deliberadamente |
 | **RNF-05** | Toda operación que **muta estado** exige prueba de que la intención viene de la aplicación, no de un sitio de terceros | Un usuario de Dirección General con sesión abierta puede autorizar un sobregiro con un clic. Esa es exactamente la operación que un tercero querría provocar |
-| **RNF-06** | Los archivos que sube el usuario se validan por **tipo, tamaño y nombre**, y se sirven siempre como descarga, nunca interpretados por el navegador | El sistema recibe dos flujos de archivos ajenos: el Excel de la línea base y la evidencia de mermas de `RN-09` |
+| **RNF-06** | Los archivos que sube el usuario se validan por **tipo real —leído de los bytes, no de la extensión ni de lo que declare el cliente—, tamaño y lista blanca**; se guardan con nombre generado por el sistema y se sirven **desde un origen distinto al de la aplicación**. Imagen y video pueden mostrarse en línea desde ese origen aislado; todo lo demás se sirve como descarga | El sistema recibe seis flujos de archivos ajenos (`C8`), y uno de ellos se **muestra**: una galería de evidencia que no se pudiera ver no sería evidencia. Servir contenido ajeno en el origen que tiene la cookie de sesión convierte un `.svg` subido como foto en ejecución de código con la sesión de quien mira |
 | **RNF-07** | Ningún secreto —clave de firma, credencial de base de datos— vive en el repositorio ni en la imagen | El repositorio es el entregable del proyecto y se comparte |
 | **RNF-08** | Una dependencia con vulnerabilidad conocida de severidad alta **falla el pipeline**, igual que un test roto | El código lo escriben agentes que añaden dependencias con facilidad. Sin puerta automática, nadie revisa el árbol |
 | **RNF-09** | La base de datos aplica **privilegio mínimo con tres roles**: migración, aplicación y solo-lectura | La inmutabilidad de la bitácora (invariante 10) ya depende de esto. El mismo mecanismo hace verificable que `analitica` solo lee |
@@ -437,7 +459,15 @@ Se declaran **aquí** y no en el documento de stack por la misma razón que las 
 
 > **`RNF-18` no autoriza a evaluar reglas en el cliente.** `RN-03` se evalúa con bloqueo de fila contra el estado del servidor; nada capturado sin conexión puede darse por permitido. Por eso solo dos flujos son diferibles —los que no consumen presupuesto— y el resto exige conexión. El detalle está en [ADR-015](adr/20260919-captura-diferida-sin-conexion.md).
 
-> **Ninguno de estos requisitos es exigente por sí mismo.** Son dieciocho líneas que describen la higiene mínima de una aplicación interna con seis roles que autorizan dinero. Están escritos porque lo que no se declara no se implementa, y porque el resto de esta especificación pone el listón lo bastante alto como para que improvisar aquí desentone.
+### Archivos y evidencia
+
+| ID | Requisito | Por qué no es opcional |
+|---|---|---|
+| **RNF-19** | Los archivos tienen **respaldo y retención propios**, independientes de los de la base de datos, y la bitácora conserva el **hash** de lo adjuntado, de modo que *"qué evidencia se adjuntó"* sea comprobable y no solo referenciable | El respaldo de `RNF-10` cubre la base. Si los archivos viven fuera y nadie los respalda, una restauración deja la bitácora apuntando a evidencia que ya no existe — y una bitácora que apunta a un identificador cuyo contenido nadie puede demostrar que no cambió es un índice, no una bitácora |
+
+> **`RNF-19` nace de `C8` y de [ADR-016](adr/20261001-almacenamiento-de-objetos.md).** Antes del 2026-10-01 los archivos eran dos y ocasionales; con la evidencia de avance pasan a ser el volumen dominante del sistema, y lo que no se declara no se respalda.
+
+> **Ninguno de estos requisitos es exigente por sí mismo.** Son diecinueve líneas que describen la higiene mínima de una aplicación interna con seis roles que autorizan dinero. Están escritos porque lo que no se declara no se implementa, y porque el resto de esta especificación pone el listón lo bastante alto como para que improvisar aquí desentone.
 
 ---
 
@@ -468,11 +498,13 @@ Todo lo marcado **(asumido)** en este documento está aquí. La regla es la del 
 
 ### Preguntas abiertas
 
-**Una, y no bloquea la implementación.** Las doce anteriores están resueltas. La que sigue abierta nació en la revisión del stack del 2026-09-19, al declarar los requisitos no funcionales, y su respuesta no cambia una línea de código: cambia qué se contrata.
+**Tres, y ninguna bloquea la implementación.** Las doce de la especificación funcional están resueltas. De las tres abiertas, la primera nació en la revisión del stack del 2026-09-19, al declarar los requisitos no funcionales; las dos siguientes, en la revisión documental del **2026-10-01** que añadió la capacidad `C8`.
 
 | ID | Pregunta | Por qué hay que preguntarla | Cuándo hace falta la respuesta |
 |---|---|---|---|
 | **PA-12** | Si se pierde la base de datos, **¿cuánta captura es aceptable rehacer, y cuánto tiempo puede estar el sistema caído mientras se restaura?** | `RNF-10` propone 1 hora de pérdida máxima y 8 horas de restauración. Es **mi propuesta, no un dato del cliente**: sale de que la operación es semanal, no de que nadie lo haya pedido. Los dos números fijan el precio de la base de datos gestionada, y la diferencia entre una hora y un día de pérdida no es un matiz técnico — es cuántas requisiciones, entradas y jornadas habría que volver a capturar a mano | **Antes de contratar la infraestructura**, que es TKT-058 en el sprint 7. No antes: hasta entonces no hay nada que perder |
+| **PA-14** | **¿Un avance se puede validar sin evidencia fotográfica, o la foto es condición para validar?** | Si la evidencia fuera obligatoria, la medición no podría sincronizarse sin sus fotos y la captura sin conexión de `RNF-18` dejaría de servir justo donde hace falta: en obra, sin señal. Hoy se asume **que no es obligatoria** y la octava regla de [ADR-016](adr/20261001-almacenamiento-de-objetos.md) depende de ese supuesto. Si la respuesta fuera *"sí es obligatoria"*, nace una regla de negocio nueva y hay que reabrir la frontera de [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | **Antes de descomponer el bloque de evidencia** del backlog. Decide si nace una regla de negocio nueva o si no hay ninguna |
+| **PA-15** | **¿Cuánto video hace falta de verdad, y cuánto tiempo hay que conservarlo?** | La estimación de volumen —3-4 GB al mes en fotos, cinco a diez veces eso con video— es **mía, no del cliente**, y sale de contar áreas en los catálogos reales. Fija el límite de tamaño por archivo, la resolución a la que se guarda y la política de ciclo de vida del bucket. Una obra entregada hace tres años con su video íntegro es almacenamiento que nadie consulta y que se paga todos los meses | **Antes de fijar los límites de `RNF-06`** en implementación. Mientras tanto se asume 30 segundos y 50 MB por video |
 
 **Cómo preguntarla.** No en términos de RPO y RTO, que no significan nada fuera de este documento. En términos de la operación: *"si el sistema se cae un jueves por la tarde, con el corte de proveedores a medias, ¿es aceptable rehacer la captura de esa mañana? ¿y la de toda la semana?"*. La respuesta a esa pregunta **es** el objetivo de recuperación, y se traduce después.
 
@@ -499,6 +531,8 @@ No son preguntas abiertas —están decididas— pero llevan una condición que 
 - El sistema es multi-obra desde el día uno: hay al menos dos obras simultáneas (Union Square y ENITI).
 - Los códigos de concepto (`620001`…) se reutilizan entre obras, pero el precio unitario es específico de cada obra.
 - Los importes se manejan en pesos mexicanos, sin multi-moneda.
+- **La evidencia documental de `C8` no condiciona ninguna regla de negocio.** Ni la foto valida un avance, ni la remisión valida una entrada, ni el XML concilia una factura. Se guarda, se consulta y se prueba su integridad; nada más. Elevarla a condición es lo que pregunta `PA-14`, y sería una regla nueva, no un detalle de implementación.
+- **Los límites de archivo asumidos son 15 MB por imagen, 50 MB y 30 segundos por video, y 25 MB por documento.** Salen de lo que produce un teléfono actual, no de una exigencia del cliente (`PA-15`).
 - **Los objetivos de recuperación de `RNF-10` —1 hora de pérdida máxima, 8 horas de restauración— son una propuesta, no una exigencia del cliente.** Salen de que la operación es semanal: perder la captura de una mañana obliga a recapturar requisiciones y entradas de un día, lo que es molesto y hacedero. Están planteados a Dirección General como **PA-12** y siguen abiertos.
 
 ---

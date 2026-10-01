@@ -103,7 +103,7 @@ Solicitud interna de material para una obra, previa a la orden de compra. Es el 
 Documento en firme emitido al proveedor. Nace de una requisición autorizada.
 
 ### Remisión
-Documento que el proveedor entrega junto con el material físico. **Es el documento contra el que se valida la entrada a almacén**, no la orden de compra.
+Documento que el proveedor entrega junto con el material físico. **Es el documento contra el que se valida la entrada a almacén**, no la orden de compra. Su foto o PDF se conserva como **adjunto** de la entrada (`F8.2`).
 
 ### Recepción parcial
 Entrega de una fracción de lo pedido. Ejemplo: se compraron 100 bultos y llegaron 50. El saldo pendiente queda abierto y la orden permanece en estado `PARCIAL`. Hoy no existe control formal de esto.
@@ -186,6 +186,24 @@ Depósito hecho a una sola persona que cubre el salario de varios trabajadores, 
 
 ### Descuento contra destajo
 Importe ajeno a la nómina que se resta del pago de destajo de una cuadrilla. Casos reales: `PISTOLA $2,756.16`, `SEGURO COCHE $4,400`, `DESCUENTO $3,000`.
+
+---
+
+## Evidencia y archivos
+
+### Adjunto
+Archivo que acompaña a un documento del sistema y lo respalda: la foto de una medición, la remisión de una entrada, el PDF de una factura. **Un adjunto no cambia ninguna cifra ni condiciona ninguna regla**: prueba lo que otro registro afirma. En el esquema es la tabla `archivo` ([modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos)).
+
+### Evidencia
+Adjunto cuya razón de ser es **demostrar que algo ocurrió como se registró**: las fotos del avance medido, la foto de la merma. Se distingue del resto de adjuntos —un contrato, un plano— en que respalda un hecho capturado por una persona, y por eso lleva siempre autor, fecha y hash.
+
+> **Cuidado con el falso amigo.** En el [PRD](01-descripcion-producto.md) y en las [historias](04-historias-usuario.md), *"evidencia"* aparece además con otro sentido: **la cita del cliente que justifica una funcionalidad o una relación entre historias**. Ese uso es de la especificación, no del dominio. En el código, `evidencia` es siempre un archivo.
+
+### Expediente de obra
+El conjunto de todos los adjuntos de una obra, consultable como una sola vista (`F8.5`). Es lo que `archivo.obra_id` existe para hacer posible.
+
+### Anulación de un adjunto
+Marca que retira un adjunto equivocado **sin borrarlo**, con autor y motivo. Es el equivalente documental del movimiento `AJUSTE` del inventario: en un sistema cuyo valor es la trazabilidad, poder borrar la foto de una merma es poder borrar justo lo que alguien querría que desapareciera.
 
 ---
 

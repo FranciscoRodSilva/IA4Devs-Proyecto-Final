@@ -53,15 +53,17 @@ graph TB
     end
 
     DB[("<b>PostgreSQL</b><br/>Alembic · NUMERIC<br/>FOR UPDATE · CHECK")]
-    FS["<b>Archivos</b><br/>Excel importados<br/>evidencia de mermas"]
+    FS["<b>Almacén de objetos</b><br/>S3 · boto3<br/>R2 en producción<br/>MinIO en local y tests"]
 
     FE -->|"HTTPS · JSON<br/>importes como cadena"| API
     API -->|"SQLAlchemy 2.0"| DB
-    API --> FS
+    API -->|"firma URL<br/>sin tocar los bytes"| FS
+    FE -->|"sube y lee directo"| FS
 
     style FE fill:#2d5a3d,color:#fff
     style API fill:#1e3a5f,color:#fff
     style DB fill:#7a4a1e,color:#fff
+    style FS fill:#5a4a2d,color:#fff
 ```
 
 | Capa | Elección |
@@ -73,6 +75,8 @@ graph TB
 | **Migraciones** | Alembic |
 | **Base de datos** | PostgreSQL |
 | **Lectura de Excel** | openpyxl |
+| **Almacén de archivos** | Objetos compatibles con S3 vía `boto3` — Cloudflare R2 en producción, MinIO en local y tests |
+| **Tipo real de archivo** | `puremagic` sobre los bytes, nunca la extensión · `defusedxml` y apertura del ZIP para lo que no tiene firma legible |
 | **Contraseñas y sesión** | pwdlib con Argon2id · sesión con estado en tabla |
 | **Configuración y secretos** | pydantic-settings, desde el entorno |
 | **Lenguaje frontend** | TypeScript |
@@ -200,6 +204,24 @@ En modo `read_only=True` el consumo de memoria es acotado incluso con el archivo
 
 > **Alternativa si el rendimiento apremia:** `python-calamine` es sensiblemente más rápido por estar escrito en Rust, pero habría que comprobar que expone los errores de fórmula con el mismo detalle. No se adopta ahora porque la importación es una operación excepcional, no una de cada día, y porque openpyxl ya está probado contra los datos reales.
 
+### 4.6. Los archivos no viven en PostgreSQL
+
+**Almacenamiento de objetos compatible con S3, accedido con `boto3`.** Un solo adaptador y dos destinos: **MinIO** en desarrollo y en las pruebas de integración, **Cloudflare R2** en producción. El razonamiento completo está en [ADR-016](adr/20261001-almacenamiento-de-objetos.md); aquí van las consecuencias de herramienta.
+
+**Por qué `boto3` y no un cliente del proveedor.** Porque el API de S3 es lo que hace la decisión reversible: cambiar de destino es cambiar `endpoint_url`. Un SDK propietario ataría el código a quien se contrate hoy. Cuenta además el criterio **C3** —`boto3` es probablemente la librería de Python con más ejemplos públicos después de `requests`, y eso importa cuando buena parte del código lo escriben agentes.
+
+**Por qué el API no sirve los bytes.** Las rutas son `def` y corren en el grupo de hilos de FastAPI ([ADR-013](adr/20260919-sqlalchemy-sincrono.md)). Servir un video de 200 MB a un teléfono con cobertura de obra retendría un hilo de ese grupo durante minutos, y el síntoma sería una aplicación lenta sin un solo error en el registro. Con URL prefirmadas el problema no se mitiga: no existe.
+
+**El tipo se lee de los bytes, con `puremagic`.** No de la extensión ni del `Content-Type` que declare el cliente, que son dos cosas que escribe quien sube. La lista blanca es cerrada —JPEG, PNG, HEIC, WebP, MP4, PDF, XML y los dos formatos de hoja de cálculo— y **SVG queda fuera**: no es una imagen, es un documento con capacidad de ejecutar código, y un `.svg` servido en línea con la sesión del usuario delante es ejecución de código ajeno.
+
+> **Se elige `puremagic` y no `python-magic` por una razón de entorno, no de calidad.** `python-magic` es una envoltura sobre `libmagic`, una biblioteca nativa que en Linux viene con el sistema y **en Windows hay que instalar aparte, con un paquete distinto**. El desarrollo ocurre en Windows y el pipeline en Linux: una dependencia que se instala diferente en cada uno es un *"en mi máquina funciona"* esperando a ocurrir. `puremagic` es Python puro, no tiene binario detrás y reconoce de sobra la lista blanca de arriba.
+
+**Dos de la lista no tienen firma que leer, y eso cambia el código.** Un `.xlsx` es un ZIP —indistinguible de cualquier otro ZIP— y un `.xml` es texto sin firma ninguna. Para esos dos la comprobación es **estructural y no mágica**: abrir el ZIP y exigir la parte de libro de Excel en su `[Content_Types].xml`, y parsear el XML hasta la raíz con `defusedxml`. Si no abre, no entra.
+
+Importa más de lo que parece: el ZIP que pasa esa puerta es el que openpyxl va a abrir después, y un archivo construido a propósito es la vía más barata de agotar la memoria de un despliegue que es un solo proceso.
+
+> **La compresión de imagen ocurre en el cliente, antes de subir.** Una foto de teléfono actual son 3-8 MB y nada de lo que el sistema hace con ella necesita esa resolución. Comprimir en el navegador con `canvas` baja la subida a cientos de kilobytes sobre una conexión de obra y evita traer una dependencia de procesamiento de imagen al backend — que tendría que correr en el mismo proceso, con el mismo problema de hilos.
+
 ---
 
 ## 5. Frontend
@@ -217,6 +239,7 @@ En modo `read_only=True` el consumo de memoria es acotado incluso con el archivo
 | **Formularios** | React Hook Form + Zod | Validación de forma en el cliente para que el usuario no espere a un viaje de red. La validación autoritativa es siempre la del servidor |
 | **Cliente de API** | `openapi-typescript` + `openapi-fetch` | Tipos generados del OpenAPI que FastAPI ya publica. Ver [§5.4](#54-el-contrato-de-api-no-se-replica-a-mano) |
 | **Decimal** | decimal.js | Los importes llegan como cadena por el contrato de error; convertirlos con `Number` los degradaría |
+| **Subida de archivos** | `<input type="file" capture>` · compresión y **normalización a JPEG** con `canvas` antes de subir · subida directa a la URL prefirmada | La cámara del teléfono se abre desde el navegador, sin aplicación nativa. Comprimir antes baja una foto de 4 MB a cientos de kilobytes sobre una conexión de obra, y los bytes no pasan por el API. Normalizar a JPEG resuelve el **HEIC del iPhone**, que Chrome y Firefox no saben mostrar — [ADR-016](adr/20261001-almacenamiento-de-objetos.md) |
 | **Sin conexión** | `vite-plugin-pwa` (Workbox) · `@tanstack/query-persist-client` · `idb` | En obra no hay internet (`RNF-18`). El service worker sirve el paquete, la caché persistida da la lectura y la cola en IndexedDB guarda lo capturado hasta que haya señal — [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) |
 
 ### 5.2. Sin renderizado en servidor
@@ -272,9 +295,18 @@ Esto es lo que descarta el JWT y también la cookie firmada sin estado, que es e
 
 ### 6.3. Archivos y secretos
 
-**Los archivos que sube el usuario** —el Excel de la línea base y la evidencia de mermas de `RN-09`— se validan por extensión y tipo declarado, se limitan en tamaño, se guardan con un nombre generado por el sistema y **nunca con el del usuario**, y se sirven con `Content-Disposition: attachment`. El nombre original se conserva como dato, no como ruta.
+**Los archivos que sube el usuario** son seis flujos desde que existe la capacidad `C8`: el Excel de la línea base, la evidencia de mermas de `RN-09`, las fotos y el video del avance, la remisión del proveedor, el PDF con el XML de la factura y los documentos generales de la obra. Los seis entran por la misma puerta, y `RNF-06` la define:
+
+- **El tipo se determina leyendo los bytes**, con `puremagic`, contra una lista blanca cerrada; XML y hoja de cálculo, que no tienen firma legible, se comprueban abriéndolos ([§4.6](#46-los-archivos-no-viven-en-postgresql)). Ni la extensión ni el `Content-Type` declarado cuentan: los escribe quien sube.
+- **El nombre lo genera el sistema.** El original se conserva como dato que se muestra, **nunca como ruta**.
+- **El tamaño se limita por tipo** — 15 MB por imagen, 50 MB por video, 25 MB por documento *(asumido, `PA-15`)*.
+- **Se sirven desde un origen distinto al de la aplicación**, que es el que lleva la cookie de sesión. Desde ese origen aislado, imagen y video se muestran en línea; todo lo demás va con `Content-Disposition: attachment`.
+
+> **`RNF-06` decía antes "siempre como descarga" y era incompatible con la evidencia.** Una galería de fotos de avance que no se puede ver no es evidencia. Lo que hacía peligroso mostrarla no era mostrarla: era hacerlo desde el origen de la SPA. Separar el origen permite las dos cosas, y es la razón por la que `img-src` y `media-src` de la política de contenido admiten el dominio del almacén de objetos y ningún otro. Detalle en [ADR-016](adr/20261001-almacenamiento-de-objetos.md).
 
 openpyxl parsea un ZIP que viene de fuera. En modo `read_only` el consumo es acotado, pero el límite de tamaño es lo que impide que un archivo construido a propósito agote la memoria del proceso — que, siendo un despliegue único, es el proceso entero.
+
+**Un archivo subido no se borra: se anula**, con autor y motivo, y el objeto permanece. Es el principio del libro mayor aplicado a la evidencia, y `RNF-19` lo complementa exigiendo que el **hash** de lo adjuntado quede asentado en la bitácora: sin él, *"se adjuntó esta foto"* es una referencia, no una prueba.
 
 **Los secretos se leen del entorno** con `pydantic-settings`, que además valida que estén presentes al arrancar. Un despliegue al que le falta la credencial de base de datos o la semilla del token CSRF tiene que **no arrancar**, no arrancar con un valor por omisión. En el repositorio vive `.env.example` con las claves y sin los valores.
 
@@ -292,7 +324,7 @@ El rol de solo lectura cierra el hueco que `import-linter` no puede cubrir. La h
 
 ### 6.6. Qué se comprueba solo
 
-La tabla cubre los **dieciocho** requisitos no funcionales, no solo los de seguridad: vive aquí porque es en esta sección donde la pregunta *"¿y quién comprueba que esto se cumple?"* no tenía respuesta.
+La tabla cubre los **diecinueve** requisitos no funcionales, no solo los de seguridad: vive aquí porque es en esta sección donde la pregunta *"¿y quién comprueba que esto se cumple?"* no tenía respuesta.
 
 | Requisito | Cómo se verifica | ¿Falla el pipeline? |
 |---|---|---|
@@ -301,7 +333,7 @@ La tabla cubre los **dieciocho** requisitos no funcionales, no solo los de segur
 | `RNF-03` derivación lenta | Prueba: el hash almacenado empieza por `$argon2id$` y no es el texto original | ✅ |
 | `RNF-04` límite de intentos | Prueba: `N+1` intentos fallidos y el siguiente responde bloqueado, con asiento en `intento_acceso` | ✅ |
 | `RNF-05` CSRF | Prueba: petición que muta estado sin token, rechazada | ✅ |
-| `RNF-06` archivos | Prueba: tipo no permitido y tamaño excedido, ambos rechazados | ✅ |
+| `RNF-06` archivos | Pruebas: un `.svg` renombrado a `.jpg` se rechaza por su tipo **real**; un tamaño excedido se rechaza; la URL de lectura caduca; la respuesta de un PDF lleva `Content-Disposition: attachment` | ✅ |
 | `RNF-07` secretos | La aplicación no arranca sin las variables obligatorias · escaneo de secretos del repositorio | ✅ |
 | `RNF-08` dependencias | `pip-audit` y `npm audit` en CI | ✅ |
 | `RNF-09` privilegio mínimo | Prueba: `UPDATE` sobre `bitacora` con el rol de aplicación falla a nivel de motor | ✅ |
@@ -314,8 +346,9 @@ La tabla cubre los **dieciocho** requisitos no funcionales, no solo los de segur
 | `RNF-16` sin esperas indefinidas | Prueba: una transacción retiene el bloqueo, la segunda vence y responde con el contrato de error | ✅ |
 | `RNF-17` trabajo interrumpido | Prueba: importación con latido vencido, barrida a `CON_ERRORES` | ✅ |
 | `RNF-18` captura sin conexión | Prueba: se encola una captura sin red, se sincroniza y **no se duplica** al reenviarla; otra prueba encola una entrada que excede lo ordenado y verifica que vuelve con el contrato de error de `RN-07`, no aceptada | ✅ |
+| `RNF-19` integridad de la evidencia | Prueba: un objeto cuyo hash no coincide con lo declarado **no pasa** a `DISPONIBLE`; el hash del adjunto confirmado aparece en el asiento de bitácora. **El respaldo del almacén de objetos, no**: es procedimiento, igual que `RNF-10` | ✅ parcial |
 
-**Catorce de dieciocho, automáticas.** Las cuatro que faltan dependen de un entorno que todavía no existe o de un servicio externo, y son las que TKT-058 convierte en procedimiento con fecha.
+**Quince de diecinueve, automáticas.** Las cuatro que faltan dependen de un entorno que todavía no existe o de un servicio externo, y son las que TKT-058 convierte en procedimiento con fecha. `RNF-19` cuenta entre las automáticas por su mitad verificable —la integridad del adjunto—; su otra mitad, el respaldo del bucket, viaja con `RNF-10`.
 
 Es la aplicación del criterio **C5** a una capa que hasta ahora no tenía ninguna verificación: una regla de seguridad que solo vive en un documento se erosiona igual que cualquier otra, y además en silencio.
 
@@ -333,6 +366,8 @@ Es la aplicación del criterio **C5** a una capa que hasta ahora no tenía ningu
 | **API** | pytest + cliente de FastAPI | Contrato de error, códigos de estado, forma de la respuesta |
 | **Seguridad** | pytest + cliente de FastAPI | Los nueve requisitos verificables de [§6.6](#66-qué-se-comprueba-solo). Se conectan con el **rol de aplicación**, no con el propietario |
 | **Rendimiento** | pytest con volumen sembrado | `RNF-15`: el semáforo bajo ~4,900 conceptos responde en menos de 2 s. Falla el pipeline si se pasa |
+
+**testcontainers levanta también MinIO**, por la misma razón por la que levanta PostgreSQL: un doble de prueba del almacén de objetos no verifica que la URL prefirmada se firme bien, que caduque, ni que el objeto subido tenga el hash que se declaró. Y como MinIO habla el API de S3, lo que pasa en el test es lo que pasará contra R2.
 
 **testcontainers levanta PostgreSQL en Docker para la sesión de tests.** [ADR-002](adr/20260918-postgresql.md) prohíbe expresamente usar SQLite para "ir más rápido": probaría contra garantías distintas de las de producción. SQLite no tiene `SELECT … FOR UPDATE`, ni decimal exacto, ni restricciones diferidas, ni roles con permisos — y los invariantes 7, 10, 17, 20 y 21 viven exactamente ahí, además de todo el control de concurrencia y toda la aritmética de dinero.
 
@@ -428,7 +463,9 @@ Los tres entran en el pipeline de calidad documental de TKT-009. El de Mermaid s
 
 ### Local
 
-**Docker Compose** con un servicio: PostgreSQL, con volumen persistente. El backend y el frontend corren en el anfitrión con uv y Vite. Meter la aplicación en un contenedor durante el desarrollo añadiría un ciclo de reconstrucción sin ganar nada a esta escala.
+**Docker Compose** con dos servicios: PostgreSQL y **MinIO**, ambos con volumen persistente. El backend y el frontend corren en el anfitrión con uv y Vite. Meter la aplicación en un contenedor durante el desarrollo añadiría un ciclo de reconstrucción sin ganar nada a esta escala.
+
+MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el que corre producción, con otro `endpoint_url`. Desarrollar contra un disco local y desplegar contra objetos habría dejado sin probar justo lo que falla —firmas, caducidad, cabeceras de respuesta.
 
 ### Integración continua
 
@@ -440,7 +477,10 @@ Los tres entran en el pipeline de calidad documental de TKT-009. El de Mermaid s
 
 El destino concreto —VPS con Compose, o una plataforma gestionada— se decide en entregas posteriores: la Entrega 1 es documentación y no hay nada que desplegar todavía. Lo que sí queda fijado es la forma del artefacto, porque condiciona cómo se construye.
 
-**Una restricción que el destino tiene que cumplir**, y por eso se declara ya: PostgreSQL gestionado **con recuperación a un punto en el tiempo** (`RNF-10`). Es el criterio que descarta un contenedor de PostgreSQL sobre un volumen de VPS sin más, que es la opción por omisión cuando nadie lo ha pensado.
+**Dos restricciones que el destino tiene que cumplir**, y por eso se declaran ya:
+
+- PostgreSQL gestionado **con recuperación a un punto en el tiempo** (`RNF-10`). Es el criterio que descarta un contenedor de PostgreSQL sobre un volumen de VPS sin más, que es la opción por omisión cuando nadie lo ha pensado.
+- Un **bucket de objetos con versionado y ciclo de vida** (`RNF-19`). Es lo que hace que la imagen del backend siga sin estado: si los archivos acabaran en un volumen junto al contenedor, el artefacto deja de ser recreable y [ADR-008](adr/20260918-despliegue-single-tenant.md) se rompe por la puerta de atrás.
 
 ### Respaldo y recuperación
 
@@ -448,8 +488,9 @@ El destino concreto —VPS con Compose, o una plataforma gestionada— se decide
 |---|---|
 | **Mecanismo** | Recuperación a un punto en el tiempo del PostgreSQL gestionado, más un volcado lógico diario retenido aparte |
 | **Objetivos** | ≤ 1 h de pérdida, ≤ 8 h de restauración **(asumido, `RNF-10`)**. Planteados a Dirección General como **PA-12**, sin responder todavía: fijan el precio de la base gestionada, así que la respuesta tiene que llegar antes de contratarla |
-| **Los archivos también** | El Excel importado y la evidencia de mermas viven fuera de la base de datos. Un respaldo que solo cubre la base deja la bitácora apuntando a evidencia que ya no existe |
-| **Ensayo** | Trimestral, sobre un entorno limpio, con el tiempo medido y anotado (`RNF-11`) |
+| **Los archivos también** (`RNF-19`) | Viven fuera de la base y ahora son el volumen dominante del sistema. **Versionado de objetos activado** en el bucket —que es lo que convierte un borrado propagado en algo reversible— y **política de ciclo de vida** declarada. Un respaldo que solo cubre la base deja la bitácora apuntando a evidencia que ya no existe |
+| **Y se puede comprobar que son los mismos** | El hash SHA-256 asentado en la bitácora permite verificar, tras una restauración, que el objeto recuperado es el que se adjuntó. Un respaldo de archivos sin esa comprobación restaura bytes, no evidencia |
+| **Ensayo** | Trimestral, sobre un entorno limpio, con el tiempo medido y anotado (`RNF-11`). **El ensayo incluye archivos**: restaurar la base y no los objetos deja el sistema coherente y vacío de pruebas |
 
 > **El volcado lógico aparte no es redundancia por gusto.** La recuperación a un punto en el tiempo del proveedor protege del fallo de disco; no protege de que la cuenta del proveedor se pierda, ni de un borrado propagado. Son dos fallos distintos y el segundo es el que deja sin línea base a un sistema cuyo valor entero es tener una.
 
@@ -476,7 +517,7 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Contrato de error ([ADR-007](adr/20260918-contrato-error-negocio.md)) | Manejador global de excepciones de FastAPI | ✅ test de forma de respuesta |
 | Libro mayor de inventario ([ADR-005](adr/20260918-ledger-inventario.md)) | Sin columna de existencia en el esquema | ✅ el esquema no la tiene |
 | Línea base inmutable ([ADR-006](adr/20260918-snapshot-linea-base.md)) | Disparador en migración de Alembic | ✅ test que intenta el `UPDATE` y espera el fallo |
-| 22 invariantes en base de datos | Restricciones y permisos declarados en migraciones | ✅ tests contra PostgreSQL real, con el rol de aplicación |
+| 26 invariantes en base de datos | Restricciones y permisos declarados en migraciones | ✅ tests contra PostgreSQL real, con el rol de aplicación |
 | Importación tolerante a archivos rotos | openpyxl con `data_only=True` | ✅ test contra el archivo real con `#REF!` |
 | Un despliegue ([ADR-008](adr/20260918-despliegue-single-tenant.md)) | Una imagen con backend y estáticos | — |
 | Todo escenario tiene test | Convención de nombres + verificador propio | ✅ falla el pipeline |
@@ -487,8 +528,9 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Seguridad de la frontera (`RNF-01`…`RNF-09`) | pwdlib · sesión en tabla · CSRF · slowapi · cabeceras · pip-audit | ✅ nueve de nueve, [§6.6](#66-qué-se-comprueba-solo) |
 | Recuperabilidad (`RNF-10`, `RNF-11`) | PostgreSQL gestionado con recuperación a punto en el tiempo | ❌ ensayo trimestral con testigo |
 | Captura sin conexión ([ADR-015](adr/20260919-captura-diferida-sin-conexion.md)) | Service worker · caché persistida · cola en IndexedDB · sincronización idempotente por los mismos casos de uso | ✅ test de encolado, sincronización, no duplicación y rechazo por regla |
+| Archivos fuera de la base ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)) | `boto3` sobre S3 · URL prefirmadas · MinIO en testcontainers · tipo leído de los bytes | ✅ test de firma, caducidad, tipo falsificado y hash que no coincide |
 
-**Dieciocho decisiones, dieciséis verificables automáticamente.** Es la aplicación del criterio C5: una regla de diseño que solo vive en un documento se erosiona.
+**Diecinueve decisiones, diecisiete verificables automáticamente.** Es la aplicación del criterio C5: una regla de diseño que solo vive en un documento se erosiona.
 
 Las dos que no se verifican solas son las dos que dependen de un entorno que todavía no existe. Cuando exista, `RNF-11` convierte la primera en un procedimiento con fecha; la segunda —un despliegue único— no es verificable porque no es una restricción, es una renuncia.
 
@@ -515,6 +557,10 @@ Las dos que no se verifican solas son las dos que dependen de un entorno que tod
 | **pandas para leer Excel** | Trae NumPy y convierte a flotante por omisión, que es exactamente lo que no puede pasar con importes. openpyxl devuelve `Decimal` o cadena |
 | **Poetry** | uv lo cubre y además reemplaza pip, pip-tools y la gestión de entornos, del mismo equipo que Ruff |
 | **Aplicación nativa o híbrida** para la captura en obra | Daría más capacidad sin conexión, a cambio de una segunda cadena de compilación, un segundo artefacto y distribución en dos tiendas. Contra el criterio **C4**: hay un desarrollador. La aplicación web instalable cubre el caso real — [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) |
+| **Archivos en el sistema de ficheros del servidor** | Rompe el artefacto sin estado de [ADR-008](adr/20260918-despliegue-single-tenant.md), deja el respaldo de `RNF-10` por construir entero, y mete los bytes en el grupo de hilos de [ADR-013](adr/20260919-sqlalchemy-sincrono.md): cada descarga de un video retendría un hilo mientras dura, con una aplicación lenta y ningún error en el registro como único síntoma |
+| **Los bytes dentro de PostgreSQL** (`BYTEA` u objeto grande) | Sería transaccional, que es una ventaja real y por eso se nombra. Se descarta por el precio: decenas de gigabytes al año pasando por el WAL, la replicación y cada volcado lógico encarecen la recuperación a punto en el tiempo que `RNF-10` exige, y compiten por el motor del que `RNF-15` pide respuesta en menos de dos segundos. Con video es inviable |
+| **MinIO autoalojado en producción** | Idéntico en código a lo elegido —el mismo `boto3`, el mismo API— y descartado solo por el criterio **C4**: un contenedor con estado más que actualizar, vigilar y respaldar, operado por quien escribe las reglas de negocio. Se queda como destino de desarrollo y pruebas, y como la salida si la nube pública resultara inaceptable |
+| **Un SDK propietario del proveedor de objetos** | Ataría el código a quien se contrate hoy. Con `boto3` sobre el API de S3, cambiar de proveedor es cambiar `endpoint_url` |
 | **Local-first con fusión automática** (CRDT, ElectricSQL) | Resuelve conflictos de **datos** concurrentes; aquí los conflictos son de **regla de negocio** —una entrada que excede lo ordenado, una medición duplicada— y ninguna estructura de datos sabe decidirlos. Fusionar produciría un estado consistente y equivocado |
 
 ---
@@ -530,3 +576,4 @@ Las dos que no se verifican solas son las dos que dependen de un entorno que tod
 | [ADR-013](adr/20260919-sqlalchemy-sincrono.md) | SQLAlchemy síncrono con rutas `def`, en lugar de asíncrono |
 | [ADR-014](adr/20260919-sesion-con-estado.md) | Sesión con estado en servidor, en lugar de credencial autocontenida |
 | [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | Captura diferida sin conexión, en lugar de aplicación nativa o local-first con fusión automática |
+| [ADR-016](adr/20261001-almacenamiento-de-objetos.md) | Almacenamiento de objetos compatible con S3, en lugar del disco del servidor o de la propia base de datos |

@@ -44,9 +44,9 @@ Plantillas completas en [`convenciones.md` §6](convenciones.md#6-definition-of-
 | [HDU-002 · Requisición](#tickets-de-hdu-002--requisición-con-control-de-presupuesto) | TKT-019 … TKT-024 | HDU-002 | 8 |
 | [HDU-003 a HDU-009](#tickets-de-hdu-003-a-hdu-009) | TKT-025 … TKT-056 | HDU-003 … HDU-009 | 49 |
 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057 … TKT-058 | — | ~6 |
-| [**Pendiente de descomponer · captura sin conexión**](#pendiente-de-descomponer--captura-sin-conexión) | *sin numerar* | HDU-002, 005, 008 | *~9 sin estimar* |
+| [**Pendiente de descomponer · captura sin conexión y evidencia documental**](#pendiente-de-descomponer--captura-sin-conexión-y-evidencia-documental) | *sin numerar* | HDU-001, 002, 005, 008 | *~20 sin estimar* |
 
-**58 tickets · ~111 SP**, más el bloque sin conexión, que está declarado y **no** descompuesto. La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y se listan junto a la historia a la que sirven. TKT-053 es transversal a HDU-008 y HDU-009.
+**58 tickets · ~111 SP**, más el bloque pendiente, que está declarado y **no** descompuesto. La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y se listan junto a la historia a la que sirven. TKT-053 es transversal a HDU-008 y HDU-009.
 
 **TKT-057 y TKT-058 salieron de la revisión del stack del 2026-09-19**, que encontró que la especificación no declaraba ningún requisito de seguridad ni de recuperación. Los requisitos están ahora en el [PRD §9](01-descripcion-producto.md#9-requisitos-no-funcionales) y estos dos tickets los implementan.
 
@@ -83,7 +83,7 @@ Plantillas completas en [`convenciones.md` §6](convenciones.md#6-definition-of-
 |---|---|
 | **Tipo** | Fundación · **Talla** M · **Depende de** TKT-001 |
 
-**Qué hace.** Monta el esqueleto del backend con los nueve módulos y las cuatro capas de cada uno, y añade la verificación automática de que ningún módulo cruza la frontera de otro.
+**Qué hace.** Monta el esqueleto del backend con los diez módulos y las cuatro capas de cada uno, y añade la verificación automática de que ningún módulo cruza la frontera de otro.
 
 **Criterios técnicos**
 - [ ] Un paquete por módulo: `identidad`, `auditoria`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`
@@ -169,7 +169,7 @@ Plantillas completas en [`convenciones.md` §6](convenciones.md#6-definition-of-
 
 > Es la base sobre la que se escriben todos los escenarios de rechazo de las nueve historias — cerca de la mitad de los 131. Si llega tarde, cada historia inventa su propio formato de error.
 
-> **El identificador de correlación vive aquí y no en TKT-058** porque tiene que viajar **dentro** del contrato de error, y porque el patrón de registro hay que establecerlo antes de que existan nueve módulos que lo ignoren. Retrofitar el registro estructurado en el sprint 7 sería tocar los nueve. Lo que sí queda en TKT-058 es la **agregación** de errores, que es un servicio externo y no se puede contratar antes de tener qué agregar.
+> **El identificador de correlación vive aquí y no en TKT-058** porque tiene que viajar **dentro** del contrato de error, y porque el patrón de registro hay que establecerlo antes de que existan diez módulos que lo ignoren. Retrofitar el registro estructurado en el sprint 7 sería tocar los diez. Lo que sí queda en TKT-058 es la **agregación** de errores, que es un servicio externo y no se puede contratar antes de tener qué agregar.
 
 **Non-goals** — No implementa ninguna regla concreta. No agrega errores en ningún servicio externo: eso es TKT-058.
 
@@ -510,7 +510,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 **Criterios técnicos**
 - [ ] Función pura que recibe presupuestado, consumido y solicitado, y devuelve permitido o bloqueado con disponible y excedente
 - [ ] Evalúa **los dos controles**: importe de la partida y volumen por insumo
-- [ ] El `consumido` llega ya calculado y su definición es **una sola** para todo el sistema, la de [modelo de datos §14](03-modelo-datos.md#14-la-consulta-del-semáforo): `requisiciones vivas + comprometido + ejercido`, cada peso contado una vez
+- [ ] El `consumido` llega ya calculado y su definición es **una sola** para todo el sistema, la de [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo): `requisiciones vivas + comprometido + ejercido`, cada peso contado una vez
 - [ ] Un insumo ausente de la explosión se trata como disponible cero, no como sin límite
 - [ ] Sin dependencias de framework, ORM ni HTTP: se prueba sin levantar nada
 - [ ] El identificador `RN-03` aparece en el docstring y en el nombre de los tests
@@ -529,7 +529,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 
 **Criterios técnicos**
 - [ ] Una sola transacción: bloquea, lee consumido, evalúa, persiste y escribe bitácora
-- [ ] **El `consumido` se calcula con la consulta de [modelo de datos §14](03-modelo-datos.md#14-la-consulta-del-semáforo), la misma que alimenta el semáforo.** Incluye las requisiciones `EVALUADA` y `AUTORIZADA` sin convertir, el saldo no recibido de las órdenes abiertas y parciales, las entradas de almacén y los pagos de destajo de esa partida
+- [ ] **El `consumido` se calcula con la consulta de [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo), la misma que alimenta el semáforo.** Incluye las requisiciones `EVALUADA` y `AUTORIZADA` sin convertir, el saldo no recibido de las órdenes abiertas y parciales, las entradas de almacén y los pagos de destajo de esa partida
 - [ ] Un test verifica que dos requisiciones de $8,000 contra $12,000 disponibles **no pasan las dos**: es el escenario 9 y solo funciona si las requisiciones vivas consumen
 - [ ] Un test verifica que el disponible que devuelve el endpoint de consulta y el que aplica la evaluación **coinciden al céntimo**: si divergen, Compras ve en pantalla un número que la regla no respeta
 - [ ] `SELECT … FOR UPDATE` sobre `presupuesto_control` (control por importe) y `explosion_presupuesto` (control por volumen) del tipo de partida
@@ -641,7 +641,7 @@ Mismo formato y mismos criterios de calidad; se presentan en tabla por concisió
 
 | Ticket | Talla | Qué hace | Non-goal principal |
 |---|---|---|---|
-| **TKT-039** | M | Consulta del semáforo con sus cinco fuentes y los índices de [§14](03-modelo-datos.md#14-la-consulta-del-semáforo); plan de ejecución verificado con el volumen real de ~4,900 conceptos. La mano de obra se agrega **a nivel de obra**, no por partida (**PA-08**). El **avance físico se divide entre `alcance_destajo`**, no entre los m² de contrato de lo ya medido, y es `NULL` —no cero— mientras no haya nada validado, para que la desviación salga *no calculable* en vez de igual al ejercido | No prorratea mano de obra entre partidas: produciría precisión falsa. No usa `SUM(avance.m2_contrato)` como denominador: eso es el índice de desviación de volumen, no el avance |
+| **TKT-039** | M | Consulta del semáforo con sus cinco fuentes y los índices de [§15](03-modelo-datos.md#15-la-consulta-del-semáforo); plan de ejecución verificado con el volumen real de ~4,900 conceptos. La mano de obra se agrega **a nivel de obra**, no por partida (**PA-08**). El **avance físico se divide entre `alcance_destajo`**, no entre los m² de contrato de lo ya medido, y es `NULL` —no cero— mientras no haya nada validado, para que la desviación salga *no calculable* en vez de igual al ejercido | No prorratea mano de obra entre partidas: produciría precisión falsa. No usa `SUM(avance.m2_contrato)` como denominador: eso es el índice de desviación de volumen, no el avance |
 | **TKT-040** | S | Endpoints de semáforo, desglose por partida y detalle hasta el movimiento de origen; metadato de qué fuentes de costo tienen datos y cuáles no; importes como cadena | No exporta a Excel ni a PDF |
 | **TKT-041** | M | Interfaz del semáforo con código de color, aviso de cifra parcial cuando faltan fuentes, fila separada de mano de obra marcada como no imputada a partida, desglose navegable y distinción explícita entre "sin avance medido" y desviación cero | No incluye vista consolidada multi-obra |
 
@@ -810,25 +810,33 @@ Los sprints 0 y 1 exceden el compromiso de 13-14 SP porque la fundación no se p
 
 ---
 
-# Pendiente de descomponer · captura sin conexión
+# Pendiente de descomponer · captura sin conexión y evidencia documental
 
-> **Estado: abierto desde el 2026-09-19.** `PA-13` confirmó que **en la obra no hay internet**. El requisito (`RNF-18`) y la decisión ([ADR-015](adr/20260919-captura-diferida-sin-conexion.md)) están escritos; el **backlog no**. Las historias no tienen escenarios de captura diferida, los tickets no están creados y los sprints no están replanificados.
+> **Estado: abierto desde el 2026-09-19, ampliado el 2026-10-01.** Dos revisiones dejaron la capa de decisión escrita y el **backlog no**:
+>
+> - `PA-13` confirmó que **en la obra no hay internet**. El requisito (`RNF-18`) y la decisión ([ADR-015](adr/20260919-captura-diferida-sin-conexion.md)) están escritos.
+> - La revisión del **2026-10-01** encontró que el sistema exigía evidencia en varios sitios y no decía dónde guardarla. Nacen la capacidad `C8`, el requisito `RNF-19`, el `RNF-06` reescrito y [ADR-016](adr/20261001-almacenamiento-de-objetos.md).
+>
+> Las dos van juntas en un solo bloque y no en dos, porque **tocan las mismas historias y los mismos tickets**: HDU-005 y HDU-008 son a la vez los flujos diferibles y los que llevan evidencia, y la octava regla de ADR-016 —la evidencia no viaja en la cola— solo se puede implementar con las dos cosas delante.
 >
 > Se deja aquí a propósito y no en un documento aparte: es trabajo de la capa *Tasks*, y un pendiente que vive fuera del backlog es un pendiente que nadie mira. **No empezar la Épica 0 dando por hecho que esto está resuelto.**
 
 ## Qué falta
 
-### 1 · Escenarios, unos ocho
+### 1 · Escenarios, unos quince
 
-Ninguna historia describe hoy qué pasa sin conexión. Faltan, con su historia destino:
+Ninguna historia describe hoy qué pasa sin conexión, y ninguna describe qué pasa al adjuntar un archivo. Faltan, con su historia destino:
 
-| Historia | Escenarios a escribir |
-|---|---|
-| **HDU-002** | Intento de levantar una requisición sin conexión → **rechazo explícito**. Es el escenario que impide que el modo sin conexión se lea como puerta trasera a `RN-03` |
-| **HDU-005** | Captura de entrada sin señal, que queda en cola sin generar movimiento de inventario · sincronización correcta al recuperar señal · **conflicto**: entrada encolada que al subir excede lo ordenado, vuelve con el contrato de error de `RN-07` y detiene la cola · saldo leído de caché mostrando su antigüedad |
-| **HDU-008** | Captura de avance sin señal con alcance, etapas y cuadrillas precargados · **conflicto por duplicado**: dos dispositivos capturan la misma área, etapa, cuadrilla y semana · cola que **no sube** porque el rol del usuario se retiró mientras estaba en obra |
+| Historia | Escenarios de captura sin conexión | Escenarios de evidencia y archivos |
+|---|---|---|
+| **HDU-001** | — | El Excel se adjunta como `archivo` y la importación **no arranca** hasta que está `DISPONIBLE` · **rechazo**: se confirma un objeto cuyo hash no coincide con el declarado |
+| **HDU-002** | Intento de levantar una requisición sin conexión → **rechazo explícito**. Es el escenario que impide que el modo sin conexión se lea como puerta trasera a `RN-03` | — |
+| **HDU-005** | Captura de entrada sin señal, que queda en cola sin generar movimiento de inventario · sincronización correcta al recuperar señal · **conflicto**: entrada encolada que al subir excede lo ordenado, vuelve con el contrato de error de `RN-07` y detiene la cola · saldo leído de caché mostrando su antigüedad | Se adjunta la remisión del proveedor a la entrada (`F8.2`) · **rechazo**: se sube un ejecutable renombrado a `.pdf` y el sistema lo detecta por los bytes, no por la extensión |
+| **HDU-008** | Captura de avance sin señal con alcance, etapas y cuadrillas precargados · **conflicto por duplicado**: dos dispositivos capturan la misma área, etapa, cuadrilla y semana · cola que **no sube** porque el rol del usuario se retiró mientras estaba en obra | Se adjuntan fotos a una medición desde el teléfono (`F8.1`) · **el avance sincroniza sin esperar a sus fotos** y estas suben después (octava regla de ADR-016) · **rechazo**: video que excede el límite de tamaño · anulación de un adjunto equivocado con motivo, **sin borrarlo** |
 
-Cada uno necesita además su escenario de rechazo, según la regla de aceptación. Con ellos, el conteo pasa de 137 a **~145 escenarios**, y hay que actualizar la Definition of Done de las tres historias, el total del documento y las citas de 137 en el stack y en los ADR.
+Cada uno necesita además su escenario de rechazo, según la regla de aceptación. Con ellos, el conteo pasa de 137 a **~152 escenarios**, y hay que actualizar la Definition of Done de las cuatro historias, el total del documento y las citas de 137 en el stack y en los ADR.
+
+> **Un escenario que parece de interfaz y no lo es:** *"el avance se valida y todavía no tiene fotos"*. Es el coste declarado de la octava regla de [ADR-016](adr/20261001-almacenamiento-de-objetos.md), y **solo se puede escribir si `PA-14` está respondida**. Si la respuesta fuera *"sin foto no se valida"*, el escenario se invierte, nace una regla de negocio nueva y hay que reabrir la frontera de ADR-015.
 
 ### 2 · Tickets
 
@@ -837,34 +845,47 @@ Cada uno necesita además su escenario de rechazo, según la regla de aceptació
 | **Partir TKT-008.** El esqueleto y el inicio de sesión se quedan en el sprint 1; el armazón sin conexión —service worker, caché persistida, cola en IndexedDB, sincronización FIFO, indicador de estado— sale a un ticket propio | Ticket nuevo, por numerar |
 | **Endpoint de sincronización idempotente**, que hoy no existe en ningún ticket. El servidor tiene que aceptar la cola por los mismos casos de uso y devolver el contrato de error por elemento rechazado | Amplía TKT-037 (`almacen`) y los endpoints de `avance` de TKT-047 |
 | **Diseño para pantalla de teléfono** de las dos pantallas de campo | Amplía TKT-038 y TKT-048, que ya lo declaran pero no lo estiman |
+| **Módulo `archivos` con su esquema y su adaptador de objetos.** Tabla `archivo`, invariantes 23 a 26, puerto `AlmacenObjetos` con `boto3`, MinIO en el Compose y en testcontainers, emisión y caducidad de URL prefirmadas, validación de tipo por los bytes, confirmación por hash y barrido de `PENDIENTE` caducados (`RNF-06`, `RNF-19`) | **Ticket nuevo de fundación**, por numerar. Es prerrequisito de todo lo demás de este bloque |
+| **Componente de subida y galería** reutilizable: cámara, compresión en el cliente, progreso, reintento, miniatura y visor | Ticket nuevo, hermano de los tres componentes compartidos de TKT-008 |
+| **Adjuntar y consultar en cada punto**: evidencia de avance, remisión de entrada, documentos de obra y expediente (`F8.1`, `F8.2`, `F8.4`, `F8.5`) | Amplía TKT-038 (`almacen`), TKT-048 (`avance`) y TKT-012 (alta de obra) |
+| **El Excel de importación entra por `archivo`** y deja de ser dos columnas sueltas | Amplía TKT-018, y toca la migración de TKT-011 |
 
 ### 3 · Puntos y sprints
 
 | | Hoy | Después |
 |---|---|---|
-| Épica 0 | ~35 SP | ~40 SP |
-| HDU-005 | 8 SP | ~10 SP |
-| HDU-008 | 8 SP | ~10 SP |
+| Épica 0 | ~35 SP | **~45 SP** — el armazón sin conexión y el módulo `archivos` son fundación |
+| HDU-001 | 13 SP | ~14 SP |
+| HDU-005 | 8 SP | ~11 SP |
+| HDU-008 | 8 SP | ~12 SP |
 | Sprint 1 | ~19 SP ⚠ | **~24 SP** — insostenible contra un compromiso de 13-14 |
 
-**La costura propuesta:** el armazón sin conexión no se necesita hasta el sprint 5, cuando HDU-005 lo consume. Cabe en el sprint 3 o el 4, que son los que menos apretados van. Lo que **no** puede es llegar después de HDU-005: entonces la recepción se implementa dos veces.
+**Las dos costuras propuestas**, y conviene que no se decidan a mitad de sprint:
+
+- **El armazón sin conexión** no se necesita hasta el sprint 5, cuando HDU-005 lo consume. Cabe en el sprint 3 o el 4, que son los que menos apretados van. Lo que **no** puede es llegar después de HDU-005: entonces la recepción se implementa dos veces.
+- **El módulo `archivos`** tiene un consumidor más temprano de lo que parece: HDU-001 importa un Excel en el sprint 2. Dos salidas, y la segunda es la buena: adelantarlo al sprint 2 completo, o implementar primero solo el camino de subida y confirmación —que es lo que la importación necesita— y dejar galería, anulación y expediente para el sprint 5, con la evidencia de campo. **La segunda es preferible** porque reparte diez puntos entre dos sprints en lugar de amontonarlos en el que ya va a ~19.
 
 ## Lo que no hay que hacer
 
-Tres cosas que ADR-015 ya decidió y que conviene no reabrir al descomponer:
+Seis cosas que ADR-015 y ADR-016 ya decidieron y que conviene no reabrir al descomponer:
 
 - **No ampliar la lista de flujos diferibles.** Solo `avance` y `entrada_almacen`. La frontera es `RN-03` y no es negociable desde el backlog.
 - **No evaluar reglas en el cliente.** El saldo cacheado orienta al usuario; no autoriza nada.
 - **No resolver conflictos automáticamente.** Los decide una persona.
+- **No meter las fotos en la cola de sincronización.** El avance sube sin esperarlas. Treinta megabytes en IndexedDB compiten con una cuota que el navegador desaloja sin avisar.
+- **No servir los archivos desde el API.** Las rutas son `def`: cada descarga retendría un hilo del grupo. La URL prefirmada no es una optimización, es la decisión.
+- **No interpretar el XML del CFDI.** Se guarda. Conciliarlo contra la orden de compra son reglas de negocio que el PRD no tiene, y que no se inventan desde un ticket.
 
-## Dos preguntas al cliente antes de esa sesión
+## Cuatro preguntas al cliente antes de esa sesión
 
-Ninguna bloquea el resto del proyecto, pero las dos cambian el diseño de la cola:
+Ninguna bloquea el resto del proyecto, pero las cuatro cambian el diseño:
 
 | | Pregunta | Por qué importa |
 |---|---|---|
 | **1** | ¿Cada quien usa su propio dispositivo, o hay uno compartido en obra? | Con dispositivo compartido, la cola atada al último usuario autenticado deja de ser suficiente y hacen falta colas por usuario |
 | **2** | ¿Cuánto llega a estar un residente sin señal: unas horas, un día, una semana? | Dimensiona la cola y decide a partir de qué antigüedad la caché deja de mostrarse y pasa a avisar |
+| **3** | **`PA-14`** · ¿Un avance se puede validar sin evidencia fotográfica? | Decide si existe una regla de negocio nueva y si la octava regla de ADR-016 se sostiene. Es la única de las cuatro que puede invertir un escenario ya escrito |
+| **4** | **`PA-15`** · ¿Cuánto video hace falta, y cuánto tiempo hay que conservarlo? | Fija los límites de `RNF-06`, la resolución a la que se guarda y la política de ciclo de vida del bucket. Mientras no se responda, los límites del [PRD §10](01-descripcion-producto.md#10-supuestos-y-preguntas-abiertas) son supuestos míos |
 
 ### Seguimiento honesto de la velocidad
 

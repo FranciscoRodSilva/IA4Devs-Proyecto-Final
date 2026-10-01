@@ -25,12 +25,12 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 15 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 16 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`tools/`](tools/README.md) | Verificadores de la documentación: enlaces, anclas, identificadores, conteos y diagramas |
 
-> **La Entrega 1 está completa.** Los cinco pasos cerrados y las doce preguntas de la especificación funcional respondidas por el cliente — la última, `PA-13`, confirmó que **en la obra no hay internet** y trajo `RNF-18` y [ADR-015](docs/adr/20260919-captura-diferida-sin-conexion.md). Ese hallazgo deja **un bloque de backlog sin descomponer**, declarado en [`05-tickets-trabajo.md`](docs/05-tickets-trabajo.md#pendiente-de-descomponer--captura-sin-conexión): los escenarios de captura sin conexión, sus tickets y la replanificación de sprints. Sigue abierta `PA-12` —cuánta captura es aceptable rehacer si se pierde la base de datos—, que apareció al declarar los requisitos no funcionales: no condiciona el diseño, sino el precio de la infraestructura, y se responde antes del sprint 7.
+> **La Entrega 1 está completa.** Los cinco pasos cerrados y las doce preguntas de la especificación funcional respondidas por el cliente — la última, `PA-13`, confirmó que **en la obra no hay internet** y trajo `RNF-18` y [ADR-015](docs/adr/20260919-captura-diferida-sin-conexion.md). Una revisión posterior, el **2026-10-01**, añadió la capacidad `C8` —evidencia y archivos adjuntos— con `RNF-19` y [ADR-016](docs/adr/20261001-almacenamiento-de-objetos.md). Las dos dejan **un bloque de backlog sin descomponer**, declarado en [`05-tickets-trabajo.md`](docs/05-tickets-trabajo.md#pendiente-de-descomponer--captura-sin-conexión-y-evidencia-documental): sus escenarios, sus tickets y la replanificación de sprints. Siguen abiertas tres preguntas que no condicionan el diseño: `PA-12` —cuánta captura es aceptable rehacer si se pierde la base de datos—, `PA-14` —si un avance se puede validar sin evidencia fotográfica— y `PA-15` —cuánto video hace falta y cuánto tiempo se conserva—.
 
 ---
 

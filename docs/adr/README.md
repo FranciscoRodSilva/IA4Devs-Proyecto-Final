@@ -34,7 +34,8 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-09-18 | [Trazabilidad escenario ↔ test por convención verificada](20260918-trazabilidad-escenario-test.md) | Aceptado | Testing, CI |
 | 2026-09-19 | [SQLAlchemy síncrono con rutas `def`](20260919-sqlalchemy-sincrono.md) | Aceptado | Backend, persistencia, testing |
 | 2026-09-19 | [Sesión con estado en servidor](20260919-sesion-con-estado.md) | Aceptado | identidad, API, SPA |
-| 2026-09-19 | [Captura diferida sin conexión, acotada a dos flujos de campo](20260919-captura-diferida-sin-conexion.md) | Aceptado | SPA, avance, almacén |
+| 2026-09-19 | [Captura diferida sin conexión, acotada a dos flujos de campo](20260919-captura-diferida-sin-conexion.md) | Aceptado | SPA, avance, almacén · **ampliado por ADR-016** |
+| 2026-10-01 | [Almacenamiento de objetos compatible con S3](20261001-almacenamiento-de-objetos.md) | Aceptado | archivos, despliegue, SPA |
 
 ## Plantilla
 
