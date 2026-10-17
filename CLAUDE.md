@@ -17,8 +17,8 @@ El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-ticket
 
 ## Reglas que ninguna implementación puede romper
 
-1. **El dinero nunca es flotante.** `Decimal` en Python, `NUMERIC` en PostgreSQL, **cadena** en JSON, `decimal.js` en el cliente. Está prohibido `float` en cualquier firma de dominio y el linter lo bloquea.
-2. **`dominio/` no importa nada.** Ni FastAPI, ni SQLAlchemy, ni Pydantic. Las reglas reciben objetos de valor y devuelven resultados. `import-linter` falla el pipeline si se cruza.
+1. **El dinero nunca es flotante.** `Decimal` en Python, `NUMERIC` en PostgreSQL, **cadena** en JSON, `decimal.js` en el cliente. Está prohibido `float` en cualquier firma de dominio y el linter lo bloquea (desde TKT-004).
+2. **`dominio/` no importa nada.** Ni FastAPI, ni SQLAlchemy, ni Pydantic. Las reglas reciben objetos de valor y devuelven resultados. `import-linter` falla el pipeline si se cruza (desde TKT-002; en el pipeline desde TKT-009).
 3. **Un módulo solo habla con otro por su interfaz de aplicación publicada.** Nunca por sus repositorios, modelos o tablas.
 4. **La línea base congelada es inmutable.** Se copia físicamente al congelar; un disparador rechaza `UPDATE` y `DELETE`.
 5. **Los límites bloquean, no advierten.** Una operación que excede lo presupuestado se detiene y exige autorización registrada. Nunca se deja pasar con un aviso. El `disponible` es `presupuestado − consumido`, y **`consumido = requisiciones vivas + comprometido + ejercido`** — definido una sola vez en [modelo de datos §15](docs/03-modelo-datos.md#15-la-consulta-del-semáforo) y compartido por la regla y el tablero. Una requisición `EVALUADA` **sí** consume: si no, dos requisiciones simultáneas pasan las dos.
@@ -72,7 +72,7 @@ def evaluar_disponibilidad(presupuestado: Dinero, consumido: Dinero, solicitado:
     """Implementa RN-03. Sin efectos secundarios."""
 ```
 
-**Cada test nombra el escenario que cubre.** Un verificador en CI falla si algún escenario de `docs/04-historias-usuario.md` se queda sin test:
+**Cada test nombra el escenario que cubre.** Un verificador en CI falla si algún escenario de `docs/04-historias-usuario.md` se queda sin test (desde TKT-009):
 
 ```python
 def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
@@ -89,16 +89,38 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
 
 ## Comandos
 
+Un comando o una comprobación marcados *desde TKT-xxx* todavía no funcionan: los habilita ese ticket, y su `/sdd-completar` quita la marca. Las marcas dicen desde cuándo la herramienta hace cumplir una regla o corre un comando; las reglas obligan desde ya. Requisitos y arranque paso a paso en [`docs/arranque-local.md`](docs/arranque-local.md).
+
+### Desde `backend/`
+
 ```bash
-uv sync                          # dependencias
-docker compose up -d db minio    # PostgreSQL y MinIO locales
-uv run alembic upgrade head      # migraciones
-uv run fastapi dev               # API
-uv run pytest                    # tests
+uv sync --locked                 # dependencias, según uv.lock
+uv run ruff format .             # formato
 uv run ruff check --fix .        # lint
-uv run mypy cimenta/             # tipos
-uv run lint-imports              # fronteras entre módulos
-npm --prefix frontend run dev    # frontend
+uv run mypy .                    # tipos
+uv run lint-imports              # fronteras entre módulos · desde TKT-002
+uv run fastapi dev               # API · desde TKT-005 (asumido)
+uv run pytest                    # tests · desde TKT-003 o TKT-004, el primero en implementarse (asumido)
+uv run alembic upgrade head      # migraciones · desde TKT-003
+```
+
+### Desde `frontend/`
+
+```bash
+npm ci                           # dependencias, según package-lock.json
+npm run lint                     # ESLint
+npm run typecheck                # tipos de TypeScript
+npm run dev                      # frontend · desde TKT-008
+```
+
+### Desde la raíz
+
+```bash
+docker compose up -d db          # PostgreSQL local · desde TKT-003
+docker compose up -d minio       # MinIO local · desde TKT-059
+python tools/verificar_docs.py   # enlaces, identificadores, conteos y codificación
+python tools/extraer_mermaid.py  # sintaxis de los diagramas
+python -m unittest discover -s tools/tests -v   # pruebas de tools/
 ```
 
 ## Qué no hacer

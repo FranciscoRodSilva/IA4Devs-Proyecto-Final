@@ -4,7 +4,7 @@
 
 Proyecto final del máster IA4Devs. Desarrollado con Spec-Driven Development: la especificación precede al código y nada se implementa sin criterios de aceptación que cubran también los caminos de error.
 
-**Estado:** documentación técnica completa, ajustada tras la revisión de la Entrega 1. Sin código todavía.
+**Estado:** documentación técnica completa, ajustada tras la revisión de la Entrega 1. Andamiaje de `backend/` y `frontend/` con sus herramientas de calidad desde TKT-001; sin lógica de negocio todavía.
 
 **Se construye en dos fases.** La **fase 1** es el hilo vertical del MVP: importar la línea base → requisición → bloqueo o autorización → orden de compra → entrada de material → semáforo (HDU-001 a HDU-006). La **fase 2** añade personal, destajo, nómina, captura sin conexión y evidencia (HDU-007 a HDU-009, más los escenarios de campo de HDU-002, HDU-005 y HDU-008). Mientras tanto, la mano de obra y el avance del semáforo llegan de un adaptador simulado y marcado ([ADR-017](docs/adr/20261015-fuentes-simuladas-analitica.md)). Todos los tickets de las dos fases están detallados en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md).
 
@@ -22,6 +22,8 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 - [Wireframes](docs/08-wireframes.md): bocetos de baja fidelidad de las pantallas del hilo vertical
 - [Convenciones](docs/convenciones.md): docs-as-code, backlog AI-ready, formato de criterios de aceptación, DoD por tipo de trabajo, estimación y la IA en las seis fases del ciclo
 - [Stack tecnológico](docs/06-stack-tecnologico.md): criterios de elección, herramientas por capa, seguridad y lo que se descartó
+- [Arranque local](docs/arranque-local.md): requisitos, comandos del backend y del frontend, verificadores de `tools/` y lo que todavía no arranca
+- [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio): `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, con la configuración de la raíz
 - [Decisiones de arquitectura](docs/adr/README.md): 17 ADRs en formato MADR
 
 ## Reglas que ninguna implementación puede romper

@@ -27,6 +27,7 @@ import urllib.parse
 from collections import defaultdict
 
 EXCLUIR = {'Doc de contexto', 'node_modules', '.git', '.venv', 'dist'}
+BOM: bytes = b"\xef\xbb\xbf"
 problemas: list[str] = []
 avisos: list[str] = []
 
@@ -256,6 +257,41 @@ def verificar_identificadores(raiz: str, docs: dict[str, str]) -> dict[str, int]
     return resumen
 
 
+# ------------------------------------------------------------ 4. codificación
+def verificar_codificacion(raiz: str) -> int:
+    """Garantiza que los documentos van en UTF-8 sin BOM y los `.ps1` en UTF-8 con BOM.
+
+    TKT-001 · CA-7. Sin el BOM, Windows PowerShell 5.1 lee un `.ps1` con acentos
+    en la codificación ANSI y corrompe el script; con el BOM, un `.md` rompe el
+    parseo del `---` inicial de agentes y skills. Aprendizaje del 2026-10-01 en
+    sdd/_evolucion.md. Solo lee los tres primeros bytes de cada archivo y no
+    modifica ninguno. Devuelve el número de archivos revisados.
+    """
+    revisados = 0
+    for base, dirs, nombres in os.walk(raiz):
+        dirs[:] = [d for d in dirs if d not in EXCLUIR]
+        for n in nombres:
+            minuscula = n.lower()
+            es_documento = minuscula.endswith('.md') or minuscula == 'llms.txt'
+            es_ps1 = minuscula.endswith('.ps1')
+            if not (es_documento or es_ps1):
+                continue
+            ruta = os.path.join(base, n)
+            rel = os.path.relpath(ruta, raiz)
+            revisados += 1
+            with open(ruta, 'rb') as f:
+                tiene_bom = f.read(3) == BOM
+            if es_documento and tiene_bom:
+                problemas.append(
+                    f'Codificación · {rel} empieza con BOM; '
+                    'los documentos se guardan en UTF-8 sin BOM')
+            elif es_ps1 and not tiene_bom:
+                problemas.append(
+                    f'Codificación · {rel} no empieza con BOM; '
+                    'los scripts .ps1 se guardan en UTF-8 con BOM')
+    return revisados
+
+
 def main() -> int:
     # La consola de Windows usa cp1252 por omisión y no sabe escribir ✓ ni ✗.
     # Sin esto el verificador revienta al imprimir el resultado, pase o no pase.
@@ -275,11 +311,13 @@ def main() -> int:
     n_enlaces = verificar_enlaces(raiz, docs)
     n_anclas = verificar_anclas(raiz, docs)
     resumen = verificar_identificadores(raiz, docs)
+    n_codificacion = verificar_codificacion(raiz)
 
     print(f'  enlaces relativos  {n_enlaces:>5}')
     print(f'  anclas internas    {n_anclas:>5}')
     for k, v in resumen.items():
         print(f'  {k:<18} {v:>5}')
+    print(f'  codificación       {n_codificacion:>5}')
 
     print()
     if problemas:

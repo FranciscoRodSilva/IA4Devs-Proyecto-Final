@@ -18,6 +18,8 @@ dist/
 # Entorno
 .env
 .env.local
+.env.*
+!.env.example
 
 # Ajustes locales de Claude Code (CLAUDE.md sí se versiona)
 .claude/settings.local.json

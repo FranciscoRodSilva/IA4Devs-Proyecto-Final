@@ -22,10 +22,19 @@ Sin dependencias. Devuelve código de salida `1` si encuentra algún problema, p
 | **Rangos de tickets** | Un `TKT-011 … TKT-018` del plan de sprints que cita tickets que no existen |
 | **Story points** | Que la suma de la tabla de historias coincida con el total declarado |
 | **Escenarios** | Numeración contigua, y que cada Definition of Done declare el número real de escenarios de su historia |
+| **Codificación** | Documentos `.md` y `llms.txt` que empiezan por BOM, y scripts `.ps1` que no empiezan por él. Windows PowerShell 5.1 lee un `.ps1` sin BOM como ANSI y corrompe los acentos |
 
 El último es el que sostiene la [regla de aceptación](../docs/04-historias-usuario.md#regla-de-aceptación): una historia cuyo conteo no cuadra suele ser una historia a la que se le añadió un escenario sin actualizar su criterio de cierre.
 
 **El aviso de requisitos huérfanos existe por cómo aparecieron los `RNF`.** Se añadieron al PRD en la revisión del stack del 2026-09-19, y un requisito no funcional es justo el tipo de cosa que se escribe una vez, se siente resuelta y no la implementa nadie. El aviso no rompe el pipeline —declarar antes de implementar es legítimo— pero deja constancia de cuántos siguen sin dueño.
+
+## Pruebas
+
+```bash
+python -m unittest discover -s tools/tests -v
+```
+
+Las pruebas de `verificar_docs.py` usan solo la biblioteca estándar y se ejecutan desde la raíz del repositorio. Cada caso construye su árbol de archivos en un directorio temporal. Cuando TKT-009 meta la suite en el pipeline, pytest recogerá estas mismas clases sin cambios.
 
 ## `extraer_mermaid.py`
 

@@ -453,7 +453,7 @@ Comprobaciones que no existen como herramienta de terceros. Viven en [`tools/`](
 
 | Verificador | Qué detecta | Estado |
 |---|---|---|
-| `tools/verificar_docs.py` | Enlaces relativos, anclas internas, identificadores inexistentes (`RN`, `PA`, `F`, `HDU`, `TKT`, invariantes), ADRs sin índice, rangos de tickets rotos, aritmética de story points y conteo de escenarios frente a la Definition of Done | ✅ En uso |
+| `tools/verificar_docs.py` | Enlaces relativos, anclas internas, identificadores inexistentes (`RN`, `PA`, `F`, `HDU`, `TKT`, invariantes), ADRs sin índice, rangos de tickets rotos, aritmética de story points y conteo de escenarios frente a la Definition of Done, documentos con BOM y scripts `.ps1` sin él | ✅ En uso |
 | `tools/extraer_mermaid.py` | Diagramas con sintaxis inválida, que en GitHub se renderizan como bloque de error | ✅ En uso |
 | Escenarios sin test | El verificador de §7.2, que sostiene la regla de aceptación | ⏳ TKT-009, cuando exista código que verificar |
 

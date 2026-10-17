@@ -49,12 +49,21 @@ El anti-patrón que este proyecto evita explícitamente: un único `README.md` d
 
 ```
 IA4Devs-Proyecto-Final/
+├── .claude/                        Agentes, skills, hooks y comandos del pipeline SDD
+├── .editorconfig                   Codificación y finales de línea por tipo de archivo
+├── .gitattributes                  Normalización de finales de línea: LF en el repositorio
+├── .env.example                    Plantilla de variables de entorno, sin valores; `.env` no se versiona
 ├── README.md                       Índice + ficha del proyecto. Nunca contenido extenso
 ├── llms.txt                        Mapa del proyecto para agentes IA
 ├── CLAUDE.md                       Instrucciones de proyecto para el copiloto (Paso 5)
 ├── Doc de contexto/                Fuente del cliente. Solo lectura, no se versiona
+├── backend/                        Proyecto uv del backend: pyproject.toml, uv.lock y el paquete cimenta/
+├── frontend/                       Proyecto npm del frontend: package.json, TypeScript y ESLint
+├── sdd/                            Pipeline SDD: metodología, plantillas y un directorio por ticket
+├── tools/                          Verificadores de la documentación y sus pruebas
 └── docs/
     ├── convenciones.md             Este documento
+    ├── arranque-local.md           Requisitos, arranque local y verificadores
     ├── glosario.md                 Lenguaje ubicuo del dominio
     ├── 01-descripcion-producto.md  PRD — capa Specify de SDD
     ├── 02-arquitectura.md          Capa Plan — Paso 3

@@ -3,7 +3,7 @@
 **Control Integral de Materiales, Estimaciones, Nómina y Tesorería de obra.**
 
 > Proyecto Final — Máster IA4Devs (LIDR)
-> **Entrega 1 · Documentación técnica, ajustada tras la revisión del 2026-10-14** (sin código; base de la Entrega 2)
+> **Entrega 2 en curso** · base: Entrega 1, documentación técnica ajustada tras la revisión del 2026-10-14
 
 ---
 
@@ -31,6 +31,8 @@
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`tools/`](tools/README.md) | Verificadores de la documentación: enlaces, anclas, identificadores, conteos y diagramas |
+| [Arranque local](docs/arranque-local.md) | Requisitos, arranque del backend y del frontend, verificadores y lo que todavía no arranca |
+| [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio) | Directorios `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, y los archivos de configuración de la raíz |
 
 > **La Entrega 1 está completa y ajustada.** Los cinco pasos están cerrados y el cliente respondió las doce preguntas de la especificación funcional. La revisión de LIDR del **2026-10-14** dejó tres ajustes, atendidos el **2026-10-15** (detalle en [Ajustes tras la revisión](#ajustes-tras-la-revisión-de-la-entrega-1)): el MVP pasa a ser un **hilo vertical** en dos fases, hay especificación de la API con borrador OpenAPI, y los 69 tickets están detallados al mismo nivel, sin ningún bloque pendiente de descomponer. Una revisión posterior de los propios ajustes, el **2026-10-17**, corrigió las inconsistencias que habrían frenado la implementación —el ciclo de dependencias del `consumido`, el destajo contado dos veces, claves entre módulos— y convirtió en preguntas al cliente (`PA-16`…`PA-22`) las reglas que se estaban asumiendo. El cliente respondió esas siete preguntas el mismo día, y sus respuestas ya están propagadas a reglas, modelo, historias, tickets y API. Siguen abiertas tres que no condicionan el diseño: `PA-12`, `PA-14` y `PA-15` ([PRD §10](docs/01-descripcion-producto.md#preguntas-abiertas)).
 
