@@ -196,7 +196,9 @@ El toolkit se construye por fases: los comandos nombran el agente **correcto** p
 
 | Construido | Pendiente |
 |---|---|
-| `analista-dominio` · `arquitecto-tecnico` · `desarrollador-dominio` · `desarrollador-sql` · `tester-backend` · `auditor-arquitectura` · `auditor-seguridad` · `corrector-revision` · `git-entrega` | `revisor-impacto` · `desarrollador-aplicacion` · `desarrollador-api` · `disenador-ui-ux` · `desarrollador-react` · `tester-api` · `tester-frontend` · `desarrollador-tdd` · `auditor-sql` · `auditor-codigo` · `auditor-docs` · `ingeniero-ci` · `meta-sdd` |
+| `analista-dominio` · `arquitecto-tecnico` · `desarrollador-dominio` · `desarrollador-sql` · `tester-backend` · `auditor-arquitectura` · `auditor-seguridad` · `corrector-revision` · `git-entrega` · `ingeniero-devsecops` | `revisor-impacto` · `desarrollador-aplicacion` · `desarrollador-api` · `disenador-ui-ux` · `desarrollador-react` · `tester-api` · `tester-frontend` · `auditor-sql` · `auditor-codigo` · `auditor-docs` · `meta-sdd` |
+
+`desarrollador-tdd` ya no se construye: el ciclo de [§16](#16--el-ciclo-tdd) lo conduce el orquestador con el tester y el desarrollador de cada capa. `ingeniero-ci` quedó absorbido por `ingeniero-devsecops`, que además del pipeline cubre la imagen, el Compose, las dependencias y los secretos.
 
 **Regla de sustitución.** Si un comando nombra un agente que aún no existe en `.claude/agents/`, el orquestador:
 
@@ -210,24 +212,69 @@ Lo que **nunca** se hace es saltarse el paso. Que `auditor-sql` no exista no con
 
 El modelo se elige por la **naturaleza de la tarea**, no por su importancia. Pagar razonamiento caro donde no hay nada que razonar es desperdicio; ahorrarlo donde sí lo hay sale más caro todavía.
 
+### 14.1 · Modelo por omisión
+
 | Agente | Modelo | Esfuerzo | Por qué |
 |---|---|---|---|
-| `arquitecto-tecnico` | `opus` | alto | Decide la arquitectura del ticket y corre la escalera de decisión. Un error aquí lo paga toda la implementación |
-| `auditor-arquitectura` | `opus` | alto | Es el último filtro de las 17 reglas innegociables |
-| `auditor-seguridad` | `opus` | alto | Lo más fácil de omitir y lo más caro de remediar en producción |
-| `desarrollador-dominio` | `sonnet` | alto | Implementa un diseño ya aprobado: ejecuta, no decide |
-| `desarrollador-sql` | `sonnet` | alto | Igual — y el auditor revisa lo que produce |
-| `tester-backend` | `sonnet` | alto | Volumen y rigor, sin decisión arquitectónica |
-| `analista-dominio` | `sonnet` | medio | Extraer y citar documentación. Es recuperación, no razonamiento |
-| `corrector-revision` | `sonnet` | medio | Aplica hallazgos ya diagnosticados por otro |
+| `analista-dominio` | `opus` | medio | Define: decide qué reglas, invariantes y escenarios entran en la spec. Un supuesto que se cuela aquí lo hereda todo el pipeline |
+| `arquitecto-tecnico` | `opus` | medio | Diseña: corre la escalera de decisión y deja escrito cada paso para que otro lo ejecute sin decidir. Aquí se hace la mayor parte del trabajo de razonamiento |
+| `tester-backend` | `sonnet` | alto | Escribe el oráculo del ciclo TDD. Si el test está mal, el desarrollador lo pone en verde igual y nadie se entera |
+| `auditor-arquitectura` | `sonnet` | alto | Último filtro de las 17 reglas innegociables |
+| `auditor-seguridad` | `sonnet` | alto | Lo más fácil de omitir y lo más caro de remediar en producción |
+| `ingeniero-devsecops` | `sonnet` | medio | Compuertas del pipeline, imagen y cadena de suministro: un error abre la puerta a todos los tickets siguientes |
+| `desarrollador-dominio` | `haiku` | medio | Ejecuta un diseño aprobado contra tests ya escritos: no decide, pone en verde |
+| `desarrollador-sql` | `haiku` | medio | Igual, y el auditor revisa lo que produce |
+| `corrector-revision` | `haiku` | medio | Aplica hallazgos ya diagnosticados por otro, con archivo y línea |
 | `git-entrega` | `haiku` | bajo | Ramas, diff, commit, PR. Mecánico y verificable por comando |
 
-**El principio económico: barato para escribir, caro para auditar.** Los desarrolladores ejecutan un diseño que ya pasó por un modelo fuerte y un gate humano; los auditores son el filtro que decide si algo llega a producción. Invertir al revés —escribir con el modelo caro y auditar con el barato— rompe además la regla de que nadie aprueba su propio trabajo, porque deja la última palabra en el eslabón más débil.
+`opus` es la versión más reciente de Opus —hoy Opus 5.5— y queda **reservado a definir y diseñar**. Ningún agente de ejecución, prueba o auditoría sube a `opus`.
 
-**Cuándo subir un escalón:** un ticket que toca reglas de dinero, concurrencia o permisos justifica subir `desarrollador-dominio` o `desarrollador-sql` a `opus`. Se decide en `/sdd-disenar` y se anota en `design.md`, no se improvisa.
+**El principio económico: caro para pensar, barato para ejecutar, y el que juzga un escalón por encima del que escribe.** El razonamiento se paga una vez, en la spec y el diseño, que además pasan por un gate humano. Quien ejecuta recibe pasos sin decisiones pendientes y tests en rojo que le dicen cuándo terminó. El tester y los auditores van un escalón por encima de los desarrolladores porque nadie aprueba su propio trabajo: si el que verifica es más débil que el que escribe, la última palabra queda en el eslabón más débil.
+
+### 14.2 · El orquestador elige el modelo en cada despacho
+
+El modelo del frontmatter es el valor por omisión, no una obligación. **El orquestador pasa el parámetro `model` de la herramienta `Agent` en cada despacho** según lo que va a hacer ese paso, y deja constancia en `impl.md`. El esfuerzo no se cambia por despacho: lo fija el frontmatter.
+
+| Disparador | Modelo del paso | Quién lo decide |
+|---|---|---|
+| Paso ordinario de ejecución | `haiku` | `design.md`, columna Modelo |
+| La fila toca una regla de dinero o de límite (`RN-03` y afines), bloqueo pesimista o concurrencia, autorización por obra, un disparador de inmutabilidad, los permisos de un rol o la consulta única del semáforo | `sonnet` | `arquitecto-tecnico` en `design.md`, citando el disparador |
+| Un paso en `haiku` no pone en verde sus tests tras **dos** intentos, o rompe un test que ya estaba en verde | Reintento en `sonnet` | El orquestador, sin pedir permiso; lo anota |
+| Un paso en `sonnet` sigue sin cerrar tras **dos** intentos | No se sube a `opus`: el hueco está en el diseño | `/sdd-escalar` |
+| Tarea mecánica y verificable por comando de un agente `sonnet` —ajustar una *fixture*, renombrar, una reauditoría acotada a hallazgos Menores ya corregidos, fijar una versión— | Bajada a `haiku` | El orquestador |
+| Primera pasada de cualquier auditoría | Nunca baja de `sonnet` | — |
+
+Tres límites que el orquestador no cruza:
+
+1. **No baja** a `analista-dominio` ni a `arquitecto-tecnico`. Definir y diseñar van siempre en `opus` con esfuerzo medio.
+2. **No sube** ningún agente de ejecución a `opus`. Si `sonnet` no alcanza, falta una decisión en el diseño, y esa decisión tiene dueño humano.
+3. **No baja** a un auditor ni al tester por debajo del desarrollador cuyo trabajo verifican en ese mismo ticket.
+
+**Registro.** Cada despacho queda en la tabla «Modelo por paso» de `impl.md`: agente, modelo usado, motivo del cambio si lo hubo. Cada reintento en `sonnet` añade una fila a [`_evolucion.md`](_evolucion.md) con tema `modelo`; si el mismo tipo de paso escala tres veces, `meta-sdd` propone cambiar su valor por omisión.
 
 ## 15 · Disciplina de contexto
 
 `caveman` comprime **la conversación**: respuestas, reportes de avance, veredictos.
 
 **Nunca comprime lo que se escribe a disco**: `spec.md`, `design.md`, `impl.md`, `delta.md`, ADRs, docstrings, documentación de `docs/` ni mensajes de commit. Eso es el entregable, pasa por `Vale` y lo lee una persona.
+
+## 16 · El ciclo TDD
+
+Todo código de producción de CIMENTA nace para poner en verde un test que ya existía y estaba en rojo. No hay una fase de «escribir todos los tests» seguida de otra de «escribir todo el código»: el ciclo se repite **por cada fila** del orden de implementación de `design.md`.
+
+| Fase | Quién | Qué hace | Evidencia en `impl.md` |
+|---|---|---|---|
+| **Rojo** | `tester-backend` | Escribe los tests que la fila declara —uno por escenario, con su nombre `test_hduXXX_escNN_…`— y los ejecuta. Cada uno falla **por la razón esperada**: la función o la ruta no existe, o el rechazo no ocurre. Un error de importación, de entorno o de sintaxis no es un rojo válido | Salida real en rojo |
+| **Verde** | El desarrollador de la capa | Escribe **el código mínimo** que pone en verde esos tests, **de uno en uno**: ejecuta solo el test en curso, lo pone en verde, pasa al siguiente. No escribe código que ningún test de la fila exige | Salida real en verde de la fila y de la suite que ya existía |
+| **Refactor** | El mismo desarrollador | Con todo en verde, limpia duplicación y nombres **sin cambiar comportamiento**, y vuelve a correr la suite. Si algo se pone rojo, se deshace el refactor, no se toca el test | Qué se refactorizó, o «sin refactor» |
+
+Reglas del ciclo:
+
+- **El desarrollador no toca los tests.** Si un test le parece equivocado, lo devuelve al tester con el motivo; el tester lo corrige y lo anota en `impl.md`. Quien escribe el código no ajusta el oráculo que lo juzga.
+- **El tester no escribe código de producción**, ni siquiera un esqueleto para que el test compile. El rojo por «no existe» es un rojo válido.
+- **Un test que nace en verde se investiga** antes de seguir: o el comportamiento ya existía, o el test no afirma lo que dice.
+- **El rechazo entra en el mismo ciclo que el camino feliz.** Cada regla implicada tiene su test de rechazo en rojo antes de que exista el código que rechaza.
+- **Corrección de error:** el ciclo arranca con el test que reproduce el fallo, y ese test se commitea en rojo **antes** del arreglo.
+- **Infraestructura sin lógica también tiene rojo.** Un disparador nace con el test que intenta el `UPDATE` prohibido y espera el rechazo; una compuerta del pipeline nace con la violación intencionada que debe hacerla fallar.
+
+El `desarrollador-tdd` que el catálogo preveía queda absorbido por este ciclo: el orquestador lo conduce con el tester y los desarrolladores de cada capa.

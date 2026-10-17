@@ -26,11 +26,27 @@ Todo paso marcado `⚠ Ajustado` aparece aquí. Si no hubo: «Ninguno».
 | TC-01 | `test_hduxxx_escNN_...` | feliz | `CA-1` | FALLA | PASA |
 | TC-02 | `test_hduxxx_escNN_...` | **rechazo** | `CA-2` | FALLA | PASA |
 
-**Salida en rojo, antes de implementar:** cada test nuevo falla, y por la razón esperada.
+### Ciclo TDD por fila
+
+Una entrada por fila del orden de implementación de `design.md`, en el orden en que se ejecutaron ([metodología §16](../metodologia.md#16--el-ciclo-tdd)).
+
+#### Fila N · <paso>
+
+**Rojo** — cada test de la fila falla, y por la razón esperada:
 
 ```
 <salida real en rojo>
 ```
+
+**Verde** — los tests de la fila y la suite previa:
+
+```
+<salida real en verde>
+```
+
+**Refactor:** qué se limpió, o «sin refactor».
+
+**Tests devueltos al tester:** cuál, por qué, qué se corrigió. O «ninguno».
 
 **Evidencia de ejecución al cerrar:** pegar la línea de resumen real de `pytest` / `vitest` / `playwright`, con `docker info` respondiendo. Sin evidencia, el resultado no cuenta.
 
@@ -39,6 +55,15 @@ Todo paso marcado `⚠ Ajustado` aparece aquí. Si no hubo: «Ninguno».
 ```
 
 **Mutación en rutas críticas:** qué se mutó, qué test se puso rojo. O «No aplica» con el motivo.
+
+## Modelo por paso
+
+Un registro por despacho a un agente ([metodología §14.2](../metodologia.md#142--el-orquestador-elige-el-modelo-en-cada-despacho)).
+
+| Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
+|---|---|---|---|---|
+| Fila 1 · rojo | `tester-backend` | `sonnet` | `sonnet` | — |
+| Fila 1 · verde | `desarrollador-dominio` | `haiku` | `sonnet` | Dos intentos en `haiku` sin verde en TC-02 |
 
 ## Resultado contra los criterios de aceptación
 
@@ -81,6 +106,7 @@ Detectados de paso. **No se implementan aquí** — se anotan para su propio tic
 ## Verificación final
 
 - [ ] Todos los criterios `[M]` cumplidos con evidencia
+- [ ] Ciclo TDD completo en cada fila: rojo antes de verde, ningún test editado por un desarrollador
 - [ ] Suite en verde, con la salida pegada arriba
 - [ ] ≥1 test de rechazo por regla implicada
 - [ ] Mutación en rutas críticas, o «no aplica» justificado

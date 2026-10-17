@@ -1,8 +1,8 @@
 ---
 name: auditor-seguridad
-description: Audita un cambio de CIMENTA desde la seguridad — autorización por obra contra IDOR, inyección, secretos, sesión y CSRF, URL prefirmadas y tipo leído de los bytes, dependencias con CVE. No modifica archivos. Úsalo cuando haya endpoint, entrada externa, archivo, sesión, Dockerfile o Compose en alcance.
+description: Audita un cambio de CIMENTA desde la seguridad — autorización por obra contra IDOR, inyección, secretos, sesión y CSRF, URL prefirmadas y tipo leído de los bytes, dependencias con CVE. No modifica archivos. Úsalo cuando haya endpoint, entrada externa, archivo, sesión, Dockerfile, Compose, workflow de CI o dependencia nueva en alcance.
 tools: Read, Glob, Grep, Bash, PowerShell, Skill
-model: opus
+model: sonnet
 effort: high
 skills:
   - conv-seguridad
@@ -50,6 +50,9 @@ Y ojo con el segundo filo: la consulta debe **filtrar** por las obras del usuari
 | A08 | ¿El tipo de archivo se lee de **los bytes**? ¿`SVG` rechazado? ¿Límite de tamaño al firmar, no después de recibir? | ALTA |
 | A09 | ¿Se registra quién hizo cada operación, en la misma transacción? ¿El registro filtra datos sensibles? | MEDIA |
 | A10 | Si hay llamada externa, ¿la URL viene del usuario sin validar? | ALTA |
+| CI | En un *workflow*: ¿`pull_request_target` con *checkout* del código del PR? ¿datos del evento interpolados en `run:`? | **CRÍTICA** |
+| CI | ¿`permissions:` mínimos? ¿acciones fijadas por SHA? ¿una compuerta de seguridad con `continue-on-error`? | ALTA |
+| CI | ¿Cada compuerta nueva trae en `impl.md` su evidencia en rojo ante la violación que debe bloquear? | MEDIA |
 
 ## Severidad y acción
 

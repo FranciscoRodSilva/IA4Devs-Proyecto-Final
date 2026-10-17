@@ -43,7 +43,7 @@ python tools/verificar_docs.py
 
 Comprueba además, en el diff:
 
-- Que cada test nuevo **apareció en rojo** en `impl.md` antes de la implementación. Un test sin su salida en rojo no demuestra que prueba algo.
+- Que el ciclo TDD dejó rastro en `impl.md`: por cada fila, la salida en rojo **antes** de la de verde, y ningún test editado por un desarrollador. Un test sin su salida en rojo no demuestra que prueba algo.
 - Que cada test de rechazo afirma **el contrato de error completo** —`tipo`, `regla` o `codigo`, cifras y `acciones`—, no solo el código de estado.
 - Que las rutas y los códigos coinciden con el [borrador OpenAPI](../../../docs/api/openapi.yaml). **Todo PR que toca `docs/api/openapi.yaml` se señala** a la persona que aprueba, tenga o no un defecto ([convenciones §12](../../../docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)).
 
@@ -51,19 +51,20 @@ Comprueba además, en el diff:
 
 Despacha las que apliquen. **En paralelo**: son de solo lectura e independientes entre sí. Con `--paralelo` es el comportamiento por defecto; sin el modificador, en secuencia.
 
-| Auditor | Cuándo |
-|---|---|
-| `auditor-arquitectura` | **Siempre** |
-| `auditor-sql` | Hubo esquema, migración o consulta |
-| `auditor-codigo` | Hubo Python o TypeScript |
-| `auditor-seguridad` | Hay endpoint, entrada externa, archivo o sesión |
-| `auditor-docs` | El cambio altera comportamiento |
+| Auditor | Cuándo | Modelo |
+|---|---|---|
+| `auditor-arquitectura` | **Siempre** | `sonnet` |
+| `auditor-sql` | Hubo esquema, migración o consulta | `sonnet` |
+| `auditor-codigo` | Hubo Python o TypeScript | `sonnet` |
+| `auditor-seguridad` | Hay endpoint, entrada externa, archivo, sesión, Dockerfile, Compose, *workflow* de CI o dependencia nueva | `sonnet` |
+| `auditor-docs` | El cambio altera comportamiento | `haiku` |
 
+El orquestador pasa el modelo en el parámetro `model` de `Agent`. La primera pasada de una auditoría nunca baja de la columna; una reauditoría acotada a hallazgos Menores ya corregidos puede ir en `haiku` ([metodología §14.2](../../../sdd/metodologia.md#142--el-orquestador-elige-el-modelo-en-cada-despacho)).
 A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE CONTEXTO` y no emite veredicto** — no audites en vacío.
 
 ## Paso 4 · Ciclo de corrección
 
-- `REQUIERE CAMBIOS` → **`corrector-revision`** con los hallazgos, literales. Aplica eso y nada más: no refactoriza de paso, no mejora lo que nadie señaló.
+- `REQUIERE CAMBIOS` → **`corrector-revision`** (`haiku` por omisión) con los hallazgos, literales. Aplica eso y nada más: no refactoriza de paso, no mejora lo que nadie señaló.
 - Reauditar. Cada hallazgo se reclasifica `Resuelto` / `Persiste` / `Nuevo` por su identificador.
 - **Máximo 3 ciclos.** Al tercero con hallazgos críticos o mayores vivos → `REQUIERE DECISIÓN` → `/sdd-escalar`.
 - `RIESGOSO` o `BLOQUEAR` → **`corrector-revision` no actúa**. Estado `RIESGOSO` → `/sdd-escalar`.

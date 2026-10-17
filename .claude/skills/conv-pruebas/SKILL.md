@@ -1,13 +1,19 @@
 ---
 name: conv-pruebas
-description: Convenciones de pruebas de CIMENTA — tests antes que el código, PostgreSQL y MinIO reales con testcontainers nunca SQLite, esquema por alembic upgrade head, rol de aplicación, nombre del test con el escenario HDU, rechazo con el contrato de error completo, concurrencia, mutación. Cárgala antes de escribir o auditar cualquier test.
+description: Convenciones de pruebas de CIMENTA — ciclo TDD rojo, verde y refactor por fila del diseño, PostgreSQL y MinIO reales con testcontainers nunca SQLite, esquema por alembic upgrade head, rol de aplicación, nombre del test con el escenario HDU, rechazo con el contrato de error completo, concurrencia, mutación. Cárgala antes de escribir o auditar cualquier test.
 ---
 
 # Convenciones · pruebas
 
-## 0 · Primero el test, en rojo
+## 0 · TDD: rojo, verde, refactor
 
-**Los tests se escriben antes que el código** ([convenciones §12](../../../docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)). Por cada escenario del ticket, primero el test que lo nombra; se ejecuta y **falla por la razón esperada**; después, la implementación que lo pone en verde. La salida en rojo se pega en `impl.md`. Un test que nace en verde no demuestra que prueba algo.
+**Los tests se escriben antes que el código** ([convenciones §12](../../../docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)), y el trabajo sigue el ciclo de [metodología §16](../../../sdd/metodologia.md#16--el-ciclo-tdd) **por cada fila** del orden de implementación:
+
+1. **Rojo.** El tester escribe los tests que la fila declara, uno por escenario, y los ejecuta. Cada uno **falla por la razón esperada**: la función o la ruta no existe, o el rechazo no ocurre. Un error de importación, de entorno o de sintaxis no cuenta como rojo. La salida se pega en `impl.md`.
+2. **Verde.** El desarrollador escribe el código mínimo que pone en verde esos tests, de uno en uno. Nada que ningún test exija.
+3. **Refactor.** Con todo en verde, se limpia sin cambiar comportamiento y se vuelve a correr la suite.
+
+Un test que nace en verde no demuestra que prueba algo: se investiga antes de seguir. Quien escribe el código **no toca los tests**; si uno parece equivocado, vuelve al tester con el motivo.
 
 Los escenarios salen de la historia y de los `x-escenarios` de las operaciones del [borrador OpenAPI](../../../docs/api/openapi.yaml) cuyo `x-tickets` incluye el ticket. Las descripciones de esas operaciones enumeran los rechazos con su `tipo` y su `regla` o `codigo`: cada uno es un test.
 

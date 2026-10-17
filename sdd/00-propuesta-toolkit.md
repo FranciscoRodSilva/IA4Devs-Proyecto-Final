@@ -226,9 +226,9 @@ Veintiuno. Cada uno hace **una** cosa: un agente que hace dos hace ambas peor.
 
 La columna **Fase** indica cuándo se construye: **A** = necesario para empezar a trabajar tickets; **B** = se añade cuando el proyecto llegue a esa superficie.
 
-**Nueve están construidos**: `analista-dominio`, `arquitecto-tecnico`, `desarrollador-dominio`, `desarrollador-sql`, `tester-backend`, `auditor-arquitectura`, `auditor-seguridad`, `corrector-revision`, `git-entrega`. El resto se nombra en los comandos aunque no exista todavía; qué hace el orquestador mientras tanto está en [metodologia §13](metodologia.md#13--el-catálogo-de-agentes-y-qué-hacer-cuando-uno-no-existe).
+**Diez están construidos**: `analista-dominio`, `arquitecto-tecnico`, `desarrollador-dominio`, `desarrollador-sql`, `tester-backend`, `auditor-arquitectura`, `auditor-seguridad`, `corrector-revision`, `git-entrega`, `ingeniero-devsecops`. El resto se nombra en los comandos aunque no exista todavía; qué hace el orquestador mientras tanto está en [metodologia §13](metodologia.md#13--el-catálogo-de-agentes-y-qué-hacer-cuando-uno-no-existe).
 
-**Qué modelo usa cada uno** —y por qué barato para escribir, caro para auditar— está en [metodologia §14](metodologia.md#14--enrutamiento-de-modelo).
+**Qué modelo usa cada uno** —`opus` para definir y diseñar, `haiku` por omisión para ejecutar, y cómo el orquestador lo cambia en cada despacho— está en [metodologia §14](metodologia.md#14--enrutamiento-de-modelo). El ciclo TDD que siguen tester y desarrolladores, en [metodologia §16](metodologia.md#16--el-ciclo-tdd).
 
 ### 6.1 · Planeación y análisis
 
@@ -260,10 +260,10 @@ Cuatro desarrolladores, no uno, porque las cuatro capas tienen reglas incompatib
 
 | Agente | Cuándo | Qué hace | Por qué existe | Fase |
 |---|---|---|---|---|
-| `tester-backend` | Después de implementar backend | Genera pytest con testcontainers: nombre del test con el escenario, happy path **y** rechazo por cada regla, concurrencia donde hay bloqueo, rol de aplicación. | Los tests que se escriben «después, si da tiempo» no se escriben | A |
+| `tester-backend` | Al abrir cada fila del diseño, y al cerrar | Fase roja del ciclo TDD: escribe y ejecuta pytest con testcontainers **antes** del código —nombre del test con el escenario, happy path **y** rechazo por cada regla, concurrencia donde hay bloqueo, rol de aplicación—. Al cerrar, suite completa y mutación. | Los tests que se escriben «después, si da tiempo» no se escriben; y el oráculo no lo escribe quien escribe el código | A |
 | `tester-api` | Hay endpoints en alcance | Pruebas de contrato: forma de la respuesta, `409`/`422`/`403`, autenticación, CSRF, permisos por obra. | Un contrato de API se rompe en silencio si nadie lo prueba tras cada cambio | A |
 | `tester-frontend` | Después de implementar interfaz | Vitest de componente y Playwright de los flujos de la historia, incluidos los de rechazo. | Los tests de interfaz son los primeros que se omiten bajo presión | B |
-| `desarrollador-tdd` | El guard TDD está activo, o el ticket es corrección de error | Ciclo rojo / verde / refactor. En correcciones: el test que reproduce el fallo se commitea **antes** del arreglo. | Es la DoD declarada del proyecto para corrección de error; sin agente, se cumple de palabra | A |
+| `desarrollador-tdd` | — **absorbido** | El ciclo rojo / verde / refactor es ahora el modo de trabajo de todo `/sdd-ejecutar` ([metodologia §16](metodologia.md#16--el-ciclo-tdd)): lo conduce el orquestador con `tester-backend` y el desarrollador de cada capa. En correcciones, el test que reproduce el fallo se commitea **antes** del arreglo. | Un agente aparte para TDD lo convertía en un modo opcional; repartido entre tester y desarrolladores, ninguna fila se salta el rojo | — |
 
 ### 6.5 · Auditoría y corrección
 
@@ -285,7 +285,7 @@ Ninguno de estos modifica archivos. Emiten veredicto con evidencia citable —ar
 | Agente | Cuándo | Qué hace | Por qué existe | Fase |
 |---|---|---|---|---|
 | `git-entrega` | Al abrir y al cerrar un ticket | Crea o verifica la rama, revisa que no entren secretos ni archivos fuera de alcance, commitea con el formato del proyecto, abre el PR enlazado al ticket y marca el origen del PR (`agent`, `agent+human-review`). | El repositorio tiene su formato de rama y su atribución; y el origen del PR es una métrica declarada del proyecto | A |
-| `ingeniero-ci` | Se toca el pipeline | Mantiene las compuertas: Ruff, mypy, import-linter, pip-audit, pytest con testcontainers, markdownlint, Vale, lychee, los verificadores propios. | Un guardrail que no corre en CI es una recomendación | A |
+| `ingeniero-devsecops` | Se toca el pipeline, la imagen, el Compose, las dependencias o la gestión de secretos | Mantiene las compuertas —Ruff, mypy, import-linter, pip-audit, npm audit, pytest con testcontainers, markdownlint, Vale, lychee, los verificadores propios—, Dependabot y el escaneo de secretos; endurece los *workflows* (permisos mínimos, acciones fijadas por SHA) y la imagen. Cada compuerta nace demostrando que falla ante su violación. Sustituye al `ingeniero-ci` previsto. | Un guardrail que no corre en CI es una recomendación, y un pipeline mal endurecido es la puerta de entrada a todos los tickets a la vez | A |
 | `meta-sdd` | Al completar cada ticket | Agrupa las observaciones de `_evolucion.md` por tema, detecta patrones repetidos ≥3 y **propone** mejoras al toolkit. Nunca las aplica solo. | Sin revisión del proceso, el toolkit se fosiliza y deja de reflejar la realidad | A |
 | `generador-onboarding` | Alguien nuevo, o módulo desconocido | Recorrido pedagógico de un módulo: qué hace, cómo fluye, dónde están los riesgos. | El onboarding sin guía cuesta tiempo de todo el equipo | B |
 
@@ -318,15 +318,19 @@ El orquestador es el hilo principal ejecutando el comando. Cada comando declara 
                                                               │
                                                         GATE humano
 
-/sdd-ejecutar     desarrollador-tdd (si aplica)
-                  ├─ desarrollador-dominio
-                  ├─ desarrollador-aplicacion      (secuencial: tocan los mismos archivos)
-                  ├─ desarrollador-sql
-                  ├─ desarrollador-api
-                  ├─ disenador-ui-ux ──► desarrollador-react
-                  └─ tester-backend · tester-api · tester-frontend
+/sdd-ejecutar     git-entrega (rama)
                                    │
-                            git-entrega (rama)
+                  por cada fila de design.md — ciclo TDD:
+                  rojo     tester-backend · tester-api · tester-frontend
+                  verde    ├─ desarrollador-dominio
+                           ├─ desarrollador-aplicacion   (secuencial: tocan los mismos archivos)
+                           ├─ desarrollador-sql
+                           ├─ desarrollador-api
+                           ├─ disenador-ui-ux ──► desarrollador-react
+                           └─ ingeniero-devsecops
+                  refactor el mismo desarrollador, con la suite en verde
+                                   │
+                  el orquestador elige el modelo de cada despacho (metodologia §14.2)
 
 /sdd-revisar      ┌─ auditor-arquitectura ┐
                   ├─ auditor-seguridad    │  en paralelo — solo lectura

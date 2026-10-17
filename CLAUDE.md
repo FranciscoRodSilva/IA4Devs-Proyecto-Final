@@ -81,7 +81,7 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
 
 **Los rechazos usan el contrato de error**, nunca un mensaje suelto. `409` `REGLA_NEGOCIO` para violación de regla, `422` para error de forma, `403` para falta de permiso. Un `409` que no viola ninguna `RN` es `CONFLICTO` con su `codigo` del catálogo cerrado, **nunca** un `RN-xx` inventado; el vencimiento de un bloqueo es `CONCURRENCIA`. Los siete tipos y el catálogo están en [especificación de la API §3](docs/07-especificacion-api.md) y en [`docs/api/openapi.yaml`](docs/api/openapi.yaml).
 
-**Los tests se escriben antes que el código.** Por cada escenario del ticket, primero el test que lo nombra, en rojo, y después la implementación. Un test de rechazo comprueba el contrato de error completo —regla, cifras y acciones—, no solo el código de estado.
+**Los tests se escriben antes que el código, con TDD.** Por cada fila del diseño, el ciclo rojo → verde → refactor ([metodología §16](sdd/metodologia.md#16--el-ciclo-tdd)): primero el test que nombra el escenario, en rojo y por la razón esperada; después el código mínimo que lo pone en verde; después la limpieza con la suite en verde. Quien escribe el código no toca los tests. Un test de rechazo comprueba el contrato de error completo —regla, cifras y acciones—, no solo el código de estado.
 
 **Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `agent` o `agent+human-review`.
 
@@ -122,7 +122,7 @@ El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de co
 |---|---|---|
 | `/sdd-definir TKT-xxx` | Spec: historia, alcance MoSCoW, criterios Gherkin con su rechazo, invariantes en riesgo | `_index.md`, `spec.md` |
 | `/sdd-disenar TKT-xxx` | Plan técnico: qué capa, qué archivos, en qué orden, cómo se verifica cada paso | `design.md` |
-| `/sdd-ejecutar TKT-xxx` | Escribe primero los tests de cada escenario, en rojo, e implementa paso a paso hasta ponerlos en verde. Admite `--lote` sobre un rango | `impl.md` |
+| `/sdd-ejecutar TKT-xxx` | Ciclo TDD rojo → verde → refactor por cada fila del diseño, eligiendo el modelo de cada despacho. Admite `--lote` sobre un rango | `impl.md` |
 | `/sdd-revisar TKT-xxx` | Verifica criterio por criterio, corre la suite, despacha las auditorías, cierra el ciclo de corrección | veredictos |
 | `/sdd-completar TKT-xxx` | Delta del sistema, aprendizajes, documentación y PR | `delta.md`, PR |
 | `/sdd-avance` | Qué está hecho, qué falta, qué está esperando una decisión | — |
@@ -131,6 +131,8 @@ El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de co
 **Dos transiciones tienen dueño humano:** aprobar el diseño y resolver lo escalado. Ningún agente las mueve.
 
 Los agentes especializados viven en [`.claude/agents/`](.claude/agents/) y las convenciones por stack en [`.claude/skills/conv-*`](.claude/skills/). Cada agente carga **solo** las convenciones de su capa.
+
+**Modelo por tarea** ([metodología §14](sdd/metodologia.md#14--enrutamiento-de-modelo)): definir y diseñar van en `opus` con esfuerzo medio; ejecutar, en `haiku` por omisión y `sonnet` donde el diseño cita un disparador; tester, auditores y `ingeniero-devsecops`, en `sonnet`. El orquestador pasa el modelo en cada despacho y lo anota en `impl.md`; nunca sube un paso de ejecución a `opus`.
 
 **Caveman se aplica a la conversación, nunca a los artefactos.** Un hook lo recuerda en cada turno. Lo que se escribe a disco —specs, diseños, ADRs, docstrings, documentación, mensajes de commit— va en prosa completa: es el entregable y pasa por Vale.
 

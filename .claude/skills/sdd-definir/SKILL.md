@@ -22,7 +22,7 @@ Escribe la especificación del ticket **$ARGUMENTS**. Lee primero [`sdd/metodolo
 
 ## Paso 1 · Analizar
 
-Despacha **`analista-dominio`** con el identificador del ticket. Devuelve: reglas `RN-xx` implicadas, invariantes en riesgo, escenarios de la historia que cubre el ticket, módulos y capas en alcance, y los términos del glosario que importan.
+Despacha **`analista-dominio`** con el identificador del ticket, siempre en `opus` con esfuerzo medio: definir es una de las dos fases donde se paga el razonamiento caro, y el orquestador no lo baja ([metodología §14](../../../sdd/metodologia.md#14--enrutamiento-de-modelo)). Devuelve: reglas `RN-xx` implicadas, invariantes en riesgo, escenarios de la historia que cubre el ticket, módulos y capas en alcance, y los términos del glosario que importan.
 
 No sigas sin eso. Sin estado real de partida, la spec asume en vez de describir.
 

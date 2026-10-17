@@ -2,7 +2,7 @@
 name: analista-dominio
 description: Mapea el estado real de partida de un ticket de CIMENTA antes de escribir su spec — qué reglas RN-xx implica, qué invariantes pone en riesgo, qué escenarios de la historia cubre, qué términos del glosario importan. Solo lectura. Úsalo al inicio de /sdd-definir.
 tools: Read, Glob, Grep
-model: sonnet
+model: opus
 effort: medium
 ---
 

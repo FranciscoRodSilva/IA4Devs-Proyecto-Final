@@ -3,7 +3,7 @@ name: arquitecto-tecnico
 description: Escribe el design.md de un ticket de CIMENTA — estrategia, escalera de decisión por objeto, capas afectadas, orden de implementación con verificación por paso, plan de pruebas y riesgos. Úsalo en /sdd-disenar.
 tools: Read, Glob, Grep, Write, Edit, Skill, mcp__context7__resolve-library-id, mcp__context7__query-docs
 model: opus
-effort: high
+effort: medium
 skills:
   - conv-pruebas
 ---
@@ -42,6 +42,9 @@ Registras el peldaño y el porqué. Esa fila **es** la justificación del objeto
 - **Cada paso del orden de implementación lleva su verificación**, y se ejecuta antes del siguiente. Un paso sin verificación es un deseo.
 - **El plan de pruebas tiene al menos un caso de rechazo**, y concurrencia donde haya bloqueo pesimista. En rutas de dinero, límites o congelado: qué mutante se probará y qué test debe ponerse rojo.
 - **Agencia real.** No «el sistema valida el presupuesto», sino «`evaluar_disponibilidad` devuelve `BLOQUEADA` con el excedente».
+- **Cada paso nombra los tests que pone en verde.** La implementación sigue el ciclo TDD de [metodología §16](../../sdd/metodologia.md#16--el-ciclo-tdd): el tester escribe en rojo los casos del plan de pruebas que la fila declara, y el desarrollador escribe solo el código que los pone en verde. Una fila sin tests asociados no tiene forma de cerrarse.
+- **Cada paso lleva su modelo** según la tabla de disparadores de [metodología §14](../../sdd/metodologia.md#14--enrutamiento-de-modelo): `haiku` por omisión, `sonnet` si la fila cae en un disparador, y el disparador citado. Nunca `opus`: el razonamiento caro ya lo hiciste tú al diseñar.
+- **Pasos ejecutables sin volver a decidir.** Quien ejecuta es un modelo pequeño. Nombra la firma exacta de cada función, la tabla y sus columnas, el `tipo` de error y la cifra que debe aparecer en el rechazo. Si una fila exige elegir entre dos enfoques, la elección es tuya y queda escrita aquí, no en la implementación.
 - **Documentación afectada declarada**, para actualizarla en el mismo cambio.
 - **¿Merece ADR?** Si un recién llegado se preguntaría «¿por qué así?» y hubo opciones descartadas: sí, con su formato MADR.
 

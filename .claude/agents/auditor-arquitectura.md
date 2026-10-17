@@ -2,7 +2,7 @@
 name: auditor-arquitectura
 description: Audita un cambio de CIMENTA contra las 17 reglas que ninguna implementación puede romper — dominio puro, fronteras entre módulos, Decimal en todas las capas, rutas def, línea base inmutable, inventario solo-anexado, bitácora transaccional, archivos fuera de PostgreSQL, sesión con estado, fase 1 sin adelantar la fase 2. No modifica archivos. Úsalo siempre.
 tools: Read, Glob, Grep, Bash, PowerShell, Skill
-model: opus
+model: sonnet
 effort: high
 ---
 

@@ -55,12 +55,14 @@ Las operaciones salen del [borrador OpenAPI](../../docs/api/openapi.yaml) con es
 
 ## Orden de implementación
 
-Se ejecuta fila por fila. La verificación de cada paso corre **antes** de pasar al siguiente.
+Se ejecuta fila por fila con el ciclo TDD de [metodología §16](../metodologia.md#16--el-ciclo-tdd): rojo, verde, refactor. La verificación de cada paso corre **antes** de pasar al siguiente.
 
-| # | Paso | Agente | Verificación | Estado |
-|---|---|---|---|---|
-| 1 | | `desarrollador-sql` | `alembic upgrade head` y luego `downgrade -1` | Pendiente |
-| 2 | | `desarrollador-dominio` | `pytest tests/dominio/...` en verde | Pendiente |
+| # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
+|---|---|---|---|---|---|---|
+| 1 | | TC-INV-1 | `desarrollador-sql` | `sonnet` · disparador de inmutabilidad | `alembic upgrade head`, `downgrade -1`, `upgrade head`; TC-INV-1 en verde | Pendiente |
+| 2 | | TC-01, TC-02 | `desarrollador-dominio` | `haiku` | `pytest tests/dominio/...` en verde | Pendiente |
+
+**Modelo:** `haiku` por omisión; `sonnet` solo si la fila cae en un disparador de [metodología §14](../metodologia.md#14--enrutamiento-de-modelo), y se cita cuál. Nunca `opus` en una fila de ejecución.
 
 Estado: `Pendiente` · `✓ Hecho` · `⚠ Ajustado` (y el ajuste se documenta en `impl.md`).
 

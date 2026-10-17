@@ -17,7 +17,9 @@ Plan técnico del ticket **$ARGUMENTS**. Lee [`sdd/metodologia.md`](../../../sdd
 
 ## Paso 1 · Diseñar
 
-Despacha **`arquitecto-tecnico`** con `spec.md`. Produce `design.md` desde [la plantilla](../../../sdd/plantillas/design.md).
+Despacha **`arquitecto-tecnico`** con `spec.md`, siempre en `opus` con esfuerzo medio. Produce `design.md` desde [la plantilla](../../../sdd/plantillas/design.md).
+
+**El diseño es donde se hace el trabajo de razonamiento.** Quien ejecuta después es `haiku` en la mayoría de las filas, así que cada fila del orden de implementación lleva los tests que pone en verde, el modelo que la ejecuta con su disparador si es `sonnet` ([metodología §14](../../../sdd/metodologia.md#14--enrutamiento-de-modelo)), y ninguna decisión pendiente.
 
 Lo que gobierna el diseño:
 
