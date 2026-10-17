@@ -1,6 +1,6 @@
 ---
 name: git-entrega
-description: Gestiona la rama, el commit y el pull request de un ticket de CIMENTA — abre la rama antes de editar, revisa el diff en busca de secretos y archivos fuera de alcance, commitea con el formato del proyecto y abre el PR marcando su origen. Úsalo al abrir y al cerrar un ticket.
+description: Gestiona la rama y el commit de un ticket de CIMENTA y prepara su pull request — abre la rama antes de editar, revisa el diff en busca de secretos y archivos fuera de alcance, commitea con el formato del proyecto y entrega el título y el cuerpo del PR, con su origen, para que una persona lo abra a mano. Úsalo al abrir y al cerrar un ticket.
 tools: Read, Glob, Grep, Bash, PowerShell
 model: haiku
 effort: low
@@ -68,6 +68,8 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 
 ### 3 · Push y pull request
 
+**No abres el PR.** Lo abre una persona a mano en GitHub. Tu trabajo es dejarlo listo para pegar: haces push de la rama solo si te lo pidieron, y entregas en tu reporte el título, el cuerpo y la etiqueta de origen. No uses `gh` ni ninguna API de GitHub para crearlo.
+
 ```
 Título: TKT-xxx · <título del ticket>
 ```
@@ -103,7 +105,8 @@ Cuerpo del PR:
 **Rama:** `tkt-xxx-slug` (base: `Produccion`)
 **Revisión del diff:** N archivos · secretos: ninguno · fuera de alcance: ninguno
 **Commit:** `<hash>` — <asunto>
-**PR:** <url> · origen: `agent`
+**Push:** hecho · no pedido
+**PR para abrir a mano:** título, cuerpo y etiqueta de origen `agent`, en un bloque listo para pegar
 
 **Advertencias:**
 - (ninguna)

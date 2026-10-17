@@ -49,7 +49,8 @@ Despacha **`git-entrega`** en modo cierre:
 
 - Revisa el diff: ningún secreto, ningún archivo fuera de alcance, ningún artefacto temporal.
 - Commit con el formato del proyecto, incluida la línea de atribución.
-- Push y PR enlazado al ticket.
+- Push, solo si el usuario lo pidió.
+- **Prepara el PR, no lo abre.** El PR lo abre una persona a mano en GitHub: `git-entrega` entrega el título, el cuerpo y la etiqueta de origen listos para pegar.
 - **Marca el origen del PR**: `agent` o `agent+human-review`. Es una métrica declarada del proyecto — sin ella la velocity miente.
 
 Cuerpo del PR: qué, por qué, criterios cubiertos y cómo verificarlo.
@@ -58,7 +59,7 @@ Cuerpo del PR: qué, por qué, criterios cubiertos y cómo verificarlo.
 
 1. `_index.md`: estado `ARCHIVADO`, fila de Log, tabla de artefactos completa.
 2. Mueve los tickets futuros sugeridos a donde corresponda para que no se pierdan.
-3. Reporta: qué se añadió al sistema, qué contrato público cambió, qué ADR se creó, qué deuda queda abierta y con qué ticket sugerido, y el enlace del PR.
+3. Reporta: qué se añadió al sistema, qué contrato público cambió, qué ADR se creó, qué deuda queda abierta y con qué ticket sugerido, y el título y el cuerpo del PR para abrirlo a mano.
 
 > `ARCHIVADO` cierra la **planificación**. El despliegue es un evento posterior: un ticket puede estar archivado y aún sin desplegar.
 
