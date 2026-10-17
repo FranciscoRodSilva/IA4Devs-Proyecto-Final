@@ -9,8 +9,11 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 1. [`docs/glosario.md`](docs/glosario.md) — *concepto*, *partida*, *APU*, *rendimiento*, *destajo*, *explosión de insumos*
 2. [`docs/01-descripcion-producto.md`](docs/01-descripcion-producto.md) — 25 reglas `RN-01`…`RN-25` y 19 requisitos no funcionales `RNF-01`…`RNF-19`
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
-4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 26 invariantes
-5. [`docs/adr/`](docs/adr/) — 16 decisiones con su porqué
+4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
+5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
+6. [`docs/adr/`](docs/adr/) — 17 decisiones con su porqué
+
+El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
 ## Reglas que ninguna implementación puede romper
 
@@ -30,6 +33,7 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 14. **Ningún criterio de aceptación cubre solo el camino feliz.** Cada regla necesita su escenario de rechazo.
 15. **Los archivos no pasan por el API ni viven en PostgreSQL.** Almacén de objetos compatible con S3 (R2 en producción, MinIO en local y tests), con URL prefirmadas: el servidor firma y se aparta. Las rutas son `def`, así que servir un video retendría un hilo del grupo mientras dura. El tipo se lee **de los bytes**, nunca de la extensión ni de lo que declare el cliente, y `SVG` está prohibido. Un adjunto se anula con motivo, **nunca se borra** ([ADR-016](docs/adr/20261001-almacenamiento-de-objetos.md)).
 16. **La evidencia no condiciona ninguna regla y no viaja en la cola sin conexión.** El avance sincroniza sin esperar a sus fotos; estas suben después. Que una foto no sea condición para validar un avance es un **supuesto abierto** (`PA-14`): no lo conviertas en regla por tu cuenta.
+17. **El proyecto se construye en dos fases, y la fase 1 es el hilo vertical** ([PRD §7](docs/01-descripcion-producto.md#7-alcance-mvp-y-evolución)): línea base → requisición → bloqueo o autorización → orden de compra → entrada de material → semáforo. Nómina, destajo, captura sin conexión y evidencia son **fase 2**: no los adelantes desde un ticket de fase 1. Mientras tanto, la mano de obra y el avance del semáforo llegan por un **adaptador simulado** ([ADR-017](docs/adr/20261015-fuentes-simuladas-analitica.md)). Lo simulado **nunca** entra en el `consumido` de `RN-03`, siempre viaja marcado `SIMULADA` y la aplicación no arranca con él en producción.
 
 ## Stack
 
@@ -75,7 +79,11 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
     """HDU-002 esc. 4 · RN-03 — la requisición queda BLOQUEADA con su excedente."""
 ```
 
-**Los rechazos usan el contrato de error**, nunca un mensaje suelto. `409` para violación de regla, `422` para error de forma, `403` para falta de permiso.
+**Los rechazos usan el contrato de error**, nunca un mensaje suelto. `409` `REGLA_NEGOCIO` para violación de regla, `422` para error de forma, `403` para falta de permiso. Un `409` que no viola ninguna `RN` es `CONFLICTO` con su `codigo` del catálogo cerrado, **nunca** un `RN-xx` inventado; el vencimiento de un bloqueo es `CONCURRENCIA`. Los siete tipos y el catálogo están en [especificación de la API §3](docs/07-especificacion-api.md) y en [`docs/api/openapi.yaml`](docs/api/openapi.yaml).
+
+**Los tests se escriben antes que el código.** Por cada escenario del ticket, primero el test que lo nombra, en rojo, y después la implementación. Un test de rechazo comprueba el contrato de error completo —regla, cifras y acciones—, no solo el código de estado.
+
+**Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `agent` o `agent+human-review`.
 
 **El esquema y el código hablan español**, el del [glosario](docs/glosario.md). Tablas en `snake_case` singular.
 
@@ -83,7 +91,7 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
 
 ```bash
 uv sync                          # dependencias
-docker compose up -d db          # PostgreSQL local
+docker compose up -d db minio    # PostgreSQL y MinIO locales
 uv run alembic upgrade head      # migraciones
 uv run fastapi dev               # API
 uv run pytest                    # tests
@@ -95,7 +103,7 @@ npm --prefix frontend run dev    # frontend
 
 ## Qué no hacer
 
-- **No uses SQLite en tests.** Probaría contra garantías distintas de las de producción, y 26 invariantes viven en esas garantías. Los tests construyen el esquema con `alembic upgrade head`, nunca con `create_all()`, y **se conectan con el rol de aplicación**: con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
+- **No uses SQLite en tests.** Probaría contra garantías distintas de las de producción, y 38 invariantes viven en esas garantías. Los tests construyen el esquema con `alembic upgrade head`, nunca con `create_all()`, y **se conectan con el rol de aplicación**: con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
 - **No escribas un esquema Zod que espeje un modelo de Pydantic.** Los tipos del cliente se generan del OpenAPI. Zod valida formularios, no respuestas.
 - **No uses `passlib`.** Es `pwdlib[argon2]`.
 - **No pongas reglas de negocio en controladores ni en modelos del ORM.** Van en `dominio/`.
@@ -114,7 +122,7 @@ El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de co
 |---|---|---|
 | `/sdd-definir TKT-xxx` | Spec: historia, alcance MoSCoW, criterios Gherkin con su rechazo, invariantes en riesgo | `_index.md`, `spec.md` |
 | `/sdd-disenar TKT-xxx` | Plan técnico: qué capa, qué archivos, en qué orden, cómo se verifica cada paso | `design.md` |
-| `/sdd-ejecutar TKT-xxx` | Implementa paso a paso y genera los tests con el código. Admite `--lote` sobre un rango | `impl.md` |
+| `/sdd-ejecutar TKT-xxx` | Escribe primero los tests de cada escenario, en rojo, e implementa paso a paso hasta ponerlos en verde. Admite `--lote` sobre un rango | `impl.md` |
 | `/sdd-revisar TKT-xxx` | Verifica criterio por criterio, corre la suite, despacha las auditorías, cierra el ciclo de corrección | veredictos |
 | `/sdd-completar TKT-xxx` | Delta del sistema, aprendizajes, documentación y PR | `delta.md`, PR |
 | `/sdd-avance` | Qué está hecho, qué falta, qué está esperando una decisión | — |

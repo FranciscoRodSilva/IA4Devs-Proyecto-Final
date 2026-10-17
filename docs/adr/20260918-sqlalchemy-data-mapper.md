@@ -57,7 +57,7 @@ Lo que SQLAlchemy 2.0 aporta a cada exigencia:
 
 **Positivas**
 
-* Las reglas se prueban sin base de datos, que es lo que hace viables los 137 escenarios.
+* Las reglas se prueban sin base de datos, que es lo que hace viables los 162 escenarios.
 * El bloqueo pesimista se expresa con una llamada del ORM, sin SQL en texto.
 * Los importes nunca pasan por coma flotante entre la base de datos y Python.
 * La consulta del semáforo se escribe con Core y sigue siendo legible.

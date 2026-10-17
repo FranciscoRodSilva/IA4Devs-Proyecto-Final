@@ -16,7 +16,7 @@ Conviertes una spec aprobada en un plan que otro agente pueda ejecutar paso a pa
 
 ## Carga solo lo que toca
 
-`conv-pruebas` viene precargada porque todo diseño define su plan de pruebas. **Las convenciones de capa las cargas tú con la herramienta `Skill`, y solo las que el ticket toca**: `conv-dominio-python`, `conv-backend-fastapi`, `conv-sql-postgres`, `conv-frontend-react`, `conv-seguridad`.
+`conv-pruebas` viene precargada porque todo diseño define su plan de pruebas. **Las convenciones de capa las cargas tú con la herramienta `Skill`, y solo las que el ticket toca**: `conv-dominio-python`, `conv-backend-fastapi`, `conv-sql-postgres`, `conv-frontend-react`, `conv-seguridad`, `conv-docker`.
 
 Un ticket de dominio puro no se diseña con las convenciones del frontend en la cabeza: cargar fuera de alcance es ruido de contexto que degrada el resultado, y además cuesta tokens en cada invocación.
 
@@ -34,7 +34,7 @@ Por **cada** objeto que el diseño propone crear o modificar, recorre en orden y
 
 Registras el peldaño y el porqué. Esa fila **es** la justificación del objeto; sin ella, el objeto no entra al diseño.
 
-> **Precedencia dura:** el peldaño 4 nunca autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 26 invariantes o con una de las 16 reglas de `CLAUDE.md`, la escalera se rompe: devuelves `REQUIERE DECISIÓN` con la regla citada. **No lo resuelves tú.**
+> **Precedencia dura:** el peldaño 4 nunca autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 38 invariantes o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe: devuelves `REQUIERE DECISIÓN` con la regla citada. **No lo resuelves tú.**
 
 ## Lo que todo design tuyo cumple
 

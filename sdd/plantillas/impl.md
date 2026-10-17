@@ -21,12 +21,18 @@ Todo paso marcado `⚠ Ajustado` aparece aquí. Si no hubo: «Ninguno».
 
 ## Pruebas
 
-| # | Test | Tipo | Criterio | Resultado |
-|---|---|---|---|---|
-| TC-01 | `test_hduxxx_escNN_...` | feliz | `CA-1` | PASA |
-| TC-02 | `test_hduxxx_escNN_...` | **rechazo** | `CA-2` | PASA |
+| # | Test | Tipo | Criterio | Antes del código | Al cerrar |
+|---|---|---|---|---|---|
+| TC-01 | `test_hduxxx_escNN_...` | feliz | `CA-1` | FALLA | PASA |
+| TC-02 | `test_hduxxx_escNN_...` | **rechazo** | `CA-2` | FALLA | PASA |
 
-**Evidencia de ejecución:** pegar la línea de resumen real de `pytest` / `vitest` / `playwright`. Sin evidencia, el resultado no cuenta.
+**Salida en rojo, antes de implementar:** cada test nuevo falla, y por la razón esperada.
+
+```
+<salida real en rojo>
+```
+
+**Evidencia de ejecución al cerrar:** pegar la línea de resumen real de `pytest` / `vitest` / `playwright`, con `docker info` respondiendo. Sin evidencia, el resultado no cuenta.
 
 ```
 <salida real>

@@ -87,7 +87,7 @@ Antes de proponer cualquier objeto nuevo en `design.md`, se recorre en orden y *
 
 El peldaño donde paró y por qué se registra en `design.md`.
 
-> **Precedencia dura.** El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 26 invariantes del modelo de datos o con una de las 16 reglas de `CLAUDE.md`, la escalera se rompe y se **escala**.
+> **Precedencia dura.** El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 38 invariantes del modelo de datos o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe y se **escala**.
 
 ---
 
@@ -104,7 +104,7 @@ Formato Gherkin, en español, directamente traducible a un test.
 3. Filtrar a los reales. Los descartados no se documentan.
 4. Todo lo que se apoye en un supuesto sin evidencia se marca **`(asumido)`** y se replica en «Preguntas abiertas». Nunca se asume en silencio dentro de un criterio.
 
-**Trazabilidad.** Cada escenario cita su historia y su número: `HDU-002 esc. 4`. El test que lo cubre lleva ese identificador en el nombre.
+**Trazabilidad.** Cada escenario cita su historia y su número: `HDU-002 esc. 4`. El test que lo cubre lleva ese identificador en el nombre, **se escribe antes que el código** y se ve fallar primero ([convenciones §12](../docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)).
 
 ---
 
@@ -213,7 +213,7 @@ El modelo se elige por la **naturaleza de la tarea**, no por su importancia. Pag
 | Agente | Modelo | Esfuerzo | Por qué |
 |---|---|---|---|
 | `arquitecto-tecnico` | `opus` | alto | Decide la arquitectura del ticket y corre la escalera de decisión. Un error aquí lo paga toda la implementación |
-| `auditor-arquitectura` | `opus` | alto | Es el último filtro de las 16 reglas innegociables |
+| `auditor-arquitectura` | `opus` | alto | Es el último filtro de las 17 reglas innegociables |
 | `auditor-seguridad` | `opus` | alto | Lo más fácil de omitir y lo más caro de remediar en producción |
 | `desarrollador-dominio` | `sonnet` | alto | Implementa un diseño ya aprobado: ejecuta, no decide |
 | `desarrollador-sql` | `sonnet` | alto | Igual — y el auditor revisa lo que produce |

@@ -1,6 +1,6 @@
 ---
 name: auditor-seguridad
-description: Audita un cambio de CIMENTA desde la seguridad — autorización por obra contra IDOR, inyección, secretos, sesión y CSRF, URL prefirmadas y tipo leído de los bytes, dependencias con CVE. No modifica archivos. Úsalo cuando haya endpoint, entrada externa, archivo o sesión en alcance.
+description: Audita un cambio de CIMENTA desde la seguridad — autorización por obra contra IDOR, inyección, secretos, sesión y CSRF, URL prefirmadas y tipo leído de los bytes, dependencias con CVE. No modifica archivos. Úsalo cuando haya endpoint, entrada externa, archivo, sesión, Dockerfile o Compose en alcance.
 tools: Read, Glob, Grep, Bash, PowerShell, Skill
 model: opus
 effort: high
@@ -39,7 +39,7 @@ Y ojo con el segundo filo: la consulta debe **filtrar** por las obras del usuari
 |---|---|---|
 | A01 | ¿Rol **y** asignación a la obra en cada endpoint? ¿Se accede a otra obra cambiando el identificador? | **ALTA** |
 | A01 | ¿Los listados filtran por las obras del usuario? | ALTA |
-| A02 | ¿Algún secreto en el repositorio, en un valor por defecto, en un test o en un comentario? | **CRÍTICA** |
+| A02 | ¿Algún secreto en el repositorio, en un valor por defecto, en un test, en un comentario, o horneado en una imagen de Docker —`ARG`, `ENV`, una capa copiada, un `.env` sin `.dockerignore`—? | **CRÍTICA** |
 | A02 | ¿Argon2id con `pwdlib`? ¿Nada de `passlib`? | ALTA |
 | A03 | ¿SQL por concatenación o interpolación en algún punto? | **CRÍTICA** |
 | A04 | ¿Operaciones masivas sin límite de tamaño ni de elementos? | MEDIA |

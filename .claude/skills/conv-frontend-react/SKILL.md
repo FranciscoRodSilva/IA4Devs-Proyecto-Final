@@ -7,7 +7,11 @@ description: Convenciones del frontend de CIMENTA — React 19, tipos generados 
 
 ## 1 · Los tipos vienen del OpenAPI. No se escriben a mano
 
-Prohibido escribir un tipo de TypeScript que espeje un modelo del backend, y prohibido un esquema Zod que espeje un modelo de Pydantic. Se generan de la especificación OpenAPI que FastAPI ya produce.
+Prohibido escribir un tipo de TypeScript que espeje un modelo del backend, y prohibido un esquema Zod que espeje un modelo de Pydantic. Se generan con `openapi-typescript` **del OpenAPI que publica FastAPI** (`TKT-008`), no del borrador: el cliente habla con el servidor que existe. Antes de que exista el endpoint, el [borrador](../../../docs/api/openapi.yaml) sirve para generar tipos **provisionales** y montar la pantalla contra un servidor de pruebas; se tiran en cuanto el publicado existe ([especificación de la API §6.2](../../../docs/07-especificacion-api.md#62-para-generar-los-tipos-del-cliente)).
+
+Los `409` llegan como un `oneOf` con discriminador en `tipo`: `ErrorReglaNegocio | ErrorConflictoEstado | ErrorConcurrencia`. Se estrechan con un `switch` sobre `tipo`, **nunca sobre el texto del mensaje**. `CONCURRENCIA` ofrece reintentar; `REGLA_NEGOCIO` va a la pantalla de bloqueo; `CONFLICTO` explica el estado que impide la operación.
+
+La pantalla se construye desde su boceto en [`docs/08-wireframes.md`](../../../docs/08-wireframes.md). Si el boceto y la historia discrepan, se escala; no se elige.
 
 **Zod valida formularios, no respuestas.** Un esquema Zod espejando la respuesta del servidor es una segunda definición del contrato que se desincroniza en silencio: el día que el backend añade un campo, el cliente lo descarta sin que nadie se entere.
 
@@ -26,7 +30,8 @@ Ningún `Number()` sobre un campo de dinero. **Tampoco para mostrarlo**: `Number
 | Cargando | Esqueleto, no un *spinner* que salta |
 | Vacío | Qué significa que no haya datos y qué hacer |
 | Error | Qué falló y qué puede hacer la persona |
-| **Bloqueado** | El rechazo de negocio **con su dato**: disponible real, excedente, a quién va la autorización |
+| **Bloqueado** | El rechazo de negocio **con su dato**: disponible real, excedente, el desglose del consumido y las `acciones` que trae el servidor, ya filtradas por el rol |
+| *Simulado* | Solo en el semáforo de fase 1: lo que llega marcado `SIMULADA` o con `ilustrativa: true` lleva su marca visible, y `SIN_DATOS` se dice como tal, no como cero ([ADR-017](../../../docs/adr/20261015-fuentes-simuladas-analitica.md)) |
 
 El cuarto es propio de este dominio y es el que más se olvida. Una requisición bloqueada **no es un error**: es el sistema funcionando. Si se presenta como un error rojo genérico, el usuario cree que la aplicación falló y llama a soporte. Lleva su propio tratamiento visual y la ruta de salida.
 

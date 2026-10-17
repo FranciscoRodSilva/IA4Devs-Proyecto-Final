@@ -62,7 +62,7 @@ Reglas de [ADR-016](../../../docs/adr/20261001-almacenamiento-de-objetos.md), to
 |---|---|---|
 | A01 | ¿El endpoint comprueba rol **y** asignación a la obra? ¿Se puede acceder a otra obra cambiando el identificador? | **ALTA** |
 | A01 | ¿La consulta filtra por las obras del usuario, no solo por el parámetro recibido? | ALTA |
-| A02 | ¿Algún secreto en el repositorio o en configuración versionada? | **CRÍTICA** |
+| A02 | ¿Algún secreto en el repositorio, en configuración versionada o en una capa de la imagen de Docker? | **CRÍTICA** |
 | A02 | ¿Argon2id con `pwdlib`? ¿Nada de `passlib`? | ALTA |
 | A03 | ¿SQL por concatenación en algún punto? | **CRÍTICA** |
 | A04 | ¿Operaciones masivas sin límite de tamaño? | MEDIA |

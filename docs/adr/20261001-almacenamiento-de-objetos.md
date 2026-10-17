@@ -4,6 +4,8 @@
 
 Aceptado
 
+> **Alcance por fases.** En la **fase 1** ([PRD §7](../01-descripcion-producto.md#7-alcance-mvp-y-evolución)) solo se construye el camino mínimo de `archivos` que necesita el Excel de la línea base: alta `PENDIENTE`, URL prefirmada de subida, confirmación por tamaño y hash, tipo por los bytes y barrido de caducados ([TKT-059](../05-tickets-trabajo.md#tkt-059--módulo-archivos-mínimo-subida-prefirmada-confirmación-por-hash-y-barrido)). La evidencia de avance y de recepción, la galería, el expediente y la octava regla sobre la cola sin conexión son de la **fase 2**. Las siete reglas valen desde el primer archivo.
+
 ## Contexto y problema
 
 La [vista C4 de la arquitectura](../02-arquitectura.md#4-vista-c4) declara desde el primer día un contenedor llamado **"Almacén de archivos"**, `RNF-06` exige validar lo que sube el usuario, y el modelo de datos ya tenía dos columnas apuntando a él —`merma.evidencia_url` e `importacion.archivo_url`—. Lo que nunca se decidió es **qué es ese contenedor**. Estaba dibujado y sin implementar, que es la peor forma de estar: cualquiera podía resolverlo improvisando una carpeta en el servidor.
@@ -52,7 +54,7 @@ Es la regla que cierra el modo de fallo de ADR-013, y lo hace por construcción:
 
 **2 · Manda la fila, sigue el objeto.** El `archivo` nace en estado `PENDIENTE` **antes de que exista el objeto**, y solo al **confirmar** —verificando tamaño y hash contra el objeto realmente almacenado— pasa a `DISPONIBLE`. El documento al que se adjunta tiene que existir ya: la fila se crea en la transacción que lo crea, o en una posterior que adjunta sobre un documento ya guardado. **Las dos vías son reales y hacen falta las dos**, porque la [octava regla que este ADR añade a ADR-015](#qué-cambia-en-adr-015) obliga a la segunda: la evidencia de campo llega después que la medición.
 
-Un `PENDIENTE` caducado se barre, exactamente igual que una importación con el latido vencido (`RNF-17`). Es el mismo patrón ya razonado en el proyecto, aplicado al mismo problema: un trabajo en dos pasos cuyo segundo paso puede no llegar nunca.
+Un `PENDIENTE` caducado se barre y pasa a `CADUCADO` —no a `ANULADO`, que exige autor y motivo—, exactamente igual que una importación con el latido vencido (`RNF-17`). Es el mismo patrón ya razonado en el proyecto, aplicado al mismo problema: un trabajo en dos pasos cuyo segundo paso puede no llegar nunca.
 
 **La URL prefirmada es la credencial durante su vida.** Quien la tenga puede leer o escribir ese objeto sin presentar sesión, que es justo lo que permite al navegador subir directo. De ahí dos consecuencias que no son opcionales: el rol se comprueba **al emitirla**, nunca después, y la vida es corta —minutos para leer, lo justo para subir—. Una URL de lectura con horas de vigencia es un enlace público a evidencia de obra.
 

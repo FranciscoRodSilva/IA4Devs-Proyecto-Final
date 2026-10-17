@@ -1,6 +1,6 @@
 ---
 name: conv-backend-fastapi
-description: Convenciones de las capas aplicacion/, api/ e infraestructura/ de CIMENTA — rutas def nunca async, transacción en el caso de uso, Pydantic v2, SQLAlchemy 2.0 síncrono, contrato de error 409/422/403. Cárgala antes de escribir o auditar backend fuera de dominio/.
+description: Convenciones de las capas aplicacion/, api/ e infraestructura/ de CIMENTA — rutas def nunca async, transacción en el caso de uso, Pydantic v2, SQLAlchemy 2.0 síncrono, el borrador OpenAPI como contrato, los siete tipo del contrato de error. Cárgala antes de escribir o auditar backend fuera de dominio/.
 ---
 
 # Convenciones · `aplicacion/`, `api/`, `infraestructura/`
@@ -69,15 +69,27 @@ Nunca importando su repositorio, su modelo ni consultando su tabla. `compras` no
 
 ## 6 · El contrato de error es el contrato
 
-| Código | Cuándo |
-|---|---|
-| `409` | Violación de regla de negocio — la operación es válida en forma pero el negocio la rechaza |
-| `422` | Error de forma — falta un campo, el tipo no cuadra |
-| `403` | Falta de permiso — rol o asignación a la obra |
+**El borrador [`docs/api/openapi.yaml`](../../../docs/api/openapi.yaml) manda.** Rutas, métodos, códigos de estado y esquemas de error salen de ahí, no se improvisan. Las extensiones `x-tickets`, `x-roles`, `x-reglas` y `x-escenarios` de cada operación dicen qué te toca, qué rol se comprueba en `api/`, qué regla lleva el `409` y qué tests escribir ([especificación de la API §6](../../../docs/07-especificacion-api.md#6-cómo-lo-usa-la-ia)). Si el OpenAPI que publica FastAPI diverge del borrador, se corrige el código; si cambió el diseño, el borrador cambia en el mismo PR. La prueba de contrato de `TKT-061` falla el pipeline si divergen en silencio.
 
-Nunca un `dict` suelto con un mensaje, y nunca una excepción por regla. Hay **una sola** excepción de dominio —`regla`, `mensaje`, `detalle`, `acciones`— y **un manejador global** que la serializa (`TKT-005`). El [ADR del contrato de error](../../../docs/adr/20260918-contrato-error-negocio.md) descarta la excepción por regla porque produciría veintiuna formas que la interfaz tendría que tratar por separado.
+El cliente distingue cada rechazo por `tipo`, nunca por el texto. Son **siete `tipo`, más `NO_ENCONTRADO`**, y ninguno más (`TKT-005`, [especificación de la API §3](../../../docs/07-especificacion-api.md#3-el-contrato-de-error)):
 
-El cuerpo del `409` lleva el **dato accionable** —disponible real, excedente, presupuestado, solicitado— y las `acciones` con la ruta de autorización. Todos los importes del detalle, como cadena. El campo `regla` solo admite el formato `RN-\d{2}`.
+| `tipo` | Código | Cuándo |
+|---|---|---|
+| `REGLA_NEGOCIO` | `409` | Una regla `RN-xx` del PRD impide la operación. Lleva `regla`, `detalle` y `acciones` |
+| `CONFLICTO` | `409` | Conflicto de estado o de unicidad que **no es una `RN`**: duplicado, solicitud ya resuelta, transición no admitida, obra sin línea base congelada o sin tope de control. Lleva un `codigo` del **catálogo cerrado** `CodigoConflicto`, nunca un `RN-xx` inventado |
+| `CONCURRENCIA` | `409` | Venció `lock_timeout` o `statement_timeout` (`RNF-16`). Cabecera `Retry-After`, acción `REINTENTAR`, sin `regla`. Nada se persiste |
+| `VALIDACION` | `422` | Error de forma. Si la forma la impone una regla, el error del campo la cita, pero sigue siendo `422` |
+| `PERMISO` | `403` | Falta el rol, la autoridad sobre la excepción o la prueba de origen. **Nunca lleva cifras del recurso** |
+| `SESION` | `401` | Sin sesión, caducada, revocada o credenciales inválidas |
+| `LIMITE_INTENTOS` · `NO_ENCONTRADO` | `429` · `404` | Forma mínima, con `correlacion_id` |
+
+La frontera entre `409` y `422` se decide con una pregunta: **¿la misma petición, contra otro estado del sistema, habría pasado?** Si sí, es `409`.
+
+Nunca un `dict` suelto con un mensaje, y nunca una excepción por regla. Hay **una sola** excepción de dominio para las reglas —`regla`, `mensaje`, `detalle`, `acciones`— y **un manejador global** que serializa todos los `tipo` (`TKT-005`). El [ADR del contrato de error](../../../docs/adr/20260918-contrato-error-negocio.md) descarta la excepción por regla porque produciría una forma por regla que la interfaz tendría que tratar por separado.
+
+El cuerpo de `REGLA_NEGOCIO` lleva el **dato accionable** —disponible real, excedente, presupuestado, solicitado y el `consumido_desglose`— y las `acciones` con su ruta absoluta (`/api/v1/...`). **Las `acciones` se filtran por los roles de quien llama**: nunca se ofrece una que le respondería `403`. Todos los importes del detalle, como cadena. El campo `regla` solo admite el formato `RN-\d{2}`.
+
+Una requisición bloqueada responde `409` **y aun así se persiste** en `BLOQUEADA` con su solicitud de autorización; sus identificadores viajan en el `detalle`.
 
 El identificador de correlación de la petición viaja **dentro** del cuerpo del error, para que el usuario pueda citarlo, y en el registro estructurado de `structlog` (`RNF-13`).
 
@@ -90,6 +102,8 @@ Los errores no filtran trazas ni estructura interna al cliente.
 - Cerrar una orden de compra con saldo pendiente.
 - Una columna de existencia de inventario. El inventario es un libro mayor de solo-anexado; las correcciones son movimientos `AJUSTE`.
 - Que el cliente evalúe una regla. Lo que viene de la cola sin conexión entra por los mismos casos de uso y puede volver rechazado.
+- Sumar al `consumido` de `RN-03` un importe del adaptador simulado de `analitica`, o dejarlo viajar sin la marca `SIMULADA`. La configuración rechaza el adaptador simulado con `entorno = produccion`: la aplicación no arranca ([ADR-017](../../../docs/adr/20261015-fuentes-simuladas-analitica.md)).
+- Una ruta, un código o un esquema de error que no está en el borrador OpenAPI.
 
 ## 8 · Forma del código
 

@@ -29,7 +29,7 @@ Si al arreglar un hallazgo descubres **otro problema real**: lo **reportas**, no
 
 1. **Entiende el hallazgo antes de tocar nada.** Un arreglo que silencia el síntoma sin resolver la causa vuelve en la reauditoría clasificado como `Persiste`, y gasta un ciclo de tres.
 2. Corrige **en la capa correcta**. Si el hallazgo es «regla de negocio en el controlador», la corrección es mover la regla a `dominio/`, no envolverla mejor donde está.
-3. Respeta las convenciones de la capa que tocas. **Cárgala con la herramienta `Skill`, y solo la que necesites**: `conv-dominio-python`, `conv-backend-fastapi`, `conv-sql-postgres`, `conv-frontend-react`, `conv-pruebas` o `conv-seguridad`. Cargarlas todas en cada ciclo de corrección es coste puro.
+3. Respeta las convenciones de la capa que tocas. **Cárgala con la herramienta `Skill`, y solo la que necesites**: `conv-dominio-python`, `conv-backend-fastapi`, `conv-sql-postgres`, `conv-frontend-react`, `conv-pruebas`, `conv-seguridad` o `conv-docker`. Cargarlas todas en cada ciclo de corrección es coste puro.
 4. **Si la corrección necesita un test**, escríbelo. Arreglar una regla sin añadir el caso que la habría cazado deja el mismo agujero.
 5. Corre lo que aplique y pega la salida:
 

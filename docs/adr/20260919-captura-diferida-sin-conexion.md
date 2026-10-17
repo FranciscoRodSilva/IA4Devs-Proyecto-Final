@@ -4,6 +4,8 @@
 
 Aceptado · **ampliado el 2026-10-01 por [ADR-016](20261001-almacenamiento-de-objetos.md)**, que añade una octava regla: la evidencia fotográfica **no viaja en la cola**. Las siete reglas de abajo siguen vigentes sin cambios.
 
+> **Alcance por fases.** Todo lo que este ADR decide es de la **fase 2** ([PRD §7](../01-descripcion-producto.md#7-alcance-mvp-y-evolución)): la fase 1 —el hilo vertical— exige conexión en todos sus flujos y no construye cola, caché persistida ni service worker. La decisión se toma ahora porque condiciona el contrato de las rutas de captura, que no conviene cambiar después.
+
 ## Contexto y problema
 
 **En la obra no hay internet** (`PA-13`, respondida el 2026-09-19). Los datos se sincronizan cuando el dispositivo recupera conexión.
@@ -40,9 +42,9 @@ La frontera no es arbitraria: es exactamente la línea de `RN-03`. Una requisici
 
 Esto preserva `RNF-01` intacto: el permiso se comprueba cuando se escribe en el servidor, que es el único momento en que importa. Sin conexión no se escribe nada en el servidor, por definición.
 
-**3 · El identificador lo genera el cliente, y la sincronización es idempotente.** Las claves primarias ya son UUID generados por la aplicación (modelo de datos §2), así que una fila nace con su identidad definitiva en el dispositivo. El endpoint de sincronización es idempotente sobre ese identificador: reenviar lo mismo tras una conexión que se cortó a medias no duplica nada.
+**3 · El identificador lo genera el cliente, y las rutas de captura son idempotentes.** Las claves primarias ya son UUID generados por la aplicación (modelo de datos §2), así que una fila nace con su identidad definitiva en el dispositivo. **No hay ruta de sincronización propia**: `POST /avances` y `POST /entradas-almacen` aceptan el `id` del cliente y su `capturado_en`, y son idempotentes por clave primaria. Reenviar lo mismo tras una conexión que se cortó a medias no duplica nada: el reenvío responde `200` con la representación actual del recurso.
 
-**4 · El servidor no relaja ninguna regla.** Lo encolado entra por **los mismos casos de uso** que lo capturado en línea, con las mismas validaciones, los mismos invariantes y la misma bitácora. Una entrada que excede lo ordenado vuelve con el contrato de error de `RN-07` y su solicitud de autorización, exactamente igual que si se hubiera capturado conectado.
+**4 · El servidor no relaja ninguna regla.** Lo encolado entra por **los mismos casos de uso** que lo capturado en línea, con las mismas validaciones, los mismos invariantes y la misma bitácora. Una entrada que excede lo ordenado vuelve con el contrato de error de `RN-07`, exactamente igual que si se hubiera capturado conectado. El rechazo no crea nada: si el usuario decide pedir autorización, la crea él con `POST /solicitudes-autorizacion`, con conexión. Autorizada, reenvía la entrada citando `solicitud_autorizacion_id`, también con conexión: el excedente se suma a la recepción entonces, nunca por la cola (`PA-16`).
 
 **5 · Los conflictos los resuelve una persona, nunca el sistema.** No hay fusión automática. Un elemento rechazado queda marcado en la cola con el contrato de error que lo explica, y el usuario decide: corregir, descartar o escalar.
 

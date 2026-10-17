@@ -1,6 +1,6 @@
 ---
 name: sdd-ejecutar
-description: Fase 3 del pipeline SDD de CIMENTA. Implementa un ticket con design aprobado y genera sus tests en paralelo, paso por paso con verificación. Admite modo lote sobre un rango. Úsala cuando el usuario diga /sdd-ejecutar.
+description: Fase 3 del pipeline SDD de CIMENTA. Implementa un ticket con design aprobado, tests primero y en rojo, después el código que los pone en verde, paso por paso con verificación. Admite modo lote sobre un rango. Úsala cuando el usuario diga /sdd-ejecutar.
 argument-hint: TKT-xxx [--lote TKT-yyy]
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, PowerShell, Agent, Skill, WebSearch, WebFetch
 ---
@@ -14,14 +14,26 @@ Implementa el ticket. Lee [`sdd/metodologia.md`](../../../sdd/metodologia.md).
 - `_index.md` en estado `LISTO PARA EJECUTAR`. Si está en `DISEÑO PENDIENTE REVISIÓN`, **el usuario aún no aprobó**: dilo y para.
 - `design.md` existe y tiene sección para cada capa en alcance.
 - Las dependencias declaradas están `ARCHIVADO` o `LISTO PARA PR`.
+- El ticket es de la fase que toca. Un ticket de fase 1 no adelanta nómina, destajo, captura sin conexión ni evidencia (regla 17 de `CLAUDE.md`).
+- **Docker está corriendo** si el ticket tiene pruebas de integración: `docker info` responde. testcontainers levanta PostgreSQL y MinIO en Docker; sin el demonio, la suite no se salta, falla. Ver [`conv-docker`](../conv-docker/SKILL.md).
 
 ## Paso 1 · Rama
 
 Despacha **`git-entrega`** en modo apertura: crea o verifica `tkt-xxx-<slug>` desde la rama base. **Antes de editar nada.**
 
-## Paso 2 · Ejecutar el orden de implementación
+## Paso 2 · Tests primero, en rojo
 
-Fila por fila de la tabla de `design.md`. **La verificación de cada paso corre antes de pasar al siguiente.**
+**Los tests se escriben antes que el código** ([convenciones §12](../../../docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)). Por cada escenario en alcance —los de la historia y los `x-escenarios` de las operaciones del [borrador OpenAPI](../../../docs/api/openapi.yaml) cuyo `x-tickets` incluye este ticket—, el tester correspondiente (`tester-backend` con `conv-pruebas`) escribe el test que lo nombra:
+
+- Nombre con el escenario: `test_hduXXX_escNN_...`.
+- **Al menos un test de rechazo por regla implicada**, y el test de rechazo comprueba **el contrato de error completo** —`tipo`, `regla` o `codigo`, cifras como cadena y `acciones`—, no solo el código de estado.
+- Concurrencia donde hay bloqueo pesimista: dos transacciones simultáneas, pasa una; el vencimiento responde `CONCURRENCIA`.
+
+Ejecuta la suite y **pega en `impl.md` la salida en rojo**: cada test nuevo falla, y falla por la razón esperada (la función o la ruta no existe, el rechazo no ocurre), no por un error de importación o de entorno. Un test que nace en verde no prueba nada: o el comportamiento ya existía, o el test no afirma lo que dice.
+
+## Paso 3 · Implementar hasta verde
+
+Fila por fila de la tabla de `design.md`. **La verificación de cada paso corre antes de pasar al siguiente**, y la verificación incluye los tests del paso 2 que esa fila debe poner en verde.
 
 | Si el paso toca | Despacha | Precarga |
 |---|---|---|
@@ -30,28 +42,25 @@ Fila por fila de la tabla de `design.md`. **La verificación de cada paso corre 
 | Casos de uso | `desarrollador-aplicacion` | `conv-backend-fastapi` |
 | Endpoints, DTO | `desarrollador-api` | `conv-backend-fastapi` |
 | Pantalla nueva | `disenador-ui-ux`, luego `desarrollador-react` | `conv-frontend-react` |
-| Tests | `tester-backend`, `tester-api`, `tester-frontend` | `conv-pruebas` |
+| Imagen, Compose, servicio local | — lo hace el orquestador | `conv-docker` |
 
 **Los desarrolladores van en secuencia, nunca en paralelo.** Tocan los mismos archivos; dos a la vez producen conflictos que ningún linter detecta.
 
-Si el ticket es **corrección de error**, o el design pide ciclo TDD: despacha **`desarrollador-tdd`** primero. El test que reproduce el fallo se commitea **antes** del arreglo y falla.
+Si el ticket es **corrección de error**: el test que reproduce el fallo se commitea **antes** del arreglo y falla.
 
 Marca cada fila en `design.md`: `✓ Hecho` o `⚠ Ajustado`.
 
-## Paso 3 · Probar — paso duro, no se salta
+## Paso 4 · Suite completa — paso duro, no se salta
 
-El test nace con el código, no «después si da tiempo».
-
-- Cada criterio de aceptación tiene su test, con el escenario en el nombre: `test_hduXXX_escNN_...`.
-- **Al menos un test de rechazo por regla implicada.** Sin eso, la fase no cierra.
-- Concurrencia donde hay bloqueo pesimista: dos transacciones simultáneas, pasa una.
-- PostgreSQL real con testcontainers, esquema por `alembic upgrade head`, conexión con el rol de aplicación. **Nunca SQLite, nunca `create_all()`.**
+- Todos los tests del paso 2 en verde, **sin haberlos tocado** salvo para corregir un error del propio test, documentado en `impl.md`.
+- Cada criterio de aceptación tiene su test. **Sin un test de rechazo por regla implicada, la fase no cierra.**
+- PostgreSQL y MinIO reales con testcontainers, esquema por `alembic upgrade head`, conexión con el rol de aplicación. **Nunca SQLite, nunca `create_all()`.**
 - **Mutación** en rutas críticas: muta un operador o un umbral, confirma que algún test se pone rojo, deshaz la mutación y anota qué cayó. Si ninguno se inmuta, falta un test.
 - **Pega la salida real** de la suite en `impl.md`. Un «todo en verde» sin evidencia no cuenta.
 
 Prohibido alterar o borrar un test para que la suite pase.
 
-## Paso 4 · Documentación y ADR
+## Paso 5 · Documentación y ADR
 
 En **este mismo cambio**:
 
@@ -59,14 +68,14 @@ En **este mismo cambio**:
 - Si `design.md` dijo que merece ADR: créalo en `docs/adr/YYYYMMDD-slug.md`, formato MADR, con su entrada en el índice.
 - Corre `python tools/verificar_docs.py`.
 
-## Paso 5 · Auditoría de cierre de fase
+## Paso 6 · Auditoría de cierre de fase
 
 Despacha **`auditor-arquitectura`** y, si hubo esquema, **`auditor-sql`**. Son los dos que pueden invalidar el trabajo entero; conviene saberlo ahora y no en `/sdd-revisar`.
 
 - `REQUIERE CAMBIOS` → **`corrector-revision`** con los hallazgos → reauditar. Máximo 3 ciclos.
 - `RIESGOSO` → detener **todo** el flujo → `/sdd-escalar`.
 
-## Paso 6 · Cerrar
+## Paso 7 · Cerrar
 
 1. Escribe `impl.md` desde [la plantilla](../../../sdd/plantillas/impl.md).
 2. `_index.md`: estado `EN REVISIÓN`, fila de Log.
@@ -101,7 +110,8 @@ Por cada ticket: ejecutar → revisar → completar. Avanza al siguiente **solo*
 4. El alcance crece más de 30 % → `REQUIERE DECISIÓN`.
 5. Tres ciclos de corrección con hallazgos críticos o mayores vivos → escalar.
 6. Hace falta una regla de negocio que el PRD no tiene → escalar. **No la inventes.**
-7. Vas a implementar una regla sin su test de rechazo → no. Primero el test.
+7. Vas a implementar una regla sin su test de rechazo en rojo → no. Primero el test.
+8. El ticket necesita una ruta, un código o un `codigo` de conflicto que no está en el borrador OpenAPI → escalar, salvo que el design ya apruebe el cambio del borrador en este PR.
 
 ## Lo que este comando tiene prohibido
 

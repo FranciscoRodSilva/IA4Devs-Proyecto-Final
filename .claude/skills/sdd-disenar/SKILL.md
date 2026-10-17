@@ -23,7 +23,7 @@ Lo que gobierna el diseño:
 
 **La escalera de decisión, por objeto.** Antes de proponer cualquier objeto nuevo, recorrer en orden y parar en el primer peldaño que resuelve: YAGNI → nativo de la plataforma → reuso → cambio mínimo → objeto nuevo. El peldaño donde paró se registra: es la justificación del objeto.
 
-> El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 26 invariantes o con una de las 16 reglas de `CLAUDE.md`, la escalera se rompe → `/sdd-escalar`.
+> El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 38 invariantes o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe → `/sdd-escalar`.
 
 **Solo las capas en alcance.** Una sección vacía se borra, no se deja con «no aplica».
 
@@ -31,7 +31,7 @@ Lo que gobierna el diseño:
 
 **Plan de pruebas con al menos un caso de rechazo**, y concurrencia donde haya bloqueo pesimista. En rutas de dinero, límites o congelado: qué mutante se va a probar y qué test debe ponerse rojo.
 
-**Convenciones del stack en alcance, y solo esas.** El arquitecto carga `conv-dominio-python`, `conv-backend-fastapi`, `conv-sql-postgres` o `conv-frontend-react` según corresponda. Cargar fuera de alcance es ruido que degrada el diseño.
+**Convenciones del stack en alcance, y solo esas.** El arquitecto carga `conv-dominio-python`, `conv-backend-fastapi`, `conv-sql-postgres`, `conv-frontend-react` o `conv-docker` según corresponda. Cargar fuera de alcance es ruido que degrada el diseño.
 
 **Context7 es obligatorio** al diseñar contra FastAPI, SQLAlchemy 2.0, Pydantic v2, React 19 o TanStack. El conocimiento del modelo puede estar desactualizado y estas librerías cambian.
 

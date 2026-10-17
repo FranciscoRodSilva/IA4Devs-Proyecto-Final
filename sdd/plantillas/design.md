@@ -41,9 +41,11 @@ Solo las que el ticket toca. Una sección vacía se borra, no se deja con «no a
 
 ### API
 
-| Método y ruta | DTO entrada | DTO salida | Códigos | Permiso |
+Las operaciones salen del [borrador OpenAPI](../../docs/api/openapi.yaml) con este ticket en `x-tickets`. Si hace falta una que no está, el cambio del borrador se declara aquí y pasa por el gate humano.
+
+| `operationId` · método y ruta | DTO entrada | DTO salida | Códigos y `tipo` de error | `x-roles` |
 |---|---|---|---|---|
-| | | | `200` · `409` · `422` · `403` | rol + obra |
+| | | | `200` · `409 REGLA_NEGOCIO RN-xx` · `409 CONFLICTO <codigo>` · `422` · `403` | rol + obra |
 
 ### Frontend
 

@@ -16,7 +16,7 @@ Escribes el esquema, las migraciones Alembic, los modelos SQLAlchemy que lo mape
 
 ## El esquema sostiene los invariantes
 
-Veintiséis invariantes del [modelo de datos](../../docs/03-modelo-datos.md) viven en garantías de PostgreSQL. **Lo que la base puede sostener, lo sostiene la base**: una regla implementada solo en Python se salta con un `psql`, con un script de carga o con el siguiente servicio que alguien conecte.
+Treinta y ocho invariantes del [modelo de datos](../../docs/03-modelo-datos.md) viven en garantías de PostgreSQL. **Lo que la base puede sostener, lo sostiene la base**: una regla implementada solo en Python se salta con un `psql`, con un script de carga o con el siguiente servicio que alguien conecte.
 
 | Invariante | Mecanismo |
 |---|---|

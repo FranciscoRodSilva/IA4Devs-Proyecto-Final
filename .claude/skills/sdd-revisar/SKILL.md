@@ -31,6 +31,7 @@ Si falla: documenta los huecos en `impl.md`, estado `REQUIERE CAMBIOS`, devuelve
 No te fíes de lo que dice `impl.md`: ejecútala.
 
 ```bash
+docker info
 uv run pytest
 uv run ruff check .
 uv run mypy cimenta/
@@ -38,7 +39,13 @@ uv run lint-imports
 python tools/verificar_docs.py
 ```
 
-Y lo que aplique del frontend. **Pega la salida real.** Si algo falla, eso es un hallazgo, no una nota al pie.
+`docker info` va primero: testcontainers necesita el demonio, y una suite que no levanta PostgreSQL o MinIO no es una suite en verde. Y lo que aplique del frontend. **Pega la salida real.** Si algo falla, eso es un hallazgo, no una nota al pie.
+
+Comprueba además, en el diff:
+
+- Que cada test nuevo **apareció en rojo** en `impl.md` antes de la implementación. Un test sin su salida en rojo no demuestra que prueba algo.
+- Que cada test de rechazo afirma **el contrato de error completo** —`tipo`, `regla` o `codigo`, cifras y `acciones`—, no solo el código de estado.
+- Que las rutas y los códigos coinciden con el [borrador OpenAPI](../../../docs/api/openapi.yaml). **Todo PR que toca `docs/api/openapi.yaml` se señala** a la persona que aprueba, tenga o no un defecto ([convenciones §12](../../../docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)).
 
 ## Paso 3 · Auditorías
 

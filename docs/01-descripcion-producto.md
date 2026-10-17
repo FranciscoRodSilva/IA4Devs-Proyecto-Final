@@ -142,7 +142,7 @@ graph LR
     style TB fill:#2d5a3d,color:#fff
 ```
 
-Cortar cualquier eslabón rompe el tablero. Esta es la razón por la que el MVP de §7 incluye nómina: sin ella el paso 3 solo captura materiales, que son la **minoría** del costo directo.
+Cortar cualquier eslabón rompe el tablero. Sin nómina ni destajo el paso 3 solo captura materiales, que son la **minoría** del costo directo. Por eso el producto completo los incluye. El MVP de §7 los deja para la fase 2 y, mientras tanto, los cubre con una fuente simulada **rotulada como tal**, de modo que el ciclo se puede recorrer entero sin que nadie confunda la maqueta con el costo real.
 
 ---
 
@@ -197,7 +197,7 @@ Ocho capacidades. Cada una lista sus funcionalidades y la evidencia que la justi
 
 - **F3.1** Dar entrada al material validando contra la **remisión del proveedor**, no contra la orden de compra.
 - **F3.2** Registrar **recepciones parciales** manteniendo la orden en estado `PARCIAL` con su saldo pendiente, y **reprogramar** el faltante con una nueva fecha comprometida hasta que se entregue (`RN-06`).
-- **F3.3** Rechazar una entrada que exceda lo ordenado, o exigir autorización para aceptarla.
+- **F3.3** Rechazar una entrada que exceda lo ordenado, o exigir autorización para aceptarla. Autorizado, el excedente se suma a la recepción y queda marcado como excedente (`RN-07`, `PA-16`).
 - **F3.4** Registrar **traspasos de sobrantes entre obras**, moviendo el costo de la obra que envía a la que recibe.
 - **F3.5** Documentar **mermas, desperdicios y robos** con motivo, responsable y evidencia, dando de baja el inventario y registrando el impacto en el costo de la obra.
 - **F3.6** Controlar **consumibles** (escobas, trapeadores, papel) como categoría de insumo con su propio presupuesto.
@@ -218,7 +218,7 @@ Las funcionalidades F3.2 y F3.5 son **diseño desde cero**: el cliente pidió ex
 - **F4.1** Definir precios de destajo por etapa (`METAL`, `TAPADO`, `PASTA`), por obra **y por tipo de partida**, separados del precio de venta al cliente. Es lo que permite que el costo de destajo llegue a la partida en el tablero (PA-08).
 - **F4.2** Capturar el avance ejecutado por cuadrilla, nivel y ubicación, registrando **m² contrato** y **m² real** medidos.
 - **F4.3** Flujo de validación en dos pasos: el residente mide, el Director de Proyectos valida. Sin validación no se paga.
-- **F4.4** Calcular el pago de destajo aplicando la retención pactada.
+- **F4.4** Calcular el pago de destajo sobre los **m² reales validados**, aplicando la retención pactada y reteniendo el fondo de garantía (`PA-21`, resuelta el 2026-10-17).
 - **F4.5** Registrar **descuentos ad-hoc** contra el pago de destajo (herramienta comprada, seguros, adelantos), con concepto y motivo.
 - **F4.6** Liberar el fondo de garantía únicamente cuando el área esté liberada **y** cobrada al cliente.
 - **F4.7** Reportar la desviación de volumen: m² reales contra m² de contrato, agregada por obra, nivel y cuadrilla.
@@ -285,7 +285,7 @@ La nómina va en fila aparte porque no llega a partida: un trabajador de sueldo 
 
 - **F7.1** Semáforo por obra y partida con las cinco columnas, en tiempo real.
 - **F7.2** Desglose desde la partida hasta el movimiento individual que generó el costo.
-- **F7.3** Alerta cuando una partida supera un umbral de consumo configurable respecto de su avance físico.
+- **F7.3** Alerta cuando una partida supera un umbral de consumo configurable respecto de su avance físico. El umbral se configura **por obra**. El semáforo tiene **tres colores** —`VERDE`, `AMARILLO` y `ROJO`— y `SIN_AVANCE_MEDIDO` es un estado aparte, no un color (`PA-18`, resuelta el 2026-10-17). El umbral separa el amarillo del rojo, y la alerta sale con `ROJO`; el corte exacto está en §10, *supuestos asumidos sin bloqueo*.
 - **F7.4** **Recálculo del costo proyectado** de la obra restante cuando cambia el precio de un insumo clave, con el impacto cuantificado sobre el margen.
 - **F7.5** Vista consolidada multi-obra para Dirección General.
 - **F7.6** Panel de deuda por consignación y anticipos pendientes de amortizar por proveedor.
@@ -318,22 +318,55 @@ Esta capacidad no añade control de costo: **añade la prueba de lo que las dem�
 
 El cuestionario describe siete dominios de negocio completos. Implementarlos todos es construir un ERP, y no cabe en un proyecto final ni entrega valor incremental. El criterio de recorte es uno solo:
 
-> **Entra en el MVP lo que sea necesario para cerrar el ciclo de valor de §5.2. Sale todo lo demás.**
+> **Entra en el MVP el recorrido más corto que demuestre las dos promesas del producto —*saber* e *impedir*— con datos reales. Lo que completa la cifra entra después, en una segunda fase con fecha.**
 
-### MVP — el ciclo cerrado
+> **Revisión del 2026-10-15.** Hasta la Entrega 1 el criterio era *"todo lo necesario para cerrar el ciclo de valor"*, y el MVP resultante incluía compras, almacén, destajo, la nómina completa con créditos y pagos agrupados, el tablero y el expediente documental. La revisión de LIDR lo señaló: el sexto sprint iba sobrecargado y el trabajo sin conexión no estaba estimado. El ciclo de §5.2 sigue siendo el objetivo del producto. Lo que cambia es que ahora se construye en dos fases, y la primera es un **hilo vertical** que se puede demostrar entero.
 
-| Capacidad | Alcance en MVP |
+### Fase 1 · MVP — el hilo vertical
+
+Un solo recorrido, de punta a punta, sobre el Excel real del cliente:
+
+```mermaid
+graph LR
+    A["<b>1. Línea base</b><br/>Importar el Excel<br/>y congelar"] --> B["<b>2. Requisición</b><br/>Evaluada contra<br/>el disponible"]
+    B -->|"cabe"| D["<b>4. Orden de compra</b><br/>a un proveedor"]
+    B -->|"excede"| C["<b>3. Bloqueo</b><br/>Dirección General<br/>autoriza o rechaza"]
+    C -->|"autorizada"| D
+    D --> E["<b>5. Entrada de material</b><br/>contra remisión,<br/>recepción parcial"]
+    E --> F["<b>6. Semáforo</b><br/>presupuestado, comprometido,<br/>ejercido"]
+
+    style C fill:#7a2d2d,color:#fff
+    style F fill:#2d5a3d,color:#fff
+```
+
+| Capacidad | Alcance en la fase 1 |
 |---|---|
 | **C1 Presupuesto** | F1.1 – F1.5. Importación, explosión, congelado, presupuesto de control |
 | **C2 Compras** | F2.1 – F2.6. Requisición, bloqueo por presupuesto, autorización, orden de compra |
-| **C3 Almacén** | F3.1 – F3.3. Entrada por remisión, recepción parcial con saldo, rechazo de excedente |
-| **C4 Destajo** | F4.1 – F4.4, F4.7. Avance medido, doble validación, pago con retención, desviación de volumen |
-| **C5 Nómina** | F5.1 – F5.7. Completa: es costo directo mayoritario |
+| **C3 Almacén** | F3.1 – F3.3, **en línea**. Entrada por remisión, recepción parcial con saldo y reprogramación, rechazo de excedente y su registro con autorización de Dirección General (`RN-07`, `PA-16`) |
 | **C6 Proveedores** | F6.1 y F6.5. Catálogo mínimo y consulta de lo pedido por proveedor y obra. **Sin catálogo de proveedores no hay a quién emitir la orden de compra de F2.5** |
-| **C7 Tablero** | F7.1 – F7.3. Semáforo, desglose y alerta |
+| **C7 Tablero** | F7.1 – F7.3. Semáforo, desglose y alerta. **Materiales con datos reales; mano de obra y avance con una fuente simulada y rotulada** ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)) |
+| **C8 Expediente** | Solo el almacén de archivos mínimo —subida, verificación por bytes y por hash— que la importación necesita para recibir el Excel sin que pase por el API ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)). Ninguna funcionalidad F8.x todavía |
+
+Son las seis historias *must*, de HDU-001 a HDU-006. HDU-003 entra porque el hilo no termina en el bloqueo, sino en que alguien lo **resuelva**. HDU-004 entra porque sin orden de compra no hay contra qué recibir el material (`RN-05`, `RN-06`).
+
+**Con esto la dirección puede responder dos preguntas con datos de hoy:** *¿cuánto llevo comprometido y recibido en cada partida contra su tope?*, y *¿alguien gastó por encima de él sin autorización?* La segunda tiene respuesta garantizada: cero, por construcción (`MS-3`).
+
+**Lo que la fase 1 no responde**, y por eso no se presenta como el costo real de la obra, es cuánto lleva gastado en mano de obra ni a qué avance físico corresponde lo gastado. El semáforo muestra esas columnas con datos simulados, marcados *"dato simulado"*, y la desviación rotulada *ilustrativa*. **Lo simulado nunca entra en el disponible que aplica `RN-03`**: una requisición real no se bloquea por un destajo que no existe. Por la misma razón, una desviación ilustrativa **no dispara la alerta de `F7.3`**, y en producción no se admite la fuente simulada: esas columnas salen *sin datos* hasta la fase 2 ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)).
+
+### Fase 2 — mano de obra y captura en campo
+
+Completa la cifra del semáforo y lleva la captura a donde ocurren los hechos. Sustituye la fuente simulada por la real, sin tocar ni la consulta ni la pantalla.
+
+| Capacidad | Alcance en la fase 2 |
+|---|---|
+| **C3 Almacén** | La entrada de material, **diferible sin conexión** (`RNF-18`, [ADR-015](adr/20260919-captura-diferida-sin-conexion.md)) |
+| **C4 Destajo** | F4.1 – F4.4, F4.7. Avance medido, doble validación, pago con retención, desviación de volumen. Captura diferible sin conexión |
+| **C5 Nómina** | F5.1 – F5.7. Completa: es costo directo mayoritario |
+| **C7 Tablero** | Las columnas de mano de obra y avance pasan a datos reales; la marca *simulado* desaparece |
 | **C8 Expediente** | F8.1, F8.2, F8.4 y F8.5. Evidencia de avance, remisión y documentos de obra. **F8.3 —PDF y XML de factura— va con C6 a la v1.1**, porque la carga de facturas no existe antes |
 
-Con esto la dirección puede responder *"¿gano o pierdo en esta obra?"* con datos de hoy. Es el mínimo que justifica el producto.
+Son las tres historias *should* —HDU-007 a HDU-009— y los escenarios de captura sin conexión y de evidencia de HDU-002, HDU-005 y HDU-008. **La fase 2 está dentro del producto y tiene tickets numerados y detallados**, no es una lista de deseos ([tickets · fase 2](05-tickets-trabajo.md)). Va después porque el hilo vertical no la necesita para demostrar las dos promesas, y porque las reglas de dominio ya están especificadas: añadirlas sobre un esqueleto probado sale barato. Al cerrarla, el semáforo responde lo que la fase 1 no puede: *¿gano o pierdo en esta obra?*
 
 ### Versión 1.1 — *should-have*
 
@@ -342,7 +375,7 @@ Amplían el control pero no son necesarias para que el ciclo cierre:
 - **C6 restante** — facturas con corte semanal, anticipos y consignación con tope (F6.2 – F6.4). El catálogo de proveedores y la consulta por obra ya están en el MVP
 - **F8.3** — PDF y XML de la factura de proveedor, que viaja con F6.2 porque no hay factura que adjuntar antes. El almacén de archivos que lo recibe ya existe desde el MVP
 - **F1.6, F1.7** — versionado de línea base y trabajos extra
-- **F1.8** — rendimiento observado y su divergencia contra el congelado (`RN-24`). El MVP captura los datos que lo hacen calculable; el cálculo y su uso en proyecciones llegan aquí
+- **F1.8** — rendimiento observado y su divergencia contra el congelado (`RN-24`). La fase 2 captura los datos que lo hacen calculable; el cálculo y su uso en proyecciones llegan aquí
 - **F3.4, F3.5** — traspasos entre obras y baja documentada de mermas
 - **F7.4** — recálculo por alza de precio de insumo, apoyado en F1.8
 - **F4.5, F4.6** — descuentos ad-hoc y liberación de fondo de garantía
@@ -374,7 +407,7 @@ Estas son las reglas duras del negocio. Son la fuente de la que se derivan los c
 | **RN-04** | Toda autorización y todo rechazo se registran con actor, momento y motivo, de forma permanente. | Principio de trazabilidad |
 | **RN-05** | La entrada de material se valida contra la **remisión del proveedor**. | Cuestionario §3 |
 | **RN-06** | Una recepción parcial deja la orden en estado `PARCIAL` con su saldo pendiente. El faltante se **reprograma** con una nueva fecha comprometida y la orden no se cierra hasta entregarse completa. No existe el cierre con saldo. | Cuestionario §3 + PA-07 |
-| **RN-07** | No se puede recibir más cantidad de la ordenada sin autorización explícita. | **(asumido)** — derivado de RN-03 |
+| **RN-07** | No se puede recibir más cantidad de la ordenada sin autorización explícita de Dirección General. Autorizado, el excedente se suma a la recepción y queda marcado como excedente. | Cuestionario §3 + PA-16 |
 | **RN-08** | El traspaso de material entre obras mueve el costo de la obra origen a la obra destino. | Cuestionario §3 |
 | **RN-09** | Toda baja de inventario por merma, desperdicio o robo requiere motivo y responsable. | Cuestionario §3 |
 | **RN-10** | El avance de destajo lo mide el residente y lo valida el Director de Proyectos. Sin validación no se genera pago. | Cuestionario §4 |
@@ -390,7 +423,7 @@ Estas son las reglas duras del negocio. Son la fuente de la que se derivan los c
 | **RN-20** | Si el cliente final se retrasa 15 días en un pago, se frena toda la actividad de esa obra. | Cuestionario §5 |
 | **RN-21** | El costo real de una obra incluye materiales, nómina y destajo. Un cálculo que omita la mano de obra es inválido. | APU reales: 59–100 % del costo directo |
 | **RN-22** | Una cuadrilla cobra por destajo **o** por nómina en una semana dada, nunca por ambas vías. El sistema impide generar la segunda. | Cuestionario §4 + PA-09 |
-| **RN-23** | La semana de nómina va de **viernes a jueves**, con corte el jueves. Cada día trabajado se registra por empleado y obra, aunque el empleado cambie de obra dentro de la semana. El costo de nómina por obra se deriva de ese registro, no de un reparto estimado. | PA-04 |
+| **RN-23** | La semana de nómina va de **viernes a jueves**, con corte el jueves. Cada día trabajado se registra por empleado y obra, aunque el empleado cambie de obra dentro de la semana. El costo de nómina por obra se deriva de ese registro, no de un reparto estimado. La semana de **destajo** va de **jueves a miércoles**, con corte el jueves siguiente; las dos se identifican por su **jueves de corte**, que es la clave común con la que `RN-22` compara una semana de destajo con una de nómina. | PA-04 + PA-19 |
 | **RN-24** | El consumo esperado de cada insumo se recalibra con la ejecución real. La línea base conserva el rendimiento congelado para medir desviación; la proyección de costo usa el rendimiento observado. Los dos coexisten y nunca se sobrescriben entre sí. | PA-06 |
 | **RN-25** | Cuando el IVA no es acreditable para una obra, forma parte del costo y permanece dentro del precio unitario. El tratamiento se configura **por obra**, no es una constante del sistema. | PA-05 |
 
@@ -400,11 +433,15 @@ Estas son las reglas duras del negocio. Son la fuente de la que se derivan los c
 >
 > **El tope es una sola bolsa por tipo de partida**, compartida entre el material y la mano de obra de destajo. Una partida cuyo destajo se ha comido el presupuesto bloquea también sus compras de material: el control es sobre el costo de la partida, no sobre cada concepto de costo por separado. La nómina no entra, porque no llega a partida (PA-10).
 
+> **RN-07 · El excedente autorizado es ejercido, y puede dejar la partida en negativo.** Lo que entra de más es material recibido: entra en el `ejercido` y, por tanto, en el `consumido` de `RN-03`. La entrada **no evalúa `RN-03`** —el presupuesto se evaluó al levantar la requisición, y quien decide el excedente es Dirección General al autorizarlo—, así que el disponible de la partida puede quedar negativo. No se oculta ni se bloquea a posteriori: lo hace visible el semáforo, y la siguiente requisición de esa partida se bloqueará por `RN-03`.
+
 > **RN-20** se implementa en v1.1: depende del control de cobranza, que está fuera del MVP. Se documenta aquí porque condiciona el diseño del bloqueo de compras y no debe descubrirse más tarde.
 
 > **RN-22 no salió del cuestionario.** El cliente declaró que el pago está mezclado —*"hay a quien se le paga por destajo y a quienes se les paga por precio fijo (es decir nómina)"*— pero no dijo qué ocurre si ambas vías se cruzan. La regla apareció al analizar la relación entre las historias de destajo y de nómina: sin ella, la misma semana de trabajo puede pagarse y contabilizarse dos veces, y el costo real del tablero queda inflado sin que nadie lo detecte.
 >
 > **Confirmada por el cliente el 2026-09-18** (PA-09): las dos modalidades son excluyentes. La regla **bloquea**, no advierte.
+>
+> **Su alcance, el 2026-10-17** (PA-20): el bloqueo es **solo de la cuadrilla** en conflicto. La nómina del resto se calcula. Las dos semanas se comparan por su jueves de corte (`RN-23`).
 
 ---
 
@@ -477,7 +514,7 @@ Todo lo marcado **(asumido)** en este documento está aquí. La regla es la del 
 
 ### Preguntas resueltas
 
-**Doce: once resueltas el 2026-09-18 y `PA-13` el 2026-09-19.** Se conservan aquí en lugar de borrarse: el rastro de qué se preguntó, qué se respondió y cuándo es parte de la especificación. Sin él, dentro de seis meses nadie podrá distinguir una regla que vino del cliente de un supuesto que nadie revisó.
+**Diecinueve: once resueltas el 2026-09-18, `PA-13` el 2026-09-19 y de `PA-16` a `PA-22` el 2026-10-17.** Se conservan aquí en lugar de borrarse: el rastro de qué se preguntó, qué se respondió y cuándo es parte de la especificación. Sin él, dentro de seis meses nadie podrá distinguir una regla que vino del cliente de un supuesto que nadie revisó.
 
 | ID | Pregunta | Respuesta | Consecuencia en el diseño |
 |---|---|---|---|
@@ -493,20 +530,29 @@ Todo lo marcado **(asumido)** en este documento está aquí. La regla es la del 
 | **PA-10** | ¿Es aceptable que el costo de nómina se muestre solo a nivel de obra, sin repartir entre partidas? | **Sí** | Confirma el supuesto. La nómina se agrega por obra vía `imputacion_nomina_obra` y se muestra en fila propia marcada como no imputada a partida. El destajo sí llega a partida gracias a PA-08 |
 | **PA-11** | ¿Basta calcular el rendimiento observado por obra e insumo, o hace falta por tipo de partida? | **Basta por el momento** | Confirma el supuesto. `rendimiento_observado` se mantiene a nivel de obra e insumo. Ver el disparador de revisión más abajo |
 | **PA-13** | ¿Hay conexión a internet en la obra? | **No la hay. Los datos se actualizan cuando vuelve a haberla** | ⚠ Cambia el supuesto, y es el más caro de los que quedaban implícitos. La aplicación **no puede dar por hecho que siempre hay servidor**. Nace `RNF-18` y [ADR-015](adr/20260919-captura-diferida-sin-conexion.md): captura diferida acotada a `avance` y `entrada_almacen`, con cola local y sincronización idempotente. El diseño para móvil **deja de estar fuera de alcance**: quien captura sin conexión lo hace de pie en un departamento |
+| **PA-16** | ¿Qué efecto tiene autorizar un excedente de recepción (`RN-07`)? | **"Se debe sumar a la recepción y marcar que hay un excedente"** (2026-10-17) | ⚠ Cambia el supuesto, que resolvía la solicitud sin efecto sobre la orden. Almacén solicita la autorización `EXCEDE_ORDENADO`, que guarda el renglón y la cantidad excedente; con ella `AUTORIZADA`, **reenvía la misma entrada** citando `solicitud_autorizacion_id`. El excedente se suma a la recepción, el renglón queda marcado con su `excedente` y la orden pasa a `CERRADA`. El excedente **es costo ejercido**: es material que se recibió. Una autorización se consume una sola vez. `RN-07` reescrita |
+| **PA-17** | ¿Se puede corregir a la baja una entrada de una orden ya `CERRADA`? | **"No"** (2026-10-17) | Confirma el supuesto. La corrección sobre una orden `CERRADA` se rechaza con `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION` y nada se registra. En `PARCIAL` o `ABIERTA` funciona como siempre |
+| **PA-18** | ¿El semáforo usa solo verde y rojo, o también amarillo? ¿Con qué umbral? | **"Solo los 3: verde, amarillo y rojo"** (2026-10-17) | ⚠ Cambia el supuesto, que dejaba dos colores. Aparece `AMARILLO`; `SIN_AVANCE_MEDIDO` sigue siendo un estado, no un color. El umbral de alerta por obra separa el amarillo del rojo, y la alerta de `F7.3` sale con `ROJO`. El corte exacto no lo dio el cliente: está en los supuestos sin bloqueo |
+| **PA-19** | ¿Cómo se fija la semana de una medición de destajo? | **"De jueves a miércoles, es decir cada jueves es el corte"** (2026-10-17) | ⚠ Cambia el supuesto, que usaba la semana de nómina. La semana de destajo va de jueves a miércoles y se identifica por el **jueves de corte siguiente**: una medición hecha en jueves abre semana. La nómina sigue de viernes a jueves; las dos comparten el jueves de corte, y por él compara `RN-22`. `RN-23` ampliada. Si un pago liquida mediciones de semanas anteriores no se contestó: queda en los supuestos sin bloqueo |
+| **PA-20** | Si una cuadrilla tiene conflicto de modalidad (`RN-22`), ¿se bloquea solo esa cuadrilla o toda la nómina? | **"Solo a la cuadrilla"** (2026-10-17) | Confirma el supuesto, que pasa a regla: la nómina del resto se calcula y la cuadrilla en conflicto queda fuera hasta resolverlo. Si sus integrantes registran jornada no se contestó: queda en los supuestos sin bloqueo |
+| **PA-21** | ¿El destajo se paga sobre los m² reales o los de contrato? ¿El 5 % de fondo de garantía se retiene en cada pago de la fase 2? | **"Sí, para ambas preguntas"** (2026-10-17): sobre m² reales, y el fondo se retiene | ⚠ Cambia el supuesto en las dos mitades. El pago se calcula sobre `m2_real` validado, y cada pago de la fase 2 retiene el 15 % (`RN-11`) **y** el 5 % de fondo de garantía, que se guarda como importe en el pago. Su liberación sigue en la v1.1 (`RN-12`). La base del 5 % no se contestó: queda en los supuestos sin bloqueo |
+| **PA-22** | Nómina: ¿cuántos días tiene la semana laboral, en qué orden se aplican los descuentos si no alcanza el bruto, qué pasa con un crédito al dar de baja y quién marca la semana como pagada? | **"6; conforme vayan debiéndose de las semanas; el administrador"** (2026-10-17) | ⚠ Cambia el supuesto en el orden de los descuentos, que daba prioridad a Infonavit. La semana laboral es de **6 días** y se guarda como parámetro, no como constante. Cuando el bruto no alcanza, los descuentos se aplican **por antigüedad del adeudo**, sin prioridad por tipo de crédito. La semana la marca `PAGADA` el rol `ADMINISTRACION`. La decisión sobre el crédito al dar de baja sigue siendo explícita, como pide HDU-007 |
 
 > **Seis de las once respuestas contradijeron mis supuestos** (PA-03, PA-04, PA-06, PA-07 y parcialmente PA-01 y PA-08). Ese es exactamente el valor de declararlos: cada supuesto invisible que hubiera llegado al código habría costado semanas de retrabajo. Los cambios están propagados al [modelo de datos](03-modelo-datos.md), a las [historias](04-historias-usuario.md) y a los [tickets](05-tickets-trabajo.md).
 
 ### Preguntas abiertas
 
-**Tres, y ninguna bloquea la implementación.** Las doce de la especificación funcional están resueltas. De las tres abiertas, la primera nació en la revisión del stack del 2026-09-19, al declarar los requisitos no funcionales; las dos siguientes, en la revisión documental del **2026-10-01** que añadió la capacidad `C8`.
+**Tres.** Las doce de la especificación funcional original están resueltas, y también las siete —de `PA-16` a `PA-22`— que nacieron en la revisión del 2026-10-17 y el cliente contestó el mismo día. `PA-12` nació en la revisión del stack del 2026-09-19, al declarar los requisitos no funcionales; `PA-14` y `PA-15`, en la revisión documental del **2026-10-01** que añadió la capacidad `C8`. Ninguna bloquea el arranque, y cada una conserva la fecha que dice su fila.
+
+Cada una lleva un **comportamiento provisional**: es el que se implementa, se marca *(asumido, `PA-xx`)* donde aparece y se cambia si la respuesta lo contradice. Ninguno amplía lo que el cliente dijo; todos eligen la opción más conservadora o la que menos código tira si hay que cambiarla.
 
 | ID | Pregunta | Por qué hay que preguntarla | Cuándo hace falta la respuesta |
 |---|---|---|---|
-| **PA-12** | Si se pierde la base de datos, **¿cuánta captura es aceptable rehacer, y cuánto tiempo puede estar el sistema caído mientras se restaura?** | `RNF-10` propone 1 hora de pérdida máxima y 8 horas de restauración. Es **mi propuesta, no un dato del cliente**: sale de que la operación es semanal, no de que nadie lo haya pedido. Los dos números fijan el precio de la base de datos gestionada, y la diferencia entre una hora y un día de pérdida no es un matiz técnico — es cuántas requisiciones, entradas y jornadas habría que volver a capturar a mano | **Antes de contratar la infraestructura**, que es TKT-058 en el sprint 7. No antes: hasta entonces no hay nada que perder |
+| **PA-12** | Si se pierde la base de datos, **¿cuánta captura es aceptable rehacer, y cuánto tiempo puede estar el sistema caído mientras se restaura?** | `RNF-10` propone 1 hora de pérdida máxima y 8 horas de restauración. Es **mi propuesta, no un dato del cliente**: sale de que la operación es semanal, no de que nadie lo haya pedido. Los dos números fijan el precio de la base de datos gestionada, y la diferencia entre una hora y un día de pérdida no es un matiz técnico — es cuántas requisiciones, entradas y jornadas habría que volver a capturar a mano | **Antes de contratar la infraestructura**, que es TKT-058, en el sprint 6 que cierra la fase 1. No antes: hasta entonces no hay nada que perder |
 | **PA-14** | **¿Un avance se puede validar sin evidencia fotográfica, o la foto es condición para validar?** | Si la evidencia fuera obligatoria, la medición no podría sincronizarse sin sus fotos y la captura sin conexión de `RNF-18` dejaría de servir justo donde hace falta: en obra, sin señal. Hoy se asume **que no es obligatoria** y la octava regla de [ADR-016](adr/20261001-almacenamiento-de-objetos.md) depende de ese supuesto. Si la respuesta fuera *"sí es obligatoria"*, nace una regla de negocio nueva y hay que reabrir la frontera de [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | **Antes de descomponer el bloque de evidencia** del backlog. Decide si nace una regla de negocio nueva o si no hay ninguna |
 | **PA-15** | **¿Cuánto video hace falta de verdad, y cuánto tiempo hay que conservarlo?** | La estimación de volumen —3-4 GB al mes en fotos, cinco a diez veces eso con video— es **mía, no del cliente**, y sale de contar áreas en los catálogos reales. Fija el límite de tamaño por archivo, la resolución a la que se guarda y la política de ciclo de vida del bucket. Una obra entregada hace tres años con su video íntegro es almacenamiento que nadie consulta y que se paga todos los meses | **Antes de fijar los límites de `RNF-06`** en implementación. Mientras tanto se asume 30 segundos y 50 MB por video |
 
-**Cómo preguntarla.** No en términos de RPO y RTO, que no significan nada fuera de este documento. En términos de la operación: *"si el sistema se cae un jueves por la tarde, con el corte de proveedores a medias, ¿es aceptable rehacer la captura de esa mañana? ¿y la de toda la semana?"*. La respuesta a esa pregunta **es** el objetivo de recuperación, y se traduce después.
+**Cómo preguntar `PA-12`.** No en términos de RPO y RTO, que no significan nada fuera de este documento. En términos de la operación: *"si el sistema se cae un jueves por la tarde, con el corte de proveedores a medias, ¿es aceptable rehacer la captura de esa mañana? ¿y la de toda la semana?"*. La respuesta a esa pregunta **es** el objetivo de recuperación, y se traduce después.
 
 Mientras no haya respuesta, los números de `RNF-10` siguen marcados **(asumido)** y el sistema se diseña contra ellos. Son conservadores: si el cliente tolera más pérdida, la infraestructura sale más barata; si tolera menos, sube. En ningún caso cambia el diseño.
 
@@ -534,6 +580,11 @@ No son preguntas abiertas —están decididas— pero llevan una condición que 
 - **La evidencia documental de `C8` no condiciona ninguna regla de negocio.** Ni la foto valida un avance, ni la remisión valida una entrada, ni el XML concilia una factura. Se guarda, se consulta y se prueba su integridad; nada más. Elevarla a condición es lo que pregunta `PA-14`, y sería una regla nueva, no un detalle de implementación.
 - **Los límites de archivo asumidos son 15 MB por imagen, 50 MB y 30 segundos por video, y 25 MB por documento.** Salen de lo que produce un teléfono actual, no de una exigencia del cliente (`PA-15`).
 - **Los objetivos de recuperación de `RNF-10` —1 hora de pérdida máxima, 8 horas de restauración— son una propuesta, no una exigencia del cliente.** Salen de que la operación es semanal: perder la captura de una mañana obliga a recapturar requisiciones y entradas de un día, lo que es molesto y hacedero. Están planteados a Dirección General como **PA-12** y siguen abiertos.
+- **El corte de los tres colores del semáforo** (`PA-18`): `VERDE` con desviación ≤ 0; `AMARILLO` con desviación > 0 y desviación relativa ≤ `obra.umbral_alerta_pct`; `ROJO` con desviación relativa por encima del umbral. Si la obra no tiene umbral configurado, toda desviación > 0 es `ROJO`. La alerta de `F7.3` sale con `ROJO`. El cliente dio los colores, no el corte.
+- **Un pago de destajo liquida solo mediciones de su misma semana** (`PA-19`). El cliente fijó la semana, no si un pago puede arrastrar mediciones de semanas anteriores.
+- **Los integrantes de una cuadrilla que cobra por destajo sí registran jornada** (`PA-20`). `RN-23` exige saber cuándo y dónde trabajó cada empleado; esa jornada no genera renglón de nómina en la semana de destajo de su cuadrilla.
+- **La antigüedad de un adeudo de nómina se mide por la semana en que el crédito empezó a descontarse** (`PA-22`): cuando el bruto no alcanza, se descuenta primero el crédito más antiguo y, a igual fecha, el de menor saldo. El cliente fijó el criterio —*"conforme vayan debiéndose de las semanas"*—, no el desempate.
+- **El 5 % de fondo de garantía se calcula sobre el bruto del pago**, igual que la retención del 15 % (`PA-21`). El cliente confirmó que se retiene, no sobre qué base.
 
 ---
 

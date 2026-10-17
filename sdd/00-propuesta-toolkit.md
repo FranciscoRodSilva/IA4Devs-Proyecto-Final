@@ -14,7 +14,7 @@
 
 Tres razones, en orden de peso:
 
-**1. OpenSpec crearía una segunda fuente de verdad.** OpenSpec instala `openspec/specs/` como «el estado actual del sistema» y `openspec/changes/` como propuestas de cambio. CIMENTA ya tiene esa capa, y está validada en CI: el PRD con `RN-01`…`RN-25`, las historias con escenarios Gherkin numerados, los tickets `TKT-001`…`TKT-058`, 26 invariantes de datos, 16 ADRs, y `tools/verificar_docs.py` comprobando que ningún identificador citado sea inexistente. Montar `openspec/` encima significa mantener dos catálogos de reglas que se desincronizan en el tercer ticket. El problema que OpenSpec resuelve —*que haya spec antes que código*— aquí ya está resuelto.
+**1. OpenSpec crearía una segunda fuente de verdad.** OpenSpec instala `openspec/specs/` como «el estado actual del sistema» y `openspec/changes/` como propuestas de cambio. CIMENTA ya tiene esa capa, y está validada en CI: el PRD con `RN-01`…`RN-25`, las historias con escenarios Gherkin numerados, los tickets `TKT-001`…`TKT-069`, 38 invariantes de datos, 17 ADRs, el borrador OpenAPI, y `tools/verificar_docs.py` comprobando que ningún identificador citado sea inexistente. Montar `openspec/` encima significa mantener dos catálogos de reglas que se desincronizan en el tercer ticket. El problema que OpenSpec resuelve —*que haya spec antes que código*— aquí ya está resuelto.
 
 **2. OpenSpec no orquesta agentes.** Es deliberadamente agnóstico: soporta más de 30 herramientas, lo que lo obliga al mínimo común denominador —comandos slash que escriben Markdown—. No tiene agentes especializados, ni ciclo auditor→corrector→reauditoría, ni veredictos bloqueantes, ni routing por stack. El requisito central de este encargo es exactamente eso: un orquestador que despliegue agentes especializados y decida si el trabajo va en lote o de uno en uno. Eso no se le puede pedir a OpenSpec; habría que construirlo igual, encima.
 
@@ -247,7 +247,7 @@ Cuatro desarrolladores, no uno, porque las cuatro capas tienen reglas incompatib
 | `desarrollador-dominio` | Hay reglas de negocio en alcance | Escribe `dominio/`: objetos de valor, reglas puras, resultados. `Decimal`, cero imports, docstring con `RN-xx`. | Es la capa donde está el valor y la que más fácil se contamina. Merece un agente que no sepa hacer otra cosa | A |
 | `desarrollador-aplicacion` | Hay caso de uso en alcance | Escribe `aplicacion/`: abre transacción, orquesta repositorios y reglas, escribe la bitácora en la misma transacción, aplica el bloqueo pesimista. **No decide reglas.** | La frontera entre orquestar y decidir se borra sola si el mismo agente hace las dos | A |
 | `desarrollador-api` | Hay endpoints en alcance | Escribe `api/`: rutas `def`, DTO Pydantic v2, códigos de estado, contrato de error, OpenAPI. | Rutas `async` y mensajes de error sueltos son los dos errores que este stack produce por defecto | A |
-| `desarrollador-sql` | Hay esquema, migración o consulta en alcance | Escribe migraciones Alembic, DDL, disparadores, vistas, índices, roles y las consultas no triviales (la del semáforo). | El esquema sostiene 26 invariantes. Escribirlo «de paso» mientras se escribe el modelo es como se pierden la mitad | A |
+| `desarrollador-sql` | Hay esquema, migración o consulta en alcance | Escribe migraciones Alembic, DDL, disparadores, vistas, índices, roles y las consultas no triviales (la del semáforo). | El esquema sostiene 38 invariantes. Escribirlo «de paso» mientras se escribe el modelo es como se pierden la mitad | A |
 
 ### 6.3 · Frontend
 
@@ -271,7 +271,7 @@ Ninguno de estos modifica archivos. Emiten veredicto con evidencia citable —ar
 
 | Agente | Cuándo | Qué audita | Por qué existe | Fase |
 |---|---|---|---|---|
-| `auditor-arquitectura` | Siempre | Las 16 reglas que ninguna implementación puede romper: pureza del dominio, fronteras entre módulos, `Decimal` en todas las capas, rutas `def`, inmutabilidad de la línea base, inventario de solo-anexado sin columna de existencia, bitácora en la misma transacción, archivos fuera de PostgreSQL, sesión con estado. | **Este agente no tiene equivalente en ningún toolkit genérico.** Es el que sabe qué hace distinto a CIMENTA, y el de mayor valor del catálogo | A |
+| `auditor-arquitectura` | Siempre | Las 17 reglas que ninguna implementación puede romper: pureza del dominio, fronteras entre módulos, `Decimal` en todas las capas, rutas `def`, inmutabilidad de la línea base, inventario de solo-anexado sin columna de existencia, bitácora en la misma transacción, archivos fuera de PostgreSQL, sesión con estado. | **Este agente no tiene equivalente en ningún toolkit genérico.** Es el que sabe qué hace distinto a CIMENTA, y el de mayor valor del catálogo | A |
 | `auditor-sql` | Hay migración o DDL | Reversibilidad, idempotencia, `NUMERIC`, restricciones nombradas, índices, disparadores, permisos por rol, migración destructiva sin plan. | El esquema aprobado sin auditar llega a producción con errores que no se reproducen en local | A |
 | `auditor-codigo` | Hay Python o TypeScript | Tipado, manejo de errores, casos borde, complejidad, código muerto, duplicación, Ruff y mypy limpios. | El mismo que escribió el código no puede auditarlo | A |
 | `auditor-seguridad` | Hay endpoint, entrada externa, archivo o sesión | OWASP: autorización por obra (IDOR), inyección, secretos, sesión y CSRF, URL prefirmadas, tipo leído de los bytes, dependencias con CVE. | Es lo más fácil de omitir bajo presión y lo más caro de remediar después | A |
@@ -299,7 +299,7 @@ Tres desviaciones conscientes respecto de la lista del encargo. Cada una tiene s
 | «Desarrollador SQL que escribe SPs» | `desarrollador-sql` **sin procedimientos de negocio** | Las reglas viven en `dominio/`, puro. Un SP con lógica rompe el ADR del dominio puro y deja la regla fuera del alcance de `import-linter` y de los tests de dominio. |
 | Un «desarrollador backend» | Cuatro, uno por capa | La arquitectura tiene cuatro capas con reglas que se contradicen entre sí. Un agente con las cuatro en contexto las mezcla — que es justo lo que la arquitectura existe para impedir. |
 
-Y cuatro agentes que **el encargo no pedía y el proyecto necesita**: `auditor-arquitectura` (las 16 reglas propias), `auditor-docs` (la documentación es el entregable y se valida en CI), `desarrollador-dominio` separado (la capa de valor), `analista-dominio` (el glosario tiene términos que no significan lo que parecen).
+Y cuatro agentes que **el encargo no pedía y el proyecto necesita**: `auditor-arquitectura` (las 17 reglas propias), `auditor-docs` (la documentación es el entregable y se valida en CI), `desarrollador-dominio` separado (la capa de valor), `analista-dominio` (el glosario tiene términos que no significan lo que parecen).
 
 ---
 
@@ -357,7 +357,7 @@ Dos familias: las que gobiernan el proceso y las que llevan las convenciones.
 
 ### 8.2 · De convenciones (se precargan por agente con `skills:`)
 
-`conv-dominio-python` · `conv-backend-fastapi` · `conv-sql-postgres` · `conv-frontend-react` · `conv-pruebas` · `conv-seguridad` · `conv-documentacion`
+`conv-dominio-python` · `conv-backend-fastapi` · `conv-sql-postgres` · `conv-frontend-react` · `conv-pruebas` · `conv-seguridad` · `conv-documentacion` · `conv-docker`
 
 Es el contenido de la sección 5 de este documento, partido para que cada agente cargue **solo lo suyo**. Un agente de dominio que carga las convenciones de React tiene ruido de contexto que degrada lo que produce.
 

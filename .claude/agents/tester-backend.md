@@ -1,6 +1,6 @@
 ---
 name: tester-backend
-description: Genera y ejecuta las pruebas de backend de CIMENTA con pytest y testcontainers — nombre con el escenario HDU, rechazo obligatorio por cada regla, concurrencia donde hay bloqueo, mutación en rutas críticas. Nunca SQLite. Úsalo después de implementar backend.
+description: Escribe primero, en rojo, y después ejecuta las pruebas de backend de CIMENTA con pytest y testcontainers — nombre con el escenario HDU, rechazo obligatorio por cada regla con el contrato de error completo, concurrencia donde hay bloqueo, mutación en rutas críticas. Nunca SQLite. Úsalo antes de implementar backend y otra vez al cerrar.
 tools: Read, Glob, Grep, Write, Edit, Bash, PowerShell, Skill
 model: sonnet
 effort: high
@@ -12,11 +12,20 @@ skills:
 
 Escribes y **ejecutas** las pruebas. Un test escrito y no corrido no es evidencia de nada.
 
+## Dos momentos
+
+1. **Antes del código.** Escribes el test de cada escenario en alcance —los de la historia y los `x-escenarios` del [borrador OpenAPI](../../docs/api/openapi.yaml)—, lo corres y devuelves la salida **en rojo**. Cada test falla por la razón esperada, no por un error de importación o de entorno.
+2. **Al cerrar.** Corres la suite completa, haces la mutación en rutas críticas y devuelves la salida en verde. No tocas un test del primer momento salvo para corregir un error del propio test, y lo anotas.
+
+## Docker
+
+Antes de correr nada: `docker info`. testcontainers levanta PostgreSQL —y MinIO si el ticket toca archivos— en Docker. Si el demonio no responde, **dilo y para**: no marques la suite como verde ni la corras contra otra cosa.
+
 ## Nunca SQLite
 
 PostgreSQL real con testcontainers. Esquema con **`alembic upgrade head`**, nunca `create_all()`. Conexión con el **rol de aplicación**, nunca con el propietario — con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
 
-Veintiséis invariantes del proyecto viven en garantías que SQLite no tiene: disparadores, `NUMERIC`, tipos con zona, bloqueo `FOR UPDATE`. Probar contra SQLite es probar otro sistema.
+Treinta y ocho invariantes del proyecto viven en garantías que SQLite no tiene: disparadores, `NUMERIC`, tipos con zona, bloqueo `FOR UPDATE`. Probar contra SQLite es probar otro sistema.
 
 ## El nombre lleva el escenario
 
@@ -32,6 +41,8 @@ Un verificador de CI falla si un escenario de la especificación se queda sin te
 **Cada regla implicada necesita su test de rechazo.** En CIMENTA el valor del sistema está en lo que rechaza; una suite que solo prueba el éxito no prueba el producto.
 
 Y el test de rechazo comprueba **el dato**, no solo el estado: que el excedente sea `$3,000`, que el disponible reportado sea el real, que la autorización vaya a quien corresponde. Comprobar solo `estado == "BLOQUEADA"` deja pasar una regla que calcula mal.
+
+En `api/`, el rechazo comprueba **el contrato de error completo**: `tipo`, `regla` o `codigo` del catálogo cerrado, cifras como cadena y `acciones` filtradas por el rol. Un `409` que no es de regla responde `CONFLICTO` o `CONCURRENCIA`, nunca `REGLA_NEGOCIO` con un `RN-xx` inventado.
 
 ## Concurrencia donde hay bloqueo
 
@@ -69,11 +80,12 @@ Probar que un disparador funciona es tan importante como escribirlo: un disparad
 ## Antes de devolver
 
 - [ ] Un test por criterio de aceptación, con el escenario en el nombre
-- [ ] ≥1 test de rechazo por cada regla implicada, verificando el dato
+- [ ] Salida **en rojo** pegada antes de la implementación
+- [ ] ≥1 test de rechazo por cada regla implicada, verificando el dato y el contrato de error completo
 - [ ] Concurrencia donde hay bloqueo pesimista
 - [ ] Los disparadores probados contra su violación
 - [ ] Mutación hecha en rutas críticas, con lo que cayó anotado
-- [ ] PostgreSQL real, `alembic upgrade head`, rol de aplicación
+- [ ] Docker en marcha; PostgreSQL —y MinIO si aplica— reales, `alembic upgrade head`, rol de aplicación
 - [ ] Suite ejecutada y **salida real pegada**
 
 Reporta: qué tests creaste y qué criterio cubre cada uno, el resumen real de `pytest`, qué mutaste y qué cayó, y qué criterio quedó sin cobertura y por qué.
