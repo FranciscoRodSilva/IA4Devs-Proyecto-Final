@@ -42,7 +42,7 @@ Se adopta un **contrato estructurado uniforme**, inspirado en RFC 9457 pero con 
     "excedente": "3000.0000"
   },
   "acciones": [
-    { "clave": "SOLICITAR_AUTORIZACION", "metodo": "POST", "ruta": "/requisiciones/1042/autorizacion" }
+    { "clave": "VER_SOLICITUD_AUTORIZACION", "metodo": "GET", "ruta": "/api/v1/solicitudes-autorizacion/9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b" }
   ]
 }
 ```
@@ -55,7 +55,7 @@ Cuatro decisiones dentro del contrato:
 
 **`detalle` lleva las cifras, no una frase.** La interfaz no recalcula ni interpreta.
 
-**`acciones` convierte el bloqueo en bifurcación.** No es un callejón sin salida: es una negativa con salida documentada, descubrible por el cliente sin conocimiento previo.
+**`acciones` convierte el bloqueo en bifurcación.** No es un callejón sin salida: es una negativa con salida documentada, descubrible por el cliente sin conocimiento previo. En `RN-03` el bloqueo ya creó la solicitud, así que la acción es `VER_SOLICITUD_AUTORIZACION`, un `GET` a la solicitud existente; `SOLICITAR_AUTORIZACION`, un `POST /solicitudes-autorizacion`, solo la ofrece `RN-07`, cuyo rechazo no escribe nada. Las acciones se filtran por los roles de quien llama: nunca se ofrece una que respondería `403`.
 
 **Los importes viajan como cadena.** `45000.0000` y no `45000.0`. Un número JSON pasa por el flotante de doble precisión de JavaScript, y el principio de exactitud decimal no admite que el importe se degrade en el transporte.
 

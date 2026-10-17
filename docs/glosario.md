@@ -135,7 +135,7 @@ Ejemplo real de la obra Union Square: el concepto `METAL` se cobra al cliente a 
 Fases sucesivas de ejecución de tablaroca que se miden y pagan por separado: **METAL** (bastidor), **TAPADO** (colocación del panel), **PASTA** (acabado de juntas). Cada una tiene su propio precio por m².
 
 ### M² contrato vs. M² real
-`M2 CONTRATO` es el volumen presupuestado para esa ubicación; `M2 REAL` es el medido físicamente en obra. La diferencia es la desviación de volumen. En los datos reales aparecen ambos sobre-consumos y sub-consumos (ej. depto. 212: 81.87 contrato vs. 83.82 real).
+`M2 CONTRATO` es el volumen presupuestado para esa ubicación; `M2 REAL` es el medido físicamente en obra. La diferencia es la desviación de volumen. En los datos reales aparecen ambos sobre-consumos y sub-consumos (ej. depto. 212: 81.87 contrato vs. 83.82 real). El destajo se paga sobre el **m² real validado** (`PA-21`).
 
 ### Encargado / Líder de cuadrilla
 Persona que responde por una cuadrilla y a quien se le deposita el pago del grupo. Ejemplos reales: `MARIO`, `CHEMA`.
@@ -146,7 +146,7 @@ Porcentaje retenido en cada pago de destajo. En los datos reales de nómina es *
 > **Son dos conceptos distintos**, confirmado por el cliente (PA-02): esta retención operativa del 15 % se aplica en cada pago semanal de destajo, y **además** se retiene un fondo de garantía del 5 % que solo se libera al entregar y cobrar el área. Ambos porcentajes se configuran por obra.
 
 ### Fondo de garantía
-Retención que la constructora conserva hasta que el área esté liberada y cobrada al cliente final. Declarado en 5 %.
+Retención que la constructora conserva hasta que el área esté liberada y cobrada al cliente final. Declarado en 5 %. Se retiene en cada pago de destajo, igual que la retención operativa (`PA-21`); su liberación llega en la v1.1 (`RN-12`).
 
 ### Estimación
 Documento de avance físico medido y validado que sirve de base para cobrar (al cliente) o pagar (a la cuadrilla). En esta constructora se presentan **semanalmente** al cliente final.
@@ -173,10 +173,13 @@ Registro de un día trabajado por un empleado, con **la obra en la que lo trabaj
 Es la pieza que permite repartir el costo de nómina entre obras sin estimar: quien trabajó tres días en Union Square y dos en ENITI reparte su costo 3/5 y 2/5 (`RN-23`).
 
 ### Semana de nómina
-Periodo de **viernes a jueves**, con corte el jueves y pago el sábado — el mismo día de corte que los proveedores. No coincide con ninguna semana natural ni con la semana ISO, así que se guarda con sus fechas de inicio y corte explícitas.
+Periodo de **viernes a jueves**, con corte el jueves y pago el sábado — el mismo día de corte que los proveedores. No coincide con ninguna semana natural ni con la semana ISO, así que se guarda con sus fechas de inicio y corte explícitas. Se identifica por su **jueves de corte**, igual que la semana de destajo.
+
+### Semana de destajo
+Periodo de **jueves a miércoles**, identificado por su **jueves de corte**, el jueves siguiente (`PA-19`). No es la semana de nómina, pero comparte su corte: la semana de destajo del jueves 20 al miércoles 26 y la de nómina del viernes 21 al jueves 27 cierran las dos el jueves 27, y por ese jueves compara `RN-22` si una cuadrilla cobró por las dos vías.
 
 ### Nómina semanal
-Pago por días trabajados sobre un salario semanal pactado, más tiempo extra, menos descuentos. Los días trabajados **se derivan de las jornadas**, no se capturan aparte.
+Pago por días trabajados sobre un salario semanal pactado, más tiempo extra, menos descuentos. Los días trabajados **se derivan de las jornadas**, no se capturan aparte. La semana laboral es de **6 días**, que es el divisor del salario semanal (`PA-22`).
 
 ### Crédito activo
 Deuda del trabajador que se descuenta del pago semanal. Dos tipos observados: **Infonavit** (crédito de vivienda) y **préstamo** (adelanto de la empresa). Requiere seguimiento de monto total, saldo y liquidación.

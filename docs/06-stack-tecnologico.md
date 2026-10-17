@@ -184,7 +184,7 @@ infraestructura/
 
 **Las reglas reciben objetos de valor, no entidades.** `evaluar_disponibilidad(presupuestado: Dinero, consumido: Dinero, solicitado: Dinero)` no sabe que existe una tabla, una sesión ni un modelo. La capa de aplicación carga lo que hace falta, extrae los valores, llama a la regla y persiste el resultado.
 
-Esa firma es lo que permite que los 137 escenarios se ejecuten en milisegundos sin levantar nada, y es la razón concreta de elegir un Data Mapper sobre un Active Record.
+Esa firma es lo que permite que los 162 escenarios se ejecuten en milisegundos sin levantar nada, y es la razón concreta de elegir un Data Mapper sobre un Active Record.
 
 ### 4.4. Alembic
 
@@ -263,6 +263,8 @@ La alternativa —mantener esquemas Zod que espejen los modelos Pydantic— dupl
 **Zod se queda, con otro trabajo.** Valida el formulario antes de enviarlo: campos obligatorios, formato, rangos. Eso es experiencia de usuario, es local y no tiene por qué parecerse a nada del servidor. Lo que no hace es definir la forma de lo que viaja.
 
 > La regla en una línea: **Zod valida lo que el usuario escribe; el OpenAPI define lo que la API devuelve.** Cuando un esquema Zod empieza a describir una respuesta, hay un contrato duplicado.
+
+**Hay un borrador escrito a mano, y no contradice lo anterior.** [`docs/api/openapi.yaml`](api/openapi.yaml) fija antes de escribir código los endpoints de la fase 1, sus esquemas y su contrato de error ([especificación de la API](07-especificacion-api.md)). No es una segunda fuente de tipos: el cliente se sigue generando del OpenAPI que publica FastAPI. Es el **contrato de diseño** que el agente implementa, y TKT-061 comprueba en CI que lo publicado y lo diseñado coinciden. Si divergen, **manda el borrador**: se corrige el código, y si lo que cambió es el diseño, el borrador se modifica en el mismo PR, a propósito y no por accidente.
 
 ---
 
@@ -375,7 +377,7 @@ El test de concurrencia de TKT-022 necesita **dos conexiones reales y simultáne
 
 ### 7.2. Trazabilidad escenario ↔ test
 
-La especificación tiene 137 escenarios en Gherkin. La pregunta es cómo se garantiza que cada uno tiene un test.
+La especificación tiene 162 escenarios en Gherkin. La pregunta es cómo se garantiza que cada uno tiene un test.
 
 **No se usa pytest-bdd.** Los archivos `.feature` con definiciones de pasos añaden una capa de indirección que hay que mantener, y los agentes escriben pytest plano con mucha más fiabilidad que pytest-bdd. Se pierde la ejecución literal del Gherkin; se gana claridad y menos fricción.
 
@@ -471,11 +473,18 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 
 **GitHub Actions**, con los trabajos que TKT-009 enumera: tests de backend contra PostgreSQL real, tests de frontend, contratos de `import-linter`, calidad documental, **auditoría de dependencias** (`pip-audit` y `npm audit`) y la **prueba de rendimiento del semáforo**. Nivel de aviso en local, nivel de error en el pipeline.
 
+Dos trabajos más, que son los que meten la IA en el pipeline sin darle la última palabra:
+
+- **Prueba de contrato de la API** (TKT-061). Compara el OpenAPI que publica FastAPI contra el borrador [`docs/api/openapi.yaml`](api/openapi.yaml) en los endpoints de la fase 1, y falla si divergen rutas, métodos, códigos o esquemas de error. El borrador es el contrato que el agente implementa. Esta prueba comprueba que lo cumplió.
+- **Revisión automatizada de PR** (TKT-062). Claude Code en GitHub Actions revisa cada PR contra la lista cerrada de [convenciones §12](convenciones.md#qué-revisa-la-revisión-automatizada-de-pr) y deja comentarios. **No aprueba ni fusiona**: la aprobación sigue siendo humana.
+
 ### Despliegue
 
 **Una imagen de Docker con el backend sirviendo también los estáticos del frontend ya compilado, más PostgreSQL gestionado.** Un solo artefacto que desplegar, coherente con el monolito modular y con el despliegue de un solo inquilino de [ADR-008](adr/20260918-despliegue-single-tenant.md).
 
-El destino concreto —VPS con Compose, o una plataforma gestionada— se decide en entregas posteriores: la Entrega 1 es documentación y no hay nada que desplegar todavía. Lo que sí queda fijado es la forma del artefacto, porque condiciona cómo se construye.
+El destino concreto —VPS con Compose, o una plataforma gestionada— se decide al cerrar la fase 1, con TKT-058: antes no hay nada que desplegar. Lo que sí queda fijado es la forma del artefacto, porque condiciona cómo se construye.
+
+**Dónde entra la IA en el despliegue.** El agente escribe el `Dockerfile` multietapa, los *workflows* de despliegue y los scripts de respaldo, restauración y verificación del hash de los objetos. El pipeline los ejecuta en cada PR, de modo que una imagen que no construye o un script que no corre fallan antes de llegar a nadie. **El ensayo de restauración de `RNF-11` lo ejecuta y cronometra una persona.** La IA puede escribir el procedimiento, pero no certificar que una restauración salió bien: certificarlo es comprobar que lo restaurado es lo que había. El reparto completo por fase está en [convenciones §12](convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo).
 
 **Dos restricciones que el destino tiene que cumplir**, y por eso se declaran ya:
 
@@ -517,7 +526,7 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Contrato de error ([ADR-007](adr/20260918-contrato-error-negocio.md)) | Manejador global de excepciones de FastAPI | ✅ test de forma de respuesta |
 | Libro mayor de inventario ([ADR-005](adr/20260918-ledger-inventario.md)) | Sin columna de existencia en el esquema | ✅ el esquema no la tiene |
 | Línea base inmutable ([ADR-006](adr/20260918-snapshot-linea-base.md)) | Disparador en migración de Alembic | ✅ test que intenta el `UPDATE` y espera el fallo |
-| 26 invariantes en base de datos | Restricciones y permisos declarados en migraciones | ✅ tests contra PostgreSQL real, con el rol de aplicación |
+| 38 invariantes en base de datos | Restricciones y permisos declarados en migraciones | ✅ tests contra PostgreSQL real, con el rol de aplicación |
 | Importación tolerante a archivos rotos | openpyxl con `data_only=True` | ✅ test contra el archivo real con `#REF!` |
 | Un despliegue ([ADR-008](adr/20260918-despliegue-single-tenant.md)) | Una imagen con backend y estáticos | — |
 | Todo escenario tiene test | Convención de nombres + verificador propio | ✅ falla el pipeline |
@@ -529,8 +538,10 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Recuperabilidad (`RNF-10`, `RNF-11`) | PostgreSQL gestionado con recuperación a punto en el tiempo | ❌ ensayo trimestral con testigo |
 | Captura sin conexión ([ADR-015](adr/20260919-captura-diferida-sin-conexion.md)) | Service worker · caché persistida · cola en IndexedDB · sincronización idempotente por los mismos casos de uso | ✅ test de encolado, sincronización, no duplicación y rechazo por regla |
 | Archivos fuera de la base ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)) | `boto3` sobre S3 · URL prefirmadas · MinIO en testcontainers · tipo leído de los bytes | ✅ test de firma, caducidad, tipo falsificado y hash que no coincide |
+| Fuentes simuladas acotadas ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)) | Puerto de lectura en `analitica` · adaptador simulado · `pydantic-settings` | ✅ test: con fuentes simuladas y `entorno = produccion` la aplicación no arranca; test: un destajo simulado no cambia el disponible de `RN-03` |
+| El borrador OpenAPI es el contrato | `docs/api/openapi.yaml` · OpenAPI publicado por FastAPI | ✅ prueba de contrato de TKT-061 |
 
-**Diecinueve decisiones, diecisiete verificables automáticamente.** Es la aplicación del criterio C5: una regla de diseño que solo vive en un documento se erosiona.
+**Veintiuna decisiones, diecinueve verificables automáticamente.** Es la aplicación del criterio C5: una regla de diseño que solo vive en un documento se erosiona.
 
 Las dos que no se verifican solas son las dos que dependen de un entorno que todavía no existe. Cuando exista, `RNF-11` convierte la primera en un procedimiento con fecha; la segunda —un despliegue único— no es verificable porque no es una restricción, es una renuncia.
 
@@ -577,3 +588,4 @@ Las dos que no se verifican solas son las dos que dependen de un entorno que tod
 | [ADR-014](adr/20260919-sesion-con-estado.md) | Sesión con estado en servidor, en lugar de credencial autocontenida |
 | [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | Captura diferida sin conexión, en lugar de aplicación nativa o local-first con fusión automática |
 | [ADR-016](adr/20261001-almacenamiento-de-objetos.md) | Almacenamiento de objetos compatible con S3, en lugar del disco del servidor o de la propia base de datos |
+| [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) | Mano de obra y avance simulados en la fase 1 tras un puerto de `analitica`, en lugar de sembrar las tablas de la fase 2 o mostrar un semáforo solo de materiales |

@@ -37,6 +37,8 @@ SELECT … FROM explosion_presupuesto
 COMMIT;
 ```
 
+**El consumido se calcula dentro de esta misma transacción.** Lo calcula `compras`, que es su dueño: `requisiciones_vivas` y `comprometido` salen de sus tablas, y el ejercido le llega por el puerto `FuenteEjercido`, que implementan `almacen` y, en la fase 2, `avance`, y que se ejecuta **con la sesión de la transacción en curso**. Un ejercido leído por otra conexión quedaría fuera del bloqueo. La fórmula está en el [modelo de datos §15](../03-modelo-datos.md#el-consumido-de-rn-03).
+
 El nivel de control es **obra + tipo de partida** (PA-01): cuatro bolsas por obra en lugar de una por partida y ubicación. Eso reduce drásticamente la contención potencial, porque los bloqueos se concentran en pocas filas, y hace todavía más importante el orden determinista de adquisición.
 
 La segunda requisición espera a que la primera confirme y lee el estado ya actualizado.
@@ -47,7 +49,7 @@ La segunda requisición espera a que la primera confirme y lee el estado ya actu
 
 **Por qué no una restricción declarativa.** Una restricción puede impedir el sobregiro, pero RN-03 no pide impedirlo: pide **bloquear la requisición, persistirla en estado `BLOQUEADA` y abrir una solicitud de autorización**. Eso es un flujo, no un rechazo. Una restricción abortaría la transacción y perdería el registro del intento, que es justamente el dato que hoy le falta a la dirección.
 
-El mismo patrón se aplica a las otras dos evaluaciones con la misma forma: RN-07 (no recibir más de lo ordenado) bloquea los renglones de la orden de compra, y RN-15 (tope de consignación) bloquea la fila del proveedor.
+El mismo patrón se aplica a las otras dos evaluaciones con la misma forma: RN-07 (no recibir más de lo ordenado) bloquea **primero la orden de compra y después sus renglones, ordenados por `id`** —el mismo orden que toma la cancelación de la orden, para que las dos no se interbloqueen—, y RN-15 (tope de consignación) bloquea la fila del proveedor.
 
 ## Consecuencias
 

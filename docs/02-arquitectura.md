@@ -171,14 +171,15 @@ graph TB
     AN["<b>analítica</b><br/>Semáforo de obra · solo lectura"]
 
     CM --> PR
-    AM --> CM
+    AM -->|"implementa FuenteEjercido"| CM
     AM --> PR
+    AV -->|"implementa FuenteEjercido · fase 2"| CM
     AV --> PR
     AV --> PE
     PE --> PR
-    PV --> CM
+    PV -->|"implementa CatalogoProveedores"| CM
     AN -.->|"solo lectura"| PR
-    AN -.-> CM
+    AN -.->|"consumido y disponible"| CM
     AN -.-> AM
     AN -.-> AV
     AN -.-> PE
@@ -190,6 +191,8 @@ graph TB
 
 Las dependencias forman un grafo dirigido acíclico. `presupuesto` es el núcleo y no depende de nadie. `analítica` depende de todos pero **solo lee**: no puede escribir en ningún módulo, lo que garantiza que el tablero nunca altere el estado que reporta.
 
+**Tres flechas apuntan hacia `compras` porque `compras` declara puertos que otros implementan.** `FuenteEjercido` le entrega el ejercido del `consumido` de `RN-03`: lo implementan `almacen` (materiales) y, en la fase 2, `avance` (destajo). `CatalogoProveedores` le dice si un proveedor existe y está activo: lo implementa `proveedores`. En los tres casos la arista va de quien implementa a quien declara, y **no existe ninguna arista `compras → almacen` ni `compras → avance`**. Es lo que permite que `compras` sea dueño del `consumido` sin depender de los módulos que lo alimentan.
+
 ---
 
 ## 5. Contextos delimitados
@@ -200,12 +203,12 @@ Las dependencias forman un grafo dirigido acíclico. `presupuesto` es el núcleo
 | **auditoría** | Bitácora inmutable de toda acción relevante | RN-04 | — |
 | **archivos** | Adjuntos y evidencia: alta, confirmación, anulación y emisión de URL prefirmadas. **No conoce a nadie**: la referencia al documento adjuntado es una pareja tipo + identificador, no una clave foránea | — | — |
 | **presupuesto** | Obra, jerarquía, conceptos, APU, línea base, explosión por partida, presupuesto de control, rendimiento observado | RN-01, RN-18, RN-19, RN-24, RN-25 | — |
-| **compras** | Requisición, evaluación presupuestal, solicitud de autorización, orden de compra | RN-02, RN-03, RN-04 | presupuesto |
-| **almacén** | Entrada contra remisión, saldo de recepción parcial, traspasos, mermas, inventario | RN-05, RN-06, RN-07, RN-08, RN-09 | compras, presupuesto |
-| **avance** | Alcance de destajo, etapas, medición, doble validación, pago con retención, fondo de garantía | RN-10, RN-11, RN-12 | presupuesto, personal |
+| **compras** | Requisición, evaluación presupuestal, **cálculo del `consumido` y del `disponible`**, solicitud de autorización, orden de compra. Declara los puertos `FuenteEjercido` y `CatalogoProveedores` | RN-02, RN-03, RN-04 | presupuesto |
+| **almacén** | Entrada contra remisión, saldo de recepción parcial, traspasos, mermas, inventario. Implementa `FuenteEjercido` para materiales | RN-05, RN-06, RN-07, RN-08, RN-09 | compras, presupuesto |
+| **avance** | Alcance de destajo, etapas, medición, doble validación, pago con retención, fondo de garantía. Implementa `FuenteEjercido` para destajo *(fase 2)* | RN-10, RN-11, RN-12 | presupuesto, personal, compras |
 | **personal** | Empleados, roles de oficio, cuadrillas, créditos, nómina semanal, pagos agrupados, **modalidad de pago de la semana** | RN-13, RN-14, RN-22, RN-23 | presupuesto |
-| **proveedores** | Catálogo *(MVP)*; facturas con corte semanal, anticipos y amortización, tope de consignación *(v1.1)* | RN-15, RN-16, RN-17 | compras |
-| **analítica** | Semáforo de obra, desglose, alertas, costo proyectado | RN-21 | todos *(lectura)* |
+| **proveedores** | Catálogo *(MVP)*; facturas con corte semanal, anticipos y amortización, tope de consignación *(v1.1)*. Implementa `CatalogoProveedores` | RN-15, RN-16, RN-17 | compras |
+| **analítica** | Semáforo de obra, desglose, alertas, costo proyectado. Obtiene `requisiciones_vivas`, `comprometido`, `ejercido`, `consumido` y `disponible` de la interfaz de `compras`; no los recalcula | RN-21 | todos *(lectura)* |
 
 `RN-20` no aparece porque está fuera del MVP: depende de un control de cobranza que no existe todavía. Cuando llegue, su dueño será el módulo que gobierne el cobro al cliente final, no `compras`.
 
@@ -216,6 +219,16 @@ La exclusividad de modalidad de pago se apoya en `modalidad_pago_semana`, una ta
 El grafo lo resuelve solo. `avance → personal` ya existe, así que si `avance` fuera el dueño, `personal` necesitaría la arista inversa y el grafo dejaría de ser acíclico — exactamente lo que `import-linter` rechaza.
 
 > **`personal` es el dueño de `modalidad_pago_semana`.** `avance` reclama la modalidad `DESTAJO` llamando a la interfaz de aplicación publicada de `personal` antes de generar el pago; `personal` la reclama directamente al calcular la nómina. La regla de dominio y el contrato de error viven con la tabla.
+
+### Por qué el `consumido` vive en `compras`
+
+`RN-03` necesita tres términos —requisiciones vivas, comprometido y ejercido— y el tercero nace en otros módulos: las entradas en `almacen`, los pagos de destajo en `avance`. Si `compras` los leyera directamente, necesitaría las aristas `compras → almacen` y `compras → avance`, y como `almacen → compras` ya existe, el grafo tendría un ciclo.
+
+> **`compras` es el dueño del `consumido` y del `disponible`.** `requisiciones_vivas` y `comprometido` salen de sus tablas. El ejercido le llega por el puerto `FuenteEjercido`, que `compras` declara en su capa de aplicación e implementan `almacen` (desde TKT-035, sprint 5) y `avance` (fase 2, TKT-069). El puerto se ejecuta **con la sesión de la transacción en curso**, dentro del bloqueo de [ADR-004](adr/20260918-bloqueo-pesimista-presupuesto.md). Mientras `almacen` no lo implementa, en los sprints 3 y 4, `compras` usa un adaptador **"cero real"**: no hay entradas y el ejercido vale cero de verdad.
+
+`analitica` no reescribe esas CTE: pide las cinco cifras a la interfaz publicada de `compras`, con el rol de solo lectura. La fórmula existe una sola vez, en [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo), y el disponible del tablero es por construcción el que aplica la regla.
+
+**`CatalogoProveedores` resuelve el mismo problema en la otra dirección.** La emisión de una orden tiene que comprobar que el proveedor existe y está activo, pero `proveedores → compras` ya existe para la v1.1. `compras` declara el puerto, `proveedores` lo implementa, y `orden_compra.proveedor_id` es un identificador lógico, sin clave foránea ([modelo de datos §2](03-modelo-datos.md#2-convenciones)).
 
 ### El módulo que no existe
 
@@ -299,7 +312,7 @@ Cuando el sistema bloquea algo, la interfaz tiene que poder explicar **por qué*
     "excedente": "3000.0000"
   },
   "acciones": [
-    { "clave": "SOLICITAR_AUTORIZACION", "metodo": "POST", "ruta": "/requisiciones/1042/autorizacion" }
+    { "clave": "VER_SOLICITUD_AUTORIZACION", "metodo": "GET", "ruta": "/api/v1/solicitudes-autorizacion/9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b" }
   ]
 }
 ```
@@ -310,9 +323,17 @@ Tres propiedades deliberadas:
 
 **`detalle` lleva las cifras.** La interfaz no recalcula nada ni interpreta un mensaje de texto.
 
-**`acciones` dice qué se puede hacer.** El bloqueo no es un callejón sin salida: es una bifurcación con salida documentada.
+**`acciones` dice qué se puede hacer.** El bloqueo no es un callejón sin salida: es una bifurcación con salida documentada. En `RN-03` la solicitud de autorización ya la creó el propio bloqueo, así que la acción es `VER_SOLICITUD_AUTORIZACION`, un `GET` a la solicitud existente. `SOLICITAR_AUTORIZACION` —un `POST /solicitudes-autorizacion`— solo la ofrece `RN-07`, donde el rechazo no escribe nada y la solicitud la crea el usuario si decide pedirla. Las acciones se filtran por los roles de quien llama: nunca se ofrece una que respondería `403`.
 
 Los importes viajan como **cadena**, no como número JSON, para que no pasen por un flotante de JavaScript en el camino.
+
+**El contrato de regla es uno de los `tipo` del catálogo, y todos comparten envoltura.** Todo rechazo lleva `tipo`, `mensaje` y el identificador de correlación `correlacion_id` (`RNF-13`), y el cliente los distingue por `tipo`, no por el código HTTP. La tabla recoge los tres que separan regla, forma y permiso. Los esquemas exactos, los auxiliares —`CONFLICTO` con su `codigo` para un conflicto de estado sin regla, `CONCURRENCIA` para el bloqueo vencido de `RNF-16`, `SESION`, `LIMITE_INTENTOS` y `NO_ENCONTRADO`— y por qué el vencimiento es `409` y no `423` están en la [especificación de la API](07-especificacion-api.md#3-el-contrato-de-error) y en el borrador [`api/openapi.yaml`](api/openapi.yaml). En los ejemplos del borrador, `acciones[].ruta` es absoluta, con el prefijo `/api/v1`. Un `409` que no viola una `RN` es `CONFLICTO` con su `codigo`, nunca un `RN-xx` inventado.
+
+| `tipo` | Código | Esquema | Campos propios |
+|---|---|---|---|
+| `REGLA_NEGOCIO` | `409` | `ErrorReglaNegocio` | `regla`, `detalle`, `acciones` — el contrato de arriba |
+| `VALIDACION` | `422` | `ErrorValidacion` | `errores[]` con `campo`, `codigo`, `mensaje` y, si la forma la impone una regla, `regla` |
+| `PERMISO` | `403` | `ErrorPermiso` | `motivo` —rol insuficiente, auto-resolución o prueba de origen ausente— y `roles_requeridos`. Nunca cifras del recurso |
 
 ### 7.4. Dinero y cantidades
 
@@ -353,15 +374,19 @@ Los requisitos están en el [PRD §9](01-descripcion-producto.md#9-requisitos-no
 | Rol | Permisos | Qué garantiza |
 |---|---|---|
 | **Migración** | Propietario del esquema | Solo Alembic altera estructura. La aplicación en marcha no puede |
-| **Aplicación** | `SELECT`, `INSERT`, `UPDATE`, `DELETE` según tabla; sobre `bitacora` e `intento_acceso` solo `INSERT` y `SELECT`; sobre `linea_base_concepto` solo `SELECT` e `INSERT` | Invariante 10 y el principio 1 dejan de depender de que nadie se despiste |
+| **Aplicación** | `SELECT`, `INSERT`, `UPDATE`, `DELETE` por omisión; sobre `bitacora`, `intento_acceso` y `movimiento_inventario` solo `INSERT` y `SELECT`; sobre `linea_base_concepto` solo `SELECT` e `INSERT` | Los invariantes 10, 20 y 30 y el principio 1 dejan de depender de que nadie se despiste |
 | **Lectura** | `SELECT` y nada más | **Hace verificable que `analitica` solo lee.** import-linter comprueba quién importa a quién, no quién escribe: esa garantía no tenía forma de fallar el pipeline hasta ahora |
+
+**Los permisos nacen con la tabla, no después.** La migración inicial (TKT-003) crea los tres roles y fija con `ALTER DEFAULT PRIVILEGES` lo que cada uno recibe sobre toda tabla futura: así una tabla nueva no queda sin permisos para la aplicación ni, sobre todo, con permisos de escritura para el rol de lectura. **Cada migración de módulo revoca** lo que su tabla no admite —`UPDATE` y `DELETE` sobre `bitacora`, `intento_acceso`, `movimiento_inventario` y `linea_base_concepto`— y añade en el mismo cambio la prueba que lo demuestra con el rol de aplicación. Las pruebas de `linea_base_concepto` y de `SELECT … FOR UPDATE` sobre `explosion_presupuesto` son de TKT-011, que crea esas tablas.
 
 **El rol de aplicación sí tiene `UPDATE` sobre `explosion_presupuesto` y `presupuesto_control`, y hace falta.** Es contraintuitivo, porque las dos cuelgan de la línea base, así que conviene decir por qué:
 
 - **`explosion_presupuesto`** es la fila que [ADR-004](adr/20260918-bloqueo-pesimista-presupuesto.md) bloquea para el control por volumen, y en PostgreSQL `SELECT … FOR UPDATE` **exige el privilegio `UPDATE`**, no basta con `SELECT`. Negárselo al rol de aplicación no protegería la línea base: impediría el bloqueo pesimista entero, con un error de permisos en tiempo de ejecución.
 - **`presupuesto_control`** ni siquiera es una copia congelada. Se captura *después* de congelar, y `RN-03` la recaptura con autorización registrada.
 
-La inmutabilidad de la línea base no descansa aquí, sino en el **disparador del invariante 14**, que rechaza `UPDATE` y `DELETE` sobre las copias congeladas venga de donde venga. El permiso protege lo que un disparador no puede proteger —`bitacora` e `intento_acceso`, donde el propio `INSERT` es el registro— y el disparador protege lo que el permiso no puede sin romper el bloqueo. Son dos mecanismos para dos problemas distintos, y confundirlos deja uno de los dos sin cubrir.
+La inmutabilidad de la línea base no descansa aquí, sino en el **disparador del invariante 14**, que rechaza `UPDATE` y `DELETE` sobre las copias congeladas venga de donde venga. El permiso protege lo que un disparador no puede proteger —`bitacora`, `intento_acceso` y `movimiento_inventario`, donde el propio `INSERT` es el registro— y el disparador protege lo que el permiso no puede sin romper el bloqueo. Son dos mecanismos para dos problemas distintos, y confundirlos deja uno de los dos sin cubrir.
+
+**Sobre `linea_base_concepto` están los dos, y la prueba los separa.** Nadie la bloquea con `FOR UPDATE`, así que el rol de aplicación tiene solo `SELECT` e `INSERT` **y además** el disparador la protege. Con ese rol, una prueba del disparador quedaría verde por el permiso aunque el disparador no existiera; por eso **la prueba del disparador se ejecuta con el rol de migración**, que sí tiene el privilegio, y la del permiso con el de aplicación.
 
 ### 7.7. Archivos y evidencia
 
@@ -369,7 +394,7 @@ El contenedor de archivos del nivel 2 es un **almacén de objetos compatible con
 
 **El módulo `archivos` no conoce a ningún otro, y ninguno lo conoce a él por dentro.** Un adjunto referencia el documento al que pertenece con una pareja `referencia_tipo` + `referencia_id`, no con una clave foránea. Es el mismo recurso que `movimiento_inventario` ya usa para los movimientos que no cuelgan de una orden, y aquí es además lo que mantiene el grafo acíclico: una clave foránea de `archivos` hacia `avance`, `almacen`, `presupuesto` y `proveedores` lo convertiría en el módulo del que todos dependen.
 
-El precio está declarado: **la integridad referencial del adjunto no la da el motor**, la da el caso de uso que lo crea. Es el único sitio del esquema donde se acepta eso, y se acepta porque la alternativa —una tabla de adjuntos por cada módulo— multiplicaría por cinco la lógica de subida, validación y caducidad.
+El precio está declarado: **la integridad referencial del adjunto no la da el motor**, la da el caso de uso que lo crea. Es una de las pocas referencias lógicas del esquema, enumeradas en el [modelo de datos §2](03-modelo-datos.md#2-convenciones), y se acepta porque la alternativa —una tabla de adjuntos por cada módulo— multiplicaría por cinco la lógica de subida, validación y caducidad.
 
 **La escritura es en dos pasos y no es transaccional.** La fila nace `PENDIENTE` **antes que el objeto** —en la transacción que crea el documento, o en una posterior que adjunta sobre un documento ya guardado—, el objeto se sube después, y la confirmación verifica tamaño y hash antes de pasarla a `DISPONIBLE`. Las filas `PENDIENTE` caducadas se barren al arrancar, con el mismo mecanismo que las importaciones con el latido vencido (`RNF-17`).
 
@@ -398,7 +423,8 @@ sequenceDiagram
     APP->>DB: BEGIN
     APP->>DB: SELECT presupuesto del tipo de partida FOR UPDATE
     DB-->>APP: tope capturado + cantidades presupuestadas
-    APP->>DB: SELECT consumido (requisiciones vivas + saldo de OC + entradas + destajo)
+    APP->>DB: SELECT requisiciones vivas + saldo de OC (tablas de compras)
+    APP->>DB: FuenteEjercido · ejercido de almacén y avance, misma sesión
     DB-->>APP: consumido
     APP->>DOM: evaluar_disponibilidad(...)
 
@@ -415,7 +441,7 @@ sequenceDiagram
         APP->>DB: INSERT bitacora (regla = RN-03)
         APP->>DB: COMMIT
         API-->>SPA: 409 + contrato de error
-        SPA-->>U: Disponible, excedente y botón "Solicitar autorización"
+        SPA-->>U: Disponible, excedente y enlace "Ver solicitud de autorización"
     end
 ```
 
@@ -423,7 +449,7 @@ sequenceDiagram
 
 **La requisición bloqueada se persiste.** No se descarta: queda registrada en estado `BLOQUEADA` con su solicitud de autorización asociada. RN-03 dice *bloquear y solicitar autorización*, no *rechazar*. Descartarla perdería la trazabilidad de cuántas veces se intentó sobregirar una partida, que es justamente el dato que le falta a la dirección.
 
-**El `consumido` cuenta cada peso una sola vez a lo largo del ciclo del gasto.** Una requisición evaluada consume; al convertirse en orden deja de contar como requisición y pasa a contar como saldo pendiente; al recibirse el material deja de contar como saldo y pasa a contar como entrada. Sumar "órdenes + entradas" sin más contaría dos veces lo mismo, y omitir las requisiciones vivas dejaría pasar las dos peticiones concurrentes del escenario 9 de [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de-presupuesto), que es exactamente el fallo que este bloqueo existe para impedir. La fórmula está escrita una sola vez en el [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo) y la comparten la regla y el tablero.
+**El `consumido` cuenta cada peso una sola vez a lo largo del ciclo del gasto.** Una requisición evaluada consume; al convertirse en orden deja de contar como requisición y pasa a contar como saldo pendiente; al recibirse el material deja de contar como saldo y pasa a contar como entrada. Sumar "órdenes + entradas" sin más contaría dos veces lo mismo, y omitir las requisiciones vivas dejaría pasar las dos peticiones concurrentes del escenario 9 de [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de-presupuesto), que es exactamente el fallo que este bloqueo existe para impedir. La fórmula está escrita una sola vez en el [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo), la calcula `compras` —con el ejercido que le entrega `FuenteEjercido` en la misma sesión ([§5](#por-qué-el-consumido-vive-en-compras))— y la comparten la regla y el tablero.
 
 ### 8.2. Recepción parcial — RN-06 y RN-07
 
@@ -431,14 +457,20 @@ sequenceDiagram
 sequenceDiagram
     actor U as Almacén
     participant API as api/almacen
+    participant CMP as compras · interfaz publicada
     participant DOM as dominio · RN-06/07
     participant DB as PostgreSQL
 
-    U->>API: POST /entradas · remisión + cantidades
+    U->>API: POST /entradas · remisión + cantidades [+ solicitud_autorizacion_id por renglón]
     API->>DB: BEGIN
-    API->>DB: SELECT renglones de OC FOR UPDATE
+    API->>DB: SELECT orden_compra FOR UPDATE
+    API->>DB: SELECT renglones de OC FOR UPDATE ORDER BY id
     DB-->>API: ordenado y recibido acumulado
-    API->>DOM: validar_recepcion(ordenado, recibido, entrante)
+    opt El renglón cita una solicitud_autorizacion_id
+        API->>CMP: excedente_autorizado(solicitud, renglón)
+        CMP-->>API: estado, renglón, cantidad_excedente, consumida
+    end
+    API->>DOM: validar_recepcion(ordenado, recibido, entrante, excedente autorizado)
 
     alt Entrante ≤ saldo pendiente
         DOM-->>API: ACEPTADA
@@ -448,14 +480,30 @@ sequenceDiagram
         API->>DB: UPDATE estado OC → PARCIAL o CERRADA
         API->>DB: COMMIT
         API-->>U: 201 + saldo pendiente actualizado
-    else Entrante > saldo pendiente
-        DOM-->>API: EXCEDE_ORDENADO(saldo, excedente)
+    else Entrante > saldo, con solicitud AUTORIZADA y excedente ≤ el autorizado
+        DOM-->>API: ACEPTADA_CON_EXCEDENTE(excedente)
+        API->>DB: INSERT entrada + renglón con excedente y solicitud_autorizacion_id
+        API->>DB: INSERT movimiento_inventario (ENTRADA) por la cantidad completa
+        API->>CMP: registrar_recepcion(renglón, recibido, excedente)
+        CMP->>DB: UPDATE cantidad_recibida y cantidad_excedente_autorizada
+        API->>DB: UPDATE estado OC → CERRADA si ya no queda saldo
+        API->>DB: COMMIT
+        API-->>U: 201 + renglón marcado con su excedente
+    else Entrante > saldo, sin solicitud, o PENDIENTE, RECHAZADA o insuficiente
+        DOM-->>API: EXCEDE_ORDENADO(ordenado, recibido, saldo, excedente)
         API->>DB: ROLLBACK
-        API-->>U: 409 + acción "Solicitar autorización de excedente"
+        API-->>U: 409 RN-07 + acción SOLICITAR_AUTORIZACION
+    else Solicitud de otro renglón o ya consumida
+        API->>DB: ROLLBACK
+        API-->>U: 409 CONFLICTO SOLICITUD_NO_APLICABLE
     end
 ```
 
-El estado de la orden de compra —`ABIERTA`, `PARCIAL`, `CERRADA`— se **deriva** de las cantidades, nunca se fija a mano. Es el mecanismo que responde a *"¿cuánto falta por llegar?"*, la pregunta que hoy no tiene respuesta formal.
+**El excedente se autoriza aparte y se registra al reenviar** (`RN-07`, `PA-16`, resuelta el 2026-10-17). El primer `409` no persiste nada. Almacén crea la solicitud `EXCEDE_ORDENADO` con `POST /solicitudes-autorizacion`; `compras` recalcula las cifras con la orden y el renglón y guarda el renglón y la cantidad excedente; Dirección General la autoriza o la rechaza con motivo, asentado con `RN-07`. **Autorizar no registra la entrada**: la habilita. Almacén reenvía la misma captura —la interfaz la conserva, así que es una acción y no una recaptura— citando `solicitud_autorizacion_id` en el renglón, y es esa entrada la que suma el excedente a la recepción y consume la autorización. Una autorización se consume una sola vez; el motor lo sostiene con un índice único parcial ([modelo de datos §6](03-modelo-datos.md#6-almacén)). El excedente entra en el movimiento `ENTRADA`, así que **es costo ejercido**: es material que se recibió.
+
+**El orden de los bloqueos es fijo: primero `orden_compra`, después sus renglones ordenados por `id`.** La cancelación de una orden toma los mismos bloqueos en el mismo orden. Si una tomara la cabecera primero y la otra un renglón primero, una cancelación y una entrada simultáneas sobre la misma orden podrían esperarse la una a la otra hasta que venciera el tiempo de `RNF-16`.
+
+El estado de la orden de compra —`ABIERTA`, `PARCIAL`, `CERRADA`— se **deriva** de las cantidades, nunca se fija a mano. Es el mecanismo que responde a *"¿cuánto falta por llegar?"*, la pregunta que hoy no tiene respuesta formal. Una vez `CERRADA`, sus entradas **no se corrigen**: bajar lo recibido la reabriría, y se rechaza con `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION` (`PA-17`, resuelta el 2026-10-17).
 
 ### 8.3. Semáforo de obra
 
@@ -479,6 +527,8 @@ graph LR
     style EJE fill:#1e3a5f,color:#fff
     style OBRA fill:#5a4a2d,color:#fff
 ```
+
+> **En la fase 1, las fuentes de mano de obra y avance pasan por un puerto de lectura de `analitica` con tres adaptadores** ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)): `SIMULADO`, solo en `local`, `pruebas` y `demostracion`; `VACIO`, con todas las fuentes `SIN_DATOS`, el único admitido en `produccion` durante la fase 1; y `REAL`, que TKT-069 activa en el sprint 8 retirando el simulado entero —la nómina sale `SIN_DATOS` hasta TKT-056, en el sprint 9—. Por fila, **`ejercido` es solo real** y es el que entra en el `consumido` de `RN-03`, obtenido de `compras`; lo simulado viaja aparte en `ejercido_simulado`. La desviación se calcula con los dos y lleva `ilustrativa: true` si alguna entrada es `SIMULADA`, y **una desviación ilustrativa no emite alertas**. El aviso de cifra parcial sale cuando alguna fuente no es `REAL`.
 
 Se calcula **en tiempo de consulta** sobre los movimientos, sin proceso nocturno ni tabla de resumen que mantener sincronizada. A esta escala —4,900 conceptos y decenas de movimientos diarios— una agregación indexada responde de sobra. El umbral a partir del cual habría que introducir vistas materializadas está documentado en [ADR-005](adr/20260918-ledger-inventario.md).
 
@@ -535,7 +585,7 @@ No hace falta más: la fase de análisis no escribe en el modelo real, así que 
 | **Evolutividad** | Un módulo se puede extraer si hiciera falta | Grafo de dependencias acíclico · comunicación solo por interfaces publicadas |
 | **Seguridad** | Quien no tiene el rol no ejecuta la operación, y quitarle el rol surte efecto de inmediato *(`RNF-01`…`RNF-09`)* | Sesión con estado en servidor · autoridad sobre la excepción en `dominio/` · privilegio mínimo en tres roles de base de datos · [§7.6](#76-seguridad-de-la-frontera) |
 | **Recuperabilidad** | Restaurar a un punto en el tiempo con ≤ 1 h de pérdida, ensayado cada trimestre *(`RNF-10`, `RNF-11`)* | Respaldo continuo de PostgreSQL · ensayo de restauración como puerta de despliegue |
-| **Operación sin conexión** | El residente y el almacén capturan en obra, donde no hay internet, y nada de lo que capturan se da por permitido sin pasar por el servidor *(`RNF-18`)* | Caché de lectura persistida y cola local acotada a `avance` y `entrada_almacen` · sincronización idempotente por los mismos casos de uso · [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) |
+| **Operación sin conexión** | El residente y el almacén capturan en obra, donde no hay internet, y nada de lo que capturan se da por permitido sin pasar por el servidor *(`RNF-18`)* | Caché de lectura persistida y cola local acotada a `avance` y `entrada_almacen` · las rutas de captura aceptan el `id` del cliente y son idempotentes por clave primaria, por los mismos casos de uso · [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) |
 | **Integridad de la evidencia** | Lo que la bitácora dice que se adjuntó es lo que se puede recuperar, y se puede demostrar *(`RNF-19`)* | Hash SHA-256 verificado al confirmar y asentado en la bitácora · adjunto que se anula, nunca se borra · respaldo del almacén de objetos independiente del de la base · [§7.7](#77-archivos-y-evidencia) |
 
 **Los tres últimos son añadidos y llegan tarde a propósito de nada.** Faltaban: esta tabla describía siete atributos y ninguno cubría qué pasa si alguien entra sin permiso, si el disco se pierde o si la foto que la bitácora dice que existe ya no está. Un sistema cuya propuesta de valor es *"la línea base es inmutable y la bitácora es irrefutable"* hace dos afirmaciones que dependen por completo de estos atributos.
@@ -574,5 +624,6 @@ Las decisiones que un desarrollador nuevo se preguntaría *"¿por qué lo hicier
 | [ADR-014](adr/20260919-sesion-con-estado.md) | Sesión con estado en servidor, en lugar de credencial autocontenida |
 | [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | Captura diferida sin conexión, acotada a `avance` y `entrada_almacen` |
 | [ADR-016](adr/20261001-almacenamiento-de-objetos.md) | Almacenamiento de objetos compatible con S3, con el API fuera del camino de los bytes |
+| [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) | Mano de obra y avance simulados en la fase 1 tras un puerto de `analitica`, fuera del `consumido` de `RN-03` |
 
 Las decisiones de herramienta —framework, ORM, modo de ejecución— viven en el [stack tecnológico](06-stack-tecnologico.md) y en [ADR-009](adr/20260918-fastapi.md) … [ADR-013](adr/20260919-sqlalchemy-sincrono.md).

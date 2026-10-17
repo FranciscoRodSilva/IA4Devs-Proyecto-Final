@@ -3,7 +3,7 @@
 **Control Integral de Materiales, Estimaciones, Nómina y Tesorería de obra.**
 
 > Proyecto Final — Máster IA4Devs (LIDR)
-> **Entrega 1 · Documentación técnica** (sin código)
+> **Entrega 1 · Documentación técnica, ajustada tras la revisión del 2026-10-14** (sin código; base de la Entrega 2)
 
 ---
 
@@ -18,6 +18,8 @@
 | 4 | [Historias de usuario](docs/04-historias-usuario.md) | ✅ Completo | Paso 4 |
 | 5 | [Tickets de trabajo](docs/05-tickets-trabajo.md) | ✅ Completo | Paso 4 |
 | 6 | [Stack tecnológico](docs/06-stack-tecnologico.md) | ✅ Completo | Paso 5 |
+| 7 | [Especificación de la API](docs/07-especificacion-api.md) · [borrador OpenAPI](docs/api/openapi.yaml) | ✅ Completo · fase 1 | Ajuste 2026-10-15 |
+| 8 | [Wireframes](docs/08-wireframes.md) | ✅ Completo · fase 1 | Ajuste 2026-10-15 |
 
 **Documentación transversal**
 
@@ -25,12 +27,12 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 16 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 17 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`tools/`](tools/README.md) | Verificadores de la documentación: enlaces, anclas, identificadores, conteos y diagramas |
 
-> **La Entrega 1 está completa.** Los cinco pasos cerrados y las doce preguntas de la especificación funcional respondidas por el cliente — la última, `PA-13`, confirmó que **en la obra no hay internet** y trajo `RNF-18` y [ADR-015](docs/adr/20260919-captura-diferida-sin-conexion.md). Una revisión posterior, el **2026-10-01**, añadió la capacidad `C8` —evidencia y archivos adjuntos— con `RNF-19` y [ADR-016](docs/adr/20261001-almacenamiento-de-objetos.md). Las dos dejan **un bloque de backlog sin descomponer**, declarado en [`05-tickets-trabajo.md`](docs/05-tickets-trabajo.md#pendiente-de-descomponer--captura-sin-conexión-y-evidencia-documental): sus escenarios, sus tickets y la replanificación de sprints. Siguen abiertas tres preguntas que no condicionan el diseño: `PA-12` —cuánta captura es aceptable rehacer si se pierde la base de datos—, `PA-14` —si un avance se puede validar sin evidencia fotográfica— y `PA-15` —cuánto video hace falta y cuánto tiempo se conserva—.
+> **La Entrega 1 está completa y ajustada.** Los cinco pasos están cerrados y el cliente respondió las doce preguntas de la especificación funcional. La revisión de LIDR del **2026-10-14** dejó tres ajustes, atendidos el **2026-10-15** (detalle en [Ajustes tras la revisión](#ajustes-tras-la-revisión-de-la-entrega-1)): el MVP pasa a ser un **hilo vertical** en dos fases, hay especificación de la API con borrador OpenAPI, y los 69 tickets están detallados al mismo nivel, sin ningún bloque pendiente de descomponer. Una revisión posterior de los propios ajustes, el **2026-10-17**, corrigió las inconsistencias que habrían frenado la implementación —el ciclo de dependencias del `consumido`, el destajo contado dos veces, claves entre módulos— y convirtió en preguntas al cliente (`PA-16`…`PA-22`) las reglas que se estaban asumiendo. El cliente respondió esas siete preguntas el mismo día, y sus respuestas ya están propagadas a reglas, modelo, historias, tickets y API. Siguen abiertas tres que no condicionan el diseño: `PA-12`, `PA-14` y `PA-15` ([PRD §10](docs/01-descripcion-producto.md#preguntas-abiertas)).
 
 ---
 
@@ -70,7 +72,7 @@ No aplica en esta entrega. La **Entrega 1 es 100 % documentación**, sin código
 | | |
 |---|---|
 | **Repositorio destino** | https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final |
-| **Rama de esta entrega** | `Entrega1` |
+| **Rama de esta entrega** | `Produccion`, la rama por defecto. El estado revisado el 2026-10-14 queda fijado con la etiqueta `entrega-1`. La antigua rama `Entrega1` está archivada: se quedó atrás de `Produccion` y no contiene `C8` |
 | **Ubicación local actual** | `D:\Documentos\LIDR\Proyecto Final` |
 | **Estado** | 🟢 Documentación completa y publicada. `Doc de contexto/` queda fuera del repositorio por contener datos personales y precios del cliente — ver [Fuentes de contexto](#fuentes-de-contexto). |
 
@@ -117,6 +119,7 @@ Los 5 pasos de la Entrega 1 corresponden a las fases canónicas de SDD:
 | 3. Arquitectura + Modelo de datos | **Plan** | ¿Cómo se construye? |
 | 4. Historias de usuario + Tickets | **Tasks** | ¿En qué orden y con qué criterio de "hecho"? |
 | 5. Stack tecnológico | *Plan · decisiones* | ¿Con qué herramientas y por qué esas? |
+| Ajuste · API y wireframes | *Plan · contrato* | ¿Qué expone el sistema y cómo se ve? |
 
 ### Principios no negociables
 
@@ -131,9 +134,22 @@ Estas son las restricciones que ninguna decisión posterior del proyecto puede r
 
 ---
 
+## Ajustes tras la revisión de la Entrega 1
+
+La revisión de LIDR del **2026-10-14** dio *luz amarilla: avanzar ajustando*. Cada punto, con dónde quedó atendido:
+
+| Punto de la revisión | Ajuste | Dónde |
+|---|---|---|
+| **Especificación de la API a medias**: no había listado de endpoints ni borrador | Listado completo por módulo, convenciones y contrato de error, más un borrador OpenAPI 3.1 de la fase 1 que el agente implementa y que CI compara contra el OpenAPI publicado (TKT-061) | [`07-especificacion-api.md`](docs/07-especificacion-api.md) · [`api/openapi.yaml`](docs/api/openapi.yaml) |
+| **Tickets a medias**: solo resumen desde HDU-003 y un bloque pendiente | Los 69 tickets tienen el detalle de TKT-011…TKT-024. El bloque pendiente ya no existe: se descompuso en TKT-059 y TKT-063…TKT-069, y en 20 escenarios nuevos | [`05-tickets-trabajo.md`](docs/05-tickets-trabajo.md) · [`04-historias-usuario.md`](docs/04-historias-usuario.md) |
+| **Alcance del MVP**: definir un hilo vertical y pasar nómina, destajo y modo sin conexión a una segunda fase con datos simulados | La **fase 1** es el hilo línea base → requisición → bloqueo o autorización → orden → entrada → semáforo. La **fase 2** trae personal, destajo, nómina, captura sin conexión y evidencia. Mientras tanto, la mano de obra y el avance llegan de un adaptador simulado, rotulado y excluido del disponible de `RN-03` | [PRD §7](docs/01-descripcion-producto.md#7-alcance-mvp-y-evolución) · [ADR-017](docs/adr/20261015-fuentes-simuladas-analitica.md) · [plan de sprints](docs/05-tickets-trabajo.md#plan-de-sprints) |
+| **Arquitectura**: cerrar un OpenAPI mínimo, alinear las cifras del README y la rama de entrega con la rama por defecto | Las cifras de arriba son las de los documentos. La entrega vive en `Produccion`, la rama por defecto, y el estado revisado queda con la etiqueta `entrega-1` | [Lo entregado, en cifras](#lo-entregado-en-cifras) · [§0.5](#05-url-del-repositorio) |
+| **IA en el ciclo**: concretar pruebas, despliegue y mantenimiento | Las seis fases, con lo que hace la IA y quién la verifica: tests escritos antes que el código desde cada escenario; la IA escribe el Dockerfile, el pipeline y los scripts de restauración, y una persona ejecuta el ensayo; revisión automatizada de cada PR con Claude Code, que comenta y no aprueba (TKT-062) | [convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo) · [stack §10](docs/06-stack-tecnologico.md#10-infraestructura) |
+| **Próximos pasos**: tickets del hilo y wireframes | Los tickets de compras, almacén y tablero están detallados, y hay bocetos de las diez pantallas del hilo con sus estados de rechazo | [`08-wireframes.md`](docs/08-wireframes.md) |
+
 ## Alcance de la Entrega 1
 
-**Incluye:** ficha del proyecto, descripción general del producto, arquitectura del sistema, modelo de datos, historias de usuario, tickets de trabajo y stack tecnológico.
+**Incluye:** ficha del proyecto, descripción general del producto, arquitectura del sistema, modelo de datos, historias de usuario, tickets de trabajo, stack tecnológico y, tras la revisión, especificación de la API y wireframes.
 
 **No incluye:** código, tests ni despliegue. Esta entrega es 100 % documentación.
 
@@ -142,12 +158,16 @@ Estas son las restricciones que ninguna decisión posterior del proyecto puede r
 | | |
 |---|---|
 | Reglas de negocio | 25, con trazabilidad a su origen documental |
-| Requisitos no funcionales | 18, de los que 14 se verifican en CI |
-| Preguntas planteadas al cliente | 13 · **12 resueltas**; `PA-12` abierta, sobre objetivos de recuperación |
-| Invariantes declarados en base de datos | 22 |
-| Historias de usuario | 9 · **6 *must-have* y 3 *should-have*** |
-| Escenarios de aceptación | 137, cerca de la mitad de rechazo, error o borde |
-| Tickets de trabajo | 58, en 8 sprints |
-| Decisiones de arquitectura (ADR) | 15 |
+| Requisitos no funcionales | 19 |
+| Preguntas planteadas al cliente | 22 · **19 resueltas**, siete de ellas el 2026-10-17; abiertas `PA-12`, `PA-14` y `PA-15`, ninguna bloqueante |
+| Invariantes declarados en base de datos | 38 |
+| Historias de usuario | 9 · **6 *must-have* (fase 1, el hilo vertical) y 3 *should-have* (fase 2)** · 79 SP |
+| Escenarios de aceptación | 162, cerca de la mitad de rechazo, error o borde, cada uno con su fase |
+| Tickets de trabajo | 69, todos detallados con criterios técnicos y *non-goals*, en 11 sprints: 7 de fase 1 y 4 de fase 2 |
+| Especificación de la API | 70 operaciones de fase 1 en el borrador OpenAPI 3.1, validado; las de fase 2, listadas con su ticket |
+| Wireframes | 10 pantallas del hilo vertical |
+| Decisiones de arquitectura (ADR) | 17 |
 
-> **Sobre el número de historias.** El enunciado pedía entre 3 y 5 *must-have* y 1-2 *should-have*. Se entregan **6 y 3**. La razón está documentada en la [auditoría de suficiencia](docs/04-historias-usuario.md#auditoría-de-suficiencia): el conjunto más pequeño dejaba tres huecos de cadena —nada emitía la orden de compra, nada daba de alta el personal, nada creaba obras ni proveedores— que habrían aparecido como bloqueos en pleno sprint. Si la entrega exige ceñirse al conteo, la vía limpia es bajar HDU-003 y HDU-004 a *should-have*; el producto ya no funcionaría de extremo a extremo con solo las *must*.
+Estas cifras las comprueba [`tools/verificar_docs.py`](tools/README.md) contra los documentos, salvo las de API y wireframes.
+
+> **Sobre el número de historias.** El enunciado pedía entre 3 y 5 *must-have* y 1-2 *should-have*. Se entregan **6 y 3**. La razón está documentada en la [auditoría de suficiencia](docs/04-historias-usuario.md#auditoría-de-suficiencia): el conjunto más pequeño dejaba tres huecos de cadena —nada emitía la orden de compra, nada daba de alta el personal, nada creaba obras ni proveedores— que habrían aparecido como bloqueos en pleno sprint. Si la entrega exige ceñirse al conteo, la vía limpia es bajar HDU-003 y HDU-004 a *should-have*; el producto ya no funcionaría de extremo a extremo con solo las *must*. Tras el corte en fases, las seis *must* son exactamente el hilo vertical de la fase 1: quitar cualquiera lo cortaría.

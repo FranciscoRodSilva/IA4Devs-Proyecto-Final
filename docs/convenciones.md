@@ -38,7 +38,7 @@ Mezclarlas en el mismo sitio es el origen de la mayoría de los problemas de man
 |---|---|---|---|
 | **Producto** | `docs/01-descripcion-producto.md`, `docs/glosario.md` | Cliente, equipo, agentes | Lento — cambia con el negocio |
 | **Arquitectura** | `docs/02-arquitectura.md`, `docs/adr/`, diagramas | Equipo técnico + agentes | Lento — cambia con decisiones técnicas |
-| **API** | Especificación OpenAPI generada desde el código | Frontend, integradores, agentes | Medio — cambia con cada release |
+| **API** | Borrador `docs/api/openapi.yaml` en diseño; OpenAPI generado desde el código en ejecución, comparado contra el borrador en CI | Frontend, integradores, agentes | Medio — cambia con cada release |
 | **Código** | Docstrings en el propio código | Equipo + agentes en modo agéntico | Rápido — cambia con cada PR relevante |
 
 El anti-patrón que este proyecto evita explícitamente: un único `README.md` de 800 líneas. El README es un índice, no un contenedor.
@@ -62,6 +62,10 @@ IA4Devs-Proyecto-Final/
     ├── 04-historias-usuario.md     Capa Tasks — Paso 4
     ├── 05-tickets-trabajo.md       Capa Tasks — Paso 4
     ├── 06-stack-tecnologico.md     Decisiones de stack — Paso 5
+    ├── 07-especificacion-api.md    Endpoints, convenciones y contrato de error
+    ├── 08-wireframes.md            Bocetos de baja fidelidad de las pantallas del hilo vertical
+    ├── api/
+    │   └── openapi.yaml            Borrador OpenAPI 3.1 de la fase 1: el contrato del agente
     └── adr/
         ├── README.md               Índice de decisiones
         ├── template.md             Plantilla MADR
@@ -334,3 +338,38 @@ Aplica desde el momento en que haya código.
 **Marcar el origen de cada PR** — `human`, `human+copilot`, `agent`, `agent+human-review` — y reportar la calidad segmentada por origen. Si los PR de agentes tienen tres veces más defectos, la velocity total está mintiendo.
 
 **Para medir productividad real, mirar outcomes**: frecuencia de despliegue, lead time, tiempo de recuperación, tasa de fallos en cambios. No story points.
+
+---
+
+## 12. La IA en el ciclo de desarrollo
+
+El máster pide que la IA esté presente en al menos cuatro de las seis fases. En CIMENTA está en las seis, y en cada una con el mismo reparto: **la IA produce el borrador y una comprobación automática o una persona decide si vale.** Una fase en la que la IA genera y nadie verifica no cuenta como fase con IA. Cuenta como fase sin control.
+
+| Fase | Qué hace la IA | Con qué contexto | Quién o qué lo verifica |
+|---|---|---|---|
+| **Análisis** | Busca casos límite, supuestos implícitos y escenarios faltantes en cada historia ([§5, *AI as poke-holes*](#ai-as-poke-holes)) | PRD, glosario, archivos del cliente | El cliente responde las `PA-xx`; lo no respaldado se marca **(asumido)** |
+| **Diseño** | Redacta ADR a partir de la discusión real, diagramas Mermaid y el borrador OpenAPI | Arquitectura, modelo de datos, ADR previos | `verificar_docs.py`, `extraer_mermaid.py`, `openapi-spec-validator` y revisión humana |
+| **Implementación** | Implementa un ticket cada vez dentro de sus *non-goals*, con Context7 para las librerías del stack | `CLAUDE.md`, `llms.txt`, el ticket, la historia, `docs/api/openapi.yaml` | `import-linter`, mypy, Ruff, la prueba de contrato de TKT-061 y la revisión del PR |
+| **Pruebas** | Escribe **primero** los tests de cada escenario de la historia, con el nombre `test_hdu00X_escNN_…`, y después el código que los pone en verde | Los escenarios Given/When/Then, el contrato de error, los wireframes para los recorridos de Playwright | El verificador de escenarios sin test falla el pipeline ([ADR-012](adr/20260918-trazabilidad-escenario-test.md)); una persona comprueba en la revisión que el test de rechazo **afirma el rechazo** y no solo que la respuesta llega |
+| **Despliegue** | Escribe el `Dockerfile` multietapa, los *workflows* de GitHub Actions y los scripts de respaldo, restauración y verificación de hash de los objetos | Stack §10, `RNF-10`, `RNF-11`, `RNF-19`, ADR-008 | El pipeline los ejecuta en cada PR. **El ensayo de restauración lo ejecuta y mide una persona** (`RNF-11`, TKT-058): la IA puede escribir el script, no dar por buena la restauración |
+| **Mantenimiento** | **Revisa automáticamente cada pull request** con Claude Code en GitHub Actions (TKT-062) contra las reglas de `CLAUDE.md`, el ticket enlazado y sus *non-goals*, y deja comentarios en línea. Prioriza las alertas de Dependabot y de `pip-audit`. Diagnostica errores de Sentry a partir del identificador de correlación | `CLAUDE.md`, el diff, el ticket, el registro técnico | **La revisión automática comenta, nunca aprueba ni fusiona.** La aprobación es humana y obligatoria (DoD §6). La etiqueta de origen del PR alimenta las métricas de §11 |
+
+### Qué revisa la revisión automatizada de PR
+
+No es una revisión genérica de estilo, que ya hacen Ruff y ESLint. Es una lista cerrada con lo que este proyecto **no puede** dejar pasar y que ningún linter detecta entero:
+
+1. Un `float` o un `number` de JSON en cualquier camino por el que pase dinero.
+2. Una ruta `async def`, o una llamada bloqueante dentro de una corrutina ([ADR-013](adr/20260919-sqlalchemy-sincrono.md)).
+3. Una regla de negocio fuera de `dominio/` —en un controlador de `api/`, en un caso de uso o en un modelo del ORM—, o un `dominio/` que importa framework u ORM.
+4. Un cálculo de `consumido` que no sea la consulta única del [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo).
+5. Un escenario de rechazo de la historia sin su test, o un test de rechazo que no comprueba el contrato de error.
+6. Un `UPDATE` o `DELETE` sobre la bitácora, el libro mayor o la línea base congelada.
+7. Un cambio de comportamiento sin la documentación afectada en el mismo PR (§2).
+8. Trabajo que el ticket declara como *non-goal*, o fuera de su alcance.
+9. Un importe simulado que entra en el `consumido` de `RN-03`, o un ticket de fase 1 que adelanta trabajo de fase 2 (regla 17 de `CLAUDE.md`, [ADR-017](adr/20261015-fuentes-simuladas-analitica.md)).
+10. Un cliente que evalúa una regla: que decide con el disponible o el saldo en caché, o que da por aceptado lo que encoló sin conexión (regla 10 de `CLAUDE.md`, [ADR-015](adr/20260919-captura-diferida-sin-conexion.md)).
+11. Todo PR que toca `docs/api/openapi.yaml`. Se señala siempre, tenga o no un defecto: el borrador es el contrato que se implementa, y cambiarlo es una decisión que la persona que aprueba tiene que ver explícitamente.
+
+Varios puntos los cubre también, en todo o en parte, una comprobación automática: el 1, el 2, la mitad del 3 que es un `dominio/` con importaciones prohibidas, y el 6, con el linter, `import-linter` y las pruebas de permisos de la base; la mitad del 5 que es un escenario sin test, con el verificador de [ADR-012](adr/20260918-trazabilidad-escenario-test.md); la mitad del 9 que es lo simulado en el `consumido`, con el test de HDU-006 esc. 15 y el arranque que rechaza el adaptador simulado en producción; y el 11, con la prueba de contrato de TKT-061. Si la revisión de la IA y esa comprobación discrepan, manda la comprobación. Para la IA queda lo que exige leer intención: los puntos 4, 7, 8 y 10, y las otras mitades del 3, del 5 y del 9 —una regla escondida en un controlador, un test de rechazo que no afirma el rechazo, un ticket que adelanta la fase 2—.
+
+> **Por qué la IA revisa y no aprueba.** Un agente que escribe el código y otro que lo aprueba forman un circuito sin nadie dentro. La revisión automática existe para que la persona que aprueba llegue al PR con los once puntos ya mirados y dedique su atención al significado, que es lo único que la IA no puede validar.
