@@ -81,7 +81,9 @@ Porque las ocho capacidades del PRD se reparten en diez contextos con reglas pro
 
 > Un módulo **solo** puede hablar con otro a través de su interfaz de aplicación publicada. Nunca a través de sus repositorios, sus modelos de persistencia ni sus tablas.
 
-Esta regla es lo único que separa un monolito modular de un monolito con carpetas. Se verifica automáticamente en CI mediante análisis de dependencias entre paquetes.
+Esta regla es lo único que separa un monolito modular de un monolito con carpetas. Se verifica automáticamente con análisis de dependencias entre paquetes: `uv run lint-imports`, con los contratos de `[tool.importlinter]` en `backend/pyproject.toml`.
+
+**La interfaz publicada de un módulo es un único archivo, `cimenta/<modulo>/interfaz.py`.** Sus capas `api/`, `aplicacion/`, `dominio/` e `infraestructura/` son privadas enteras: otro módulo no importa nada de ellas, tampoco de `aplicacion/`. La interfaz reexporta lo que el módulo publica y es lo único que otro módulo puede importar, y solo si el grafo de §5 se lo permite. Por qué esta forma y estos contratos: [ADR del 2026-10-17](adr/20261017-interfaz-publicada-y-contrato-de-fronteras.md).
 
 ---
 
@@ -189,7 +191,7 @@ graph TB
     style PV fill:#4a4a4a,color:#fff
 ```
 
-Las dependencias forman un grafo dirigido acíclico. `presupuesto` es el núcleo y no depende de nadie. `analítica` depende de todos pero **solo lee**: no puede escribir en ningún módulo, lo que garantiza que el tablero nunca altere el estado que reporta.
+Las dependencias forman un grafo dirigido acíclico. `presupuesto` es el núcleo y no depende de ningún módulo de negocio. `analítica` depende de todos los de negocio salvo `proveedores`, pero **solo lee**: no puede escribir en ningún módulo, lo que garantiza que el tablero nunca altere el estado que reporta. Las flechas hacia los transversales no se dibujan: están en §5.
 
 **Tres flechas apuntan hacia `compras` porque `compras` declara puertos que otros implementan.** `FuenteEjercido` le entrega el ejercido del `consumido` de `RN-03`: lo implementan `almacen` (materiales) y, en la fase 2, `avance` (destajo). `CatalogoProveedores` le dice si un proveedor existe y está activo: lo implementa `proveedores`. En los tres casos la arista va de quien implementa a quien declara, y **no existe ninguna arista `compras → almacen` ni `compras → avance`**. Es lo que permite que `compras` sea dueño del `consumido` sin depender de los módulos que lo alimentan.
 
@@ -197,18 +199,20 @@ Las dependencias forman un grafo dirigido acíclico. `presupuesto` es el núcleo
 
 ## 5. Contextos delimitados
 
-| Módulo | Responsabilidad | Reglas que hace cumplir | Depende de |
+| Módulo | Responsabilidad | Reglas que hace cumplir | Importa, solo por su interfaz |
 |---|---|---|---|
-| **identidad** | Autenticación, roles y permisos | — | — |
+| **identidad** | Autenticación, roles y permisos | — | auditoría |
 | **auditoría** | Bitácora inmutable de toda acción relevante | RN-04 | — |
-| **archivos** | Adjuntos y evidencia: alta, confirmación, anulación y emisión de URL prefirmadas. **No conoce a nadie**: la referencia al documento adjuntado es una pareja tipo + identificador, no una clave foránea | — | — |
-| **presupuesto** | Obra, jerarquía, conceptos, APU, línea base, explosión por partida, presupuesto de control, rendimiento observado | RN-01, RN-18, RN-19, RN-24, RN-25 | — |
-| **compras** | Requisición, evaluación presupuestal, **cálculo del `consumido` y del `disponible`**, solicitud de autorización, orden de compra. Declara los puertos `FuenteEjercido` y `CatalogoProveedores` | RN-02, RN-03, RN-04 | presupuesto |
-| **almacén** | Entrada contra remisión, saldo de recepción parcial, traspasos, mermas, inventario. Implementa `FuenteEjercido` para materiales | RN-05, RN-06, RN-07, RN-08, RN-09 | compras, presupuesto |
-| **avance** | Alcance de destajo, etapas, medición, doble validación, pago con retención, fondo de garantía. Implementa `FuenteEjercido` para destajo *(fase 2)* | RN-10, RN-11, RN-12 | presupuesto, personal, compras |
-| **personal** | Empleados, roles de oficio, cuadrillas, créditos, nómina semanal, pagos agrupados, **modalidad de pago de la semana** | RN-13, RN-14, RN-22, RN-23 | presupuesto |
-| **proveedores** | Catálogo *(MVP)*; facturas con corte semanal, anticipos y amortización, tope de consignación *(v1.1)*. Implementa `CatalogoProveedores` | RN-15, RN-16, RN-17 | compras |
-| **analítica** | Semáforo de obra, desglose, alertas, costo proyectado. Obtiene `requisiciones_vivas`, `comprometido`, `ejercido`, `consumido` y `disponible` de la interfaz de `compras`; no los recalcula | RN-21 | todos *(lectura)* |
+| **archivos** | Adjuntos y evidencia: alta, confirmación, anulación y emisión de URL prefirmadas. **No conoce a ningún módulo de negocio**: la referencia al documento adjuntado es una pareja tipo + identificador, no una clave foránea | — | identidad, auditoría |
+| **presupuesto** | Obra, jerarquía, conceptos, APU, línea base, explosión por partida, presupuesto de control, rendimiento observado | RN-01, RN-18, RN-19, RN-24, RN-25 | identidad, auditoría, archivos |
+| **compras** | Requisición, evaluación presupuestal, **cálculo del `consumido` y del `disponible`**, solicitud de autorización, orden de compra. Declara los puertos `FuenteEjercido` y `CatalogoProveedores` | RN-02, RN-03, RN-04 | presupuesto, identidad, auditoría |
+| **almacén** | Entrada contra remisión, saldo de recepción parcial, traspasos, mermas, inventario. Implementa `FuenteEjercido` para materiales | RN-05, RN-06, RN-07, RN-08, RN-09 | compras, presupuesto, identidad, auditoría, archivos |
+| **avance** | Alcance de destajo, etapas, medición, doble validación, pago con retención, fondo de garantía. Implementa `FuenteEjercido` para destajo *(fase 2)* | RN-10, RN-11, RN-12 | presupuesto, personal, compras, identidad, auditoría, archivos |
+| **personal** | Empleados, roles de oficio, cuadrillas, créditos, nómina semanal, pagos agrupados, **modalidad de pago de la semana** | RN-13, RN-14, RN-22, RN-23 | presupuesto, identidad, auditoría |
+| **proveedores** | Catálogo *(MVP)*; facturas con corte semanal, anticipos y amortización, tope de consignación *(v1.1)*. Implementa `CatalogoProveedores` | RN-15, RN-16, RN-17 | compras, identidad, auditoría |
+| **analítica** | Semáforo de obra, desglose, alertas, costo proyectado. Obtiene `requisiciones_vivas`, `comprometido`, `ejercido`, `consumido` y `disponible` de la interfaz de `compras`; no los recalcula | RN-21 | presupuesto, compras, almacén, avance, personal, identidad, auditoría (asumido) *(lectura)* |
+
+**El contrato es la fuente de esta columna.** Cada módulo tiene en `backend/pyproject.toml` un contrato `grafo-<modulo>` que enumera quién puede importarlo; la columna es ese mismo grafo leído desde quien importa. Ningún módulo importa `analitica` ni `proveedores`; `auditoria` no importa a ninguno, e `identidad` solo a `auditoria`, para asentar las denegaciones. Una arista nueva la decide el usuario y se añade al contrato y a esta tabla en el mismo cambio.
 
 `RN-20` no aparece porque está fuera del MVP: depende de un control de cobranza que no existe todavía. Cuando llegue, su dueño será el módulo que gobierne el cobro al cliente final, no `compras`.
 
@@ -247,7 +251,8 @@ compras/
 ├── api/              Rutas HTTP, serialización, códigos de estado
 ├── aplicacion/       Casos de uso. Orquesta, abre transacciones, no decide reglas
 ├── dominio/          Entidades, objetos de valor y REGLAS DE NEGOCIO. Python puro
-└── infraestructura/  Repositorios, mapeo a tablas, adaptadores
+├── infraestructura/  Repositorios, mapeo a tablas, adaptadores
+└── interfaz.py       Interfaz publicada: lo único que otro módulo puede importar
 ```
 
 ### Por qué el dominio es puro
@@ -392,7 +397,7 @@ La inmutabilidad de la línea base no descansa aquí, sino en el **disparador de
 
 El contenedor de archivos del nivel 2 es un **almacén de objetos compatible con S3** y el API se mantiene fuera del camino de los bytes ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)). Tres consecuencias estructurales, que son las que afectan a cómo se escribe el resto del sistema:
 
-**El módulo `archivos` no conoce a ningún otro, y ninguno lo conoce a él por dentro.** Un adjunto referencia el documento al que pertenece con una pareja `referencia_tipo` + `referencia_id`, no con una clave foránea. Es el mismo recurso que `movimiento_inventario` ya usa para los movimientos que no cuelgan de una orden, y aquí es además lo que mantiene el grafo acíclico: una clave foránea de `archivos` hacia `avance`, `almacen`, `presupuesto` y `proveedores` lo convertiría en el módulo del que todos dependen.
+**El módulo `archivos` no conoce a ningún módulo de negocio, y ninguno lo conoce a él por dentro.** Solo usa `identidad`, para comprobar el rol al emitir una URL, y `auditoria`, para asentar el hash en la bitácora. Un adjunto referencia el documento al que pertenece con una pareja `referencia_tipo` + `referencia_id`, no con una clave foránea. Es el mismo recurso que `movimiento_inventario` ya usa para los movimientos que no cuelgan de una orden, y aquí es además lo que mantiene el grafo acíclico: una clave foránea de `archivos` hacia `avance`, `almacen`, `presupuesto` y `proveedores` lo convertiría en el módulo del que todos dependen.
 
 El precio está declarado: **la integridad referencial del adjunto no la da el motor**, la da el caso de uso que lo crea. Es una de las pocas referencias lógicas del esquema, enumeradas en el [modelo de datos §2](03-modelo-datos.md#2-convenciones), y se acepta porque la alternativa —una tabla de adjuntos por cada módulo— multiplicaría por cinco la lógica de subida, validación y caducidad.
 

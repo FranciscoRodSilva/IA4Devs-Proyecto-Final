@@ -1,1 +1,1 @@
-"""Backend de CIMENTA. Los paquetes de módulo llegan con TKT-002."""
+"""Backend de CIMENTA. Las fronteras entre sus diez módulos las fija [tool.importlinter] en pyproject.toml."""

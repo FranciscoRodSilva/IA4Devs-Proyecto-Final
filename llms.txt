@@ -24,7 +24,7 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 - [Stack tecnológico](docs/06-stack-tecnologico.md): criterios de elección, herramientas por capa, seguridad y lo que se descartó
 - [Arranque local](docs/arranque-local.md): requisitos, comandos del backend y del frontend, verificadores de `tools/` y lo que todavía no arranca
 - [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio): `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, con la configuración de la raíz
-- [Decisiones de arquitectura](docs/adr/README.md): 17 ADRs en formato MADR
+- [Decisiones de arquitectura](docs/adr/README.md): 18 ADRs en formato MADR
 
 ## Reglas que ninguna implementación puede romper
 
@@ -34,7 +34,7 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 - El avance físico se divide entre el **alcance** —m² contratados de todas las áreas por todas las etapas—, nunca entre los m² de contrato de lo ya medido. Sin avance validado es nulo, no cero
 - El dinero nunca es coma flotante. Decimal de precisión fija en base de datos, cadena en JSON
 - Las reglas de negocio viven en `dominio/`, sin dependencias de framework, ORM ni HTTP, y llevan su identificador `RN-xx` en el docstring
-- Un módulo solo habla con otro a través de su interfaz de aplicación publicada
+- Un módulo solo habla con otro a través de su interfaz de aplicación publicada: `cimenta/<modulo>/interfaz.py`, verificado con `import-linter`
 - El inventario es un libro mayor de solo-anexado. No existe columna de existencia
 - La sesión tiene estado en el servidor: quitar un rol surte efecto en la petición siguiente. Ni JWT ni cookie firmada autocontenida
 - SQLAlchemy en modo síncrono, con rutas `def`. Nunca `async def` con una sesión síncrona dentro

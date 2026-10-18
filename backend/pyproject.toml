@@ -7,6 +7,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "import-linter>=2.15",
     "mypy>=2.4.0",
     "ruff>=0.17.1",
 ]
@@ -37,3 +38,144 @@ warn_return_any = true
 warn_unused_ignores = true
 strict_equality = true
 implicit_reexport = false
+
+[tool.importlinter]
+root_package = "cimenta"
+include_external_packages = true
+exclude_type_checking_imports = false
+
+[[tool.importlinter.contracts]]
+id = "esqueleto-modulos"
+name = "cimenta tiene exactamente los diez módulos de arquitectura §5"
+type = "layers"
+containers = ["cimenta"]
+layers = [
+    "identidad : auditoria : archivos : presupuesto : compras : almacen : avance : personal : proveedores : analitica",
+]
+exhaustive = true
+broken_contract_guidance = "Un módulo nuevo o renombrado se decide en un ticket y se documenta en docs/02-arquitectura.md §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "esqueleto-capas"
+name = "Cada módulo tiene sus cuatro capas y una sola interfaz, y su dominio no importa las otras"
+type = "layers"
+containers = ["cimenta.*"]
+layers = [
+    "api : aplicacion : infraestructura : interfaz",
+    "dominio",
+]
+exhaustive = true
+broken_contract_guidance = "La estructura de un módulo está en docs/02-arquitectura.md §6, y dominio/ no importa nada de su módulo (regla 2 de CLAUDE.md)."
+
+[[tool.importlinter.contracts]]
+id = "dominio-sin-framework"
+name = "dominio/ no importa FastAPI, SQLAlchemy ni Pydantic, ni directa ni indirectamente"
+type = "forbidden"
+source_modules = ["cimenta.*.dominio"]
+forbidden_modules = ["fastapi", "sqlalchemy", "pydantic"]
+allow_indirect_imports = false
+broken_contract_guidance = "El dominio es Python puro (docs/adr/20260918-dominio-puro.md). No se arregla con una excepción en el contrato."
+
+[[tool.importlinter.contracts]]
+id = "solo-por-interfaz"
+name = "Un módulo usa a otro solo por cimenta.<modulo>.interfaz"
+type = "forbidden"
+source_modules = ["cimenta.*"]
+forbidden_modules = [
+    "cimenta.*.api",
+    "cimenta.*.aplicacion",
+    "cimenta.*.dominio",
+    "cimenta.*.infraestructura",
+]
+allow_indirect_imports = true
+broken_contract_guidance = "Otro módulo se usa solo por su interfaz (docs/adr/20260918-monolito-modular.md). No se arregla con una excepción en el contrato."
+
+[[tool.importlinter.contracts]]
+id = "grafo-identidad"
+name = "Quién puede importar identidad"
+type = "protected"
+protected_modules = ["cimenta.identidad"]
+allowed_importers = ["cimenta.archivos", "cimenta.presupuesto", "cimenta.compras", "cimenta.almacen", "cimenta.avance", "cimenta.personal", "cimenta.proveedores", "cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-auditoria"
+name = "Quién puede importar auditoria"
+type = "protected"
+protected_modules = ["cimenta.auditoria"]
+allowed_importers = ["cimenta.identidad", "cimenta.archivos", "cimenta.presupuesto", "cimenta.compras", "cimenta.almacen", "cimenta.avance", "cimenta.personal", "cimenta.proveedores", "cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-archivos"
+name = "Quién puede importar archivos"
+type = "protected"
+protected_modules = ["cimenta.archivos"]
+allowed_importers = ["cimenta.presupuesto", "cimenta.almacen", "cimenta.avance"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-presupuesto"
+name = "Quién puede importar presupuesto"
+type = "protected"
+protected_modules = ["cimenta.presupuesto"]
+allowed_importers = ["cimenta.compras", "cimenta.almacen", "cimenta.avance", "cimenta.personal", "cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-compras"
+name = "Quién puede importar compras"
+type = "protected"
+protected_modules = ["cimenta.compras"]
+allowed_importers = ["cimenta.almacen", "cimenta.avance", "cimenta.proveedores", "cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-almacen"
+name = "Quién puede importar almacen"
+type = "protected"
+protected_modules = ["cimenta.almacen"]
+allowed_importers = ["cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-avance"
+name = "Quién puede importar avance"
+type = "protected"
+protected_modules = ["cimenta.avance"]
+allowed_importers = ["cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-personal"
+name = "Quién puede importar personal"
+type = "protected"
+protected_modules = ["cimenta.personal"]
+allowed_importers = ["cimenta.avance", "cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-proveedores"
+name = "Quién puede importar proveedores"
+type = "protected"
+protected_modules = ["cimenta.proveedores"]
+allowed_importers = ["cimenta.proveedores"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[[tool.importlinter.contracts]]
+id = "grafo-analitica"
+name = "Quién puede importar analitica"
+type = "protected"
+protected_modules = ["cimenta.analitica"]
+allowed_importers = ["cimenta.analitica"]
+as_packages = true
+broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."

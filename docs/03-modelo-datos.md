@@ -1015,7 +1015,7 @@ erDiagram
     }
 ```
 
-**El Excel ya no cuelga de esta tabla con dos cadenas sueltas.** `archivo_nombre` y `archivo_url` eran el hueco que `C8` cierra: no decían quién subió el archivo, ni cuánto pesaba, ni si seguía siendo el mismo. El adjunto vive ahora en [`archivo`](#12-archivos-adjuntos) con `referencia_tipo = 'IMPORTACION'`, y la importación no empieza a analizar hasta que ese adjunto está `DISPONIBLE`. `importacion.archivo_id` lo señala en sentido contrario, como identificador lógico **sin clave foránea**: `presupuesto` no depende de `archivos`, y la referencia se valida por la interfaz publicada de `archivos` al crear la importación.
+**El Excel ya no cuelga de esta tabla con dos cadenas sueltas.** `archivo_nombre` y `archivo_url` eran el hueco que `C8` cierra: no decían quién subió el archivo, ni cuánto pesaba, ni si seguía siendo el mismo. El adjunto vive ahora en [`archivo`](#12-archivos-adjuntos) con `referencia_tipo = 'IMPORTACION'`, y la importación no empieza a analizar hasta que ese adjunto está `DISPONIBLE`. `importacion.archivo_id` lo señala en sentido contrario, como identificador lógico **sin clave foránea**: en el esquema `presupuesto` no depende de `archivos`; en el código lo usa solo por su interfaz publicada, que valida la referencia al crear la importación.
 
 **`progreso` es un `Porcentaje` que el trabajo actualiza mientras analiza**, junto con el `latido`; nulo fuera de `ANALIZANDO`. Es lo que pinta la barra de la pantalla de carga sin que el cliente adivine.
 

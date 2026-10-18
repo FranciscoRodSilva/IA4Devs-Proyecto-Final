@@ -11,15 +11,15 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
 4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 17 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 18 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
 ## Reglas que ninguna implementación puede romper
 
 1. **El dinero nunca es flotante.** `Decimal` en Python, `NUMERIC` en PostgreSQL, **cadena** en JSON, `decimal.js` en el cliente. Está prohibido `float` en cualquier firma de dominio y el linter lo bloquea (desde TKT-004).
-2. **`dominio/` no importa nada.** Ni FastAPI, ni SQLAlchemy, ni Pydantic. Las reglas reciben objetos de valor y devuelven resultados. `import-linter` falla el pipeline si se cruza (desde TKT-002; en el pipeline desde TKT-009).
-3. **Un módulo solo habla con otro por su interfaz de aplicación publicada.** Nunca por sus repositorios, modelos o tablas.
+2. **`dominio/` no importa nada.** Ni FastAPI, ni SQLAlchemy, ni Pydantic. Las reglas reciben objetos de valor y devuelven resultados. `import-linter` falla el pipeline si se cruza (en el pipeline desde TKT-009).
+3. **Un módulo solo habla con otro por su interfaz de aplicación publicada.** Nunca por sus repositorios, modelos o tablas: solo por `cimenta.<modulo>.interfaz`, y `import-linter` lo verifica (en el pipeline desde TKT-009).
 4. **La línea base congelada es inmutable.** Se copia físicamente al congelar; un disparador rechaza `UPDATE` y `DELETE`.
 5. **Los límites bloquean, no advierten.** Una operación que excede lo presupuestado se detiene y exige autorización registrada. Nunca se deja pasar con un aviso. El `disponible` es `presupuestado − consumido`, y **`consumido = requisiciones vivas + comprometido + ejercido`** — definido una sola vez en [modelo de datos §15](docs/03-modelo-datos.md#15-la-consulta-del-semáforo) y compartido por la regla y el tablero. Una requisición `EVALUADA` **sí** consume: si no, dos requisiciones simultáneas pasan las dos.
 6. **Todo gasto lleva `obra_id`**, y toda requisición además `tipo_partida_id`. El control presupuestal es por **obra y tipo de partida**, no por ubicación.
@@ -56,12 +56,13 @@ backend/cimenta/<modulo>/
 ├── api/              Rutas HTTP, DTO, códigos de estado
 ├── aplicacion/       Casos de uso. Abre transacción, orquesta. NO decide reglas
 ├── dominio/          Reglas puras. Sin framework, sin ORM, sin HTTP
-└── infraestructura/  Modelos SQLAlchemy, repositorios, adaptadores
+├── infraestructura/  Modelos SQLAlchemy, repositorios, adaptadores
+└── interfaz.py       Interfaz publicada: lo único que otro módulo importa
 ```
 
 Módulos: `identidad`, `auditoria`, `archivos`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`.
 
-`presupuesto` es el núcleo y no depende de nadie. `analitica` depende de todos pero **solo lee**.
+`presupuesto` es el núcleo y no depende de ningún módulo de negocio. `analitica` lee de los demás —salvo `archivos` y `proveedores`— y **solo lee**; ningún módulo la importa. Quién importa a quién: arquitectura §5 (`docs/02-arquitectura.md`, sección 5).
 
 ## Convenciones de código
 
@@ -98,7 +99,7 @@ uv sync --locked                 # dependencias, según uv.lock
 uv run ruff format .             # formato
 uv run ruff check --fix .        # lint
 uv run mypy .                    # tipos
-uv run lint-imports              # fronteras entre módulos · desde TKT-002
+uv run lint-imports              # esqueleto y fronteras entre módulos
 uv run fastapi dev               # API · desde TKT-005 (asumido)
 uv run pytest                    # tests · desde TKT-003 o TKT-004, el primero en implementarse (asumido)
 uv run alembic upgrade head      # migraciones · desde TKT-003

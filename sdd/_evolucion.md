@@ -21,6 +21,14 @@
 | 2026-10-17 | TKT-001 | `agente` | Cada reauditoría de `auditor-arquitectura` devolvió hallazgos sobre el texto exacto de una marca que el corrector había escrito de forma aproximada: tres ciclos para dos celdas de texto. Conviene que el hallazgo incluya el texto literal esperado y que el corrector lo copie sin reformular. | Media |
 | 2026-10-17 | TKT-001 | `convención` | El `.editorconfig` fija LF y la copia de trabajo en Windows está en CRLF porque Git convierte al descargar. El índice está en LF y `.gitattributes` lo mantiene, pero ningún documento lo aclara para quien edite en Windows. | Baja |
 | 2026-10-17 | TKT-001 | `guardrail` | `git-entrega` en modo apertura manda parar si hay cambios ajenos sin commitear. Había dos archivos de `.claude/` modificados antes del ticket y la rama se abrió arrastrándolos. El procedimiento no dice cómo separarlos del commit del ticket. | Baja |
+| 2026-10-17 | TKT-002 | `agente` | Siguen faltando `revisor-impacto`, `auditor-codigo`, `auditor-docs`, `meta-sdd` y `desarrollador-aplicacion`. Es la tercera vez que aparece, con el mismo remedio: sustitución según metodología §13. | Media |
+| 2026-10-17 | TKT-002 | `herramienta` | `verificar_docs.py` falla durante todo el ticket por los enlaces del hub a `impl.md` y `delta.md`, y de `design.md` a artefactos futuros como el ADR. Segunda vez; la excepción se repite en cada spec. | Alta |
+| 2026-10-17 | TKT-002 | `agente` | Context7 no respondió (1800 s) al diseñar, y `arquitecto-tecnico` no tiene terminal. Se resolvió porque el orquestador hizo un experimento real antes de despachar al arquitecto; sin él, el diseño habría descansado en una lectura de código fuente sin ejecutar. | Media |
+| 2026-10-17 | TKT-002 | `comando` | `/sdd-disenar` debería prever un paso de experimento previo cuando el diseño depende del comportamiento real de una herramienta, y decir quién lo ejecuta, porque el arquitecto no tiene terminal. | Media |
+| 2026-10-17 | TKT-002 | `guardrail` | Un contrato que nunca se vio fallar no está verificado: este ticket exigió una demostración y un mutante por regla. Merece volverse regla de `conv-pruebas` para tickets de verificación. | Media |
+| 2026-10-17 | TKT-002 | `convención` | Los textos de reemplazo literales dentro de `design.md`, escritos para otros documentos, hacían fallar `verificar_docs.py` como enlaces rotos hasta que se reformularon sin sintaxis de enlace. La plantilla de diseño debería decirlo. | Baja |
+| 2026-10-17 | TKT-002 | `comando` | El gate de `/sdd-disenar` de un ticket que declara aristas en un grafo ya documentado destapó una contradicción (TKT-006 necesita `identidad` → `auditoria`). La spec debería cruzar el grafo con los tickets que lo usan antes de aprobarse. | Media |
+| 2026-10-17 | TKT-002 | `modelo` | Las filas de `haiku` salieron bien a la primera; el tester en `sonnet` necesitó scripts de aislamiento que pasaron de fila en fila. Conviene que el diseño nombre un directorio común de scripts de prueba. | Baja |
 
 Temas en uso: `plantilla` · `agente` · `comando` · `guardrail` · `convención` · `documentación` · `contexto` · `herramienta` · `modelo`.
 
@@ -30,6 +38,7 @@ Un patrón entra aquí cuando aparece en tres tickets o más.
 
 | Tema | Veces | Qué pasa | Propuesta | Estado |
 |---|---|---|---|---|
+| `agente` | 3 | Los comandos nombran agentes que no existen (`revisor-impacto`, `auditor-codigo`, `auditor-docs`, `meta-sdd`, `desarrollador-aplicacion`) y cada ticket los sustituye a mano | Crear los cinco agentes, o recortar los comandos para que nombren solo los que existen y documentar la sustitución en cada uno | Propuesto |
 
 Estado: `Propuesto` · `Aprobado` · `Aplicado` · `Descartado` (con motivo).
 

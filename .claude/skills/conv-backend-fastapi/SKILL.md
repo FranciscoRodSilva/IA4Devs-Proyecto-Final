@@ -34,9 +34,9 @@ Si aparece un `if` de negocio en `aplicacion/`, está en la capa equivocada. Un 
 
 ## 3 · Un módulo solo habla con otro por su interfaz de aplicación publicada
 
-Nunca importando su repositorio, su modelo ni consultando su tabla. `compras` no hace `SELECT` sobre las tablas de `presupuesto`: llama al caso de uso que `presupuesto` publica.
+Nunca importando su repositorio, su modelo ni consultando su tabla. `compras` no hace `SELECT` sobre las tablas de `presupuesto`: llama al caso de uso que `presupuesto` publica. Lo publica en `cimenta/<modulo>/interfaz.py`, y `uv run lint-imports` rechaza cualquier otro import.
 
-`presupuesto` es el núcleo y no depende de nadie. `analitica` depende de todos pero **solo lee**.
+`presupuesto` es el núcleo y no depende de ningún módulo de negocio. `analitica` lee de los demás —salvo `archivos` y `proveedores`— y **solo lee**; ningún módulo la importa.
 
 ## 4 · Pydantic v2
 

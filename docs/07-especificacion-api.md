@@ -129,7 +129,7 @@ Toda respuesta lleva la cabecera `X-Correlacion-Id`, y todo error la repite en e
 | 3 | `POST /archivos/{archivo_id}/confirmacion` | El servidor compara tamaño y hash con el objeto almacenado y determina el tipo **leyendo los bytes**. Si coincide, `DISPONIBLE`; si no, `409` `ARCHIVO_TAMANO_DISTINTO`, `ARCHIVO_HASH_DISTINTO` o `ARCHIVO_TIPO_NO_PERMITIDO`, y la fila sigue `PENDIENTE` hasta el barrido |
 | 4 | `POST /importaciones/{importacion_id}/analisis` | Exige el archivo `DISPONIBLE` —si no, `409`— y arranca el análisis con `202` |
 
-La fila del archivo la crea el caso de uso que crea el documento, en el módulo dueño del documento, porque `archivos` no conoce a nadie y no puede comprobar que la importación exista ([arquitectura §7.7](02-arquitectura.md#77-archivos-y-evidencia)). Lo que sí es genérico y vive en `archivos` es la confirmación y la emisión de la URL de lectura. En la fase 2, TKT-066 añade las rutas de adjuntar sobre un documento ya guardado siguiendo el mismo patrón: `POST /avances/{id}/adjuntos` en `avance`, no un `POST /archivos` genérico.
+La fila del archivo la crea el caso de uso que crea el documento, en el módulo dueño del documento, porque `archivos` no conoce a ningún módulo de negocio y no puede comprobar que la importación exista ([arquitectura §7.7](02-arquitectura.md#77-archivos-y-evidencia)). Lo que sí es genérico y vive en `archivos` es la confirmación y la emisión de la URL de lectura. En la fase 2, TKT-066 añade las rutas de adjuntar sobre un documento ya guardado siguiendo el mismo patrón: `POST /avances/{id}/adjuntos` en `avance`, no un `POST /archivos` genérico.
 
 ---
 

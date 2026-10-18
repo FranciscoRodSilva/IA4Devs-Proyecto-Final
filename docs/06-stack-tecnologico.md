@@ -405,28 +405,19 @@ Resuelve además el problema que la regla de aceptación plantea: *"una historia
 | **uv** | Entorno, dependencias y bloqueo de versiones | — |
 | **Ruff** | Lint y formato. Sustituye a flake8, isort y black | — |
 | **mypy** | Tipos, en modo estricto sobre `dominio/` | Las reglas son el código que más caro sale equivocar |
-| **import-linter** | Contratos de dependencia entre módulos | **TKT-002**: falla el pipeline si un módulo importa el `dominio/` o la `infraestructura/` de otro, o si `dominio/` importa el framework |
+| **import-linter** | Contratos de dependencia entre módulos | **TKT-002**: falla el pipeline si un módulo importa el `dominio/` o la `infraestructura/` de otro, o si `dominio/` importa el framework, o si un módulo importa a otro que el grafo no le permite |
 | **ESLint + TypeScript strict** | Frontend | — |
 
-**`import-linter` es la herramienta que sostiene [ADR-001](adr/20260918-monolito-modular.md).** Sin ella, el monolito modular degenera en un monolito con carpetas en pocos sprints, porque la disciplina de fronteras depende de que nadie se despiste. Los contratos se declaran así:
+**`import-linter` es la herramienta que sostiene [ADR-001](adr/20260918-monolito-modular.md).** Sin ella, el monolito modular degenera en un monolito con carpetas en pocos sprints, porque la disciplina de fronteras depende de que nadie se despiste. Los contratos viven en `[tool.importlinter]` de `backend/pyproject.toml`, que es su única fuente, y forman cuatro familias:
 
-```ini
-[importlinter:contract:capas]
-name = El dominio no conoce a nadie
-type = layers
-layers =
-    api
-    aplicacion
-    dominio
+| Contratos | Tipo | Qué hace fallar |
+|---|---|---|
+| `esqueleto-modulos` y `esqueleto-capas` | `layers` exhaustivo | un módulo o una capa que faltan o sobran, una segunda interfaz, o un `dominio/` que importa otra capa de su módulo |
+| `dominio-sin-framework` | `forbidden`, con indirectos | un `dominio/` que llega a FastAPI, SQLAlchemy o Pydantic, aunque sea a través de otro módulo |
+| `solo-por-interfaz` | `forbidden`, solo directos | un módulo que importa `api/`, `aplicacion/`, `dominio/` o `infraestructura/` de otro |
+| `grafo-<modulo>`, uno por módulo | `protected` | un módulo que importa a otro que el grafo de [arquitectura §5](02-arquitectura.md#5-contextos-delimitados) no le permite |
 
-[importlinter:contract:modulos]
-name = Los módulos solo hablan por su interfaz publicada
-type = forbidden
-source_modules = cimenta.compras
-forbidden_modules =
-    cimenta.presupuesto.dominio
-    cimenta.presupuesto.infraestructura
-```
+Por qué estos tipos: [ADR del 2026-10-17](adr/20261017-interfaz-publicada-y-contrato-de-fronteras.md).
 
 ---
 

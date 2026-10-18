@@ -37,6 +37,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-09-19 | [Captura diferida sin conexión, acotada a dos flujos de campo](20260919-captura-diferida-sin-conexion.md) | Aceptado | SPA, avance, almacén · **ampliado por ADR-016** |
 | 2026-10-01 | [Almacenamiento de objetos compatible con S3](20261001-almacenamiento-de-objetos.md) | Aceptado | archivos, despliegue, SPA |
 | 2026-10-15 | [Fuentes de mano de obra y avance simuladas en la fase 1](20261015-fuentes-simuladas-analitica.md) | Aceptado · temporal | analítica, configuración |
+| 2026-10-17 | [Interfaz publicada en un único archivo y fronteras verificadas con import-linter](20261017-interfaz-publicada-y-contrato-de-fronteras.md) | Aceptado | Todo el backend |
 
 ## Plantilla
 

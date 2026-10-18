@@ -27,11 +27,14 @@ uv sync --locked
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy .
+uv run lint-imports
 ```
 
 `uv sync --locked` instala exactamente lo que dice `uv.lock` y falla si el archivo no coincide con `pyproject.toml`. Por eso no se usa `uv sync` a secas en la verificación: un paso que actualiza el bloqueo en silencio no sirve como comprobación.
 
 Los tres comandos siguientes comprueban el formato, el estilo y los tipos. Si `ruff format --check` falla, `uv run ruff format .` reescribe los archivos con el formato correcto.
+
+`uv run lint-imports` comprueba que existan los diez módulos con sus cuatro capas y su `interfaz.py`, que ningún `dominio/` importe FastAPI, SQLAlchemy ni Pydantic, y que un módulo importe a otro solo por su interfaz y solo si el grafo de [arquitectura §5](02-arquitectura.md#5-contextos-delimitados) lo permite. Se ejecuta desde `backend/`, porque busca el paquete `cimenta` en el directorio actual. Su caché, `.import_linter_cache/`, se ignora sola.
 
 ## Frontend
 
@@ -73,7 +76,6 @@ Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que s
 | Comando | Lo habilita |
 |---|---|
 | `uv run fastapi dev` | TKT-005 (asumido: el primer ticket que necesita una aplicación servible) |
-| `uv run lint-imports` | TKT-002 |
 | `uv run pytest` | desde TKT-003 o TKT-004, el primero en implementarse (asumido) |
 | `uv run alembic upgrade head` | TKT-003 |
 | `docker compose up -d db` | TKT-003 |
