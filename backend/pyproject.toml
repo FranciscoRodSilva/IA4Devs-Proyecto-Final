@@ -3,13 +3,19 @@ name = "cimenta"
 version = "0.1.0"
 description = "Backend de CIMENTA: control de costos de obra."
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "alembic>=1.20.0",
+    "psycopg[binary]>=3.3.6",
+    "sqlalchemy>=2.1.5",
+]
 
 [dependency-groups]
 dev = [
     "import-linter>=2.15",
     "mypy>=2.4.0",
+    "pytest>=9.1.1",
     "ruff>=0.17.1",
+    "testcontainers[postgres]>=4.15.0",
 ]
 
 [tool.ruff]
@@ -179,3 +185,14 @@ protected_modules = ["cimenta.analitica"]
 allowed_importers = ["cimenta.analitica"]
 as_packages = true
 broken_contract_guidance = "La arista no está en el grafo de docs/02-arquitectura.md §5. Una arista nueva la decide el usuario y se añade aquí y en §5 en el mismo cambio."
+
+[tool.alembic]
+script_location = "%(here)s/migraciones"
+prepend_sys_path = ["."]
+file_template = "v%%(rev)s_%%(slug)s"
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = ["-ra", "--strict-markers", "--import-mode=importlib"]

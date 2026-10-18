@@ -50,9 +50,9 @@ Cinco decisiones que atraviesan todo el esquema:
 | **Nombres** | `snake_case`, tablas en singular, en español. El esquema habla el idioma del [glosario](glosario.md) |
 | **Clave primaria** | `id UUID` generado por la aplicación. Evita colisiones al importar y no filtra volumen de negocio |
 | **Claves foráneas** | `<entidad>_id`, con restricción declarada **dentro del módulo**. Una referencia que cruza a otro módulo cuyo dueño no es un ancestro en el grafo, o que es polimórfica, es un **identificador lógico sin clave foránea** y la valida el caso de uso por la interfaz publicada. Son exactamente estas: `archivo.referencia_id`, `movimiento_inventario.referencia_id`, `archivo.obra_id`, `bitacora.obra_id`, `orden_compra.proveedor_id`, `entrada_almacen.proveedor_id`, `importacion.archivo_id` y `entrada_renglon.solicitud_autorizacion_id` —esta última, aunque `compras` sí es ancestro de `almacen`, porque lo que la hace válida no es que la fila exista sino su estado, su renglón y su cantidad, que solo comprueba la interfaz de `compras`— ([§13](#13-invariantes-en-base-de-datos)) |
-| **Permisos** | Tres roles de PostgreSQL —migración, aplicación y solo lectura— creados en la migración inicial con `ALTER DEFAULT PRIVILEGES`; cada migración de módulo **revoca** lo que su tabla no admite y lo prueba con el rol de aplicación ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)) |
+| **Permisos** | Tres roles de PostgreSQL —migración, aplicación y solo lectura—: la migración inicial crea los de aplicación y de solo lectura, el de migración lo crea el entorno, y los permisos por omisión se fijan con `ALTER DEFAULT PRIVILEGES`; cada migración de módulo **revoca** lo que su tabla no admite y lo prueba con el rol de aplicación ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)) |
 | **Enumeraciones** | Tipos `ENUM` de PostgreSQL cuando el conjunto es cerrado y estable; tabla de catálogo cuando el cliente puede ampliarlo |
-| **Columnas de auditoría** | `creado_en`, `creado_por_id`, `actualizado_en`, `actualizado_por_id` en toda tabla transaccional |
+| **Columnas de auditoría** | `creado_en`, `creado_por_id`, `actualizado_en`, `actualizado_por_id` en toda tabla transaccional. En identidad las llevan `usuario` y `usuario_rol`, con `creado_por_id` y `actualizado_por_id` nulos permitidos porque la siembra y el primer usuario no tienen autor; `rol`, `sesion` e `intento_acceso` no las llevan. |
 | **Borrado** | Lógico (`activo BOOLEAN`) en catálogos. **Prohibido** en tablas de movimiento: se corrige con un movimiento de signo contrario |
 | **Importes** | `NUMERIC(18,4)` |
 | **Precios y cantidades** | `NUMERIC(14,4)` |
@@ -909,6 +909,10 @@ erDiagram
         boolean activo
         timestamptz ultimo_acceso
         timestamptz bloqueado_hasta "nulo si no está bloqueado"
+        timestamptz creado_en
+        uuid creado_por_id FK "nulo permitido"
+        timestamptz actualizado_en
+        uuid actualizado_por_id FK "nulo permitido"
     }
     SESION {
         uuid id PK "el identificador opaco de la cookie"
@@ -937,6 +941,10 @@ erDiagram
         uuid id PK
         uuid usuario_id FK
         uuid rol_id FK
+        timestamptz creado_en
+        uuid creado_por_id FK "nulo permitido"
+        timestamptz actualizado_en
+        uuid actualizado_por_id FK "nulo permitido"
     }
     BITACORA {
         uuid id PK
@@ -953,7 +961,7 @@ erDiagram
     }
 ```
 
-La relación `usuario_rol` es de muchos a muchos porque el PRD asume que en una empresa de este tamaño una persona puede acumular roles.
+La relación `usuario_rol` es de muchos a muchos porque el PRD asume que en una empresa de este tamaño una persona puede acumular roles. Una persona no tiene dos veces el mismo rol: `usuario_rol` lleva `UNIQUE (usuario_id, rol_id)`.
 
 **`bitacora.regla_negocio`** es la columna que convierte la bitácora en algo consultable. Permite responder *"¿cuántas veces se intentó sobregirar una partida este mes y quién lo autorizó?"* con una consulta, que es exactamente el tipo de pregunta que hoy no tiene respuesta.
 
@@ -1133,7 +1141,7 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 18 | Una semana de nómina va de viernes a jueves | `CHECK (fecha_corte = fecha_inicio + 6 AND EXTRACT(DOW FROM fecha_corte) = 4)` | RN-23 |
 | 19 | El rendimiento congelado nunca se sobrescribe con el observado | Viven en tablas distintas: `explosion_presupuesto` y `rendimiento_observado` | RN-24 |
 | 20 | El registro de intentos de acceso no se altera desde la aplicación | Permisos: el rol de aplicación tiene `INSERT` y `SELECT` sobre `intento_acceso`, no `UPDATE` ni `DELETE` | `RNF-04` |
-| 21 | Las consultas de analítica no pueden escribir | Rol de PostgreSQL con solo `SELECT`, que es con el que `analitica` se conecta | `RNF-09` |
+| 21 | Las consultas de analítica no pueden escribir | Rol de PostgreSQL con solo `SELECT`, que es con el que `analitica` se conecta; sin acceso a `sesion` ni a `usuario.password_hash` | `RNF-09` |
 | 22 | El alcance de destajo es único por área y etapa: precargarlo dos veces duplicaría el denominador del avance | `UNIQUE (area_id, etapa_destajo_id)` sobre `alcance_destajo` | RN-21 |
 | 23 | Un archivo disponible tiene hash, tamaño y fecha de confirmación | `CHECK (estado <> 'DISPONIBLE' OR (hash_sha256 IS NOT NULL AND tamano_bytes IS NOT NULL AND confirmado_en IS NOT NULL))` | `RNF-19` |
 | 24 | Anular un adjunto exige autor y motivo | `CHECK (estado <> 'ANULADO' OR (anulado_por_id IS NOT NULL AND motivo_anulacion IS NOT NULL))` | `RNF-19` |
@@ -1152,6 +1160,8 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 37 | La semana de destajo va de jueves a miércoles y se identifica por su jueves de corte · *fase 2* | `CHECK (EXTRACT(DOW FROM semana) = 4)` sobre `avance`, `pago_destajo` y `modalidad_pago_semana` · en `avance`, además, `CHECK (semana - fecha_medicion BETWEEN 1 AND 7)` (`PA-19`) | RN-23 |
 | 38 | Una autorización de excedente se consume una sola vez | Índice único parcial `(solicitud_autorizacion_id) WHERE solicitud_autorizacion_id IS NOT NULL` sobre `entrada_renglon` | RN-07 |
 
+**El invariante 21 tiene una consecuencia para `usuario` (`PA-T4` de TKT-003, en `sdd/tickets/tkt-003/spec.md`).** El rol de lectura recibe `GRANT SELECT` por columna sobre `usuario`: las diez columnas que no son `password_hash`. Por eso toda columna nueva de `usuario` necesita su propio `GRANT` al rol de lectura si `analitica` la necesita, y un `SELECT *` sobre `usuario` falla con ese rol. Falla hacia el lado seguro: una columna olvidada no se filtra, simplemente no se lee. Y la regla vale para las tablas futuras: toda tabla que guarde credenciales o secretos revoca `SELECT` al rol de lectura en su propia migración, con su prueba.
+
 **El invariante 15 se apoya en una tabla que existe solo para sostenerlo.** `modalidad_pago_semana` guarda una fila por cuadrilla y semana con la modalidad reclamada (`DESTAJO` o `NOMINA`). La unicidad es **por cuadrilla y semana, sin la obra**: `RN-22` habla de cuadrilla y semana, no de obra, y la clave dice exactamente lo que dice la regla; `obra_id` se conserva para filtrar, fuera de la unicidad. El primer pago de la semana la inserta; el segundo, si es de la otra modalidad, choca contra la restricción única y falla. Sin ella la regla dependería de una comprobación en la aplicación que cualquier ruta nueva podría saltarse, y la consecuencia —contabilizar dos veces el mismo trabajo en el semáforo— es silenciosa.
 
 ```
@@ -1168,7 +1178,7 @@ El invariante 14 merece una nota: es el único que necesita un disparador en lug
 
 **Las referencias lógicas son una lista cerrada, no una costumbre.** Además de la pareja `referencia_tipo` + `referencia_id` de `archivo` y de `movimiento_inventario`, no llevan clave foránea `archivo.obra_id` y `bitacora.obra_id` —`archivos` y `auditoria` son transversales y no dependen de `presupuesto`—, `orden_compra.proveedor_id` —la valida el puerto `CatalogoProveedores`—, `entrada_almacen.proveedor_id` —copiada de la orden, sostiene el invariante 29— e `importacion.archivo_id`. Todas cruzan hacia un módulo que no es ancestro en el grafo, y una clave foránea invertiría la arista. La única excepción es `entrada_renglon.solicitud_autorizacion_id` (`PA-16`): `compras` sí es ancestro de `almacen`, pero una clave foránea solo probaría que la solicitud existe, y lo que la hace válida —estar `AUTORIZADA`, ser del mismo renglón, no haberse consumido— lo comprueba la interfaz de `compras`; que no se use dos veces lo sostiene su índice único parcial (invariante 38). Cualquier referencia nueva sin clave foránea se añade a [§2](#2-convenciones) con su motivo, o no se acepta.
 
-**Los invariantes 10, 20, 21 y 30 no son restricciones: son permisos**, igual que la segunda barrera del 14 sobre `linea_base_concepto`. Dicen lo mismo desde ángulos distintos —hay escrituras que el rol de aplicación simplemente no puede hacer— y ninguno se concede a mano en el servidor. La migración inicial crea los tres roles con `ALTER DEFAULT PRIVILEGES`, de modo que toda tabla nueva nace con los permisos por omisión de cada rol, y **cada migración de módulo revoca** lo que su tabla no admite, con la prueba que lo demuestra en el mismo cambio. El 21 es el que cierra un hueco viejo: que `analitica` solo lea era hasta ahora una propiedad dibujada en un diagrama, porque `import-linter` comprueba quién importa a quién y no quién escribe.
+**Los invariantes 10, 20, 21 y 30 no son restricciones: son permisos**, igual que la segunda barrera del 14 sobre `linea_base_concepto`. Dicen lo mismo desde ángulos distintos —hay escrituras que el rol de aplicación simplemente no puede hacer— y ninguno se concede a mano en el servidor. La migración inicial crea los roles de aplicación y de solo lectura —el de migración lo crea el entorno— y fija los permisos por omisión con `ALTER DEFAULT PRIVILEGES`, de modo que toda tabla nueva nace con los permisos por omisión de cada rol, y **cada migración de módulo revoca** lo que su tabla no admite, con la prueba que lo demuestra en el mismo cambio. El 21 es el que cierra un hueco viejo: que `analitica` solo lea era hasta ahora una propiedad dibujada en un diagrama, porque `import-linter` comprueba quién importa a quién y no quién escribe.
 
 Para que sirvan de algo, **las pruebas de integración se conectan con el rol de aplicación**, no con el propietario del esquema. Con el propietario, el `UPDATE` sobre la bitácora funcionaría y la prueba que lo intenta quedaría verde por no tener nada que verificar.
 

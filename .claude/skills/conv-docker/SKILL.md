@@ -1,6 +1,6 @@
 ---
 name: conv-docker
-description: Convenciones de Docker en CIMENTA — Compose local con PostgreSQL y MinIO y la aplicación en el anfitrión, testcontainers para las pruebas, imagen única multietapa sin estado ni secretos para producción. Cárgala antes de escribir o auditar un docker-compose, un Dockerfile, un workflow que construye la imagen, o cuando una suite de integración no arranca.
+description: Convenciones de Docker en CIMENTA — Compose local con PostgreSQL y MinIO y la aplicación en el anfitrión, testcontainers para las pruebas, imagen única multietapa sin estado ni secretos para producción. Cárgala antes de escribir o auditar el `compose.yaml`, un Dockerfile, un workflow que construye la imagen, o cuando una suite de integración no arranca.
 ---
 
 # Convenciones · Docker
@@ -27,14 +27,14 @@ En Windows, Docker Desktop tiene que estar iniciado y con el motor de Linux; el 
 
 ## 2 · Compose local
 
-Dos servicios y nada más, cada uno con **volumen con nombre** para que los datos sobrevivan a `docker compose down`:
+Un servicio hasta TKT-059 (`db`) y dos a partir de ese ticket (`db` y `minio`), y nada más, cada uno con **volumen con nombre** para que los datos sobrevivan a `docker compose down`:
 
 - **PostgreSQL.** El usuario que crea la imagen es el **propietario**, el de migración. Los roles de aplicación y de solo lectura **no** se crean en un script de arranque del contenedor: los crea la migración inicial de Alembic, con `ALTER DEFAULT PRIVILEGES` (`TKT-003`, `RNF-09`). Un script de `docker-entrypoint-initdb.d` que los creara sacaría los permisos de la migración y dejaría producción sin ellos.
-- **MinIO.** El mismo API de S3 que R2, con otro `endpoint_url`. No es un doble ni una concesión.
+- **MinIO**, desde TKT-059. El mismo API de S3 que R2, con otro `endpoint_url`. No es un doble ni una concesión.
 
 ```bash
-docker compose up -d db minio     # los dos servicios
-uv run alembic upgrade head       # el esquema, siempre por migración
+docker compose up -d db           # PostgreSQL local; minio se añade con TKT-059
+uv run --env-file ../.env alembic upgrade head   # desde backend/, el esquema siempre por migración
 ```
 
 - ‡ La versión de cada imagen se **fija** con su etiqueta exacta. `latest` cambia bajo los pies y rompe la reproducibilidad del arranque que exige `TKT-001`.

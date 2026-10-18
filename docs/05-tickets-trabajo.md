@@ -130,7 +130,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 - [ ] Tablas `usuario`, `rol`, `usuario_rol`, `sesion` e `intento_acceso` según [modelo de datos §10](03-modelo-datos.md#10-identidad-y-auditoría)
 - [ ] Los seis roles del PRD cargados como datos de arranque
 - [ ] Convenciones del esquema aplicadas: identificadores UUID, columnas de auditoría, `TIMESTAMPTZ`
-- [ ] **Tres roles de PostgreSQL creados en la migración**, no a mano en el servidor: migración (propietario), aplicación y solo lectura (`RNF-09`), con `ALTER DEFAULT PRIVILEGES` para que toda tabla nueva nazca con los permisos por omisión de cada rol. **Cada migración de módulo revoca** lo que sus tablas no admiten, con su prueba en el mismo cambio ([modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos))
+- [ ] **Roles de PostgreSQL creados en la migración**, no a mano en el servidor: la migración crea los de aplicación y de solo lectura; el de migración (propietario) lo crea el entorno (`RNF-09`), con `ALTER DEFAULT PRIVILEGES` para que toda tabla nueva nazca con los permisos por omisión de cada rol. **Cada migración de módulo revoca** lo que sus tablas no admiten, con su prueba en el mismo cambio ([modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos))
 - [ ] El rol de aplicación **no** tiene `UPDATE` ni `DELETE` sobre `intento_acceso` — invariante 20
 - [ ] Las pruebas de permisos sobre `explosion_presupuesto` y `linea_base_concepto` —`SELECT … FOR UPDATE` con el rol de aplicación y el disparador del invariante 14— **no son de este ticket**: esas tablas las crea TKT-011, que es quien revoca y prueba. Aquí solo existen las tablas de identidad
 - [ ] El rol de solo lectura no tiene más que `SELECT` — invariante 21

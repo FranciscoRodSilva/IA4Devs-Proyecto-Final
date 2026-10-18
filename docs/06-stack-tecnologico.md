@@ -49,14 +49,14 @@ graph TB
     end
 
     subgraph SRV["Servidor · un solo despliegue"]
-        API["<b>FastAPI</b> · Python 3.13+<br/>Pydantic v2 en la frontera<br/>dominio puro sin dependencias<br/>SQLAlchemy 2.0 en infraestructura"]
+        API["<b>FastAPI</b> · Python 3.13+<br/>Pydantic v2 en la frontera<br/>dominio puro sin dependencias<br/>SQLAlchemy 2.x síncrono en infraestructura"]
     end
 
     DB[("<b>PostgreSQL</b><br/>Alembic · NUMERIC<br/>FOR UPDATE · CHECK")]
     FS["<b>Almacén de objetos</b><br/>S3 · boto3<br/>R2 en producción<br/>MinIO en local y tests"]
 
     FE -->|"HTTPS · JSON<br/>importes como cadena"| API
-    API -->|"SQLAlchemy 2.0"| DB
+    API -->|"SQLAlchemy 2.x síncrono"| DB
     API -->|"firma URL<br/>sin tocar los bytes"| FS
     FE -->|"sube y lee directo"| FS
 
@@ -71,7 +71,7 @@ graph TB
 | **Lenguaje backend** | Python 3.13+ |
 | **Framework HTTP** | FastAPI |
 | **Validación y DTO** | Pydantic v2 |
-| **ORM** | SQLAlchemy 2.0, **modo síncrono** |
+| **ORM** | SQLAlchemy 2.x síncrono, **modo síncrono** |
 | **Migraciones** | Alembic |
 | **Base de datos** | PostgreSQL |
 | **Lectura de Excel** | openpyxl |
@@ -139,7 +139,9 @@ Sesión con estado en servidor, contraseñas con `pwdlib[argon2]` y límite de i
 
 ## 4. Persistencia
 
-### 4.1. SQLAlchemy 2.0
+### 4.1. SQLAlchemy 2.x síncrono
+
+El bloqueo de dependencias de TKT-003 (`backend/uv.lock`) resolvió SQLAlchemy 2.1.5, dentro de la línea 2.x que se contrata.
 
 **Es la pieza que hace posible la separación entre dominio y persistencia**, y por eso es la decisión más consecuente del backend después del framework.
 
@@ -190,9 +192,11 @@ Esa firma es lo que permite que los 162 escenarios se ejecuten en milisegundos s
 
 Migraciones versionadas en el repositorio, aplicables y reversibles. Los disparadores e invariantes que no son declarativos —el de inmutabilidad de la línea base, invariante 14— se escriben como SQL explícito dentro de la migración, no se autogeneran: son parte del diseño y deben leerse como tal.
 
-**Los tres roles de PostgreSQL y sus permisos también se crean en la migración inicial**, no a mano en el servidor. Un permiso que solo existe en producción no se puede probar, y la inmutabilidad de la bitácora depende de él.
+**Los roles de PostgreSQL y sus permisos también nacen en la migración inicial**, no a mano en el servidor: la migración crea los de aplicación y de solo lectura; el de migración lo crea el entorno. Un permiso que solo existe en producción no se puede probar, y la inmutabilidad de la bitácora depende de él.
 
 **Las pruebas construyen el esquema con `alembic upgrade head`**, nunca con `create_all()`. Es la diferencia entre probar el esquema que se va a desplegar y probar uno parecido: `create_all()` no ejecuta el SQL explícito de las migraciones, así que el disparador del invariante 14 y los permisos de la bitácora simplemente no existirían durante los tests. Las pruebas que los verifican pasarían por no tener nada que verificar.
+
+El entorno de Alembic vive en `backend/migraciones/`, fuera del paquete `cimenta`, y su configuración en `[tool.alembic]` de `backend/pyproject.toml`.
 
 ### 4.5. Lectura de Excel: openpyxl
 
@@ -320,7 +324,7 @@ Es lo más barato de toda esta sección y responde a un riesgo propio de este pr
 
 ### 6.5. Privilegio mínimo en el motor
 
-Los tres roles de PostgreSQL de la [arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera) se crean en la migración inicial y las pruebas de integración **se conectan con el rol de aplicación**, no con el propietario. Es la única forma de que la prueba que intenta un `UPDATE` sobre la bitácora signifique algo: con el rol propietario, ese `UPDATE` funcionaría y la prueba quedaría verde por la razón equivocada.
+Los tres roles de PostgreSQL de la [arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera) nacen en la migración inicial —la migración crea los de aplicación y de solo lectura; el de migración lo crea el entorno— y las pruebas de integración **se conectan con el rol de aplicación**, no con el propietario. Es la única forma de que la prueba que intenta un `UPDATE` sobre la bitácora signifique algo: con el rol propietario, ese `UPDATE` funcionaría y la prueba quedaría verde por la razón equivocada.
 
 El rol de solo lectura cierra el hueco que `import-linter` no puede cubrir. La herramienta comprueba **quién importa a quién**; que `analitica` no escriba es una propiedad de tiempo de ejecución que hasta ahora solo vivía en un diagrama.
 
@@ -456,7 +460,7 @@ Los tres entran en el pipeline de calidad documental de TKT-009. El de Mermaid s
 
 ### Local
 
-**Docker Compose** con dos servicios: PostgreSQL y **MinIO**, ambos con volumen persistente. El backend y el frontend corren en el anfitrión con uv y Vite. Meter la aplicación en un contenedor durante el desarrollo añadiría un ciclo de reconstrucción sin ganar nada a esta escala.
+**Docker Compose** (`compose.yaml`, en la raíz) con dos servicios: PostgreSQL, desde TKT-003, y **MinIO**, desde TKT-059, ambos con volumen persistente. PostgreSQL es la versión mayor 18, la misma que se contratará en producción `(asumido)`; las pruebas leen la etiqueta exacta de `compose.yaml`. El backend y el frontend corren en el anfitrión con uv y Vite. Meter la aplicación en un contenedor durante el desarrollo añadiría un ciclo de reconstrucción sin ganar nada a esta escala.
 
 MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el que corre producción, con otro `endpoint_url`. Desarrollar contra un disco local y desplegar contra objetos habría dejado sin probar justo lo que falla —firmas, caducidad, cabeceras de respuesta.
 
@@ -580,3 +584,4 @@ Las dos que no se verifican solas son las dos que dependen de un entorno que tod
 | [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | Captura diferida sin conexión, en lugar de aplicación nativa o local-first con fusión automática |
 | [ADR-016](adr/20261001-almacenamiento-de-objetos.md) | Almacenamiento de objetos compatible con S3, en lugar del disco del servidor o de la propia base de datos |
 | [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) | Mano de obra y avance simulados en la fase 1 tras un puerto de `analitica`, en lugar de sembrar las tablas de la fase 2 o mostrar un semáforo solo de materiales |
+| [ADR-019](adr/20261017-roles-postgresql-y-migraciones.md) | Roles de PostgreSQL creados por la migración y el de migración a cargo del entorno, en lugar de crear los tres en la migración o de migrar con un superusuario |

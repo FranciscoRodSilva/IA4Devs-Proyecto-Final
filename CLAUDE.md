@@ -11,7 +11,7 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
 4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 18 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 19 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
@@ -39,7 +39,7 @@ El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-ticket
 
 | | |
 |---|---|
-| Backend | Python 3.13+ · FastAPI · Pydantic v2 · SQLAlchemy 2.0 **síncrono** · Alembic |
+| Backend | Python 3.13+ · FastAPI · Pydantic v2 · SQLAlchemy 2.x **síncrono** · Alembic |
 | Base de datos | PostgreSQL, con tres roles: migración, aplicación y solo lectura |
 | Seguridad | pwdlib con Argon2id · sesión en tabla · CSRF por doble envío · pydantic-settings |
 | Frontend | React 19 · TypeScript · Vite · TanStack Query y Table · Tailwind v4 · shadcn/ui · tipos generados del OpenAPI |
@@ -59,6 +59,8 @@ backend/cimenta/<modulo>/
 ├── infraestructura/  Modelos SQLAlchemy, repositorios, adaptadores
 └── interfaz.py       Interfaz publicada: lo único que otro módulo importa
 ```
+
+Fuera de `cimenta/`, en `backend/`, viven `migraciones/` (Alembic), `herramientas/` (operación, como fijar las contraseñas de los roles) y `tests/`. `import-linter` no los analiza.
 
 Módulos: `identidad`, `auditoria`, `archivos`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`.
 
@@ -101,8 +103,9 @@ uv run ruff check --fix .        # lint
 uv run mypy .                    # tipos
 uv run lint-imports              # esqueleto y fronteras entre módulos
 uv run fastapi dev               # API · desde TKT-005 (asumido)
-uv run pytest                    # tests · desde TKT-003 o TKT-004, el primero en implementarse (asumido)
-uv run alembic upgrade head      # migraciones · desde TKT-003
+uv run pytest                    # tests · requiere Docker en marcha (testcontainers)
+uv run --env-file ../.env alembic upgrade head   # migraciones, siempre con el rol de migración
+uv run --env-file ../.env python -m herramientas.contrasenas_roles   # contraseñas de los roles, tras migrar
 ```
 
 ### Desde `frontend/`
@@ -117,7 +120,7 @@ npm run dev                      # frontend · desde TKT-008
 ### Desde la raíz
 
 ```bash
-docker compose up -d db          # PostgreSQL local · desde TKT-003
+docker compose up -d db          # PostgreSQL local
 docker compose up -d minio       # MinIO local · desde TKT-059
 python tools/verificar_docs.py   # enlaces, identificadores, conteos y codificación
 python tools/extraer_mermaid.py  # sintaxis de los diagramas
@@ -172,4 +175,4 @@ python tools/extraer_mermaid.py    # diagramas
 
 ## Context7
 
-Está conectado. Úsalo **siempre** al escribir código contra FastAPI, SQLAlchemy 2.0, Pydantic v2, React 19 o TanStack: el conocimiento del modelo puede estar desactualizado y estas librerías cambian. Añade `use context7` al contexto de trabajo.
+Está conectado. Úsalo **siempre** al escribir código contra FastAPI, SQLAlchemy 2.x síncrono, Pydantic v2, React 19 o TanStack: el conocimiento del modelo puede estar desactualizado y estas librerías cambian. Añade `use context7` al contexto de trabajo.

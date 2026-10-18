@@ -24,7 +24,7 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 - [Stack tecnológico](docs/06-stack-tecnologico.md): criterios de elección, herramientas por capa, seguridad y lo que se descartó
 - [Arranque local](docs/arranque-local.md): requisitos, comandos del backend y del frontend, verificadores de `tools/` y lo que todavía no arranca
 - [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio): `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, con la configuración de la raíz
-- [Decisiones de arquitectura](docs/adr/README.md): 18 ADRs en formato MADR
+- [Decisiones de arquitectura](docs/adr/README.md): 19 ADRs en formato MADR
 
 ## Reglas que ninguna implementación puede romper
 
@@ -48,8 +48,8 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 
 Detalle completo y alternativas descartadas en [`docs/06-stack-tecnologico.md`](docs/06-stack-tecnologico.md).
 
-- **Backend:** Python 3.13+ · FastAPI · Pydantic v2 en la frontera · SQLAlchemy 2.0 síncrono con patrón Data Mapper · Alembic
-- **Base de datos:** PostgreSQL — [ADR-002](docs/adr/20260918-postgresql.md)
+- **Backend:** Python 3.13+ · FastAPI · Pydantic v2 en la frontera · SQLAlchemy 2.x síncrono con patrón Data Mapper · Alembic
+- **Base de datos:** PostgreSQL — [ADR-002](docs/adr/20260918-postgresql.md) · roles y migraciones — [ADR-019](docs/adr/20261017-roles-postgresql-y-migraciones.md)
 - **Seguridad:** pwdlib con Argon2id · sesión con estado en tabla — [ADR-014](docs/adr/20260919-sesion-con-estado.md) · CSRF por doble envío · tres roles de PostgreSQL
 - **Frontend:** React 19 · TypeScript · Vite · React Router · TanStack Query y Table · Tailwind CSS v4 · shadcn/ui · decimal.js · tipos generados del OpenAPI
 - **Lectura de Excel:** openpyxl en modo `read_only` y `data_only`, que expone `#REF!` como valor legible

@@ -22,7 +22,7 @@ Treinta y ocho invariantes del [modelo de datos](../../../docs/03-modelo-datos.m
 ## 2 · Tipos
 
 - **Dinero: `NUMERIC` con precisión y escala declaradas.** `DOUBLE PRECISION` y `REAL` prohibidos para cualquier importe, cantidad monetaria o porcentaje que entre en un cálculo de dinero. Las escalas por concepto están en [modelo de datos §2](../../../docs/03-modelo-datos.md): `Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje` no comparten escala.
-- **Claves primarias `UUID`** y **columnas de auditoría** en toda tabla, según las convenciones del esquema (`TKT-003`).
+- **Claves primarias `UUID`** en toda tabla y **columnas de auditoría** en toda tabla transaccional, según el modelo de datos §2: en identidad, solo `usuario` y `usuario_rol`.
 - **`TIMESTAMPTZ`** para todo lo que registre un instante. `DATE` solo para fechas de calendario del negocio.
 - `TEXT` antes que `VARCHAR(n)` salvo que el límite sea una regla real.
 
@@ -37,7 +37,7 @@ Treinta y ocho invariantes del [modelo de datos](../../../docs/03-modelo-datos.m
 
 - **Revisadas a mano, siempre.** `--autogenerate` es un punto de partida: **no detecta renombrados** y los emite como `drop` + `add`, que en producción es pérdida de datos. Comprobar cada diff antes de aceptarlo.
 - **Reversibles.** Toda migración tiene su `downgrade` real. Si una no se puede revertir, se declara explícitamente y se escribe el plan de reversa en `design.md`.
-- Una migración por ticket, con el identificador en el mensaje.
+- Una migración de esquema por ticket, más la de semilla si la hay, con el identificador en el mensaje y `--rev-id` correlativo.
 - Los datos semilla van en su propia migración o en un script aparte, nunca mezclados con DDL de esquema.
 - Nada de `create_all()`. El esquema se construye solo con `alembic upgrade head`, también en los tests.
 
@@ -49,7 +49,7 @@ Treinta y ocho invariantes del [modelo de datos](../../../docs/03-modelo-datos.m
 | **aplicación** | DML sobre lo que le corresponde. **Sin DDL** |
 | **solo lectura** | `SELECT` |
 
-**Los tres roles se crean en la migración**, no a mano en el servidor (`RNF-09`). Cada migración que crea un objeto le concede los permisos al rol de aplicación de forma explícita: un objeto nuevo sin `GRANT` solo falla en el primer despliegue.
+**La migración crea los roles de aplicación y de solo lectura; el de migración lo crea el entorno**, y nada se crea a mano en el servidor (`RNF-09`). Cada tabla nace con los permisos por omisión que fija la migración inicial con `ALTER DEFAULT PRIVILEGES`, y cada migración de módulo **revoca** lo que su tabla no admite, con su prueba.
 
 **Los tests se conectan con el rol de aplicación.** Con el propietario, las pruebas de permisos quedan verdes sin verificar nada — se anularían tres invariantes de golpe, porque los números 10, 20 y 21 *son* permisos.
 
@@ -78,7 +78,7 @@ Y toda requisición además `tipo_partida_id`. No es opcional, no es nullable, y
 - [ ] `downgrade` escrito y probado (`upgrade head` → `downgrade -1` → `upgrade head`)
 - [ ] Ninguna columna de dinero en punto flotante
 - [ ] Toda restricción con nombre
-- [ ] `GRANT` al rol de aplicación para cada objeto nuevo
+- [ ] Revocación y prueba de lo que la tabla no admite
 - [ ] Índice para cada llave foránea que se filtre
 - [ ] Disparadores de inmutabilidad donde el invariante lo exige
 - [ ] Ninguna operación destructiva sin plan de reversa documentado
