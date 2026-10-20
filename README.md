@@ -27,14 +27,14 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 19 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 21 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`tools/`](tools/README.md) | Verificadores de la documentación: enlaces, anclas, identificadores, conteos y diagramas |
 | [Arranque local](docs/arranque-local.md) | Requisitos, arranque del backend y del frontend, verificadores y lo que todavía no arranca |
 | [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio) | Directorios `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, y los archivos de configuración de la raíz |
 
-> **La Entrega 1 está completa y ajustada.** Los cinco pasos están cerrados y el cliente respondió las doce preguntas de la especificación funcional. La revisión de LIDR del **2026-10-14** dejó tres ajustes, atendidos el **2026-10-15** (detalle en [Ajustes tras la revisión](#ajustes-tras-la-revisión-de-la-entrega-1)): el MVP pasa a ser un **hilo vertical** en dos fases, hay especificación de la API con borrador OpenAPI, y los 69 tickets están detallados al mismo nivel, sin ningún bloque pendiente de descomponer. Una revisión posterior de los propios ajustes, el **2026-10-17**, corrigió las inconsistencias que habrían frenado la implementación —el ciclo de dependencias del `consumido`, el destajo contado dos veces, claves entre módulos— y convirtió en preguntas al cliente (`PA-16`…`PA-22`) las reglas que se estaban asumiendo. El cliente respondió esas siete preguntas el mismo día, y sus respuestas ya están propagadas a reglas, modelo, historias, tickets y API. Siguen abiertas tres que no condicionan el diseño: `PA-12`, `PA-14` y `PA-15` ([PRD §10](docs/01-descripcion-producto.md#preguntas-abiertas)).
+> **La Entrega 1 está completa y ajustada.** Los cinco pasos están cerrados y el cliente respondió las doce preguntas de la especificación funcional. La revisión de LIDR del **2026-10-14** dejó tres ajustes, atendidos el **2026-10-15** (detalle en [Ajustes tras la revisión](#ajustes-tras-la-revisión-de-la-entrega-1)): el MVP pasa a ser un **hilo vertical** en dos fases, hay especificación de la API con borrador OpenAPI, y los 69 tickets están detallados al mismo nivel, sin ningún bloque pendiente de descomponer. Una revisión posterior de los propios ajustes, el **2026-10-17**, corrigió las inconsistencias que habrían frenado la implementación —el ciclo de dependencias del `consumido`, el destajo contado dos veces, claves entre módulos— y convirtió en preguntas al cliente (`PA-16`…`PA-22`) las reglas que se estaban asumiendo. El cliente respondió esas siete preguntas el mismo día, y sus respuestas ya están propagadas a reglas, modelo, historias, tickets y API. Siguen abiertas cuatro: `PA-12`, `PA-14` y `PA-15`, que no condicionan el diseño, y `PA-23` (modo de redondeo de los importes), que hace falta antes de TKT-016 ([PRD §10](docs/01-descripcion-producto.md#preguntas-abiertas)).
 
 ---
 
@@ -161,14 +161,14 @@ La revisión de LIDR del **2026-10-14** dio *luz amarilla: avanzar ajustando*. C
 |---|---|
 | Reglas de negocio | 25, con trazabilidad a su origen documental |
 | Requisitos no funcionales | 19 |
-| Preguntas planteadas al cliente | 22 · **19 resueltas**, siete de ellas el 2026-10-17; abiertas `PA-12`, `PA-14` y `PA-15`, ninguna bloqueante |
+| Preguntas planteadas al cliente | 23 · **19 resueltas**, siete de ellas el 2026-10-17; abiertas `PA-12`, `PA-14`, `PA-15` y `PA-23`, ninguna bloqueante del arranque |
 | Invariantes declarados en base de datos | 38 |
 | Historias de usuario | 9 · **6 *must-have* (fase 1, el hilo vertical) y 3 *should-have* (fase 2)** · 79 SP |
 | Escenarios de aceptación | 162, cerca de la mitad de rechazo, error o borde, cada uno con su fase |
 | Tickets de trabajo | 69, todos detallados con criterios técnicos y *non-goals*, en 11 sprints: 7 de fase 1 y 4 de fase 2 |
 | Especificación de la API | 70 operaciones de fase 1 en el borrador OpenAPI 3.1, validado; las de fase 2, listadas con su ticket |
 | Wireframes | 10 pantallas del hilo vertical |
-| Decisiones de arquitectura (ADR) | 19 |
+| Decisiones de arquitectura (ADR) | 21 |
 
 Estas cifras las comprueba [`tools/verificar_docs.py`](tools/README.md) contra los documentos, salvo las de API y wireframes.
 

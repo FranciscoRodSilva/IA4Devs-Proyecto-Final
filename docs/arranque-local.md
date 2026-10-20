@@ -29,16 +29,21 @@ uv run ruff format --check .
 uv run ruff check .
 uv run mypy .
 uv run lint-imports
+uv run python -m herramientas.verificar_float
 uv run pytest
 ```
 
 `uv sync --locked` instala exactamente lo que dice `uv.lock` y falla si el archivo no coincide con `pyproject.toml`. Por eso no se usa `uv sync` a secas en la verificación: un paso que actualiza el bloqueo en silencio no sirve como comprobación.
 
-Los tres comandos siguientes comprueban el formato, el estilo y los tipos. Si `ruff format --check` falla, `uv run ruff format .` reescribe los archivos con el formato correcto.
+Los tres primeros comandos comprueban el formato, el estilo y los tipos. Si `ruff format --check` falla, `uv run ruff format .` reescribe los archivos con el formato correcto.
 
-`uv run lint-imports` comprueba que existan los diez módulos con sus cuatro capas y su `interfaz.py`, que ningún `dominio/` importe FastAPI, SQLAlchemy ni Pydantic, y que un módulo importe a otro solo por su interfaz y solo si el grafo de [arquitectura §5](02-arquitectura.md#5-contextos-delimitados) lo permite. Se ejecuta desde `backend/`, porque busca el paquete `cimenta` en el directorio actual. Su caché, `.import_linter_cache/`, se ignora sola.
+`uv run lint-imports` comprueba que existan los diez módulos con sus cuatro capas y su `interfaz.py`, que ningún `dominio/` alcance, ni directa ni indirectamente, nada que no sea la biblioteca estándar o `tipos_base`, que `tipos_base` solo alcance la biblioteca estándar, y que un módulo importe a otro solo por su interfaz y solo si el grafo de [arquitectura §5](02-arquitectura.md#5-contextos-delimitados) lo permite. Se ejecuta desde `backend/`, porque busca en el directorio actual los paquetes `cimenta` y `tipos_base` y el contrato propio de `herramientas/`. Su caché, `.import_linter_cache/`, se ignora sola.
 
-`uv run pytest` necesita Docker en marcha: levanta su propio PostgreSQL con testcontainers y no usa el de Compose.
+`uv run python -m herramientas.verificar_float` busca `float` en las anotaciones de `cimenta/*/dominio/` y `tipos_base/`: parámetros, retornos y campos, también dentro de `float | None`, `list[float]` o una anotación en cadena. Lee cada archivo como UTF-8 con `utf-8-sig`, así que un BOM no lo rompe. Termina con 0 si no encuentra ninguno; con 1 si encuentra alguno, con su archivo y su línea, o si un archivo revisado no es Python válido, con el error de sintaxis y su línea; y con 2 si no encuentra ningún archivo que revisar, que es lo que pasa si `--raiz` apunta fuera de `backend/`. `Decimal(0.1)` lo marca `ruff check` con la regla `RUF032`.
+
+**Lo que el verificador no ve.** No detecta un alias `Tasa = float` ni `type Tasa = float`; `TypeVar(bound=float)` ni el límite de un parámetro de tipo (`def g[U: float]`); `b.float` tras `import builtins as b`; un valor por omisión `x=0.5`; `float(x)` en el cuerpo de una función, ni lo que va en comentarios `# type:`. Da falso positivo con `Literal["float"]` y `Annotated[int, "float"]`. Por eso `RUF032` y el verificador son dos barreras, no una garantía total: [ADR-020](adr/20261019-tipos-numericos-base.md) lo detalla.
+
+`uv run pytest` necesita Docker en marcha: levanta su propio PostgreSQL con testcontainers y no usa el de Compose. Los tests de los tipos base y de los verificadores no necesitan Docker.
 
 ## Base de datos
 

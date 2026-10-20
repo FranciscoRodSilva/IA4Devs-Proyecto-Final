@@ -58,7 +58,7 @@ IA4Devs-Proyecto-Final/
 ├── llms.txt                        Mapa del proyecto para agentes IA
 ├── CLAUDE.md                       Instrucciones de proyecto para el copiloto (Paso 5)
 ├── Doc de contexto/                Fuente del cliente. Solo lectura, no se versiona
-├── backend/                        Proyecto uv del backend: pyproject.toml, uv.lock, el paquete cimenta/ y, fuera de él, migraciones/, herramientas/ y tests/
+├── backend/                        Proyecto uv del backend: pyproject.toml, uv.lock, el paquete cimenta/ y, fuera de él, migraciones/, herramientas/, tipos_base/ y tests/
 ├── frontend/                       Proyecto npm del frontend: package.json, TypeScript y ESLint
 ├── sdd/                            Pipeline SDD: metodología, plantillas y un directorio por ticket
 ├── tools/                          Verificadores de la documentación y sus pruebas

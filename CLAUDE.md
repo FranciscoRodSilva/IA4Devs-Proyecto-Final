@@ -11,14 +11,14 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
 4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 19 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 21 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
 ## Reglas que ninguna implementación puede romper
 
-1. **El dinero nunca es flotante.** `Decimal` en Python, `NUMERIC` en PostgreSQL, **cadena** en JSON, `decimal.js` en el cliente. Está prohibido `float` en cualquier firma de dominio y el linter lo bloquea (desde TKT-004).
-2. **`dominio/` no importa nada.** Ni FastAPI, ni SQLAlchemy, ni Pydantic. Las reglas reciben objetos de valor y devuelven resultados. `import-linter` falla el pipeline si se cruza (en el pipeline desde TKT-009).
+1. **El dinero nunca es flotante.** `Decimal` en Python, `NUMERIC` en PostgreSQL, **cadena** en JSON, `decimal.js` en el cliente. Está prohibido `float` en cualquier firma de `dominio/` y de `tipos_base/`: lo marcan `uv run python -m herramientas.verificar_float` y, para `Decimal(0.1)`, la regla `RUF032` de Ruff (en el pipeline desde TKT-009). Los tipos son `Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje`, de `tipos_base`: calculan con precisión completa y solo redondean con `cuantizar()`, que lleva el valor a la escala de su columna con `ROUND_HALF_UP` `(asumido)`.
+2. **`dominio/` no importa nada.** Ni FastAPI, ni SQLAlchemy, ni Pydantic, ni ningún otro paquete: solo la biblioteca estándar y `tipos_base`. Las reglas reciben objetos de valor y devuelven resultados. `import-linter` falla el pipeline si se cruza (en el pipeline desde TKT-009). La biblioteca estándar pasa el contrato, pero sus módulos de E/S y de reloj (`datetime`, `os`, `socket`…) no deben usarse en `dominio/`: lo vigila la revisión ([ADR-021](docs/adr/20261019-lista-blanca-del-dominio.md)).
 3. **Un módulo solo habla con otro por su interfaz de aplicación publicada.** Nunca por sus repositorios, modelos o tablas: solo por `cimenta.<modulo>.interfaz`, y `import-linter` lo verifica (en el pipeline desde TKT-009).
 4. **La línea base congelada es inmutable.** Se copia físicamente al congelar; un disparador rechaza `UPDATE` y `DELETE`.
 5. **Los límites bloquean, no advierten.** Una operación que excede lo presupuestado se detiene y exige autorización registrada. Nunca se deja pasar con un aviso. El `disponible` es `presupuestado − consumido`, y **`consumido = requisiciones vivas + comprometido + ejercido`** — definido una sola vez en [modelo de datos §15](docs/03-modelo-datos.md#15-la-consulta-del-semáforo) y compartido por la regla y el tablero. Una requisición `EVALUADA` **sí** consume: si no, dos requisiciones simultáneas pasan las dos.
@@ -60,7 +60,7 @@ backend/cimenta/<modulo>/
 └── interfaz.py       Interfaz publicada: lo único que otro módulo importa
 ```
 
-Fuera de `cimenta/`, en `backend/`, viven `migraciones/` (Alembic), `herramientas/` (operación, como fijar las contraseñas de los roles) y `tests/`. `import-linter` no los analiza.
+Fuera de `cimenta/`, en `backend/`, viven `tipos_base/` (`Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje`, que importa cualquier capa de cualquier módulo), `migraciones/` (Alembic), `herramientas/` (operación y verificadores propios, como fijar las contraseñas de los roles o buscar `float` en el dominio) y `tests/`. `import-linter` analiza `cimenta/` y `tipos_base/`; los demás, no.
 
 Módulos: `identidad`, `auditoria`, `archivos`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`.
 
@@ -102,6 +102,7 @@ uv run ruff format .             # formato
 uv run ruff check --fix .        # lint
 uv run mypy .                    # tipos
 uv run lint-imports              # esqueleto y fronteras entre módulos
+uv run python -m herramientas.verificar_float   # float prohibido en firmas de dominio/ y tipos_base/
 uv run fastapi dev               # API · desde TKT-005 (asumido)
 uv run pytest                    # tests · requiere Docker en marcha (testcontainers)
 uv run --env-file ../.env alembic upgrade head   # migraciones, siempre con el rol de migración

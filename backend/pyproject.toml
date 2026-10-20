@@ -22,7 +22,7 @@ dev = [
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "UP", "SIM"]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF032"]
 ignore = ["E501"]
 
 [tool.mypy]
@@ -32,7 +32,7 @@ warn_redundant_casts = true
 exclude = ['^\.venv/']
 
 [[tool.mypy.overrides]]
-module = ["cimenta.*.dominio.*"]
+module = ["cimenta.*.dominio.*", "tipos_base.*"]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_untyped_calls = true
@@ -46,9 +46,10 @@ strict_equality = true
 implicit_reexport = false
 
 [tool.importlinter]
-root_package = "cimenta"
+root_packages = ["cimenta", "tipos_base"]
 include_external_packages = true
 exclude_type_checking_imports = false
+contract_types = ["lista_blanca: herramientas.contrato_lista_blanca.ContratoListaBlanca"]
 
 [[tool.importlinter.contracts]]
 id = "esqueleto-modulos"
@@ -75,12 +76,18 @@ broken_contract_guidance = "La estructura de un módulo está en docs/02-arquite
 
 [[tool.importlinter.contracts]]
 id = "dominio-sin-framework"
-name = "dominio/ no importa FastAPI, SQLAlchemy ni Pydantic, ni directa ni indirectamente"
-type = "forbidden"
-source_modules = ["cimenta.*.dominio"]
-forbidden_modules = ["fastapi", "sqlalchemy", "pydantic"]
-allow_indirect_imports = false
-broken_contract_guidance = "El dominio es Python puro (docs/adr/20260918-dominio-puro.md). No se arregla con una excepción en el contrato."
+name = "dominio/ solo importa la biblioteca estándar y tipos_base, ni directa ni indirectamente"
+type = "lista_blanca"
+origen = ["cimenta.*.dominio"]
+permitidos = ["tipos_base"]
+broken_contract_guidance = "El dominio es Python puro (docs/adr/20260918-dominio-puro.md): solo la biblioteca estándar y tipos_base. No se arregla con una excepción en el contrato."
+
+[[tool.importlinter.contracts]]
+id = "tipos-base-puro"
+name = "tipos_base solo importa la biblioteca estándar, ni directa ni indirectamente"
+type = "lista_blanca"
+origen = ["tipos_base"]
+broken_contract_guidance = "tipos_base lo importan todos los módulos: no puede depender de ninguno ni de un tercero."
 
 [[tool.importlinter.contracts]]
 id = "solo-por-interfaz"

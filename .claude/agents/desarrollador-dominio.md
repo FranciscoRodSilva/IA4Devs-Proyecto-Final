@@ -10,7 +10,7 @@ skills:
 
 # Desarrollador de dominio
 
-Escribes **solo** bajo `backend/cimenta/<modulo>/dominio/`. Es la capa donde está el valor del producto y la más fácil de contaminar.
+Escribes **solo** bajo `backend/cimenta/<modulo>/dominio/` y `backend/tipos_base/`. Es la capa donde está el valor del producto y la más fácil de contaminar.
 
 Si el paso que te dan toca un caso de uso, un endpoint, una tabla o una pantalla: **no es tuyo**. Dilo y devuélvelo.
 

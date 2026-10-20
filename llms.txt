@@ -13,7 +13,7 @@ Proyecto final del máster IA4Devs. Desarrollado con Spec-Driven Development: la
 Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados: el dominio tiene vocabulario propio (*destajo*, *explosión de insumos*, *rendimiento*, *partida*) que no significa lo que parece.
 
 - [Glosario del dominio](docs/glosario.md): lenguaje ubicuo. Define concepto, partida, APU, rendimiento, destajo, explosión de insumos, consignación y pago agrupado
-- [Descripción del producto](docs/01-descripcion-producto.md): objetivo, roles, 8 capacidades, alcance del MVP, catálogo de 25 reglas de negocio `RN-01`…`RN-25` y 19 requisitos no funcionales `RNF-01`…`RNF-19`. Las doce preguntas de la especificación funcional están resueltas por el cliente; siguen abiertas `PA-12` (objetivos de recuperación), `PA-14` (si un avance se puede validar sin evidencia fotográfica) y `PA-15` (cuánto video y cuánto tiempo se conserva); ninguna bloquea la implementación. Las decisiones con disparador de revisión están listadas al final
+- [Descripción del producto](docs/01-descripcion-producto.md): objetivo, roles, 8 capacidades, alcance del MVP, catálogo de 25 reglas de negocio `RN-01`…`RN-25` y 19 requisitos no funcionales `RNF-01`…`RNF-19`. Las doce preguntas de la especificación funcional están resueltas por el cliente; siguen abiertas `PA-12` (objetivos de recuperación), `PA-14` (si un avance se puede validar sin evidencia fotográfica), `PA-15` (cuánto video y cuánto tiempo se conserva) y `PA-23` (modo de redondeo de los importes, antes de TKT-016); ninguna bloquea la implementación. Las decisiones con disparador de revisión están listadas al final
 - [Arquitectura](docs/02-arquitectura.md): monolito modular, 10 contextos delimitados, capas por módulo, flujos clave y aspectos transversales
 - [Modelo de datos](docs/03-modelo-datos.md): esquema relacional, 38 invariantes declarados en base de datos, máquinas de estado y la consulta del semáforo
 - [Historias de usuario](docs/04-historias-usuario.md): 9 historias, 162 escenarios Given/When/Then con su fase. Cada escenario tiene que tener un test que lo nombre
@@ -24,7 +24,7 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 - [Stack tecnológico](docs/06-stack-tecnologico.md): criterios de elección, herramientas por capa, seguridad y lo que se descartó
 - [Arranque local](docs/arranque-local.md): requisitos, comandos del backend y del frontend, verificadores de `tools/` y lo que todavía no arranca
 - [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio): `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, con la configuración de la raíz
-- [Decisiones de arquitectura](docs/adr/README.md): 19 ADRs en formato MADR
+- [Decisiones de arquitectura](docs/adr/README.md): 21 ADRs en formato MADR
 
 ## Reglas que ninguna implementación puede romper
 

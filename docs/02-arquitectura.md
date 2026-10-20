@@ -350,7 +350,11 @@ Los importes viajan como **cadena**, no como número JSON, para que no pasen por
 | Rendimientos | `DECIMAL(18,6)` | `0.673400`, `0.017000` |
 | Porcentajes | `DECIMAL(9,6)` | `0.050000`, `0.160000` |
 
+**Tipos.** `Dinero` —importes y precios unitarios—, `Cantidad`, `Rendimiento` y `Porcentaje` viven en `backend/tipos_base/`, fuera de `cimenta/` para que cualquier capa de cualquier módulo los importe sin ser un módulo más del grafo de §5. Calculan con un contexto de `decimal` propio, independiente del del proceso: sumas, restas y productos son exactos, y una división da un `Porcentaje` con 28 dígitos significativos o falla con `ZeroDivisionError`, nunca devuelve cero. Solo existen `Cantidad × Rendimiento → Cantidad`, `Dinero × Cantidad → Dinero` y `Dinero × Porcentaje → Dinero`, en los dos órdenes, y `Cantidad ÷ Cantidad` y `Dinero ÷ Dinero → Porcentaje`; lo demás es `TypeError`. Los usan la explosión de insumos (TKT-016), `RN-03` (TKT-020), `RN-06` y `RN-07` (TKT-034), el semáforo (TKT-039) y las retenciones (TKT-012).
+
 **Regla de redondeo:** se calcula con la precisión completa y se redondea **solo al presentar**, nunca en cálculos intermedios. El redondeo intermedio en una explosión de 27 insumos sobre 4,900 conceptos acumula una desviación perfectamente visible.
+
+Redondear es llamar a `cuantizar()`, que lleva el valor a la escala de su columna con `ROUND_HALF_UP` `(asumido)` y falla si no cabe. `serializar()` produce la cadena de escala completa que viaja en JSON y **no redondea**: rechaza un valor sin cuantizar. Un precio unitario es un `Dinero`; su columna `NUMERIC(14,4)` admite cuatro dígitos enteros menos que `Dinero` (diez frente a catorce), y el excedente lo rechaza PostgreSQL.
 
 ### 7.5. Concurrencia
 
@@ -630,5 +634,7 @@ Las decisiones que un desarrollador nuevo se preguntaría *"¿por qué lo hicier
 | [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) | Captura diferida sin conexión, acotada a `avance` y `entrada_almacen` |
 | [ADR-016](adr/20261001-almacenamiento-de-objetos.md) | Almacenamiento de objetos compatible con S3, con el API fuera del camino de los bytes |
 | [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) | Mano de obra y avance simulados en la fase 1 tras un puerto de `analitica`, fuera del `consumido` de `RN-03` |
+| [ADR-020](adr/20261019-tipos-numericos-base.md) | Tipos numéricos base con aritmética exacta y redondeo explícito, en `backend/tipos_base/` |
+| [ADR-021](adr/20261019-lista-blanca-del-dominio.md) | El dominio importa solo la biblioteca estándar y `tipos_base`, verificado con un contrato propio de import-linter (sustituye el contrato `dominio-sin-framework` de ADR-018) |
 
 Las decisiones de herramienta —framework, ORM, modo de ejecución— viven en el [stack tecnológico](06-stack-tecnologico.md) y en [ADR-009](adr/20260918-fastapi.md) … [ADR-013](adr/20260919-sqlalchemy-sincrono.md).

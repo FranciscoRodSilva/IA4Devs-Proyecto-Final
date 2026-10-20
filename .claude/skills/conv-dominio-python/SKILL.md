@@ -5,12 +5,12 @@ description: Convenciones de la capa dominio/ de CIMENTA — Decimal exacto con 
 
 # Convenciones · capa `dominio/`
 
-La capa donde está el valor del producto y la que más fácil se contamina. Estas reglas no son estilo: tres de ellas las verifica el pipeline y falla.
+La capa donde está el valor del producto y la que más fácil se contamina. Estas reglas no son estilo: tres de ellas las verifica el pipeline y falla (la de `float`, en local ya y en el pipeline desde TKT-009).
 
 ## 1 · El dinero nunca es flotante
 
 ```python
-# ✗ Prohibido. El linter lo bloquea.
+# ✗ Prohibido. El linter lo bloquea: en local ya; en el pipeline desde TKT-009.
 def calcular_disponible(presupuestado: float, consumido: float) -> float: ...
 
 # ✓
@@ -20,9 +20,10 @@ def calcular_disponible(presupuestado: Dinero, consumido: Dinero) -> Dinero: ...
 - `Decimal` en Python, `NUMERIC` en PostgreSQL, **cadena** en JSON, `decimal.js` en el cliente.
 - Se construye desde `str`, **nunca** desde `float`: `Decimal("12.10")`, no `Decimal(12.10)`. Lo segundo arrastra el error binario desde el primer carácter.
 - **Las operaciones conservan la precisión completa. El redondeo es una operación explícita y separada** (`TKT-004`). No se cuantiza al vuelo dentro de un cálculo intermedio: se calcula entero y se redondea una vez, donde la regla lo diga.
-- Cuantización **explícita**, con escala y modo declarados: `.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)`. Un redondeo implícito es una regla de negocio sin documentar.
-- Cada tipo tiene su precisión declarada en [modelo de datos §2](../../../docs/03-modelo-datos.md); `Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje` no comparten escala. No la inventes: búscala.
+- Cuantización **explícita** con `cuantizar()` de los tipos de `tipos_base`: lleva el valor a la escala de su columna con `ROUND_HALF_UP` `(asumido, PA-T5 de TKT-004)` y falla si no cabe. Fuera de los tipos, `.quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)` con escala y modo declarados. Un redondeo implícito es una regla de negocio sin documentar.
+- Cada tipo tiene su precisión declarada en [modelo de datos §2](../../../docs/03-modelo-datos.md); `Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje` no comparten precisión: `Dinero` NUMERIC(18,4), `Cantidad` NUMERIC(14,4), `Rendimiento` NUMERIC(18,6) y `Porcentaje` NUMERIC(9,6); ver modelo de datos §2. No la inventes: búscala.
 - Dividir no es redondear: donde la regla exija reparto (prorrateo de explosión de insumos), la suma de las partes debe volver a dar el total. Si no cuadra, hay que decidir dónde cae el centavo y escribirlo.
+- `float` en una anotación de `dominio/` o de `tipos_base/` lo marca `uv run python -m herramientas.verificar_float`; `Decimal(0.1)`, la regla `RUF032` de Ruff.
 
 ## 2 · Cero imports de framework
 
@@ -35,15 +36,13 @@ Ni FastAPI, ni SQLAlchemy, ni Pydantic, ni `requests`, ni `datetime.now()`.
 ## 3 · Objetos de valor
 
 ```python
-@dataclass(frozen=True, slots=True)
-class Dinero:
-    monto: Decimal
-    def __post_init__(self) -> None:
-        if self.monto != self.monto.quantize(ESCALA):
-            raise ValueError(f"escala inválida: {self.monto}")
+from tipos_base import Cantidad, Dinero, Rendimiento
+
+def importe_de_insumo(cantidad: Cantidad, rendimiento: Rendimiento, precio: Dinero) -> Dinero:
+    return precio * (cantidad * rendimiento)
 ```
 
-`frozen=True` porque un importe que se muta a mitad de una regla es un error que no deja rastro. `slots=True` porque impide añadir atributos por accidente.
+Los cuatro tipos de `tipos_base` son `dataclass` con `frozen` y `slots`, con orden por valor y constructor propio (`init=False`, en la clase base común): inmutables, sin atributos nuevos, iguales por valor y solo con su mismo tipo. El constructor admite una cadena decimal llana de hasta 100 caracteres, un `int` o un `Decimal`, nunca `float`, y **no fija la escala**: el valor conserva la precisión completa hasta `cuantizar()`, y `serializar()` rechaza lo que no se ha cuantizado. Un objeto de valor propio de un módulo sigue el mismo patrón.
 
 ## 4 · Cómo se expresa un rechazo de negocio
 

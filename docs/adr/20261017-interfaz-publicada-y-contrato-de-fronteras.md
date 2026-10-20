@@ -2,7 +2,7 @@
 
 ## Estado
 
-Aceptado
+Aceptado · el contrato `dominio-sin-framework` fue sustituido por ADR-021
 
 ## Contexto y problema
 
@@ -37,7 +37,7 @@ Los tickets TKT-004, TKT-005, TKT-059, TKT-060, TKT-066 y TKT-069 tocarán este 
 Se elige la configuración de **cuatro familias de contratos** en `[tool.importlinter]` de `backend/pyproject.toml`, que es su única fuente:
 
 * **Esqueleto** (`esqueleto-modulos` y `esqueleto-capas`, `layers` exhaustivos). Detectan un módulo o una capa que faltan o sobran, una segunda interfaz y un `dominio/` que importa otra capa de su módulo.
-* **Dominio sin framework** (`dominio-sin-framework`, `forbidden` con `allow_indirect_imports = false`). Ningún `dominio/` llega a FastAPI, SQLAlchemy ni Pydantic, ni directa ni indirectamente, en línea con [ADR-003](20260918-dominio-puro.md).
+* **Dominio sin framework** (`dominio-sin-framework`, `forbidden` con `allow_indirect_imports = false`). Ningún `dominio/` llega a FastAPI, SQLAlchemy ni Pydantic, ni directa ni indirectamente, en línea con [ADR-003](20260918-dominio-puro.md). Nota: desde [ADR-021](20261019-lista-blanca-del-dominio.md) este contrato es una lista blanca y no una lista negra de tres paquetes; la descripción de arriba recoge la decisión original.
 * **Solo por interfaz** (`solo-por-interfaz`, `forbidden` con `allow_indirect_imports = true`). Ningún módulo importa `api/`, `aplicacion/`, `dominio/` ni `infraestructura/` de otro. Con los indirectos permitidos, usar la interfaz de otro módulo no rompe el contrato; un import directo de su infraestructura, sí.
 * **Grafo** (`grafo-<modulo>`, diez contratos `protected` con `as_packages = true`). Enumeran quién puede importar cada módulo, según el grafo de [arquitectura §5](../02-arquitectura.md#5-contextos-delimitados).
 

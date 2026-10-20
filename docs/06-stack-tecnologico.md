@@ -408,8 +408,8 @@ Resuelve además el problema que la regla de aceptación plantea: *"una historia
 |---|---|---|
 | **uv** | Entorno, dependencias y bloqueo de versiones | — |
 | **Ruff** | Lint y formato. Sustituye a flake8, isort y black | — |
-| **mypy** | Tipos, en modo estricto sobre `dominio/` | Las reglas son el código que más caro sale equivocar |
-| **import-linter** | Contratos de dependencia entre módulos | **TKT-002**: falla el pipeline si un módulo importa el `dominio/` o la `infraestructura/` de otro, o si `dominio/` importa el framework, o si un módulo importa a otro que el grafo no le permite |
+| **mypy** | Tipos, en modo estricto sobre `dominio/` y `tipos_base/` | Las reglas son el código que más caro sale equivocar |
+| **import-linter** | Contratos de dependencia entre módulos | **TKT-002**: falla el pipeline si un módulo importa el `dominio/` o la `infraestructura/` de otro, o si `dominio/` importa el framework, o si un módulo importa a otro que el grafo no le permite. **TKT-004**: falla si `dominio/` o `tipos_base/` alcanza cualquier paquete que no sea la biblioteca estándar, `tipos_base` o su propio paquete |
 | **ESLint + TypeScript strict** | Frontend | — |
 
 **`import-linter` es la herramienta que sostiene [ADR-001](adr/20260918-monolito-modular.md).** Sin ella, el monolito modular degenera en un monolito con carpetas en pocos sprints, porque la disciplina de fronteras depende de que nadie se despiste. Los contratos viven en `[tool.importlinter]` de `backend/pyproject.toml`, que es su única fuente, y forman cuatro familias:
@@ -417,11 +417,11 @@ Resuelve además el problema que la regla de aceptación plantea: *"una historia
 | Contratos | Tipo | Qué hace fallar |
 |---|---|---|
 | `esqueleto-modulos` y `esqueleto-capas` | `layers` exhaustivo | un módulo o una capa que faltan o sobran, una segunda interfaz, o un `dominio/` que importa otra capa de su módulo |
-| `dominio-sin-framework` | `forbidden`, con indirectos | un `dominio/` que llega a FastAPI, SQLAlchemy o Pydantic, aunque sea a través de otro módulo |
+| `dominio-sin-framework` y `tipos-base-puro` | `lista_blanca`, tipo propio en `herramientas/`, con indirectos | un `dominio/` que alcanza algo que no es la biblioteca estándar, `tipos_base` o su propio paquete; `tipos_base` que alcanza algo fuera de la biblioteca estándar |
 | `solo-por-interfaz` | `forbidden`, solo directos | un módulo que importa `api/`, `aplicacion/`, `dominio/` o `infraestructura/` de otro |
 | `grafo-<modulo>`, uno por módulo | `protected` | un módulo que importa a otro que el grafo de [arquitectura §5](02-arquitectura.md#5-contextos-delimitados) no le permite |
 
-Por qué estos tipos: [ADR del 2026-10-17](adr/20261017-interfaz-publicada-y-contrato-de-fronteras.md).
+Por qué estos tipos: [ADR del 2026-10-17](adr/20261017-interfaz-publicada-y-contrato-de-fronteras.md). La lista blanca de `dominio/` y `tipos_base/`, con su tipo propio de contrato, está en [ADR-021](adr/20261019-lista-blanca-del-dominio.md).
 
 ---
 
@@ -514,10 +514,10 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 
 | Decisión de arquitectura | Qué la sostiene en el stack | ¿Verificable en CI? |
 |---|---|---|
-| Dominio sin dependencias ([ADR-003](adr/20260918-dominio-puro.md)) | SQLAlchemy Data Mapper · FastAPI como capa fina · mypy estricto | ✅ import-linter |
+| Dominio sin dependencias ([ADR-003](adr/20260918-dominio-puro.md)) | SQLAlchemy Data Mapper · FastAPI como capa fina · mypy estricto · lista blanca de `import-linter` ([ADR-021](adr/20261019-lista-blanca-del-dominio.md)) | ✅ import-linter |
 | Fronteras entre módulos ([ADR-001](adr/20260918-monolito-modular.md)) | import-linter con contratos declarados | ✅ import-linter |
 | Bloqueo pesimista ([ADR-004](adr/20260918-bloqueo-pesimista-presupuesto.md)) | `with_for_update()` de SQLAlchemy 2.0 | ✅ test de concurrencia con dos sesiones reales |
-| Decimal exacto | `Numeric` → `Decimal` · serialización a cadena · decimal.js en el cliente | ✅ test de `0.1 + 0.2` y de la explosión real |
+| Decimal exacto ([ADR-020](adr/20261019-tipos-numericos-base.md)) | `Numeric` → `Decimal` · serialización a cadena · decimal.js en el cliente | ✅ test de `0.1 + 0.2` y de la explosión real |
 | Contrato de error ([ADR-007](adr/20260918-contrato-error-negocio.md)) | Manejador global de excepciones de FastAPI | ✅ test de forma de respuesta |
 | Libro mayor de inventario ([ADR-005](adr/20260918-ledger-inventario.md)) | Sin columna de existencia en el esquema | ✅ el esquema no la tiene |
 | Línea base inmutable ([ADR-006](adr/20260918-snapshot-linea-base.md)) | Disparador en migración de Alembic | ✅ test que intenta el `UPDATE` y espera el fallo |
@@ -585,3 +585,5 @@ Las dos que no se verifican solas son las dos que dependen de un entorno que tod
 | [ADR-016](adr/20261001-almacenamiento-de-objetos.md) | Almacenamiento de objetos compatible con S3, en lugar del disco del servidor o de la propia base de datos |
 | [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) | Mano de obra y avance simulados en la fase 1 tras un puerto de `analitica`, en lugar de sembrar las tablas de la fase 2 o mostrar un semáforo solo de materiales |
 | [ADR-019](adr/20261017-roles-postgresql-y-migraciones.md) | Roles de PostgreSQL creados por la migración y el de migración a cargo del entorno, en lugar de crear los tres en la migración o de migrar con un superusuario |
+| [ADR-020](adr/20261019-tipos-numericos-base.md) | Tipos numéricos base con aritmética exacta y redondeo explícito, en `backend/tipos_base/`, en lugar del contexto del proceso o de redondear al construir |
+| [ADR-021](adr/20261019-lista-blanca-del-dominio.md) | Lista blanca del dominio verificada con un contrato propio de `import-linter`, en lugar de una lista negra de frameworks, de todos los paquetes instalados o de un verificador AST |
