@@ -328,7 +328,7 @@ Tres propiedades deliberadas:
 
 **`detalle` lleva las cifras.** La interfaz no recalcula nada ni interpreta un mensaje de texto.
 
-**`acciones` dice qué se puede hacer.** El bloqueo no es un callejón sin salida: es una bifurcación con salida documentada. En `RN-03` la solicitud de autorización ya la creó el propio bloqueo, así que la acción es `VER_SOLICITUD_AUTORIZACION`, un `GET` a la solicitud existente. `SOLICITAR_AUTORIZACION` —un `POST /solicitudes-autorizacion`— solo la ofrece `RN-07`, donde el rechazo no escribe nada y la solicitud la crea el usuario si decide pedirla. Las acciones se filtran por los roles de quien llama: nunca se ofrece una que respondería `403`.
+**`acciones` dice qué se puede hacer.** El bloqueo no es un callejón sin salida: es una bifurcación con salida documentada. En `RN-03` la solicitud de autorización ya la creó el propio bloqueo, así que la acción es `VER_SOLICITUD_AUTORIZACION`, un `GET` a la solicitud existente. `SOLICITAR_AUTORIZACION` —un `POST /solicitudes-autorizacion`— solo la ofrece `RN-07`, donde el rechazo no escribe nada y la solicitud la crea el usuario si decide pedirla. Las acciones se filtran por los roles de quien llama: nunca se ofrece una que respondería `403`, salvo `REINTENTAR` de un `409` `CONCURRENCIA` (supuesto 14 de la especificación de la API, §7).
 
 Los importes viajan como **cadena**, no como número JSON, para que no pasen por un flotante de JavaScript en el camino.
 
@@ -338,7 +338,9 @@ Los importes viajan como **cadena**, no como número JSON, para que no pasen por
 |---|---|---|---|
 | `REGLA_NEGOCIO` | `409` | `ErrorReglaNegocio` | `regla`, `detalle`, `acciones` — el contrato de arriba |
 | `VALIDACION` | `422` | `ErrorValidacion` | `errores[]` con `campo`, `codigo`, `mensaje` y, si la forma la impone una regla, `regla` |
-| `PERMISO` | `403` | `ErrorPermiso` | `motivo` —rol insuficiente, auto-resolución o prueba de origen ausente— y `roles_requeridos`. Nunca cifras del recurso |
+| `PERMISO` | `403` | `ErrorPermiso` | `motivo` —rol insuficiente, auto-resolución, no ser el solicitante o prueba de origen ausente— y `roles_requeridos`. Nunca cifras del recurso |
+
+**Quién lo lanza.** La función de regla de `dominio/` devuelve su resultado y no lanza nada; el caso de uso lo convierte en `RechazoRegla`, la única excepción para todas las reglas, del paquete `backend/contrato_error/`. Los otros siete `tipo` tienen su clase en el mismo paquete, y un manejador global en `backend/servidor/` los serializa todos por el mismo camino. Ver ADR-022.
 
 ### 7.4. Dinero y cantidades
 
@@ -636,5 +638,6 @@ Las decisiones que un desarrollador nuevo se preguntaría *"¿por qué lo hicier
 | [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) | Mano de obra y avance simulados en la fase 1 tras un puerto de `analitica`, fuera del `consumido` de `RN-03` |
 | [ADR-020](adr/20261019-tipos-numericos-base.md) | Tipos numéricos base con aritmética exacta y redondeo explícito, en `backend/tipos_base/` |
 | [ADR-021](adr/20261019-lista-blanca-del-dominio.md) | El dominio importa solo la biblioteca estándar y `tipos_base`, verificado con un contrato propio de import-linter (sustituye el contrato `dominio-sin-framework` de ADR-018) |
+| [ADR-022](adr/20261020-contrato-de-error-y-raiz-de-composicion.md) | El caso de uso lanza la excepción de las reglas, y el contrato y la raíz de composición viven fuera de `cimenta/` |
 
 Las decisiones de herramienta —framework, ORM, modo de ejecución— viven en el [stack tecnológico](06-stack-tecnologico.md) y en [ADR-009](adr/20260918-fastapi.md) … [ADR-013](adr/20260919-sqlalchemy-sincrono.md).

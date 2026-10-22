@@ -46,7 +46,10 @@ info:
 
 
     Las `acciones` de un rechazo se filtran por los roles de quien llama: nunca
-    se ofrece una acción que le daría `403`.
+    se ofrece una acción que le daría `403`. La única excepción es `REINTENTAR`
+    de un `409` `CONCURRENCIA`, que repite la operación que quien llama acaba de
+    invocar y que `api/` ya autorizó por su rol (TKT-005, supuesto 14 de la
+    especificación de la API).
   contact:
     name: CIMENTA
 servers:
@@ -3932,7 +3935,10 @@ components:
         Salida documentada de un rechazo. El cliente la pinta como botón sin
         conocerla de antemano. **Se filtran por los roles de quien llama**: nunca
         se ofrece una acción que le respondería `403`. Por eso `acciones` puede
-        llegar vacía aunque el rechazo tenga salida para otro rol.
+        llegar vacía aunque el rechazo tenga salida para otro rol. Excepción:
+        `REINTENTAR` de una `CONCURRENCIA` no se filtra, porque repite la
+        operación que quien llama acaba de invocar y que `api/` ya autorizó por
+        su rol (TKT-005).
       required: [clave, metodo, ruta]
       properties:
         clave:
@@ -4039,7 +4045,8 @@ components:
       type: object
       description: >-
         Venció `lock_timeout` o `statement_timeout` (`RNF-16`). Código `409`, con
-        cabecera `Retry-After` y la acción `REINTENTAR`. Nada se persistió. No lleva
+        cabecera `Retry-After` y la acción `REINTENTAR`, que no se filtra por los
+        roles de quien llama: repite la operación ya autorizada. Nada se persistió. No lleva
         `regla`: no se violó ninguna, y asentarlo como `RN-03` contaminaría la
         consulta de excepciones.
       required: [tipo, codigo, mensaje, detalle, acciones, correlacion_id]

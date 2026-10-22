@@ -2,7 +2,7 @@
 
 ## Estado
 
-Aceptado
+Aceptado · **enmendado por [ADR-022](20261020-contrato-de-error-y-raiz-de-composicion.md) en un punto**: `REINTENTAR` de una concurrencia no se filtra por rol. El resto de la decisión sigue vigente sin cambios.
 
 ## Contexto y problema
 

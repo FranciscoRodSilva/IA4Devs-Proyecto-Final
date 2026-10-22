@@ -5,17 +5,24 @@ description = "Backend de CIMENTA: control de costos de obra."
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.0",
+    "fastapi[standard-no-fastapi-cloud-cli]>=0.159.1",
     "psycopg[binary]>=3.3.6",
+    "pydantic>=2.14.1",
     "sqlalchemy>=2.1.5",
+    "structlog>=26.1.0",
 ]
 
 [dependency-groups]
 dev = [
     "import-linter>=2.15",
+    "jsonschema>=4.26.0",
     "mypy>=2.4.0",
     "pytest>=9.1.1",
+    "pyyaml>=6.0.3",
     "ruff>=0.17.1",
     "testcontainers[postgres]>=4.15.0",
+    "types-jsonschema>=4.26.0.20261006",
+    "types-pyyaml>=6.0.12.20260906",
 ]
 
 [tool.ruff]
@@ -32,7 +39,7 @@ warn_redundant_casts = true
 exclude = ['^\.venv/']
 
 [[tool.mypy.overrides]]
-module = ["cimenta.*.dominio.*", "tipos_base.*"]
+module = ["cimenta.*.dominio.*", "tipos_base.*", "contrato_error.*", "servidor.*"]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_untyped_calls = true
@@ -44,6 +51,9 @@ warn_return_any = true
 warn_unused_ignores = true
 strict_equality = true
 implicit_reexport = false
+
+[tool.fastapi]
+entrypoint = "servidor.principal:app"
 
 [tool.importlinter]
 root_packages = ["cimenta", "tipos_base"]

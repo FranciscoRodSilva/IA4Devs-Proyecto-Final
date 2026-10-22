@@ -43,7 +43,15 @@ Los tres primeros comandos comprueban el formato, el estilo y los tipos. Si `ruf
 
 **Lo que el verificador no ve.** No detecta un alias `Tasa = float` ni `type Tasa = float`; `TypeVar(bound=float)` ni el límite de un parámetro de tipo (`def g[U: float]`); `b.float` tras `import builtins as b`; un valor por omisión `x=0.5`; `float(x)` en el cuerpo de una función, ni lo que va en comentarios `# type:`. Da falso positivo con `Literal["float"]` y `Annotated[int, "float"]`. Por eso `RUF032` y el verificador son dos barreras, no una garantía total: [ADR-020](adr/20261019-tipos-numericos-base.md) lo detalla.
 
-`uv run pytest` necesita Docker en marcha: levanta su propio PostgreSQL con testcontainers y no usa el de Compose. Los tests de los tipos base y de los verificadores no necesitan Docker.
+`uv run pytest` necesita Docker en marcha: levanta su propio PostgreSQL con testcontainers y no usa el de Compose. Los tests de los tipos base y de los verificadores no necesitan Docker. Las pruebas del contrato de error y del servidor no necesitan Docker.
+
+Para arrancar la aplicación, aparte de la verificación y porque no termina por sí solo (se detiene con `Ctrl+C`):
+
+```bash
+uv run fastapi dev
+```
+
+`uv run fastapi dev` arranca la aplicación en `http://127.0.0.1:8000` con recarga automática; `/docs` muestra el contrato publicado. Todavía no tiene rutas de negocio. Cada petición deja una línea JSON en la salida estándar con su `correlacion_id`, el mismo que viaja en la cabecera `X-Correlacion-Id`.
 
 ## Base de datos
 
@@ -106,7 +114,6 @@ Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que s
 
 | Comando | Lo habilita |
 |---|---|
-| `uv run fastapi dev` | TKT-005 (asumido: el primer ticket que necesita una aplicación servible) |
 | `docker compose up -d minio` | TKT-059 |
 | `npm run dev` | TKT-008 |
 

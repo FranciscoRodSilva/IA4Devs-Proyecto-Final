@@ -175,12 +175,12 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Implementa el tipo de excepción de regla de negocio y el manejador global que lo traduce al contrato de error estructurado.
 
 **Criterios técnicos**
-- [ ] Excepción de dominio que transporta identificador de regla, mensaje, detalle y acciones
+- [ ] Excepción de aplicación —la lanza el caso de uso a partir del resultado de la función de regla, que sigue pura— que transporta identificador de regla, mensaje, detalle y acciones
 - [ ] Manejador global que la serializa según [arquitectura §7.3](02-arquitectura.md#73-contrato-de-error-de-regla-de-negocio)
 - [ ] **Los siete `tipo` del borrador [`openapi.yaml`](api/openapi.yaml), más el `404`**: `REGLA_NEGOCIO` (`409`, con `regla`), `VALIDACION` (`422`), `PERMISO` (`403`), `CONFLICTO` (`409`, con `codigo`), `CONCURRENCIA` (`409`, con cabecera `Retry-After` y la acción `REINTENTAR`), `SESION` (`401`), `LIMITE_INTENTOS` (`429`) y `NO_ENCONTRADO` (`404`). El cliente distingue los `409` por `tipo`, nunca por el texto
 - [ ] **Catálogo cerrado de `codigo`** para `CONFLICTO` —el enum `CodigoConflicto` del borrador—: un `codigo` fuera del catálogo no se puede construir, y ampliarlo se hace en el mismo cambio que añade el caso que lo produce
 - [ ] **Un `409` que no viola una `RN` es `CONFLICTO` con `codigo`**, nunca un `RN-xx` inventado: un estado que no admite la operación, un duplicado o una precondición ausente no son reglas del PRD, y asentarlos como tales contaminaría la consulta de excepciones de `RN-04`
-- [ ] **Las `acciones` se filtran por los roles de quien llama**: nunca se ofrece una acción que le daría `403`. Un test construye el mismo rechazo para dos usuarios con roles distintos y verifica que las acciones difieren
+- [ ] **Las `acciones` se filtran por los roles de quien llama**: nunca se ofrece una acción que le daría `403`, salvo `REINTENTAR` de un `409` `CONCURRENCIA`. Un test construye el mismo rechazo para dos usuarios con roles distintos y verifica que las acciones difieren
 - [ ] Todos los importes del detalle se serializan como cadena
 - [ ] El identificador de regla admite únicamente valores con formato `RN-\d{2}`
 - [ ] Un test por `tipo` que verifica la forma exacta de la respuesta contra su esquema del borrador

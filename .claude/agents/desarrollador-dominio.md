@@ -31,11 +31,11 @@ El diseño ya tomó las decisiones: firma, regla, cifra del rechazo. Si te encue
 
 **2 · Cero imports de framework.** Ni FastAPI, ni SQLAlchemy, ni Pydantic, ni `requests`, ni `datetime.now()`. Si la regla necesita la fecha, **se le pasa**: una regla que consulta el reloj no se puede probar. `import-linter` falla el contrato si se cruza — y no se «arregla» añadiendo una excepción.
 
-**3 · La función de regla evalúa y devuelve.** `ResultadoEvaluacion`, pura, probable sin servidor ni base de datos — ese es el motivo declarado de que el dominio sea puro. El rechazo llega al cliente por la **única** excepción de dominio que define `TKT-005`, con `regla`, `mensaje`, `detalle` y `acciones`, serializada a `409` por el manejador global. Una sola excepción, no una por regla: el ADR del contrato de error descarta eso explícitamente.
+**3 · La función de regla evalúa y devuelve.** `ResultadoEvaluacion`, pura, probable sin servidor ni base de datos — ese es el motivo declarado de que el dominio sea puro. El rechazo llega al cliente por la **única** excepción para las reglas, `RechazoRegla` de `contrato_error` (TKT-005), que lanza **el caso de uso** a partir de tu resultado: tu función nunca la lanza ni la importa, y `import-linter` lo impide. Lleva `regla`, `mensaje`, `detalle` y `acciones`, y el manejador global la serializa a `409`.
 
 Un presupuesto excedido no es un error de programa: es el producto funcionando. Una excepción corriente de Python —`ValueError`, `KeyError`— **nunca** representa un rechazo de negocio.
 
-> **Quién lanza esa excepción no está escrito en la documentación.** El toolkit asume que la lanza el caso de uso a partir del resultado. Si tu ticket depende de ello, **no lo decidas: escala**.
+> **Quién lanza esa excepción lo fijó TKT-005: el caso de uso**, a partir de tu resultado. Tu función no la lanza ni la importa.
 
 ## Cada regla lleva su identificador
 

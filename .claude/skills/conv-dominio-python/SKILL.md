@@ -57,11 +57,11 @@ def evaluar_disponibilidad(
     """Implementa RN-03. Sin efectos secundarios."""
 ```
 
-**Existe una sola excepción de dominio** que transporta `regla`, `mensaje`, `detalle` y `acciones`, y un manejador global que la serializa al contrato de error con código `409` (`TKT-005`). Una sola, no una por regla: el [ADR del contrato de error](../../../docs/adr/20260918-contrato-error-negocio.md) descarta esa opción porque produciría veintiuna formas distintas que la interfaz tendría que tratar por separado.
+**Existe una sola excepción para todas las reglas**, `RechazoRegla` de `backend/contrato_error/`, que transporta `regla`, `mensaje`, `detalle` y `acciones`, y un manejador global que la serializa al contrato de error con código `409` (`TKT-005`). Una sola, no una por regla: el [ADR del contrato de error](../../../docs/adr/20260918-contrato-error-negocio.md) descarta esa opción porque produciría veintiuna formas distintas que la interfaz tendría que tratar por separado.
 
 El `detalle` lleva las **cifras**, no una frase: disponible real, excedente, presupuestado, solicitado. Y `acciones` convierte el bloqueo en bifurcación: a qué ruta se pide la autorización. «Operación rechazada» no es una respuesta, y el escenario de rechazo verifica esos campos.
 
-> **`(asumido)` · quién lanza la excepción.** La documentación define la función que devuelve y la excepción que se serializa, pero no dice quién convierte una en la otra. Lo que este toolkit asume —y hay que confirmar en `TKT-005`— es que **la lanza el caso de uso** a partir del resultado, para que la función de regla siga siendo probable sin capturar excepciones. **No lo des por cerrado por tu cuenta**: si el ticket que estás implementando depende de ello, escala.
+> **Quién lanza la excepción: el caso de uso** (decisión del usuario en TKT-005), a partir del resultado de la función de regla. La función de `dominio/` nunca la lanza ni la importa: la lista blanca de `dominio-sin-framework` lo impide, porque `contrato_error` no es biblioteca estándar ni `tipos_base`.
 
 Lo que sí es seguro: una excepción de Python corriente —`ValueError`, `KeyError`— **nunca** representa un rechazo de negocio. Esas son para errores de programa: un argumento imposible, un invariante del propio objeto roto.
 

@@ -118,6 +118,8 @@ La única operación de la fase 1 idempotente por diseño lo declara: confirmar 
 
 Toda respuesta lleva la cabecera `X-Correlacion-Id`, y todo error la repite en el cuerpo como `correlacion_id` (`RNF-13`, TKT-005). Es lo que el usuario cita cuando llama para decir que algo falló, y lo que TKT-058 usa para encontrar la petición en Sentry. **No se asienta en la bitácora**: son dos registros para dos preguntas distintas.
 
+El servidor genera siempre el identificador, un UUID, y descarta el que traiga la petición `(asumido)`: aceptarlo permitiría inyectar texto en el registro técnico. Un error no controlado responde `500` con un cuerpo mínimo, `mensaje` y `correlacion_id`, sin `tipo` `(asumido)`.
+
 ### 2.8. Archivos
 
 **El API nunca recibe ni sirve los bytes** ([ADR-016](adr/20261001-almacenamiento-de-objetos.md), [arquitectura §7.7](02-arquitectura.md#77-archivos-y-evidencia)). En la fase 1 el único archivo es el Excel de la línea base, y su recorrido son cuatro llamadas:
@@ -137,7 +139,7 @@ La fila del archivo la crea el caso de uso que crea el documento, en el módulo 
 
 Cada rechazo tiene forma fija y el cliente lo distingue por `tipo`. Todos comparten tres campos —`tipo`, `mensaje`, `correlacion_id`— y añaden los suyos. TKT-005 implementa **los siete `tipo`** del borrador —`REGLA_NEGOCIO`, `VALIDACION`, `PERMISO`, `CONFLICTO`, `CONCURRENCIA`, `SESION` y `LIMITE_INTENTOS`— más `NO_ENCONTRADO` para el `404`, y ninguno más.
 
-**Las `acciones` se filtran por los roles de quien llama.** Un rechazo nunca ofrece una acción que le respondería `403`: si Compras topa con una obra sin tope de control, recibe el `409` sin la acción `CAPTURAR_PRESUPUESTO_CONTROL`, que solo Dirección General puede ejecutar. Por eso `acciones` puede llegar vacía aunque el rechazo tenga salida para otro rol, y el mensaje dice a quién pedírsela.
+**Las `acciones` se filtran por los roles de quien llama.** Un rechazo nunca ofrece una acción que le respondería `403`: si Compras topa con una obra sin tope de control, recibe el `409` sin la acción `CAPTURAR_PRESUPUESTO_CONTROL`, que solo Dirección General puede ejecutar. Por eso `acciones` puede llegar vacía aunque el rechazo tenga salida para otro rol, y el mensaje dice a quién pedírsela. **Una excepción:** `REINTENTAR` de un `409` `CONCURRENCIA` no se filtra, porque repite la operación que quien llama acaba de invocar y que `api/` ya autorizó por su rol; sin ella, mientras la sesión no fije los roles, todo vencimiento llegaría sin su salida documentada (supuesto 14).
 
 ### 3.1. Los tres esquemas principales
 
@@ -145,7 +147,7 @@ Cada rechazo tiene forma fija y el cliente lo distingue por `tipo`. Todos compar
 |---|---|---|---|---|
 | `REGLA_NEGOCIO` | `409` | `ErrorReglaNegocio` | `regla` (`^RN-\d{2}$`), `detalle`, `acciones[]` | Una regla del PRD impide la operación. Es **exactamente** el contrato de [arquitectura §7.3](02-arquitectura.md#73-contrato-de-error-de-regla-de-negocio) más `correlacion_id` |
 | `VALIDACION` | `422` | `ErrorValidacion` | `errores[]` con `campo`, `codigo`, `mensaje` y `regla` opcional | La petición está mal formada. Sustituye al `{"detail": [{"loc": …}]}` por omisión de FastAPI |
-| `PERMISO` | `403` | `ErrorPermiso` | `motivo` (`ROL_INSUFICIENTE`, `AUTO_RESOLUCION`, `ORIGEN_NO_VERIFICADO`), `roles_requeridos[]` | Falta el rol, la autoridad sobre la excepción o la prueba de origen. **Nunca lleva cifras del recurso** (HDU-006 esc. 12) |
+| `PERMISO` | `403` | `ErrorPermiso` | `motivo` (`ROL_INSUFICIENTE`, `AUTO_RESOLUCION`, `NO_ES_SOLICITANTE`, `ORIGEN_NO_VERIFICADO`), `roles_requeridos[]` | Falta el rol, la autoridad sobre la excepción o la prueba de origen. **Nunca lleva cifras del recurso** (HDU-006 esc. 12) |
 
 Los cuatro motivos de `403` vienen de capas distintas, y conviene que el cliente lo sepa: `ROL_INSUFICIENTE` lo decide `api/`; `AUTO_RESOLUCION` —nadie resuelve lo suyo— y `NO_ES_SOLICITANTE` —solo quien levantó la requisición la cancela— los decide `dominio/`, porque es una regla del negocio ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)); `ORIGEN_NO_VERIFICADO` es el CSRF. Con usuario autenticado, todo `403` se asienta en la bitácora como `DENEGAR`, en una transacción propia porque no hay cambio que acompañar. Las denegaciones anónimas —el CSRF o las credenciales del inicio de sesión— van a `intento_acceso` y al registro técnico, no a la bitácora, cuyo `usuario_id` es obligatorio.
 
@@ -478,7 +480,7 @@ Todo lo marcado **(asumido)** en el borrador, reunido para escalar. Ninguno es u
 | 2 | Una obra `SUSPENDIDA` puede volver a `ACTIVA` | `reactivar_obra` | Se elimina la ruta |
 | 3 | Un Excel corregido es una importación nueva, no un reintento | `iniciar_analisis_importacion` | Haría falta adjuntar un archivo nuevo a una importación existente |
 | 4 | El disponible sin línea base o sin tope responde `409`, igual que la requisición | `obtener_disponible` | Respondería `200` con `presupuestado` nulo |
-| 5 | Quien no es el solicitante y cancela una requisición recibe `403` con motivo `ROL_INSUFICIENTE` | `cancelar_requisicion` | Se añade un motivo propio al catálogo de `ErrorPermiso` |
+| 5 | Quien no es el solicitante y cancela una requisición recibe `403` con motivo `NO_ES_SOLICITANTE` | `cancelar_requisicion` | Se responde `ROL_INSUFICIENTE` y `NO_ES_SOLICITANTE` sale del catálogo de `ErrorPermiso` |
 | 6 | Quien solicitó una autorización puede ver su detalle | `obtener_solicitud_autorizacion` | `x-roles` se reduce a DG |
 | 7 | La fecha comprometida puede fijarse por renglón al emitir la orden | `emitir_orden_compra` | Una sola fecha por orden |
 | 8 | El faltante se reprograma también sobre órdenes `ABIERTA` | `reprogramar_faltante` | Se restringe a `PARCIAL` con un `409` |
@@ -487,5 +489,6 @@ Todo lo marcado **(asumido)** en el borrador, reunido para escalar. Ninguno es u
 | 11 | El corte de color del semáforo: `VERDE` con desviación ≤ 0, `AMARILLO` hasta `obra.umbral_alerta_pct`, `ROJO` por encima, y sin umbral toda desviación positiva es `ROJO` | `FilaSemaforo.estado` | Cambian el corte y la alerta, no el esquema |
 | 12 | Una solicitud `EXCEDE_ORDENADO` cubre un solo renglón; una remisión que excede en varios pide una por renglón | `crear_solicitud_autorizacion` | `SolicitudExcedenteNueva` vuelve a aceptar varios renglones y la solicitud guarda una lista |
 | 13 | Que una solicitud ya se consumió se lee del `entrada_renglon` que la cita, sin columna nueva en `solicitud_autorizacion` | `SolicitudAutorizacion.consumida_por_entrada_id` | Se guarda la marca en la solicitud |
+| 14 | `REINTENTAR` de una `CONCURRENCIA` no se filtra por los roles de quien llama: repite la operación ya autorizada por `api/` | `ErrorConcurrencia` | Se filtra como el resto de las acciones; mientras no exista la sesión de TKT-006, todo vencimiento llegaría sin acciones |
 
 Las tres preguntas que dejaban provisional parte del borrador —`PA-16` (excedente de recepción), `PA-17` (corrección sobre orden `CERRADA`) y `PA-18` (colores del semáforo)— se resolvieron el 2026-10-17 ([PRD §10](01-descripcion-producto.md#10-supuestos-y-preguntas-abiertas)), y lo que decían ya es contrato en las operaciones de §4.4, §4.6 y §4.8.

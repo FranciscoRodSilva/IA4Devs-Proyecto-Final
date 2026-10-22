@@ -114,7 +114,7 @@ Es la capa HTTP, y solo eso.
 
 - **No impone un patrón de persistencia.** Es un enrutador con validación; no trae ORM ni opina sobre cómo se guardan las cosas. Eso permite que `dominio/` no tenga ninguna dependencia del framework, que es el criterio C1.
 - **Pydantic en la frontera y solo en la frontera.** Los modelos de petición y respuesta son DTO explícitos; el dominio no los conoce. La conversión ocurre en `api/`.
-- **Manejadores de excepción personalizables**, que es lo que hace viable el [contrato de error estructurado](02-arquitectura.md#73-contrato-de-error-de-regla-de-negocio): una excepción de dominio sube, un manejador global la traduce a la forma acordada con su regla, su detalle y sus acciones. Sin eso, cada endpoint tendría que construir el error a mano.
+- **Manejadores de excepción personalizables**, que es lo que hace viable el [contrato de error estructurado](02-arquitectura.md#73-contrato-de-error-de-regla-de-negocio): una excepción que lanza el caso de uso sube, un manejador global la traduce a la forma acordada con su regla, su detalle y sus acciones. Sin eso, cada endpoint tendría que construir el error a mano.
 - **OpenAPI nativo**, sin paquete de terceros. La documentación de API se genera del código, que es lo que exige la capa *API* de `convenciones.md`.
 
 **Por qué no Django**, que sería la elección por defecto para una aplicación de gestión en Python: su ORM es Active Record y su idiom es el *fat model*, con la lógica de negocio dentro de las clases de persistencia. Eso es exactamente lo contrario de [ADR-003](adr/20260918-dominio-puro.md). El detalle completo, incluido lo que se pierde al renunciar al admin de Django, está en [ADR-009](adr/20260918-fastapi.md).
@@ -519,6 +519,7 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Bloqueo pesimista ([ADR-004](adr/20260918-bloqueo-pesimista-presupuesto.md)) | `with_for_update()` de SQLAlchemy 2.0 | ✅ test de concurrencia con dos sesiones reales |
 | Decimal exacto ([ADR-020](adr/20261019-tipos-numericos-base.md)) | `Numeric` → `Decimal` · serialización a cadena · decimal.js en el cliente | ✅ test de `0.1 + 0.2` y de la explosión real |
 | Contrato de error ([ADR-007](adr/20260918-contrato-error-negocio.md)) | Manejador global de excepciones de FastAPI | ✅ test de forma de respuesta |
+| Contrato de error sin excepción de regla en `dominio/` ([ADR-022](adr/20261020-contrato-de-error-y-raiz-de-composicion.md)) | Excepción única lanzada por el caso de uso · manejadores de FastAPI · *middleware* ASGI puro en `backend/servidor/` | ✅ prueba de pureza de `contrato_error` y lista blanca de `import-linter` |
 | Libro mayor de inventario ([ADR-005](adr/20260918-ledger-inventario.md)) | Sin columna de existencia en el esquema | ✅ el esquema no la tiene |
 | Línea base inmutable ([ADR-006](adr/20260918-snapshot-linea-base.md)) | Disparador en migración de Alembic | ✅ test que intenta el `UPDATE` y espera el fallo |
 | 38 invariantes en base de datos | Restricciones y permisos declarados en migraciones | ✅ tests contra PostgreSQL real, con el rol de aplicación |
@@ -536,7 +537,7 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Fuentes simuladas acotadas ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)) | Puerto de lectura en `analitica` · adaptador simulado · `pydantic-settings` | ✅ test: con fuentes simuladas y `entorno = produccion` la aplicación no arranca; test: un destajo simulado no cambia el disponible de `RN-03` |
 | El borrador OpenAPI es el contrato | `docs/api/openapi.yaml` · OpenAPI publicado por FastAPI | ✅ prueba de contrato de TKT-061 |
 
-**Veintiuna decisiones, diecinueve verificables automáticamente.** Es la aplicación del criterio C5: una regla de diseño que solo vive en un documento se erosiona.
+**Veintidós decisiones, veinte verificables automáticamente.** Es la aplicación del criterio C5: una regla de diseño que solo vive en un documento se erosiona.
 
 Las dos que no se verifican solas son las dos que dependen de un entorno que todavía no existe. Cuando exista, `RNF-11` convierte la primera en un procedimiento con fecha; la segunda —un despliegue único— no es verificable porque no es una restricción, es una renuncia.
 
@@ -587,3 +588,4 @@ Las dos que no se verifican solas son las dos que dependen de un entorno que tod
 | [ADR-019](adr/20261017-roles-postgresql-y-migraciones.md) | Roles de PostgreSQL creados por la migración y el de migración a cargo del entorno, en lugar de crear los tres en la migración o de migrar con un superusuario |
 | [ADR-020](adr/20261019-tipos-numericos-base.md) | Tipos numéricos base con aritmética exacta y redondeo explícito, en `backend/tipos_base/`, en lugar del contexto del proceso o de redondear al construir |
 | [ADR-021](adr/20261019-lista-blanca-del-dominio.md) | Lista blanca del dominio verificada con un contrato propio de `import-linter`, en lugar de una lista negra de frameworks, de todos los paquetes instalados o de un verificador AST |
+| [ADR-022](adr/20261020-contrato-de-error-y-raiz-de-composicion.md) | Excepción de las reglas lanzada por el caso de uso y raíz de composición fuera de `cimenta/`, en lugar de lanzarla desde `dominio/` o de componer la aplicación en `cimenta/main.py` |

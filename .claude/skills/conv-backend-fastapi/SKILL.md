@@ -85,15 +85,17 @@ El cliente distingue cada rechazo por `tipo`, nunca por el texto. Son **siete `t
 
 La frontera entre `409` y `422` se decide con una pregunta: **¿la misma petición, contra otro estado del sistema, habría pasado?** Si sí, es `409`.
 
-Nunca un `dict` suelto con un mensaje, y nunca una excepción por regla. Hay **una sola** excepción de dominio para las reglas —`regla`, `mensaje`, `detalle`, `acciones`— y **un manejador global** que serializa todos los `tipo` (`TKT-005`). El [ADR del contrato de error](../../../docs/adr/20260918-contrato-error-negocio.md) descarta la excepción por regla porque produciría una forma por regla que la interfaz tendría que tratar por separado.
+Nunca un `dict` suelto con un mensaje, y nunca una excepción por regla. Hay **una sola** excepción para las reglas, `RechazoRegla` de `contrato_error`, que lanza el caso de uso —`regla`, `mensaje`, `detalle`, `acciones`— y **un manejador global** que serializa todos los `tipo` (`TKT-005`). El [ADR del contrato de error](../../../docs/adr/20260918-contrato-error-negocio.md) descarta la excepción por regla porque produciría una forma por regla que la interfaz tendría que tratar por separado.
 
-El cuerpo de `REGLA_NEGOCIO` lleva el **dato accionable** —disponible real, excedente, presupuestado, solicitado y el `consumido_desglose`— y las `acciones` con su ruta absoluta (`/api/v1/...`). **Las `acciones` se filtran por los roles de quien llama**: nunca se ofrece una que le respondería `403`. Todos los importes del detalle, como cadena. El campo `regla` solo admite el formato `RN-\d{2}`.
+El cuerpo de `REGLA_NEGOCIO` lleva el **dato accionable** —disponible real, excedente, presupuestado, solicitado y el `consumido_desglose`— y las `acciones` con su ruta absoluta (`/api/v1/...`). **Las `acciones` se filtran por los roles de quien llama**: nunca se ofrece una que le respondería `403`, salvo `REINTENTAR` de una concurrencia (ver más abajo). Todos los importes del detalle, como cadena. El campo `regla` solo admite el formato `RN-\d{2}`.
 
 Una requisición bloqueada responde `409` **y aun así se persiste** en `BLOQUEADA` con su solicitud de autorización; sus identificadores viajan en el `detalle`.
 
 El identificador de correlación de la petición viaja **dentro** del cuerpo del error, para que el usuario pueda citarlo, y en el registro estructurado de `structlog` (`RNF-13`).
 
 Los errores no filtran trazas ni estructura interna al cliente.
+
+**Cómo se usa.** Cada `tipo` tiene su clase en `contrato_error` (`ConflictoEstado`, `ConcurrenciaVencida`, `ValidacionRechazada`, `PermisoDenegado`, `SesionInvalida`, `LimiteIntentosExcedido`, `NoEncontrado`), con argumentos por nombre; un valor fuera de contrato falla al construir. Los importes del detalle se pasan como `Dinero`, `Cantidad`, `Rendimiento` o `Porcentaje` **cuantizados**; `float` o `Decimal` suelto es `TypeError`. Cada `Accion` declara los roles que pueden ejecutarla, los de `x-roles` de la operación a la que apunta, y el manejador la omite si quien llama no tiene ninguno; los roles de quien llama los lee de `request.state.roles_de_quien_llama`, que fija la dependencia de sesión. Un campo de `tipos_base` en un DTO se declara con `Annotated[Dinero, PlainValidator(...)]` y una función que rechaza con `ValueError` lo que no sea cadena: Pydantic convierte un `ValueError` en `422 FORMATO`, pero un `TypeError` dentro de un validador termina en `500`. Un `404` de un caso de uso es `NoEncontrado(recurso=...)`, nunca `HTTPException`. `REINTENTAR` de una `ConcurrenciaVencida` es la única acción que no se filtra por rol: repite la operación ya autorizada de quien llama, y su `ruta` debe ser la de esa operación. En pruebas, `TestClient(app, raise_server_exceptions=False)`.
 
 ## 7 · Lo que esta capa tiene prohibido
 
