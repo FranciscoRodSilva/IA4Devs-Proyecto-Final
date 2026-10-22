@@ -48,10 +48,10 @@ Los tres primeros comandos comprueban el formato, el estilo y los tipos. Si `ruf
 Para arrancar la aplicación, aparte de la verificación y porque no termina por sí solo (se detiene con `Ctrl+C`):
 
 ```bash
-uv run fastapi dev
+uv run --env-file ../.env fastapi dev
 ```
 
-`uv run fastapi dev` arranca la aplicación en `http://127.0.0.1:8000` con recarga automática; `/docs` muestra el contrato publicado. Todavía no tiene rutas de negocio. Cada petición deja una línea JSON en la salida estándar con su `correlacion_id`, el mismo que viaja en la cabecera `X-Correlacion-Id`.
+`uv run --env-file ../.env fastapi dev` arranca la aplicación en `http://127.0.0.1:8000` con recarga automática; `/docs` muestra el contrato publicado. Sin el archivo de entorno la aplicación arranca, pero la primera ruta que necesita la base responde `500`. Cada petición deja una línea JSON en la salida estándar con su `correlacion_id`, el mismo que viaja en la cabecera `X-Correlacion-Id`.
 
 ## Base de datos
 
@@ -116,6 +116,8 @@ Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que s
 |---|---|
 | `docker compose up -d minio` | TKT-059 |
 | `npm run dev` | TKT-008 |
+
+Iniciar sesión en local: no hay alta de usuarios todavía (`PA-T13` de TKT-006); las pruebas siembran los suyos.
 
 Cuando un ticket se completa, su `/sdd-completar` quita la marca del comando que habilita en `CLAUDE.md`.
 

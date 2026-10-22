@@ -104,7 +104,7 @@ La frontera que más importa es la de `409` y `422`, y se decide con una pregunt
 
 **Todo método que muta estado exige además el token de doble envío** (`RNF-05`): la cookie `cimenta_csrf`, legible desde JavaScript, y la cabecera `X-CSRF-Token` con el mismo valor. En el YAML es el esquema `csrf`, declarado en cada `POST`, `PUT`, `PATCH` y `DELETE` —se comprueba por programa que no falta en ninguno—. Sin token, o con uno distinto, `403` con `motivo: ORIGEN_NO_VERIFICADO`.
 
-El inicio de sesión también muta estado, y por eso hay una ruta previa, `GET /sesion/csrf`, que fija la cookie y devuelve el token antes de que exista sesión. El token se rota al iniciar y al cerrar sesión.
+El inicio de sesión también muta estado, y por eso hay una ruta previa, `GET /sesion/csrf`, que fija la cookie y devuelve el token antes de que exista sesión. El token se rota al iniciar y al cerrar sesión. TKT-006 emite el token; la rotación y la verificación llegan con TKT-057.
 
 ### 2.6. Idempotencia
 
@@ -251,7 +251,7 @@ Base `/api/v1`. **Roles**: DG Dirección General · DP Director de Proyectos · 
 
 | Método | Ruta | Roles | Reglas | Escenarios | Ticket |
 |---|---|---|---|---|---|
-| `GET` | `/sesion/csrf` | sin sesión | — | — | TKT-057 |
+| `GET` | `/sesion/csrf` | sin sesión | — | — | TKT-006, TKT-057 |
 | `POST` | `/sesion` | sin sesión | — | — | TKT-006, TKT-057 |
 | `GET` | `/sesion` | Todos | — | — | TKT-006 |
 | `POST` | `/sesion/cierre` | Todos | — | — | TKT-006 |

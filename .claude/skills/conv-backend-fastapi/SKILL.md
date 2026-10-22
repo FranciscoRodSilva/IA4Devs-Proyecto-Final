@@ -113,3 +113,7 @@ Los errores no filtran trazas ni estructura interna al cliente.
 - Español, el del [glosario](../../../docs/glosario.md).
 - Inyección por `Depends`, no por import global. La sesión se inyecta; no se crea dentro del caso de uso.
 - `structlog` para el registro; nada de `print`. Ningún dato sensible en el log.
+
+## 9 · Cómo se protege una ruta
+
+Toda ruta, salvo `GET /api/v1/sesion/csrf` y `POST /api/v1/sesion`, depende de `sesion_vigente`. Si la operación tiene `x-roles`, se declara `dependencies=[Depends(exigir_rol(<roles de x-roles>))]`, importado de `cimenta.identidad.interfaz`. `exigir_rol` asienta el `DENEGAR`, pero solo el de `ROL_INSUFICIENTE`; la ruta no lo hace. Un `403` que nace en un caso de uso (`AUTO_RESOLUCION`, `NO_ES_SOLICITANTE`) no se asienta solo: el caso de uso lo asienta por la interfaz de auditoría, porque `registrar_denegacion` no está en `cimenta.identidad.interfaz`. Los parámetros con `Depends` se escriben con `Annotated`. Un test recorre el enrutador y falla si una ruta queda sin la dependencia. En pruebas, `TestClient(app, base_url="https://testserver")`: la cookie de sesión es `Secure`.

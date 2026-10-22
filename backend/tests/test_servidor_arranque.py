@@ -58,26 +58,37 @@ FIXTURES_CON_BASE = {
     "credenciales",
 }
 
-# El proceso limpio construye la aplicación, atiende una petición a una ruta que no existe y mira
-# lo que se cargó: el camino del error no toca la base (CA-11 esc. 3, D-3).
+# El proceso limpio no tiene ninguna variable `CIMENTA_DB_*`. Construye la aplicación con identidad
+# montada y atiende tres peticiones cuyo camino no necesita la base: una ruta que no existe, el
+# token CSRF y una consulta de sesión sin cookie. Si cualquiera intentara crear el motor,
+# `leer_variable` lanzaría y la respuesta sería 500 (CA-11 esc. 3 de TKT-005, reescrito por D-2 de TKT-006).
 PROGRAMA_SIN_BASE = """
 import io
 import json
-import sys
+import os
 
-from servidor.fabrica import crear_aplicacion
 from fastapi.testclient import TestClient
 
-aplicacion = crear_aplicacion(destino_registro=io.StringIO())
-respuesta = TestClient(aplicacion, raise_server_exceptions=False).get("/api/v1/no-existe")
+from servidor.fabrica import crear_aplicacion
 
-raices = {nombre.partition(".")[0] for nombre in sys.modules}
+aplicacion = crear_aplicacion(destino_registro=io.StringIO())
+cliente = TestClient(aplicacion, base_url="https://testserver", raise_server_exceptions=False)
+respuestas = {
+    "no_existe": cliente.get("/api/v1/no-existe"),
+    "csrf": cliente.get("/api/v1/sesion/csrf"),
+    "sesion": cliente.get("/api/v1/sesion"),
+}
 print(json.dumps({
-    "estado": respuesta.status_code,
-    "fastapi_cargado": "fastapi" in raices,
-    "con_base": sorted(raices & {"sqlalchemy", "psycopg", "psycopg2", "asyncpg", "alembic"}),
+    "variables_de_base": sorted(n for n in os.environ if n.startswith("CIMENTA_DB_")),
+    "estados": {nombre: r.status_code for nombre, r in respuestas.items()},
+    "cuerpos": {nombre: r.json() for nombre, r in respuestas.items()},
 }))
 """
+
+# El entorno de los procesos que no deben ver la base: el del test sin ninguna `CIMENTA_DB_*`.
+ENTORNO_SIN_BASE = {
+    nombre: valor for nombre, valor in ENTORNO.items() if not nombre.startswith("CIMENTA_DB_")
+}
 
 
 def aplicacion_de_la_fabrica() -> FastAPI:
@@ -127,11 +138,17 @@ def test_tkt005_ca14_la_aplicacion_no_esta_en_depuracion() -> None:
 
 
 def test_tkt005_ca11_el_camino_del_error_no_toca_la_base() -> None:
-    """TC-75 · CA-11 esc. 3 (asumido) — construir la aplicación y un 404 no cargan SQLAlchemy ni psycopg."""
+    """TC-75 · CA-11 esc. 3 (asumido) · TKT-006 D-2 — sin `CIMENTA_DB_*`, el 404, el token CSRF y el 401 sin cookie no tocan la base.
+
+    Con `identidad` montada la aplicación sí importa SQLAlchemy al construirse: lo que este caso
+    protege ya no es qué módulos se cargan, sino que el camino del error y las dos rutas que no
+    necesitan sesión funcionan en un proceso sin ninguna variable de base. El motor es perezoso; si
+    cualquiera de las tres peticiones lo creara, `leer_variable` lanzaría y la respuesta sería 500.
+    """
     proceso = subprocess.run(
         [sys.executable, "-c", PROGRAMA_SIN_BASE],
         cwd=BACKEND,
-        env=ENTORNO,
+        env=ENTORNO_SIN_BASE,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -140,9 +157,14 @@ def test_tkt005_ca11_el_camino_del_error_no_toca_la_base() -> None:
 
     assert proceso.returncode == 0, proceso.stderr
     resultado = json.loads(proceso.stdout.strip().splitlines()[-1])
-    assert resultado["estado"] == 404
-    assert resultado["fastapi_cargado"] is True  # anti-verde vacío: la aplicación sí se construyó
-    assert resultado["con_base"] == []
+    assert resultado["variables_de_base"] == []  # anti-verde vacío: el proceso no ve la base
+    assert resultado["estados"] == {"no_existe": 404, "csrf": 200, "sesion": 401}
+    cuerpos = resultado["cuerpos"]
+    assert cuerpos["no_existe"]["tipo"] == "NO_ENCONTRADO"
+    assert set(cuerpos["csrf"]) == {"token"}
+    assert cuerpos["sesion"]["tipo"] == "SESION"
+    assert cuerpos["sesion"]["motivo"] == "SIN_SESION"
+    assert "detail" not in cuerpos["sesion"]
 
 
 def test_tkt005_ca12_la_fabrica_publica_el_contrato() -> None:
@@ -313,6 +335,59 @@ def test_tkt005_ca12_comando_de_desarrollo_arranca() -> None:
     contrato = respuesta.json()
     assert contrato["openapi"].startswith("3.")
     assert "paths" in contrato
+
+
+def test_tkt006_car4_fastapi_dev_sin_variables_de_base_publica_identidad() -> None:
+    """TKT-006 fila 7 · CA-R4 · D-2 — `fastapi dev` sin `CIMENTA_DB_*` arranca y publica las cuatro rutas y el esquema `sesion`.
+
+    Es el comando de desarrollo real, en un subproceso, con puerto libre y sin recargador, como
+    TC-79. El entorno no lleva ninguna variable de base: montar `identidad` no puede exigirla para
+    arrancar. `/openapi.json` debe listar las cuatro operaciones de identidad y declarar
+    `components.securitySchemes.sesion`.
+    """
+    puerto = puerto_libre()
+    entorno = {**ENTORNO_SIN_BASE, "COLUMNS": "250"}
+    assert not [nombre for nombre in entorno if nombre.startswith("CIMENTA_DB_")]
+    with tempfile.TemporaryFile() as salida:
+        proceso = subprocess.Popen(
+            [sys.executable, "-m", "fastapi", "dev", "--no-reload", "--port", str(puerto)],
+            cwd=BACKEND,
+            env=entorno,
+            stdin=subprocess.DEVNULL,
+            stdout=salida,
+            stderr=subprocess.STDOUT,
+        )
+        try:
+            respuesta = esperar_openapi(proceso, puerto)
+            codigo_de_salida = proceso.poll()
+        finally:
+            terminar(proceso)
+        salida.seek(0)
+        registro = salida.read().decode("utf-8", errors="replace")
+
+    assert respuesta is not None, (
+        f"fastapi dev sin variables de base no respondió 200 en /openapi.json "
+        f"(terminó antes de tiempo: {codigo_de_salida is not None}, código {codigo_de_salida}).\n"
+        f"--- salida del subproceso ---\n{registro}"
+    )
+    contrato = respuesta.json()
+    publicadas = {
+        f"{metodo.upper()} {ruta}"
+        for ruta, elemento in contrato["paths"].items()
+        for metodo in elemento
+    }
+    assert publicadas >= {
+        "GET /api/v1/sesion/csrf",
+        "POST /api/v1/sesion",
+        "GET /api/v1/sesion",
+        "POST /api/v1/sesion/cierre",
+    }
+    esquema = contrato["components"]["securitySchemes"]["sesion"]
+    assert (esquema["type"], esquema["in"], esquema["name"]) == (
+        "apiKey",
+        "cookie",
+        "cimenta_sesion",
+    )
 
 
 def test_tkt005_ca14_uvicorn_real_no_imprime_el_secreto_de_una_excepcion() -> None:

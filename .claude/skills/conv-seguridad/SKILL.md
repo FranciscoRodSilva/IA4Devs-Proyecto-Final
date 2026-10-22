@@ -22,7 +22,7 @@ Al auditar: por cada endpoint que recibe un identificador, preguntar *¿qué pas
 
 - La cookie lleva un **identificador opaco** contra la tabla `sesion`. Nunca datos del usuario, nunca sus roles.
 - Ni JWT ni cookie firmada autocontenida: quitar un rol tiene que surtir efecto en la **petición siguiente** ([ADR-014](../../../docs/adr/20260919-sesion-con-estado.md)).
-- Cookies `HttpOnly`, `Secure`, `SameSite`. Expiración y renovación explícitas.
+- Cookies `HttpOnly`, `Secure`, `SameSite`. Expiración y renovación explícitas. La dependencia es `sesion_vigente`; los roles se leen de la base en cada petición y nunca se cachean.
 - **CSRF por doble envío.** Toda operación que modifica estado lo exige.
 - **No se inicia sesión sin conexión.** La captura diferida no incluye autenticar.
 

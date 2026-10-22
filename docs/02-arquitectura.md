@@ -290,6 +290,8 @@ Dos niveles, y hacen falta los dos:
 
 Un usuario puede acumular varios roles (PRD §4). El permiso efectivo es la unión de los roles, con la restricción de auto-autorización aplicada siempre.
 
+**Cómo se aplica.** Cada ruta declara los roles de su `x-roles` con `exigir_rol`, una dependencia publicada en `cimenta.identidad.interfaz` que se apoya en `sesion_vigente`: la sesión, el usuario y sus roles se leen de la base en cada petición. Un `403` con usuario autenticado se asienta como `DENEGAR` en una transacción propia. Ese asiento automático lo dispara solo `exigir_rol` y cubre únicamente `ROL_INSUFICIENTE`: un `403` que nace dentro de un caso de uso (`AUTO_RESOLUCION`, `NO_ES_SOLICITANTE`) no se asienta solo, y `registrar_denegacion` no está publicada en `cimenta.identidad.interfaz`; el caso de uso que lo lanza debe asentarlo por la interfaz de auditoría. La regla de auto-autorización es `evaluar_resolucion`, en `identidad/dominio`, y el caso de uso que resuelve la convierte en `403` `AUTO_RESOLUCION`. Ver [ADR-023](adr/20261021-sesion-y-autorizacion-por-dependencia.md).
+
 ### 7.2. Bitácora
 
 Toda operación que crea, autoriza, rechaza o revierte escribe en la bitácora dentro de **la misma transacción** que el cambio. Si la bitácora falla, el cambio se deshace. Registrar después, o en un proceso aparte, produce huecos precisamente en los casos de error, que son los que importan.
@@ -639,5 +641,6 @@ Las decisiones que un desarrollador nuevo se preguntaría *"¿por qué lo hicier
 | [ADR-020](adr/20261019-tipos-numericos-base.md) | Tipos numéricos base con aritmética exacta y redondeo explícito, en `backend/tipos_base/` |
 | [ADR-021](adr/20261019-lista-blanca-del-dominio.md) | El dominio importa solo la biblioteca estándar y `tipos_base`, verificado con un contrato propio de import-linter (sustituye el contrato `dominio-sin-framework` de ADR-018) |
 | [ADR-022](adr/20261020-contrato-de-error-y-raiz-de-composicion.md) | El caso de uso lanza la excepción de las reglas, y el contrato y la raíz de composición viven fuera de `cimenta/` |
+| [ADR-023](adr/20261021-sesion-y-autorizacion-por-dependencia.md) | La sesión y el rol por ruta son dependencias de FastAPI, y el `DENEGAR` se asienta en una transacción propia |
 
 Las decisiones de herramienta —framework, ORM, modo de ejecución— viven en el [stack tecnológico](06-stack-tecnologico.md) y en [ADR-009](adr/20260918-fastapi.md) … [ADR-013](adr/20260919-sqlalchemy-sincrono.md).

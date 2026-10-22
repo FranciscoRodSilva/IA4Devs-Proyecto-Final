@@ -11,7 +11,7 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
 4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 22 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 23 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
@@ -103,7 +103,7 @@ uv run ruff check --fix .        # lint
 uv run mypy .                    # tipos
 uv run lint-imports              # esqueleto y fronteras entre módulos
 uv run python -m herramientas.verificar_float   # float prohibido en firmas de dominio/ y tipos_base/
-uv run fastapi dev               # API en 127.0.0.1:8000, con /docs
+uv run --env-file ../.env fastapi dev   # API en 127.0.0.1:8000, con /docs
 uv run pytest                    # tests · requiere Docker en marcha (testcontainers)
 uv run --env-file ../.env alembic upgrade head   # migraciones, siempre con el rol de migración
 uv run --env-file ../.env python -m herramientas.contrasenas_roles   # contraseñas de los roles, tras migrar

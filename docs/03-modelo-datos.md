@@ -961,6 +961,8 @@ erDiagram
     }
 ```
 
+`usuario.email` se guarda en minúsculas: lo normaliza el código y lo exige `ck_usuario_email_minusculas` (TKT-006).
+
 La relación `usuario_rol` es de muchos a muchos porque el PRD asume que en una empresa de este tamaño una persona puede acumular roles. Una persona no tiene dos veces el mismo rol: `usuario_rol` lleva `UNIQUE (usuario_id, rol_id)`.
 
 **`bitacora.regla_negocio`** es la columna que convierte la bitácora en algo consultable. Permite responder *"¿cuántas veces se intentó sobregirar una partida este mes y quién lo autorizó?"* con una consulta, que es exactamente el tipo de pregunta que hoy no tiene respuesta.

@@ -198,7 +198,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 
 | | |
 |---|---|
-| **Tipo** | Fundación · **Talla** M · **Depende de** TKT-003, TKT-005 |
+| **Tipo** | Fundación · **Talla** M · **Depende de** TKT-003, TKT-005, TKT-007 |
 
 **Qué hace.** Implementa inicio de sesión, sesión autenticada y comprobación de permisos por rol, incluida la prohibición de auto-autorización.
 
@@ -213,10 +213,11 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 - [ ] Regla de no-auto-autorización implementada en `dominio/`, no en la interfaz, y probada sin HTTP
 - [ ] Un intento sin permiso responde `403` y se asienta en la bitácora como `DENEGAR`, **en una transacción propia** —no hay cambio que acompañar— y siempre con usuario autenticado. Las denegaciones anónimas —token de doble envío ausente, credenciales erróneas al iniciar sesión— van a `intento_acceso` y al registro técnico, no a la bitácora: `bitacora.usuario_id` sigue `NOT NULL`
 - [ ] **Solo dos rutas no exigen sesión: `GET /api/v1/sesion/csrf` y `POST /api/v1/sesion`.** Un test **recorre el enrutador**, lo compara con esa lista cerrada y falla si cualquier otra ruta queda sin proteger
+- [ ] Emite el token de doble envío en `GET /api/v1/sesion/csrf` (cookie `cimenta_csrf` sin `HttpOnly` y el mismo valor en el cuerpo); **verificarlo** en las rutas que mutan, rotarlo y el `403` `ORIGEN_NO_VERIFICADO` son de TKT-057
 
 > **No se usa `passlib`.** Sin versión nueva desde 2020 en la pieza que guarda las contraseñas de seis roles que autorizan gasto. `pwdlib` hace lo mismo, se mantiene, y es lo que usan los ejemplos públicos de FastAPI — que por el criterio C3 del [stack §1](06-stack-tecnologico.md#1-cómo-se-eligió) cuenta.
 
-**Non-goals** — No implementa recuperación de contraseña, segundo factor ni inicio de sesión federado. No implementa permisos por obra: el MVP autoriza por rol. **No implementa el límite de intentos, CSRF ni las cabeceras de seguridad: son TKT-057**, que viaja en el mismo sprint.
+**Non-goals** — No implementa recuperación de contraseña, segundo factor ni inicio de sesión federado. No implementa permisos por obra: el MVP autoriza por rol. **No implementa el límite de intentos, la verificación CSRF ni las cabeceras de seguridad: son TKT-057**, que viaja en el mismo sprint.
 
 ---
 
@@ -646,6 +647,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 - [ ] Una requisición cancelada libera el presupuesto que tenía comprometido
 - [ ] El vencimiento de `lock_timeout` **se traduce a `409` `CONCURRENCIA`** con cabecera `Retry-After` y la acción `REINTENTAR`, nunca a un fallo interno (`RNF-16`)
 - [ ] Un test retiene el bloqueo desde otra sesión y verifica que la segunda vence y responde con el contrato, no con un `500`
+- [ ] Si el caso de uso responde `403` (`NO_ES_SOLICITANTE`), un `403` que nace en un caso de uso se asienta como `DENEGAR` por la interfaz de auditoría, porque el asiento automático de `exigir_rol` cubre solo `ROL_INSUFICIENTE`; si hace falta un ayudante compartido, se publica en `cimenta.identidad.interfaz` en este ticket (TKT-006 no lo publica)
 
 **Non-goals** — No resuelve la autorización; no emite orden de compra.
 
@@ -746,16 +748,17 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 |---|---|
 | **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-004, TKT-005, TKT-006 |
 
-**Qué hace.** Escribe en `dominio/` las dos comprobaciones que deciden quién puede resolver una solicitud: el rol requerido y la prohibición de resolver lo propio. Se prueban sin HTTP ni base de datos.
+**Qué hace.** Usa en `dominio/` la prohibición de resolver lo propio que implementa TKT-006 (`evaluar_resolucion`); el rol lo comprueba `api/` con `exigir_rol` (TKT-006). Se prueba sin HTTP ni base de datos.
 
 **Criterios técnicos**
-- [ ] Función pura que recibe los roles del actor, el `rol_autorizador` de la solicitud, el actor y el solicitante, y devuelve permitido o denegado con su causa: **sin rol** o **es propia**
-- [ ] El permiso efectivo es la **unión** de los roles del actor ([arquitectura §7.1](02-arquitectura.md#71-autorización)); tener `DIRECCION_GENERAL` no exime de la prohibición de auto-autorización (HDU-003 esc. 8)
-- [ ] La regla *"nadie resuelve lo suyo"* se escribe **una vez**, con un nombre que no dice *solicitud*: HDU-008 esc. 7 —no validar la propia medición— la reutiliza en la fase 2 por la interfaz publicada de `identidad`, que es donde vive
+- [ ] Función pura que recibe el actor y el solicitante (`evaluar_resolucion(*, solicitante_id, resolutor_id)`, sin roles) y devuelve un `ResultadoResolucion`, con `motivo = AUTO_RESOLUCION` cuando solicitante y resolutor coinciden, sin recibir roles. La falta de rol no la decide esta función: es `ROL_INSUFICIENTE` y la decide `api/` con `exigir_rol` (TKT-006), antes de llamar al caso de uso. `evaluar_resolucion` (TKT-006) cubre solo `AUTO_RESOLUCION` y no recibe roles
+- [ ] El permiso efectivo es la **unión** de los roles del actor ([arquitectura §7.1](02-arquitectura.md#71-autorización)), que `exigir_rol` comprueba en `api/`; tener `DIRECCION_GENERAL` no exime de la prohibición de auto-autorización (HDU-003 esc. 8), que `evaluar_resolucion` aplica sin recibir roles
+- [ ] La regla *"nadie resuelve lo suyo"* se escribe **una vez**, con un nombre que no dice *solicitud*: HDU-008 esc. 7 —no validar la propia medición— la reutiliza en la fase 2 por la interfaz publicada de `identidad`, que es donde vive. La implementa TKT-006 como `evaluar_resolucion`, publicada en `cimenta.identidad.interfaz`; este ticket la usa y no la reescribe.
 - [ ] Sin dependencias de framework, ORM ni HTTP: `import-linter` lo verifica (TKT-002)
+- [ ] Cuando el caso de uso que usa `evaluar_resolucion` responde `403` `AUTO_RESOLUCION`, ese `403` se asienta como `DENEGAR` por la interfaz de auditoría, porque el asiento automático de `exigir_rol` cubre solo `ROL_INSUFICIENTE`; si hace falta un ayudante compartido, se publica en `cimenta.identidad.interfaz` en este ticket (TKT-006 no lo publica)
 - [ ] Tests de dominio `test_hdu003_esc07_…` y `test_hdu003_esc08_…` en milisegundos; la versión HTTP de los mismos escenarios es de TKT-027
 
-> **El rol se comprueba en `api/` y la autoridad en `dominio/`, y aquí se escriben las dos como regla.** La comprobación del rol en la ruta es la que corta el paso; la del dominio es la que se puede probar sin levantar nada y la que sobrevive a una ruta nueva que olvide la dependencia ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)).
+> **El rol se comprueba en `api/` y la autoridad en `dominio/`; este ticket usa solo la segunda.** La comprobación del rol en la ruta es la que corta el paso; la de la autoridad es la que se puede probar sin levantar nada, y la prohibición de resolver lo propio sobrevive a una ruta nueva que olvide la dependencia ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)).
 
 **Non-goals** — No implementa delegación, suplencia ni umbrales por monto (F2.7, fuera del MVP). No consulta la base de datos: recibe los datos ya cargados.
 
@@ -776,8 +779,9 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 - [ ] `POST /api/v1/solicitudes-autorizacion/{solicitud_id}/resolucion` con decisión y motivo: es una transición, no un `PATCH` del estado
 - [ ] Resolver sin `DIRECCION_GENERAL` responde `403`, la solicitud sigue `PENDIENTE` y el intento se asienta como `DENEGAR` (esc. 7); intentar resolver la propia responde `403` con la causa, y también se asienta (esc. 8)
 - [ ] **`POST /api/v1/solicitudes-autorizacion` es de este ticket** y sirve solo a `RN-07`: crea la solicitud `EXCEDE_ORDENADO` a la que apunta la acción `SOLICITAR_AUTORIZACION` de HDU-005 esc. 5 (TKT-035). **El servidor recalcula las cifras** —ordenado, recibido acumulado, saldo y excedente— contra la orden y el renglón, nunca acepta las del cliente, las guarda en `contexto` y guarda además el **renglón** en `orden_compra_renglon_id` y la **cantidad excedente solicitada** en `cantidad_excedente` (TKT-019), que es el tope que la entrada podrá sumar al reenviarse (TKT-035). Va dirigida a `DIRECCION_GENERAL`. El bloqueo de `RN-03` ya crea su solicitud (TKT-021) y no pasa por aquí. La ruta se construye en el sprint 3; su test con una orden y una entrada reales viaja al sprint 5 con TKT-035
-- [ ] `GET /api/v1/bitacora?regla_negocio=RN-03&obra_id=…&desde=…&hasta=…`, **paginada** —la consulta es la de TKT-007—, devuelve autorizaciones y rechazos con actor, momento, motivo y obra, distinguibles entre sí, **más los bloqueos que nunca se resolvieron** y las **recapturas de tope** que TKT-017 asienta con la misma regla (esc. 11). La ruta la monta este ticket desde la raíz de composición con `exigir_rol("DIRECCION_GENERAL", "DIRECTOR_PROYECTOS")` —`auditoria` no puede importar `identidad`—, y convierte el `usuario_id` que devuelve `consultar_bitacora` en el `UsuarioResumen` del borrador por la interfaz de `identidad`
+- [ ] `GET /api/v1/bitacora?regla_negocio=RN-03&obra_id=…&desde=…&hasta=…`, **paginada** —la consulta es la de TKT-007—, devuelve autorizaciones y rechazos con actor, momento, motivo y obra, distinguibles entre sí, **más los bloqueos que nunca se resolvieron** y las **recapturas de tope** que TKT-017 asienta con la misma regla (esc. 11). La ruta la monta este ticket desde la raíz de composición con `exigir_rol("DIRECCION_GENERAL", "DIRECTOR_PROYECTOS")` —`auditoria` no puede importar `identidad`—, y convierte el `usuario_id` que devuelve `consultar_bitacora` en el `UsuarioResumen` del borrador por la interfaz de `identidad`. Mientras `rutas_de` (la ayuda del test del enrutador, TC-47) no lea el contexto de inclusión, la dependencia `exigir_rol` se declara en el decorador de la propia ruta (`dependencies=[Depends(exigir_rol(...))]`) o se amplía `rutas_de` en este ticket: con `include_router(..., dependencies=[...])` la ruta queda protegida en ejecución, pero `violaciones()` la reporta como «sin proteger»
 - [ ] Todos los importes como cadena; todos los rechazos con el contrato de error
+- [ ] Los `403` `AUTO_RESOLUCION` y `NO_ES_SOLICITANTE` nacen en el caso de uso y no los asienta `exigir_rol`: el caso de uso los asienta como `DENEGAR` por la interfaz de auditoría (HDU-003 esc. 8)
 - [ ] Tests HTTP `test_hdu003_esc01_…`, `esc02`, `esc03`, `esc07`, `esc08` y `esc11` en verde, con el escenario 11 sembrado con autorizaciones, rechazos y bloqueos sin resolver del mismo mes
 
 **Non-goals** — No notifica por correo ni por ningún canal externo: el aviso es el contador. No implementa interfaz.

@@ -10,13 +10,15 @@ prueba recibe una base copiada de ella. Sin Docker en marcha la suite falla: no 
 """
 
 import importlib
+import io
 import os
 import re
 import secrets
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
@@ -24,6 +26,8 @@ import psycopg
 import pytest
 from alembic import command
 from alembic.config import Config
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from psycopg import sql
 from sqlalchemy import create_engine, pool, text
 from sqlalchemy.engine import URL, Engine
@@ -40,6 +44,14 @@ BASE_PLANTILLA = "cimenta_plantilla"
 
 RolDePrueba = Literal["migracion", "aplicacion", "lectura"]
 
+# Costes baratos de Argon2 (TKT-006): cada derivación tarda milisegundos en lugar de cientos.
+ENTORNO_DE_PRUEBA = {
+    "CIMENTA_ARGON2_TIEMPO": "1",
+    "CIMENTA_ARGON2_MEMORIA_KIB": "8192",
+    "CIMENTA_ARGON2_PARALELISMO": "1",
+}
+INICIO_DEL_RELOJ = datetime(2026, 10, 21, 9, 0, tzinfo=UTC)
+
 
 class Migrar(Protocol):
     def __call__(
@@ -55,6 +67,30 @@ class Conectar(Protocol):
     def __call__(
         self, rol: RolDePrueba, base: str, autocommit: bool = True
     ) -> psycopg.Connection[tuple[Any, ...]]: ...
+
+
+class SembrarUsuario(Protocol):
+    def __call__(
+        self,
+        correo: str,
+        contrasena: str,
+        roles: Sequence[str] = (),
+        activo: bool = True,
+        nombre: str = "Ana Torres",
+    ) -> uuid.UUID: ...
+
+
+class RelojDePrueba:
+    """Reloj que la prueba controla: `ahora` es un atributo y `avanzar` lo adelanta (TKT-006)."""
+
+    def __init__(self, ahora: datetime) -> None:
+        self.ahora = ahora
+
+    def __call__(self) -> datetime:
+        return self.ahora
+
+    def avanzar(self, delta: timedelta) -> None:
+        self.ahora = self.ahora + delta
 
 
 @dataclass(frozen=True)
@@ -380,3 +416,93 @@ def sesion_bd(motor_aplicacion: Engine) -> Iterator[Session]:
     """Session síncrona del rol de aplicación. La prueba confirma o deshace; al salir se cierra."""
     with Session(motor_aplicacion) as sesion:
         yield sesion
+
+
+# ----------------------------------------------------------------------------- TKT-006
+# Ninguna de estas fixtures es `autouse` (TC-13 de TKT-004). Los símbolos de producción que
+# aún no existen se importan dentro del cuerpo, para que la recolección no dependa de ellos.
+
+
+@pytest.fixture
+def reloj_de_prueba() -> RelojDePrueba:
+    """Reloj controlado por la prueba, que empieza el 2026-10-21 a las 09:00 UTC."""
+    return RelojDePrueba(INICIO_DEL_RELOJ)
+
+
+@pytest.fixture
+def sembrar_usuario(motor_aplicacion: Engine) -> SembrarUsuario:
+    """Fábrica de usuarios reales: hash Argon2id con costes baratos, filas con el rol de aplicación.
+
+    Los roles se buscan por `clave`, nunca por `id`; una clave que la semilla no tiene falla.
+    """
+    from cimenta.identidad.aplicacion.configuracion import ConfiguracionIdentidad
+    from cimenta.identidad.infraestructura.contrasenas import ContrasenasArgon2
+
+    contrasenas = ContrasenasArgon2(ConfiguracionIdentidad.desde_entorno(ENTORNO_DE_PRUEBA))
+
+    def _sembrar(
+        correo: str,
+        contrasena: str,
+        roles: Sequence[str] = (),
+        activo: bool = True,
+        nombre: str = "Ana Torres",
+    ) -> uuid.UUID:
+        usuario_id = uuid.uuid4()
+        with motor_aplicacion.begin() as conexion:
+            conexion.execute(
+                text(
+                    "INSERT INTO usuario (id, nombre, email, password_hash, activo) "
+                    "VALUES (:id, :nombre, :email, :hash, :activo)"
+                ),
+                {
+                    "id": usuario_id,
+                    "nombre": nombre,
+                    "email": correo,
+                    "hash": contrasenas.derivar(contrasena),
+                    "activo": activo,
+                },
+            )
+            for clave in roles:
+                resultado = conexion.execute(
+                    text(
+                        "INSERT INTO usuario_rol (id, usuario_id, rol_id) "
+                        "SELECT :id, :usuario_id, rol.id FROM rol WHERE rol.clave = :clave"
+                    ),
+                    {"id": uuid.uuid4(), "usuario_id": usuario_id, "clave": clave},
+                )
+                assert resultado.rowcount == 1, (
+                    f"El rol {clave!r} no existe en la semilla de `rol`."
+                )
+        return usuario_id
+
+    return _sembrar
+
+
+@pytest.fixture
+def registro_tecnico() -> io.StringIO:
+    """Destino del registro técnico de la aplicación: la prueba lee ahí lo que se registró."""
+    return io.StringIO()
+
+
+@pytest.fixture
+def aplicacion_identidad(
+    registro_tecnico: io.StringIO, motor_aplicacion: Engine, reloj_de_prueba: RelojDePrueba
+) -> FastAPI:
+    """La aplicación real con `identidad` montada, sobre la base de prueba y el reloj de la prueba."""
+    from servidor.fabrica import crear_aplicacion
+
+    return crear_aplicacion(
+        destino_registro=registro_tecnico,
+        motor=motor_aplicacion,
+        reloj=reloj_de_prueba,
+        entorno=ENTORNO_DE_PRUEBA,
+    )
+
+
+@pytest.fixture
+def cliente(aplicacion_identidad: FastAPI) -> Iterator[TestClient]:
+    """Cliente HTTPS: con `http://`, httpx no devolvería la cookie `Secure` (TKT-006, design)."""
+    with TestClient(
+        aplicacion_identidad, base_url="https://testserver", raise_server_exceptions=False
+    ) as cliente_http:
+        yield cliente_http
