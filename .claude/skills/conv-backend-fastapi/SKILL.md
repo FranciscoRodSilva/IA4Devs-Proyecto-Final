@@ -27,7 +27,7 @@ La capa `aplicacion/`:
 
 - **Abre la transacción** y la cierra. Una sola por caso de uso.
 - Carga lo que haga falta por el repositorio, llama a la regla del dominio, persiste el resultado.
-- **Escribe la bitácora en la misma transacción que el cambio.** No es un `after_commit`, no es un `BackgroundTask`, no es un hook del ORM. Si el cambio se revierte, la bitácora se revierte con él.
+- **Escribe la bitácora en la misma transacción que el cambio.** Se escribe con `asentar(sesion_bd, accion=..., entidad_tipo=..., entidad_id=..., usuario_id=..., ocurrido_en=..., ...)` de `cimenta.auditoria.interfaz`, pasándole la sesión del caso de uso: `asentar` nunca confirma, y un asiento mal formado lanza `ValidacionRechazada` antes de escribir. Un `403` autenticado se asienta con `asentar_denegacion`, en una transacción que abre quien llama, separada de la de la petición. Los importes de `datos_antes` y `datos_despues` van ya como cadena. No es un `after_commit`, no es un `BackgroundTask`, no es un hook del ORM. Si el cambio se revierte, la bitácora se revierte con él.
 - Aplica el bloqueo pesimista donde el ADR lo exige: `select(...).with_for_update()` antes de evaluar el disponible. Sin él, dos requisiciones simultáneas pasan las dos.
 
 Si aparece un `if` de negocio en `aplicacion/`, está en la capa equivocada. Un `if resultado.bloqueada:` para decidir qué persistir sí es orquestación; un `if solicitado > disponible:` no.

@@ -30,7 +30,7 @@ Treinta y ocho invariantes del [modelo de datos](../../docs/03-modelo-datos.md) 
 | Invariante | Mecanismo |
 |---|---|
 | Línea base congelada inmutable | disparador que rechaza `UPDATE` y `DELETE` |
-| Bitácora sin modificación | disparador que rechaza `UPDATE` y `DELETE` |
+| Bitácora sin modificación | sin `UPDATE`, `DELETE` ni `TRUNCATE` para el rol de aplicación (invariante 10, TKT-007) |
 | Inventario solo-anexado | **sin columna de existencia** — su ausencia es el diseño |
 | Rangos y dominios cerrados | `CHECK` con nombre |
 

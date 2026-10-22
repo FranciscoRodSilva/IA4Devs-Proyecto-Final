@@ -39,7 +39,7 @@ warn_redundant_casts = true
 exclude = ['^\.venv/']
 
 [[tool.mypy.overrides]]
-module = ["cimenta.*.dominio.*", "tipos_base.*", "contrato_error.*", "servidor.*"]
+module = ["cimenta.*.dominio.*", "cimenta.auditoria.*", "tipos_base.*", "contrato_error.*", "servidor.*"]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_untyped_calls = true

@@ -8,7 +8,7 @@ solo salen del entorno, y nunca hay un valor por omisión.
 import os
 from typing import Final
 
-from sqlalchemy import URL
+from sqlalchemy import URL, Engine, create_engine
 
 ROL_MIGRACION: Final[str] = "cimenta_migracion"
 ROL_APLICACION: Final[str] = "cimenta_aplicacion"
@@ -36,3 +36,21 @@ def url_migracion() -> URL:
         port=int(leer_variable("CIMENTA_DB_PUERTO")),
         database=leer_variable("CIMENTA_DB_NOMBRE"),
     )
+
+
+def url_aplicacion() -> URL:
+    """URL del rol de aplicación, igual que url_migracion con su propia contraseña."""
+    return URL.create(
+        "postgresql+psycopg",
+        username=ROL_APLICACION,
+        password=leer_variable("CIMENTA_DB_CONTRASENA_APLICACION"),
+        host=leer_variable("CIMENTA_DB_HOST"),
+        port=int(leer_variable("CIMENTA_DB_PUERTO")),
+        database=leer_variable("CIMENTA_DB_NOMBRE"),
+    )
+
+
+def crear_motor_aplicacion() -> Engine:
+    """Motor síncrono del rol de aplicación (ADR-013). create_engine no conecta: la primera conexión
+    se abre con la primera consulta. Quien lo necesite perezoso lo envuelve en functools.cache."""
+    return create_engine(url_aplicacion(), pool_pre_ping=True)

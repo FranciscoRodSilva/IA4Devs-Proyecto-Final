@@ -232,15 +232,15 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 - [ ] Tabla `bitacora` según [modelo de datos §10](03-modelo-datos.md#10-identidad-y-auditoría). `bitacora.obra_id` es un identificador lógico **sin clave foránea**: `auditoria` es transversal y no depende de `presupuesto` ([modelo de datos §2](03-modelo-datos.md#2-convenciones))
 - [ ] El enum `accion` completo, el mismo del modelo §10 y de `AccionBitacora` en el borrador: `CREAR`, `ACTUALIZAR`, `EVALUAR`, `BLOQUEAR`, `AUTORIZAR`, `RECHAZAR`, `CANCELAR`, `EMITIR`, `AJUSTAR`, `REPROGRAMAR`, `CONGELAR`, `RECAPTURAR`, `DESCARTAR`, `CONFIRMAR`, `ANULAR`, `SUSPENDER`, `REACTIVAR`, `CERRAR`, `DESACTIVAR`, `LIBERAR`, `VALIDAR`, `DENEGAR`
 - [ ] El asiento se escribe en **la misma transacción** que el cambio: si la bitácora falla, el cambio se deshace
-- [ ] El rol de aplicación tiene `INSERT` y `SELECT`, y **no** `UPDATE` ni `DELETE`
+- [ ] El rol de aplicación tiene `INSERT` y `SELECT`, y **no** `UPDATE` ni `DELETE` ni `TRUNCATE`
 - [ ] Un test verifica que un `UPDATE` sobre la bitácora falla a nivel de motor
-- [ ] Consulta por obra, por rango de fechas y por regla de negocio —parámetro `regla_negocio`—, **paginada** y con el asiento más reciente primero
-- [ ] Servicio aparte para asentar un `403` como `DENEGAR` en **una transacción propia**, siempre con usuario autenticado: es la única escritura de la bitácora que no acompaña a un cambio, y la usa TKT-006
+- [ ] Consulta por obra, por rango de fechas y por regla de negocio —parámetro `regla_negocio`—, **paginada** y con el asiento más reciente primero, como caso de uso `consultar_bitacora` publicado en `cimenta.auditoria.interfaz`. **Sin ruta HTTP**: `GET /api/v1/bitacora` la monta TKT-027
+- [ ] Servicio aparte, `asentar_denegacion`, para asentar un `403` como `DENEGAR` en **una transacción propia** —la abre quien llama, separada de la de la petición—, siempre con usuario autenticado y atribuido a él (`entidad_tipo = 'usuario'`, `entidad_id = usuario_id`): es la única escritura de la bitácora que no acompaña a un cambio, y la usa TKT-006
 - [ ] Índices `(obra_id, ocurrido_en DESC)` y parcial sobre `regla_negocio`
 
 > Registrar después del cambio, o en un proceso aparte, produce huecos precisamente en los casos de error — que son los que importan.
 
-**Non-goals** — No implementa interfaz de consulta: se consulta por API en esta fase.
+**Non-goals** — No monta la ruta `GET /api/v1/bitacora` ni implementa interfaz de consulta: la ruta la monta TKT-027 con `exigir_rol`, y completa el nombre del usuario.
 
 ---
 
@@ -765,7 +765,7 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-025 |
+| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-025, TKT-006, TKT-007 |
 
 **Qué hace.** Expone la bandeja de Dirección General, su contador, el detalle con las cifras del momento del bloqueo, la resolución y la consulta de excepciones de la bitácora.
 
@@ -776,7 +776,7 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 - [ ] `POST /api/v1/solicitudes-autorizacion/{solicitud_id}/resolucion` con decisión y motivo: es una transición, no un `PATCH` del estado
 - [ ] Resolver sin `DIRECCION_GENERAL` responde `403`, la solicitud sigue `PENDIENTE` y el intento se asienta como `DENEGAR` (esc. 7); intentar resolver la propia responde `403` con la causa, y también se asienta (esc. 8)
 - [ ] **`POST /api/v1/solicitudes-autorizacion` es de este ticket** y sirve solo a `RN-07`: crea la solicitud `EXCEDE_ORDENADO` a la que apunta la acción `SOLICITAR_AUTORIZACION` de HDU-005 esc. 5 (TKT-035). **El servidor recalcula las cifras** —ordenado, recibido acumulado, saldo y excedente— contra la orden y el renglón, nunca acepta las del cliente, las guarda en `contexto` y guarda además el **renglón** en `orden_compra_renglon_id` y la **cantidad excedente solicitada** en `cantidad_excedente` (TKT-019), que es el tope que la entrada podrá sumar al reenviarse (TKT-035). Va dirigida a `DIRECCION_GENERAL`. El bloqueo de `RN-03` ya crea su solicitud (TKT-021) y no pasa por aquí. La ruta se construye en el sprint 3; su test con una orden y una entrada reales viaja al sprint 5 con TKT-035
-- [ ] `GET /api/v1/bitacora?regla_negocio=RN-03&obra_id=…&desde=…&hasta=…`, **paginada** —la consulta es la de TKT-007—, devuelve autorizaciones y rechazos con actor, momento, motivo y obra, distinguibles entre sí, **más los bloqueos que nunca se resolvieron** y las **recapturas de tope** que TKT-017 asienta con la misma regla (esc. 11)
+- [ ] `GET /api/v1/bitacora?regla_negocio=RN-03&obra_id=…&desde=…&hasta=…`, **paginada** —la consulta es la de TKT-007—, devuelve autorizaciones y rechazos con actor, momento, motivo y obra, distinguibles entre sí, **más los bloqueos que nunca se resolvieron** y las **recapturas de tope** que TKT-017 asienta con la misma regla (esc. 11). La ruta la monta este ticket desde la raíz de composición con `exigir_rol("DIRECCION_GENERAL", "DIRECTOR_PROYECTOS")` —`auditoria` no puede importar `identidad`—, y convierte el `usuario_id` que devuelve `consultar_bitacora` en el `UsuarioResumen` del borrador por la interfaz de `identidad`
 - [ ] Todos los importes como cadena; todos los rechazos con el contrato de error
 - [ ] Tests HTTP `test_hdu003_esc01_…`, `esc02`, `esc03`, `esc07`, `esc08` y `esc11` en verde, con el escenario 11 sembrado con autorizaciones, rechazos y bloqueos sin resolver del mismo mes
 

@@ -12,7 +12,7 @@ Treinta y ocho invariantes del [modelo de datos](../../../docs/03-modelo-datos.m
 | Invariante | Mecanismo |
 |---|---|
 | La línea base congelada es inmutable | disparador que rechaza `UPDATE` y `DELETE` |
-| La bitácora no admite modificación | disparador que rechaza `UPDATE` y `DELETE` |
+| La bitácora no admite modificación | sin `UPDATE`, `DELETE` ni `TRUNCATE` para el rol de aplicación (invariante 10, TKT-007) |
 | El inventario es solo-anexado | sin columna de existencia; correcciones como movimiento `AJUSTE` |
 | Rangos y dominios cerrados | `CHECK` con nombre |
 | Unicidad condicional | único parcial con `WHERE` |

@@ -183,7 +183,7 @@ El código más estricto del proyecto, porque es el que contiene el valor.
 - **`NUMERIC` con escala declarada** para todo importe. `DOUBLE PRECISION` prohibido.
 - **`snake_case` singular** para tablas y columnas. Contradice la recomendación habitual de plural; aquí manda la convención del proyecto.
 - **Restricciones con nombre explícito**, siempre. Una restricción anónima no se puede eliminar limpiamente en una migración futura.
-- **Los invariantes que puede sostener la base, los sostiene la base.** Disparador que rechaza `UPDATE`/`DELETE` sobre la línea base congelada y sobre la bitácora; `CHECK` para rangos; `EXCLUDE` o único parcial donde corresponda. Una regla implementada solo en Python se salta con un `psql`.
+- **Los invariantes que puede sostener la base, los sostiene la base.** Disparador que rechaza `UPDATE`/`DELETE` sobre la línea base congelada y sobre la bitácora (histórico: TKT-007 (D-6) lo sustituyó por privilegios para la bitácora); `CHECK` para rangos; `EXCLUDE` o único parcial donde corresponda. Una regla implementada solo en Python se salta con un `psql`.
 - **Tres roles**: migración (DDL), aplicación (DML), solo lectura. Las pruebas se conectan con **el de aplicación** — con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
 - **Migraciones reversibles y revisadas a mano.** `--autogenerate` es un punto de partida: no detecta renombrados, los emite como `drop` + `add`, que en producción es pérdida de datos.
 - **Nada de lógica de negocio en la base.** Sin procedimientos almacenados de reglas. Los disparadores solo protegen invariantes estructurales.

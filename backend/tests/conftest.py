@@ -14,7 +14,7 @@ import os
 import re
 import secrets
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -25,8 +25,9 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from psycopg import sql
-from sqlalchemy import create_engine, pool
-from sqlalchemy.engine import URL
+from sqlalchemy import create_engine, pool, text
+from sqlalchemy.engine import URL, Engine
+from sqlalchemy.orm import Session
 from testcontainers.community.postgres import PostgresContainer
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -324,3 +325,58 @@ def conectar(
         return conexion
 
     return _conectar
+
+
+def _exigir_motor_de_aplicacion(motor: Engine) -> None:
+    """Misma guarda que _exigir_rol_de_aplicacion, para un motor de SQLAlchemy."""
+    with motor.connect() as conexion:
+        fila = conexion.execute(
+            text(
+                "SELECT current_user, r.rolsuper, "
+                "pg_has_role(current_user, 'cimenta_migracion', 'MEMBER') "
+                "FROM pg_roles r WHERE r.rolname = current_user"
+            )
+        ).one()
+    actual, superusuario, miembro_de_migracion = fila
+    if actual != ROL_APLICACION or superusuario or miembro_de_migracion:
+        motor.dispose()
+        pytest.fail(
+            f"El motor de pruebas no es el del rol de aplicación (cimenta_aplicacion): es {actual}. "
+            "Con el propietario, las pruebas de permisos quedan verdes sin verificar nada."
+        )
+
+
+@pytest.fixture
+def guarda_de_aplicacion() -> Callable[[Engine], None]:
+    """La guarda, para que una prueba demuestre que rechaza al propietario (CA-9 esc. 2)."""
+    return _exigir_motor_de_aplicacion
+
+
+@pytest.fixture
+def motor_aplicacion(
+    contenedor_postgres: PostgresContainer, credenciales: dict[str, str], base_de_prueba: str
+) -> Iterator[Engine]:
+    """Motor síncrono de cimenta_aplicacion sobre base_de_prueba, NullPool, con la guarda de rol."""
+    motor = create_engine(
+        URL.create(
+            "postgresql+psycopg",
+            username=ROL_APLICACION,
+            password=credenciales["aplicacion"],
+            host=contenedor_postgres.get_container_host_ip(),
+            port=int(contenedor_postgres.get_exposed_port(5432)),
+            database=base_de_prueba,
+        ),
+        poolclass=pool.NullPool,
+    )
+    try:
+        _exigir_motor_de_aplicacion(motor)
+        yield motor
+    finally:
+        motor.dispose()
+
+
+@pytest.fixture
+def sesion_bd(motor_aplicacion: Engine) -> Iterator[Session]:
+    """Session síncrona del rol de aplicación. La prueba confirma o deshace; al salir se cierra."""
+    with Session(motor_aplicacion) as sesion:
+        yield sesion
