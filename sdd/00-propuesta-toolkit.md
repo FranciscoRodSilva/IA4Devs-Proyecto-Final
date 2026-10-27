@@ -226,7 +226,7 @@ Veintiuno. Cada uno hace **una** cosa: un agente que hace dos hace ambas peor.
 
 La columna **Fase** indica cuándo se construye: **A** = necesario para empezar a trabajar tickets; **B** = se añade cuando el proyecto llegue a esa superficie.
 
-**Diez están construidos**: `analista-dominio`, `arquitecto-tecnico`, `desarrollador-dominio`, `desarrollador-sql`, `tester-backend`, `auditor-arquitectura`, `auditor-seguridad`, `corrector-revision`, `git-entrega`, `ingeniero-devsecops`. El resto se nombra en los comandos aunque no exista todavía; qué hace el orquestador mientras tanto está en [metodologia §13](metodologia.md#13--el-catálogo-de-agentes-y-qué-hacer-cuando-uno-no-existe).
+**Veintiuno están construidos**: todos los de fase A más `tester-frontend`, incluidos los once que se añadieron el 2026-10-22 tras repetirse ocho veces su ausencia en [`_evolucion.md`](_evolucion.md). Queda pendiente `generador-onboarding`, de fase B. Qué hace el orquestador cuando un comando nombra un agente que no existe está en [metodologia §13](metodologia.md#13--el-catálogo-de-agentes-y-qué-hacer-cuando-uno-no-existe).
 
 **Qué modelo usa cada uno** —`opus` para definir y diseñar, `haiku` por omisión para ejecutar, y cómo el orquestador lo cambia en cada despacho— está en [metodologia §14](metodologia.md#14--enrutamiento-de-modelo). El ciclo TDD que siguen tester y desarrolladores, en [metodologia §16](metodologia.md#16--el-ciclo-tdd).
 

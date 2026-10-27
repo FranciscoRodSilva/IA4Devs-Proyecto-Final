@@ -196,7 +196,7 @@ El toolkit se construye por fases: los comandos nombran el agente **correcto** p
 
 | Construido | Pendiente |
 |---|---|
-| `analista-dominio` · `arquitecto-tecnico` · `desarrollador-dominio` · `desarrollador-sql` · `tester-backend` · `auditor-arquitectura` · `auditor-seguridad` · `corrector-revision` · `git-entrega` · `ingeniero-devsecops` | `revisor-impacto` · `desarrollador-aplicacion` · `desarrollador-api` · `disenador-ui-ux` · `desarrollador-react` · `tester-api` · `tester-frontend` · `auditor-sql` · `auditor-codigo` · `auditor-docs` · `meta-sdd` |
+| `analista-dominio` · `arquitecto-tecnico` · `revisor-impacto` · `desarrollador-dominio` · `desarrollador-aplicacion` · `desarrollador-api` · `desarrollador-sql` · `disenador-ui-ux` · `desarrollador-react` · `tester-backend` · `tester-api` · `tester-frontend` · `auditor-arquitectura` · `auditor-sql` · `auditor-codigo` · `auditor-seguridad` · `auditor-docs` · `corrector-revision` · `git-entrega` · `ingeniero-devsecops` · `meta-sdd` | `generador-onboarding` (fase B) |
 
 `desarrollador-tdd` ya no se construye: el ciclo de [§16](#16--el-ciclo-tdd) lo conduce el orquestador con el tester y el desarrollador de cada capa. `ingeniero-ci` quedó absorbido por `ingeniero-devsecops`, que además del pipeline cubre la imagen, el Compose, las dependencias y los secretos.
 
@@ -222,8 +222,15 @@ El modelo se elige por la **naturaleza de la tarea**, no por su importancia. Pag
 | `auditor-arquitectura` | `sonnet` | alto | Último filtro de las 17 reglas innegociables |
 | `auditor-seguridad` | `sonnet` | alto | Lo más fácil de omitir y lo más caro de remediar en producción |
 | `ingeniero-devsecops` | `sonnet` | medio | Compuertas del pipeline, imagen y cadena de suministro: un error abre la puerta a todos los tickets siguientes |
+| `tester-api` · `tester-frontend` | `sonnet` | alto | Igual que `tester-backend`: son el oráculo del rojo en su capa |
+| `auditor-sql` · `auditor-codigo` | `sonnet` | alto | Primera pasada de una auditoría: nunca por debajo de quien escribió |
+| `revisor-impacto` | `sonnet` | alto | Revisa el diseño, no lo escribe; lo que se le escapa lo hereda la ejecución |
+| `disenador-ui-ux` | `sonnet` | medio | Detalla un boceto que ya existe; los estados y las acciones salen de la historia y del OpenAPI |
+| `meta-sdd` | `sonnet` | medio | Agrupa por causa raíz y propone; no aplica nada |
+| `auditor-docs` | `haiku` | medio | Comprobación mayormente mecánica, apoyada en los verificadores de `tools/` |
 | `desarrollador-dominio` | `haiku` | medio | Ejecuta un diseño aprobado contra tests ya escritos: no decide, pone en verde |
 | `desarrollador-sql` | `haiku` | medio | Igual, y el auditor revisa lo que produce |
+| `desarrollador-aplicacion` · `desarrollador-api` · `desarrollador-react` | `haiku` | medio | Igual: ponen en verde los tests de su capa siguiendo un diseño sin decisiones pendientes |
 | `corrector-revision` | `haiku` | medio | Aplica hallazgos ya diagnosticados por otro, con archivo y línea |
 | `git-entrega` | `haiku` | bajo | Ramas, diff, commit, PR. Mecánico y verificable por comando |
 
@@ -264,7 +271,7 @@ Todo código de producción de CIMENTA nace para poner en verde un test que ya e
 
 | Fase | Quién | Qué hace | Evidencia en `impl.md` |
 |---|---|---|---|
-| **Rojo** | `tester-backend` | Escribe los tests que la fila declara —uno por escenario, con su nombre `test_hduXXX_escNN_…`— y los ejecuta. Cada uno falla **por la razón esperada**: la función o la ruta no existe, o el rechazo no ocurre. Un error de importación, de entorno o de sintaxis no es un rojo válido | Salida real en rojo |
+| **Rojo** | `tester-backend`; `tester-api` en las filas de endpoints; `tester-frontend` en las de interfaz | Escribe los tests que la fila declara —uno por escenario, con su nombre `test_hduXXX_escNN_…`— y los ejecuta. Cada uno falla **por la razón esperada**: la función o la ruta no existe, o el rechazo no ocurre. Un error de importación, de entorno o de sintaxis no es un rojo válido | Salida real en rojo |
 | **Verde** | El desarrollador de la capa | Escribe **el código mínimo** que pone en verde esos tests, **de uno en uno**: ejecuta solo el test en curso, lo pone en verde, pasa al siguiente. No escribe código que ningún test de la fila exige | Salida real en verde de la fila y de la suite que ya existía |
 | **Refactor** | El mismo desarrollador | Con todo en verde, limpia duplicación y nombres **sin cambiar comportamiento**, y vuelve a correr la suite. Si algo se pone rojo, se deshace el refactor, no se toca el test | Qué se refactorizó, o «sin refactor» |
 

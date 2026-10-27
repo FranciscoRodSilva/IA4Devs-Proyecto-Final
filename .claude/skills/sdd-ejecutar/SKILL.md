@@ -27,7 +27,7 @@ Despacha **`git-entrega`** en modo apertura: crea o verifica `tkt-xxx-<slug>` de
 
 ### 2a · Rojo
 
-Despacha **`tester-backend`** con la fila y los casos de su columna «Tests que pone en verde». Escribe un test por escenario —los de la historia y los `x-escenarios` de las operaciones del [borrador OpenAPI](../../../docs/api/openapi.yaml) cuyo `x-tickets` incluye este ticket— y los ejecuta:
+Despacha al tester de la capa —**`tester-backend`** por omisión, **`tester-api`** si la fila es de endpoints, **`tester-frontend`** si es de interfaz— con la fila y los casos de su columna «Tests que pone en verde». Escribe un test por escenario —los de la historia y los `x-escenarios` de las operaciones del [borrador OpenAPI](../../../docs/api/openapi.yaml) cuyo `x-tickets` incluye este ticket— y los ejecuta:
 
 - Nombre con el escenario: `test_hduXXX_escNN_...`.
 - **Al menos un test de rechazo por regla implicada**, y el test de rechazo comprueba **el contrato de error completo** —`tipo`, `regla` o `codigo`, cifras como cadena y `acciones`—, no solo el código de estado.
