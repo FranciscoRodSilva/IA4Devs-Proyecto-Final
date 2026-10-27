@@ -91,7 +91,11 @@ export function crearClienteApi(opciones: OpcionesCliente) {
     },
   };
   cliente.use(middleware);
-  return cliente;
+  /** Descarta el token en caché: la siguiente mutación pide uno nuevo (S101, al terminar la sesión). */
+  function reiniciarToken() {
+    token = null;
+  }
+  return Object.assign(cliente, { reiniciarToken });
 }
 
 export type ClienteApi = ReturnType<typeof crearClienteApi>;

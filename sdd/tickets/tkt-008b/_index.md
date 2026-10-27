@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+ARCHIVADO
 
 ## Ficha
 
@@ -18,7 +18,7 @@ LISTO PARA EJECUTAR
 | **Invariantes en riesgo** | Ninguna tabla. Regresión `CA-R1` a `CA-R4` |
 | **Módulos en alcance** | `frontend/` (`src/app/`, `src/modulos/`, `e2e/`), `CLAUDE.md` y `docs/arranque-local.md` (solo lo que la fila 16 aún no cubre), `docs/05-tickets-trabajo.md`, `docs/06-stack-tecnologico.md`, `tools/verificar_docs.py` y `tools/tests/` |
 | **Capas en alcance** | Cliente: enrutado, inicio de sesión, armazón; humo de Playwright; documentación |
-| **Depende de** | TKT-008a (LISTO PARA EJECUTAR) |
+| **Depende de** | TKT-008a (ARCHIVADO) |
 | **Bloquea a** | Las pantallas de la fase 1 |
 | **Rama** | `tkt-008b-sesion-armazon` |
 
@@ -28,14 +28,17 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-26 |
 | Design | [design.md común](../tkt-008/design.md), filas 8, 9, 10, 14, 16 y su parte de la 15 | `/sdd-disenar` | Aprobado el 2026-10-26 |
-| Impl | impl.md | `/sdd-ejecutar` | Pendiente |
-| Delta | delta.md | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-27; verificado en `/sdd-revisar` el 2026-10-27 |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-10-27 |
 
 ## Log de estados
 
 | Fecha | De | A | Comando | Motivo |
 |---|---|---|---|---|
 | 2026-10-26 | — | `LISTO PARA EJECUTAR` | partición de TKT-008 | Nace de la decisión D-1 del diseño de TKT-008, aprobado por el usuario con D-1 a D-11. Spec repartida: M1 (enrutado), M3 (sesión), M4, M5, M10 (su parte) y S1; `CA-1` esc. 2 y 3, `CA-3` esc. 3, `CA-5`, `CA-6`, `CA-7`, `CA-14` y `CA-R1` a `CA-R4`. No se ejecuta hasta que TKT-008a esté `ARCHIVADO` o `LISTO PARA PR` |
+| 2026-10-27 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas 8, 9, 10, 14, 16 y la parte de la 15 con MT-15 a MT-23, en la rama `tkt-008b-sesion-armazon`, apilada sobre `tkt-008a-andamiaje-cliente`. Cliente: 133 pruebas de Vitest y 3 de Playwright contra el backend real, en dos corridas seguidas; backend intacto con 1138 pruebas. Mutación MT-15 a MT-23 sin supervivientes. Condiciones heredadas de 008a cumplidas. Se instaló el Chromium de Playwright, con permiso del usuario. `auditor-arquitectura`: `REQUIERE CAMBIOS` con un Mayor (F201) y dos ciclos de corrección; la verificación en copia limpia (F203) falló primero porque `uv` eligió Python 3.15 y `pyyaml` no compila, y el usuario decidió fijar `--python 3.14` en la guía sin tocar `backend/`; después pasó completa. Reauditoría `APROBADO`. Sin commit |
+| 2026-10-27 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite reejecutada por el orquestador: 154 pruebas del cliente, humo 3 de 3, 12 de `tools/`, `lint`, `typecheck`, `build`, `tipos:verificar` y `verificar_docs` limpios; backend intacto con 1138 pruebas, `ruff`, `mypy`, 15 contratos y `verificar_float`. Cuatro auditorías en paralelo: seguridad `APROBADO` con cinco Bajas; arquitectura (pasada independiente), código y documentación `REQUIERE CAMBIOS`, con tres Mayores de código (ramas sin test tras iniciar sesión y en la cuenta atrás) y dos de documentación. Dos ciclos de corrección, tester en rojo y corrector en verde: cerraron, entre otros, que el token CSRF sobrevivía a una sesión terminada, que la caché del usuario anterior sobrevivía a un nuevo inicio de sesión, que la cuenta atrás contaba ticks y no reloj, y que la guarda de la siembra no tenía test ni contemplaba `PGHOSTADDR` ni `PGSERVICE`. Las cuatro quedaron `APROBADO`. No toca `docs/api/openapi.yaml` ni `backend/`. Queda para quien aprueba si `--python 3.14` merece ADR. Sin commit |
+| 2026-10-27 | `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` | `delta.md` escrito; la auditoría de documentación del cierre devolvió cuatro Menores (el recuento de pruebas nuevas, la relación entre `reiniciarToken` y `terminarSesion`, una cita textual y la fila de modelo), corregidos aquí; `verificar_docs` y `extraer_mermaid` en verde. Seis observaciones en `_evolucion.md`; `meta-sdd` sube dos patrones y abre dos nuevos que cruzan el umbral (el verde no se escribe de uno en uno y la mutación se limita a la lista del diseño) y recomienda aprobar primero una mutación exploratoria. Commit local en la rama del ticket, apilada sobre la de TKT-008a; el PR lo abre una persona. Queda para quien aprueba si `--python 3.14` merece ADR |
 
 ## Condiciones heredadas de TKT-008a
 
@@ -52,3 +55,7 @@ De la reauditoría de arquitectura de TKT-008a ([impl](../tkt-008a/impl.md#audit
 ## Decisiones registradas
 
 Las de [TKT-008](../tkt-008/_index.md#decisiones-registradas), que valen para las tres partes.
+
+## Tickets futuros sugeridos
+
+La deuda de este ticket está en [delta.md](delta.md#deuda-que-queda-abierta): fijar el intérprete de Python en `backend/` y que el pipeline de `tools/` instale `uv` (TKT-009), el umbral del `429` frente al humo (TKT-057), y un ticket propio de herramientas para que `verificar_docs.py` ignore los bloques de código.

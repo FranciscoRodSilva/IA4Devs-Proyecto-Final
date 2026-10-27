@@ -10,10 +10,11 @@ Los comandos se ejecutan desde el directorio que indica cada bloque. La lista co
 |---|---|---|
 | Git | Cualquier versión reciente | Clonar el repositorio y trabajar con ramas |
 | uv | La que instale el gestor oficial | Gestionar el backend: intérprete de Python, entorno y dependencias |
-| Python | 3.13 o superior | Ejecutar el backend y los verificadores de `tools/`. `uv` puede descargar el intérprete que falte |
+| Python | 3.13 o superior; el backend se instala con 3.14 (`--python 3.14`) | Ejecutar el backend y los verificadores de `tools/`. `uv` puede descargar el intérprete que falte. No uses uno más nuevo que el último que publica ruedas de las dependencias, como la 3.15: `pyyaml` intenta compilarse y falla sin compilador |
 | Node.js | La línea 24 | Ejecutar el frontend. El proyecto la fija en `engines` y `frontend/.npmrc` la hace obligatoria |
 | npm | El que trae esa línea de Node | Instalar y ejecutar las dependencias del frontend. No se instala aparte |
 | Docker | Docker Desktop con el motor de Linux, o Docker Engine con Compose v2 | PostgreSQL local con `docker compose` y las pruebas con testcontainers |
+| Navegador | Chromium o Firefox recientes | Desarrollo local. La cookie de sesión es `Secure` y en `http://localhost` la aceptan esos motores. Chromium está comprobado por el humo de TKT-008b; Firefox lo admite según la especificación de *Secure Contexts* `(asumido, PA-T7)`, sin que el humo lo haya comprobado; Safari no lo admite `(asumido, PA-T7)` |
 
 El repositorio no fija ninguna versión de Python con un archivo propio: el mínimo lo declara `requires-python` en `backend/pyproject.toml`. Node sí se fija con `engines`. Si la versión instalada no es de la línea 24, `npm ci` se detiene con un error `EBADENGINE` en lugar de avisar y seguir.
 
@@ -24,7 +25,7 @@ Las versiones exactas de cada herramienta viven en los archivos de bloqueo, `bac
 Desde `backend/`:
 
 ```bash
-uv sync --locked
+uv sync --locked --python 3.14
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy .
@@ -33,7 +34,7 @@ uv run python -m herramientas.verificar_float
 uv run pytest
 ```
 
-`uv sync --locked` instala exactamente lo que dice `uv.lock` y falla si el archivo no coincide con `pyproject.toml`. Por eso no se usa `uv sync` a secas en la verificación: un paso que actualiza el bloqueo en silencio no sirve como comprobación.
+`uv sync --locked --python 3.14` instala exactamente lo que dice `uv.lock` y falla si el archivo no coincide con `pyproject.toml`. `--python 3.14` fija el intérprete porque `uv` elige el más nuevo que cumpla `requires-python >= 3.13`: con uno más nuevo que el último que publica ruedas de las dependencias, por ejemplo la 3.15, `pyyaml` intenta compilarse y falla sin compilador. Por eso no se usa `uv sync` a secas en la verificación: un paso que actualiza el bloqueo en silencio no sirve como comprobación.
 
 Los tres primeros comandos comprueban el formato, el estilo y los tipos. Si `ruff format --check` falla, `uv run ruff format .` reescribe los archivos con el formato correcto.
 
@@ -89,9 +90,11 @@ npm run tipos:verificar
 
 `npm ci` instala desde `package-lock.json` y no modifica el archivo de bloqueo. Para añadir una dependencia se usa `npm install`, que sí lo modifica.
 
-`npm run tipos:generar` exporta el OpenAPI de FastAPI sin arrancar el servidor, ejecutando `uv run` en `backend/`, y genera `src/api/generado/`. Por eso necesita `uv` y `uv sync --locked` hecho en `backend/`. Los tipos del contrato de error salen del borrador y son provisionales: su archivo lo dice en la cabecera.
+`npm run tipos:generar` exporta el OpenAPI de FastAPI sin arrancar el servidor, ejecutando `uv run` en `backend/`, y genera `src/api/generado/`. Por eso necesita `uv` y `uv sync --locked --python 3.14` hecho en `backend/`. Los tipos del contrato de error salen del borrador y son provisionales: su archivo lo dice en la cabecera.
 
-Con el backend en marcha en `127.0.0.1:8000`, `npm run dev` sirve el cliente en `http://localhost:5173` y reenvía `/api` al backend: la cookie de sesión viaja en el mismo origen. Ábrelo como `localhost`, no como `127.0.0.1`. El desarrollo local exige Chromium o Firefox: la cookie de sesión es `Secure` y solo esos motores la aceptan en `http://localhost`; Safari no (asumido, `PA-T7`, hasta que el humo de TKT-008b lo compruebe).
+Con el backend en marcha en `127.0.0.1:8000`, `npm run dev` sirve el cliente en `http://localhost:5173` y reenvía `/api` al backend: la cookie de sesión viaja en el mismo origen. Ábrelo como `localhost`, no como `127.0.0.1`. El desarrollo local requiere Chromium o Firefox: la cookie de sesión es `Secure` y esos motores la aceptan en `http://localhost`. Chromium está comprobado por el humo de TKT-008b (3 de 3). Firefox lo admite según la especificación de *Secure Contexts* `(asumido, PA-T7)`, pero el humo no lo ha comprobado. Safari no lo admite `(asumido, PA-T7)`.
+
+`npm run e2e` arranca el backend y el cliente si no están en marcha, siembra un usuario de Compras con una contraseña aleatoria y recorre tres escenarios: entrar y salir, credenciales incorrectas y el menú en un teléfono. Antes: `docker compose up -d db`, `alembic upgrade head`, `contrasenas_roles` y una vez `npx playwright install chromium`.
 
 ## Verificadores de la documentación
 
@@ -103,7 +106,7 @@ python tools/extraer_mermaid.py
 python -m unittest discover -s tools/tests -v
 ```
 
-`verificar_docs.py` comprueba enlaces, anclas, identificadores, conteos y codificación. `extraer_mermaid.py` valida la sintaxis de los diagramas. Sus pruebas, en `tools/tests/`, cubren la comprobación de codificación. El detalle de cada verificador está en [`tools/README.md`](../tools/README.md).
+`verificar_docs.py` comprueba enlaces, anclas, identificadores, conteos y codificación. `extraer_mermaid.py` valida la sintaxis de los diagramas. Sus pruebas, en `tools/tests/`, cubren la comprobación de codificación, las listas de exclusiones de los verificadores y la guarda de la siembra del humo. El detalle de cada verificador está en [`tools/README.md`](../tools/README.md).
 
 ## Codificación
 
@@ -122,8 +125,8 @@ Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que s
 |---|---|
 | `docker compose up -d minio` | TKT-059 |
 
-Iniciar sesión en local: no hay alta de usuarios todavía (`PA-T13` de TKT-006); las pruebas siembran los suyos.
+Iniciar sesión en local: no hay alta de usuarios todavía (`PA-T13` de TKT-006); las pruebas siembran los suyos. El humo de Playwright siembra el suyo (`frontend/e2e/sembrar_usuario_humo.py`).
 
 Cuando un ticket se completa, su `/sdd-completar` quita la marca del comando que habilita en `CLAUDE.md`.
 
-Verificado en copia limpia el: 2026-10-18, en Windows 11, con Docker Engine 29.8.2 (Compose 5.6.0), PostgreSQL 18.6, uv 0.10.7, Python 3.14.3, Node v24.22.0 y npm 11.19.1.
+Verificado en copia limpia el: 2026-10-27, en Windows 11, con Docker Engine 29.8.2 (Compose 5.6.0), PostgreSQL 18.6, uv 0.10.7, Python 3.14.3 (`--python 3.14`), Node v24.22.0 y npm 11.19.1. Backend: `uv sync --locked --python 3.14`, `ruff`, `mypy`, `lint-imports`, `verificar_float`, migraciones, contraseñas de roles y `pytest` (1138 pruebas). Frontend: `npm ci`, `lint`, `typecheck`, `test` (133), `tipos:verificar`, `build`, `npm run dev` con el backend en marcha y `npm run e2e` (3 de 3 en Chromium). El alcance es una copia limpia de `HEAD` de TKT-008a con los archivos de TKT-008b encima, que reutilizó la base de Compose existente.
