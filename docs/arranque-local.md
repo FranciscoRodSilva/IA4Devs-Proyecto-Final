@@ -83,9 +83,15 @@ Desde `frontend/`:
 npm ci
 npm run lint
 npm run typecheck
+npm test
+npm run tipos:verificar
 ```
 
 `npm ci` instala desde `package-lock.json` y no modifica el archivo de bloqueo. Para añadir una dependencia se usa `npm install`, que sí lo modifica.
+
+`npm run tipos:generar` exporta el OpenAPI de FastAPI sin arrancar el servidor, ejecutando `uv run` en `backend/`, y genera `src/api/generado/`. Por eso necesita `uv` y `uv sync --locked` hecho en `backend/`. Los tipos del contrato de error salen del borrador y son provisionales: su archivo lo dice en la cabecera.
+
+Con el backend en marcha en `127.0.0.1:8000`, `npm run dev` sirve el cliente en `http://localhost:5173` y reenvía `/api` al backend: la cookie de sesión viaja en el mismo origen. Ábrelo como `localhost`, no como `127.0.0.1`. El desarrollo local exige Chromium o Firefox: la cookie de sesión es `Secure` y solo esos motores la aceptan en `http://localhost`; Safari no (asumido, `PA-T7`, hasta que el humo de TKT-008b lo compruebe).
 
 ## Verificadores de la documentación
 
@@ -115,7 +121,6 @@ Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que s
 | Comando | Lo habilita |
 |---|---|
 | `docker compose up -d minio` | TKT-059 |
-| `npm run dev` | TKT-008 |
 
 Iniciar sesión en local: no hay alta de usuarios todavía (`PA-T13` de TKT-006); las pruebas siembran los suyos.
 

@@ -273,6 +273,47 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 
 **Non-goals** — No implementa ninguna pantalla de negocio. **No monta el armazón sin conexión** —service worker, caché persistida, cola en IndexedDB, sincronización, indicador de estado—: es TKT-063. No permite iniciar sesión sin conexión.
 
+#### Partición en tres tickets hermanos
+
+TKT-008 se ejecuta como tres tickets hermanos que comparten la spec y el diseño de [`sdd/tickets/tkt-008/`](../sdd/tickets/tkt-008/_index.md). El diseño aprobado el 2026-10-26 suma unas 4,600 líneas escritas a mano, más de diez veces el tope de unas 400 por cambio que fija la metodología. Partirlo en tres deja cada parte revisable por separado y permite que dos de ellas avancen en paralelo. TKT-008 queda como ticket paraguas: se cierra cuando se cierran los tres.
+
+Que otro ticket dependa de TKT-008 significa que depende de los tres. Un consumidor que solo use una pieza puede arrancar en cuanto esa pieza esté cerrada. Las pantallas de negocio dependen de TKT-008a para el cliente y los tipos, de TKT-008b para el inicio de sesión y el armazón, y de TKT-008c si usan alguno de los componentes reutilizables.
+
+| Ticket | Contenido | Talla | Depende de | Filas del diseño |
+|---|---|---|---|---|
+| TKT-008a | Andamiaje, generación de tipos, cliente de API y dinero | M | TKT-005, TKT-006 | 1 a 7 |
+| TKT-008b | Enrutado, inicio de sesión, armazón por rol, humo de Playwright y documentación | M | TKT-008a | 8, 9, 10, 14, 16 y su parte de la 15 |
+| TKT-008c | Pantalla de bloqueo, formulario de catálogo y captura de motivo | M | TKT-008a | 11, 12, 13 y su parte de la 15 |
+
+##### TKT-008a · Andamiaje, tipos, cliente de API y dinero
+
+**Qué hace.** Instala y configura la aplicación de cliente: React, Vite, Tailwind v4, las primitivas de shadcn/ui y las reglas de ESLint del proyecto. Genera los tipos del servidor y del contrato de error, y monta el cliente de API con la prueba de origen y la normalización del contrato de error. Deja también el módulo de dinero con `decimal.js`.
+
+- [ ] `npm run dev` sirve el cliente y reenvía `/api/v1` al backend en el mismo origen
+- [ ] Tipos generados con `openapi-typescript`: los del servidor salen del OpenAPI publicado y los del contrato de error, provisionales, del borrador. Un comando del proyecto falla si el archivo versionado difiere
+- [ ] El cliente pone `X-CSRF-Token` en todo método que muta estado y normaliza toda respuesta de error a una unión discriminada por `tipo`
+- [ ] El dinero y las cantidades pasan por `decimal.js`. Ninguna regla de ESLint permite `Number`, `parseFloat`, `parseInt` ni el `+` unario fuera del módulo de dinero, y Zod no se importa fuera de los formularios
+
+##### TKT-008b · Inicio de sesión, armazón por rol y humo
+
+**Qué hace.** Monta el enrutado, la estructura de carpetas por módulo de negocio, la pantalla de inicio de sesión con sus cinco estados de rechazo y el armazón con la navegación por rol. Suma el recorrido de humo de Playwright contra el backend real y la documentación del arranque.
+
+- [ ] Pantalla de inicio de sesión funcional contra TKT-006, con sus rechazos del [wireframe §1](08-wireframes.md#1-inicio-de-sesión)
+- [ ] Navegación que muestra la unión de las secciones de los roles del usuario, con una ruta marcador por sección ([wireframe §2](08-wireframes.md#2-armazón-de-navegación-por-rol))
+- [ ] Un `401` fuera del inicio de sesión devuelve al inicio con el aviso de sesión terminada; un `403` vuelve a pedir la sesión
+- [ ] Recorrido de humo de Playwright: iniciar sesión, ver el armazón y cerrar sesión
+- [ ] `CLAUDE.md` y `docs/arranque-local.md` describen el arranque real del cliente
+
+##### TKT-008c · Componentes reutilizables
+
+**Qué hace.** Construye los tres componentes que usan las historias de la fase 1. La pantalla de bloqueo pinta cualquier `409`. El formulario de catálogo abre con el foco en el primer campo, valida, pinta el `422` y el duplicado en línea, y pide confirmación antes de una baja. La captura de motivo no envía sin motivo.
+
+- [ ] Pantalla de bloqueo del [wireframe §6](08-wireframes.md#6-pantalla-de-bloqueo), con las cifras del detalle formateadas con `decimal.js` y un botón por cada acción del contrato
+- [ ] Formulario de catálogo, que usan HDU-001, HDU-004 y HDU-007
+- [ ] Captura de motivo obligatorio, que usan HDU-001, HDU-003, HDU-005 y HDU-007
+
+> TKT-008c es la pieza que la costura del sprint 1 ya preveía mover: si el sprint no aguanta, cada componente viaja con su primer consumidor sin rehacer nada.
+
 ---
 
 ### TKT-009 · Pipeline de integración continua

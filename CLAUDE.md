@@ -115,7 +115,10 @@ uv run --env-file ../.env python -m herramientas.contrasenas_roles   # contrase�
 npm ci                           # dependencias, según package-lock.json
 npm run lint                     # ESLint
 npm run typecheck                # tipos de TypeScript
-npm run dev                      # frontend · desde TKT-008
+npm test                         # Vitest: componentes, cliente y herramientas
+npm run tipos:generar            # tipos del OpenAPI publicado y del contrato de error · requiere uv
+npm run tipos:verificar          # falla si los tipos versionados difieren de los que se generarían
+npm run dev                      # cliente en localhost:5173, con proxy de /api al backend
 ```
 
 ### Desde la raíz
