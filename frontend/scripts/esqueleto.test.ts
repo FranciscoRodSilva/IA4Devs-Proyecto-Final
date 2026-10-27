@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 
 function leer(ruta: string): string {
@@ -69,5 +69,36 @@ describe("TKT-008 · andamiaje del frontend", () => {
     expect(servidor.host).toBe("localhost");
     expect(servidor.port).toBe(5173);
     expect(servidor.strictPort).toBe(true);
+  });
+
+  test("tkt008_ca01_esc02 · carpetas por módulo", () => {
+    const modulos = readdirSync(new URL("../src/modulos/", import.meta.url), { withFileTypes: true })
+      .filter((entrada) => entrada.isDirectory())
+      .map((entrada) => entrada.name)
+      .sort();
+    expect(modulos).toEqual(["almacen", "analitica", "auditoria", "compras", "identidad", "presupuesto", "proveedores"]);
+
+    // identidad aloja la pantalla de inicio de sesión; los demás tendrán sus rutas.
+    for (const modulo of modulos.filter((nombre) => nombre !== "identidad")) {
+      expect(existsSync(new URL(`../src/modulos/${modulo}/rutas.tsx`, import.meta.url)), `${modulo}/rutas.tsx existe`).toBe(true);
+    }
+
+    for (const zona of ["api", "app", "compartido"]) {
+      expect(existsSync(new URL(`../src/${zona}/`, import.meta.url)), `src/${zona} existe`).toBe(true);
+    }
+  });
+
+  // Condición heredada de TKT-008a: sin este importe Vite no entrega el CSS de Tailwind y la interfaz sale sin estilos.
+  test("tkt008_ca01 · main.tsx importa el CSS de Tailwind (TC-B4)", () => {
+    expect(leer("src/main.tsx")).toMatch(/^import\s+["'](?:\.\/|@\/)index\.css["'];?\s*$/m);
+    expect(leer("src/index.css")).toMatch(/@import\s+["']tailwindcss["']/);
+  });
+
+  test("tkt008_ca01 · main.tsx monta crearAplicacion sobre #raiz (TC-B5)", () => {
+    const principal = leer("src/main.tsx");
+    expect(principal).toMatch(/crearAplicacion\(\s*\)/);
+    expect(principal).toContain("elemento");
+    expect(principal).toMatch(/getElementById\(["']raiz["']\)/);
+    expect(principal).toContain("Falta #raiz en index.html");
   });
 });

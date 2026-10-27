@@ -28,7 +28,7 @@ import os
 import re
 import sys
 
-EXCLUIR = {'Doc de contexto', 'node_modules', '.git', '.venv', 'dist'}
+EXCLUIR = {'Doc de contexto', 'node_modules', '.git', '.venv', 'dist', 'test-results', 'playwright-report'}
 BLOQUE = re.compile(r'```mermaid\n(.*?)```', re.S)
 
 PLANTILLA = """<!doctype html>

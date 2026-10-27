@@ -36,7 +36,7 @@ Ticket de fundación, sin historia de usuario propia. La historia es la de la [s
 
 ## Invariantes que deben sobrevivir al cambio
 
-Los de la [spec común](../tkt-008/spec.md#invariantes-que-deben-sobrevivir-al-cambio). `CLAUDE.md` y `docs/arranque-local.md` ya los modificó TKT-008a, con el bloque de comandos de frontend, la sección «Frontend» y la tabla. Aquí solo se añade lo que la fila 16 aún no cubre. Este ticket modifica `docs/05-tickets-trabajo.md`, `docs/06-stack-tecnologico.md` y `tools/verificar_docs.py`.
+Los de la [spec común](../tkt-008/spec.md#invariantes-que-deben-sobrevivir-al-cambio). TKT-008a ya modificó antes `CLAUDE.md` y `docs/arranque-local.md`, con el bloque de comandos de frontend, la sección «Frontend» y la tabla. Este ticket modifica además `CLAUDE.md` (`npm run e2e`), `docs/arranque-local.md` (navegador, Python fijado, humo y copia limpia), `docs/05-tickets-trabajo.md`, `docs/06-stack-tecnologico.md`, `tools/verificar_docs.py`, `tools/extraer_mermaid.py` y `tools/tests/`. En el diseño común, `design.md` cambia el estado de sus filas y `PA-T7`; `spec.md`, la fila de `PA-T7`.
 
 ## Criterios de aceptación
 

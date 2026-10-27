@@ -271,4 +271,25 @@ describe("TKT-008 · generación de tipos del cliente", () => {
     expect(codigo).toBe(2);
     expect(salida).toEqual(["error: No se pudieron generar los tipos: Disco lleno"]);
   });
+
+  // TC-R2a · N-1 de la revisión de código de 008a · `verificar` solo lee: nunca escribe un archivo, ni al día ni desfasado.
+  test.each([
+    ["con los archivos al día", 0],
+    ["con los archivos desfasados", 1],
+  ] as const)("tkt008_ca02_esc03 · TC-R2a · verificar no escribe ningún archivo %s", async (_caso, esperado) => {
+    const generados = await generarArchivos({ publicado, borrador });
+    const escribirArchivo = vi.fn();
+
+    const codigo = await principal(["verificar"], {
+      exportar: () => publicado,
+      leerBorrador: () => borrador,
+      leer: (ruta) => (esperado === 0 ? (generados.get(ruta) ?? null) : "// desfasado\n"),
+      escribirArchivo,
+      escribir: () => {},
+      escribirError: () => {},
+    });
+
+    expect(codigo).toBe(esperado);
+    expect(escribirArchivo).not.toHaveBeenCalled();
+  });
 });

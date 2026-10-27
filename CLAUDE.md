@@ -97,7 +97,7 @@ Un comando o una comprobación marcados *desde TKT-xxx* todavía no funcionan: l
 ### Desde `backend/`
 
 ```bash
-uv sync --locked                 # dependencias, según uv.lock
+uv sync --locked --python 3.14   # dependencias, según uv.lock; fija el intérprete (con 3.15 pyyaml no compila)
 uv run ruff format .             # formato
 uv run ruff check --fix .        # lint
 uv run mypy .                    # tipos
@@ -119,6 +119,7 @@ npm test                         # Vitest: componentes, cliente y herramientas
 npm run tipos:generar            # tipos del OpenAPI publicado y del contrato de error · requiere uv
 npm run tipos:verificar          # falla si los tipos versionados difieren de los que se generarían
 npm run dev                      # cliente en localhost:5173, con proxy de /api al backend
+npm run e2e                      # humo de Playwright · requiere backend, base migrada y Docker
 ```
 
 ### Desde la raíz

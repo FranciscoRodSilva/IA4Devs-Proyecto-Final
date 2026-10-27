@@ -246,6 +246,8 @@ Importa más de lo que parece: el ZIP que pasa esa puerta es el que openpyxl va 
 | **Subida de archivos** | `<input type="file" capture>` · compresión y **normalización a JPEG** con `canvas` antes de subir · subida directa a la URL prefirmada | La cámara del teléfono se abre desde el navegador, sin aplicación nativa. Comprimir antes baja una foto de 4 MB a cientos de kilobytes sobre una conexión de obra, y los bytes no pasan por el API. Normalizar a JPEG resuelve el **HEIC del iPhone**, que Chrome y Firefox no saben mostrar — [ADR-016](adr/20261001-almacenamiento-de-objetos.md) |
 | **Sin conexión** | `vite-plugin-pwa` (Workbox) · `@tanstack/query-persist-client` · `idb` | En obra no hay internet (`RNF-18`). El service worker sirve el paquete, la caché persistida da la lectura y la cola en IndexedDB guarda lo capturado hasta que haya señal — [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) |
 
+Las primitivas de shadcn/ui se eligen con la variante `base-nova` de `components.json`, que se construye sobre `@base-ui/react`. Son cinco, copiadas en `frontend/src/components/ui/`: botón, diálogo, campo, etiqueta y área de texto. `cn` viene del paquete `cn` y se reexporta desde `frontend/src/lib/utils.ts`.
+
 ### 5.2. Sin renderizado en servidor
 
 No hay Next.js ni Remix. Es una aplicación interna, detrás de autenticación, sin indexación ni primera carga que optimizar para usuarios anónimos. Un metaframework añadiría un modelo de renderizado dual y una capa de servidor que este producto no necesita, y el backend ya es Python: tener además un servidor Node duplicaría la superficie de despliegue.
@@ -398,7 +400,7 @@ Resuelve además el problema que la regla de aceptación plantea: *"una historia
 
 ### 7.3. Frontend
 
-**Vitest + Testing Library** para componentes, **Playwright** para los recorridos completos. Los dos recorridos que justifican Playwright son los que cruzan varias pantallas y tienen consecuencia real: importar y congelar una línea base, y levantar una requisición que se bloquea y acaba autorizada.
+**Vitest + Testing Library** para componentes, **Playwright** para los recorridos completos. Las pruebas de componente corren en **jsdom**, y el servidor se sustituye con **MSW**, que intercepta la petición real con sus cabeceras —así se prueba que toda mutación lleve `X-CSRF-Token`— y simula la red caída. Un recorrido de humo de Playwright, iniciar y cerrar sesión, corre contra el backend real y la base de Compose (TKT-008). La regla de ESLint que prohíbe `Number`, `parseFloat` y `parseInt` no cubre las coerciones aritméticas (`"1" * 1`, `-"1"`, `.toFixed`, `Math.round`): esa limitación se aceptó en [TKT-008a](../sdd/tickets/tkt-008a/impl.md) (F001), porque prohibirlas daría falsos positivos en código que no maneja dinero. Los dos recorridos que justifican Playwright son los que cruzan varias pantallas y tienen consecuencia real: importar y congelar una línea base, y levantar una requisición que se bloquea y acaba autorizada.
 
 ---
 

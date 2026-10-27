@@ -26,7 +26,7 @@ import unicodedata
 import urllib.parse
 from collections import defaultdict
 
-EXCLUIR = {'Doc de contexto', 'node_modules', '.git', '.venv', 'dist'}
+EXCLUIR = {'Doc de contexto', 'node_modules', '.git', '.venv', 'dist', 'test-results', 'playwright-report'}
 BOM: bytes = b"\xef\xbb\xbf"
 problemas: list[str] = []
 avisos: list[str] = []
