@@ -52,6 +52,7 @@ El cuarto es propio de este dominio y es el que más se olvida. Una requisición
 - **Toda dependencia de la función de consulta va en la clave.** Una clave a la que le falta un parámetro sirve datos de otro registro, y es el error más común del paquete.
 - `staleTime` explícito por recurso. Un catálogo y un semáforo presupuestal no caducan igual.
 - Invalidación por prefijo tras una mutación. Nada de recargas manuales dispersas.
+- Excepción: el cliente de API (`useApi()`) no entra en la clave. No selecciona datos, es el transporte, y cada `QueryClient` nace junto a su único cliente en `crearAplicacion` (TKT-008).
 
 ## 5 · Tailwind v4
 
@@ -65,6 +66,7 @@ Componentes de shadcn/ui como base. No reimplementar a mano primitivas accesible
 - Nada de `!` para acallar al compilador. Si algo puede ser nulo, se maneja.
 - Componentes pequeños, un propósito. La lógica de datos en *hooks*, no dentro del componente.
 - Nombres de dominio en **español**, los del [glosario](../../../docs/glosario.md); nombres técnicos de React en inglés como manda el ecosistema. `RequisicionBloqueada`, `useSemaforoObra`.
+- `erasableSyntaxOnly`: nada de `enum` ni de propiedades de parámetro; los conjuntos cerrados son uniones de literales, que además es lo que genera `openapi-typescript`.
 
 ## 7 · Sin conexión
 
