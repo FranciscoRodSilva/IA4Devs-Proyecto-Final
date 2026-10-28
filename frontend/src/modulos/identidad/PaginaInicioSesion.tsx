@@ -8,6 +8,7 @@ import { useApi } from "@/api/ProveedorApi";
 import { sesionOptions } from "@/api/sesion";
 import { AVISO_SESION_TERMINADA } from "@/app/navegacion/ruta-inicio-sesion";
 import { primeraSeccion } from "@/app/navegacion/secciones";
+import logo from "@/assets/ap-logo.jpeg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -170,8 +171,9 @@ export function PaginaInicioSesion() {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
-      <section aria-labelledby={idTitulo} className="w-full max-w-sm space-y-6">
+      <section aria-labelledby={idTitulo} className="w-full max-w-sm space-y-6 rounded-xl border bg-card p-6 shadow-sm">
         <header className="space-y-1 text-center">
+          <img src={logo} alt="AP Buildings" className="mx-auto h-24 w-auto" />
           <h1 id={idTitulo} className="text-2xl font-semibold">
             CIMENTA
           </h1>

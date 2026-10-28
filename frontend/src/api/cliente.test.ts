@@ -319,7 +319,7 @@ describe("TKT-008 · cliente de API", () => {
   });
 
   test("tkt008_car3 · nadie lee la cookie", async () => {
-    // MSW lee `document.cookie` por su cuenta al emparejar cada petición en jsdom; ese lector no es el cliente.
+    // MSW lee la cookie del documento por su cuenta al emparejar cada petición en jsdom; ese lector no es el cliente.
     // Se anota quién lee: el primer marco de la pila que no es el espía, jsdom ni una llamada anónima.
     const lectores: string[] = [];
     const quienLee = (pila: string): string =>

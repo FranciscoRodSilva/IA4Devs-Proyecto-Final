@@ -1,7 +1,7 @@
 import { act, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import type { Client } from "openapi-fetch";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 import { pedir } from "@/api/cliente";
 import type { paths } from "@/api/generado/servidor";
 import { claves, type Rol } from "@/api/sesion";
@@ -73,6 +73,12 @@ function mensajeDelCampo(campo: HTMLElement): string {
 }
 
 describe("TKT-008 · inicio de sesión", () => {
+  it("tkt008c_marca · el inicio de sesión muestra el logo de AP Buildings", async () => {
+    renderizarAplicacion(INICIO_SESION);
+
+    expect(await screen.findByRole("img", { name: "AP Buildings" })).toBeInTheDocument();
+  });
+
   test("tkt008_ca06_esc01 · iniciar sesión · el botón se deshabilita en vuelo y luego entra a la primera sección (TC-57)", async () => {
     const registro = registrarPeticiones();
     let liberar: () => void = () => undefined;

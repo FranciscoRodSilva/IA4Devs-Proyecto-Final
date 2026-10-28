@@ -4,6 +4,7 @@ import { NavLink, Outlet, useNavigate } from "react-router";
 import { FalloApi, pedir } from "@/api/cliente";
 import { useApi } from "@/api/ProveedorApi";
 import { type UsuarioActual, useSesion } from "@/api/sesion";
+import logo from "@/assets/ap-logo.jpeg";
 import { type Seccion, NOMBRE_ROL, seccionesDe } from "@/app/navegacion/secciones";
 import { RUTA_INICIO_SESION } from "@/app/navegacion/ruta-inicio-sesion";
 
@@ -85,7 +86,7 @@ export function Armazon() {
 
   return (
     <div className="min-h-screen">
-      <header className="flex flex-wrap items-center gap-4 border-b p-4">
+      <header className="flex flex-wrap items-center gap-4 border-b bg-card p-4">
         <button
           ref={botonMenu}
           type="button"
@@ -97,7 +98,8 @@ export function Armazon() {
         >
           ≡
         </button>
-        <p className="font-semibold">CIMENTA</p>
+        <img src={logo} alt="AP Buildings" className="h-8 w-auto" />
+        <p className="font-semibold text-primary">CIMENTA</p>
         <p>{usuario.nombre}</p>
         <p>{usuario.roles.map((rol) => NOMBRE_ROL[rol]).join(" · ")}</p>
         <p>
@@ -113,7 +115,7 @@ export function Armazon() {
           id="menu-secciones"
           aria-label="Secciones"
           data-abierto={menuAbierto ? "true" : "false"}
-          className={menuAbierto ? "block border-r p-4" : "hidden border-r p-4 md:block"}
+          className={menuAbierto ? "block border-r bg-sidebar p-4" : "hidden border-r bg-sidebar p-4 md:block"}
         >
           {grupos.map(({ grupo, secciones }) => (
             <div key={grupo} className="mb-4">
@@ -121,7 +123,12 @@ export function Armazon() {
               <ul>
                 {secciones.map((s) => (
                   <li key={s.clave}>
-                    <NavLink to={s.ruta} onClick={() => setMenuAbierto(false)} className="block py-1">
+                    <NavLink to={s.ruta} onClick={() => setMenuAbierto(false)} className={({ isActive }) =>
+                        isActive
+                          ? "block rounded px-2 py-1 bg-sidebar-accent font-medium text-sidebar-primary"
+                          : "block rounded px-2 py-1 text-sidebar-foreground hover:bg-sidebar-accent/60"
+                      }
+                    >
                       {s.titulo}
                     </NavLink>
                   </li>

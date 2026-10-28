@@ -1,6 +1,6 @@
 import { act, screen, waitFor, within } from "@testing-library/react";
 import { delay, http, HttpResponse } from "msw";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 import { claves, type Rol, type UsuarioActual } from "@/api/sesion";
 import { errorPermiso, errorSesion, tokenCsrf, usuarioActual } from "@/pruebas/cuerpos";
 import { renderizarAplicacion } from "@/pruebas/render";
@@ -62,6 +62,16 @@ describe("TKT-008 · aplicación y armazón", () => {
       "Proveedores",
       "Recepción · Pendientes de recibir",
     ]);
+  });
+
+  it("tkt008c_marca · la cabecera muestra el logo de AP Buildings", async () => {
+    servidorPruebas.use(dobleSesion(["COMPRAS"]));
+
+    renderizarAplicacion("/");
+
+    const cabecera = await screen.findByRole("banner");
+    expect(within(cabecera).getByRole("img", { name: "AP Buildings" })).toBeInTheDocument();
+    expect(within(cabecera).getByText("CIMENTA")).toBeInTheDocument();
   });
 
   test("tkt008_ca07_esc03 · ruta marcador", async () => {

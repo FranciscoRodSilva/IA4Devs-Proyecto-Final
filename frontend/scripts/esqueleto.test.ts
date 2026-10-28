@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { describe, expect, test } from "vitest";
+import { describe, expect, it, test } from "vitest";
 
 function leer(ruta: string): string {
   return readFileSync(new URL(ruta, new URL("..", import.meta.url)), "utf8");
@@ -92,6 +92,15 @@ describe("TKT-008 · andamiaje del frontend", () => {
   test("tkt008_ca01 · main.tsx importa el CSS de Tailwind (TC-B4)", () => {
     expect(leer("src/main.tsx")).toMatch(/^import\s+["'](?:\.\/|@\/)index\.css["'];?\s*$/m);
     expect(leer("src/index.css")).toMatch(/@import\s+["']tailwindcss["']/);
+  });
+
+  it("tkt008c_marca · el logo vive en src/assets y la paleta usa el verde de la marca", () => {
+    expect(existsSync(new URL("../src/assets/ap-logo.jpeg", import.meta.url)), "src/assets/ap-logo.jpeg existe").toBe(true);
+
+    const raiz = /:root\s*\{([^}]*)\}/.exec(leer("src/index.css"));
+    expect(raiz, "src/index.css define un bloque :root").not.toBeNull();
+    const primario = /--primary\s*:\s*([^;]+);/.exec(raiz?.[1] ?? "");
+    expect(primario?.[1]?.trim().toLowerCase()).toBe("#1c3a2f");
   });
 
   test("tkt008_ca01 · main.tsx monta crearAplicacion sobre #raiz (TC-B5)", () => {

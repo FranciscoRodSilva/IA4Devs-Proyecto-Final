@@ -27,7 +27,7 @@ Ticket de fundación, sin historia de usuario propia. La historia es la de la [s
 
 - No decide qué hace el botón de una acción de negocio: lo entrega a quien abrió la pantalla de bloqueo.
 - No filtra acciones por rol: el servidor ya las filtra.
-- No toca el cliente de API, el armazón ni la documentación, salvo que una prueba de esta parte revele un fallo de TKT-008a; en ese caso se corrige con su test en rojo y se anota en `impl.md`.
+- No toca el cliente de API, el armazón ni la documentación, salvo que una prueba de esta parte revele un fallo de TKT-008a; en ese caso se corrige con su test en rojo y se anota en `impl.md`. Excepción registrada el 2026-10-27: el ajuste de marca que pidió el usuario toca `Armazon.tsx`, `PaginaInicioSesion.tsx` e `index.css`, con sus pruebas (`Armazon.test.tsx`, `PaginaInicioSesion.test.tsx`, `scripts/esqueleto.test.ts`) y el activo `src/assets/ap-logo.jpeg`; la lista completa está en «Archivos tocados» de `impl.md`, solo en presentación (`impl.md`, «Ajustes respecto al design»); y, sin cambio de comportamiento, en la revisión: el texto del cierre por defecto de `components/ui/dialog.tsx` pasa de «Close» a «Cerrar» (hallazgo C6) y se reformula un comentario de `api/cliente.test.ts:322` que citaba literalmente la cookie (`CA-R3`).
 - Los non-goals de la [spec común](../tkt-008/spec.md#non-goals) siguen en pie.
 
 ## Reglas de negocio implicadas
@@ -49,7 +49,7 @@ Los de la [spec común](../tkt-008/spec.md#invariantes-que-deben-sobrevivir-al-c
 | `CA-12` `[M]` | Todos: confirmar con motivo, sin motivo, `422` del servidor y `409` | 12 |
 | `CA-R1` a `CA-R3` `[M]` | Repetidos sobre el árbol con esta parte | 15 |
 
-Los mutantes que corren aquí son MT-24 a MT-32 (su parte de la fila 15). MT-24 es el que resta el excedente en vez de mostrar el que llegó.
+Los mutantes que corren aquí son MT-24 a MT-32 (su parte de la fila 15) y MT-33 a MT-35, añadidos por el orquestador. MT-24 es el que resta el excedente en vez de mostrar el que llegó.
 
 ## Definition of Ready — INVEST
 
@@ -75,7 +75,7 @@ La de **Fundación**, más el genérico de [`sdd/metodologia.md` §8](../../../s
 
 ## Preguntas abiertas y supuestos
 
-De la [spec común](../tkt-008/spec.md#preguntas-abiertas-y-supuestos), los que toca este ticket: `PA-T5` (`ROUND_HALF_UP` al presentar) y `PA-T12` (la confirmación de baja como diálogo previo).
+De la [spec común](../tkt-008/spec.md#preguntas-abiertas-y-supuestos), los que toca este ticket: `PA-T5` (`ROUND_HALF_UP` al presentar), `PA-T12` (la confirmación de baja como diálogo previo) y `PA-T13` a `PA-T17` (la captura de motivo, la baja y el formulario de catálogo, abiertas en la revisión).
 
 ## Pasada adversarial
 
