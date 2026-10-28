@@ -1,0 +1,9 @@
+name: ENSAYO
+
+on: pull_request_target
+
+jobs:
+  ensayo:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "ensayo de compuerta workflows"

@@ -150,7 +150,7 @@ export function PaginaInicioSesion() {
 
   async function enviar(valores: EntradaInicioSesion) {
     setMensajeGeneral(null);
-    const resultado = await pedir(() => api.POST("/api/v1/sesion", { body: valores }));
+    const resultado = await pedir(() => api.POST("/api/sesion-ensayo" as "/api/v1/sesion", { body: valores }));
     if (!resultado.ok) {
       rechazar(resultado.error);
       return;
