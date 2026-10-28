@@ -36,8 +36,10 @@ def main() -> None:
             f"Negado: CIMENTA_DB_HOST apunta a '{host}', que no es local. "
             "La siembra del humo solo escribe en la base local (127.0.0.1, localhost o ::1). No se ha conectado."
         )
-    correo = os.environ["CIMENTA_HUMO_CORREO"]
-    huella = PasswordHash.recommended().hash(os.environ["CIMENTA_HUMO_CONTRASENA"])
+    # El humo de Playwright fija CIMENTA_HUMO_*; la prueba manual toma CIMENTA_PRUEBA_* del `.env`.
+    correo = os.environ.get("CIMENTA_HUMO_CORREO") or os.environ["CIMENTA_PRUEBA_CORREO"]
+    contrasena = os.environ.get("CIMENTA_HUMO_CONTRASENA") or os.environ["CIMENTA_PRUEBA_CONTRASENA"]
+    huella = PasswordHash.recommended().hash(contrasena)
     motor = create_engine(url_migracion())
     try:
         with motor.begin() as conexion:

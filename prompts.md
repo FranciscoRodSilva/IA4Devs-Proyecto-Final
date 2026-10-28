@@ -418,3 +418,23 @@ Empieza por definir el TKT-001 /sdd-definir TKT-001
 
 *Abre la Entrega 2 y lanza la primera fase del pipeline SDD (`/sdd-definir`) sobre el ticket de fundación TKT-001, con el objetivo de dejar frontend, backend y base de datos conectados.*
 
+
+**Prompt 4:** *(Claude Code · Sonnet 5.5 · checklist final de la Entrega 2)*
+
+```
+Checklist Final: Entrega 2 (Código Funcional)
+
+Tu repositorio contiene los archivos Readme.md y Prompts.md actualizados (y lo de la Entrega 1).
+
+El código incluye los scaffolds principales (Frontend, Backend y BD conectados o su equivalente).
+
+El flujo principal está parcialmente operativo: al menos una funcionalidad funciona de extremo a extremo (ya hace algo real).
+
+Usas solo credenciales de prueba y no hay secretos en el repositorio (.env.example en su lugar).
+
+La rama tiene la nomenclatura exacta: feature/entrega-2-[TUS_INICIALES]. Esta rama ya existe, hay que hacer los cambios en ella: se llama feature/entrega-2-JFRS
+
+Se tienen que poner las credenciales del usuario de prueba en .env.example y en el Readme hay que poner cómo ejecutar el proyecto: los comandos de arranque y cómo sembrar el usuario con las credenciales que se usaron.
+```
+
+*Cierra la Entrega 2 contra el checklist de LIDR: deja las credenciales del usuario de prueba en `.env.example` y documenta en el `README.md` el arranque completo y la siembra de ese usuario, en la rama `feature/entrega-2-JFRS`.*

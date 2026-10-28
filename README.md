@@ -38,6 +38,87 @@
 
 ---
 
+## Entrega 2 · Código funcional
+
+La Entrega 2 construye el hilo vertical por tickets con el pipeline SDD. Hoy están archivados los de la fundación: estructura del repositorio, esqueleto del backend, PostgreSQL con identidad, tipos base decimales, contrato de error, autenticación por rol, bitácora y el cliente web (andamiaje, inicio de sesión con armazón por rol, y componentes reutilizables).
+
+**Lo que funciona de extremo a extremo:** iniciar y cerrar sesión. El cliente React llama al API de FastAPI, que valida la contraseña con Argon2id contra PostgreSQL y guarda la sesión en la tabla `sesion`. Tras iniciar sesión aparece el armazón con la navegación del rol. Las pantallas de negocio de la fase 1 llegan con los tickets siguientes, así que sus rutas son marcadores. El límite de intentos y la verificación CSRF (TKT-057) y los usuarios reales (TKT-010) aún no existen: **esta versión es solo para pruebas locales**.
+
+### Cómo ejecutar el proyecto
+
+**Requisitos:** Git, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker Desktop y Chromium o Firefox. El detalle y las versiones están en [`docs/arranque-local.md`](docs/arranque-local.md).
+
+**1. Variables de entorno y base de datos.** Desde la raíz del repositorio:
+
+```bash
+cp .env.example .env
+docker compose up -d db
+```
+
+`.env.example` solo trae valores de desarrollo y las credenciales del usuario de prueba. No hay ningún secreto real en el repositorio, y `.env` está ignorado por git.
+
+**2. Backend.** Desde `backend/`:
+
+```bash
+uv sync --locked --python 3.14
+uv run --env-file ../.env alembic upgrade head
+uv run --env-file ../.env python -m herramientas.contrasenas_roles
+```
+
+**3. Sembrar el usuario de prueba.** Desde `backend/`. El script lee las credenciales de `.env` y se niega a escribir si la base no es local.
+
+```bash
+PYTHONPATH=. uv run --env-file ../.env python ../frontend/e2e/sembrar_usuario_humo.py
+```
+
+En Windows PowerShell:
+
+```powershell
+$env:PYTHONPATH = "."; uv run --env-file ../.env python ../frontend/e2e/sembrar_usuario_humo.py
+```
+
+Es idempotente: si el usuario ya existe, le restablece la contraseña.
+
+**4. Arrancar el API.** Desde `backend/`, en una terminal que se queda abierta:
+
+```bash
+uv run --env-file ../.env fastapi dev
+```
+
+Queda en `http://127.0.0.1:8000`, con el contrato publicado en `/docs`.
+
+**5. Arrancar el cliente.** Desde `frontend/`, en otra terminal:
+
+```bash
+npm ci
+npm run dev
+```
+
+**6. Probar.** Abre **`http://localhost:5173`**, con `localhost` y no `127.0.0.1`: la cookie de sesión es `Secure` y solo Chromium y Firefox la aceptan en `http://localhost`.
+
+| Credencial de prueba | Valor |
+|---|---|
+| Correo | `prueba.compras@cimenta.test` |
+| Contraseña | `Cimenta-Prueba-2026` |
+| Rol | `COMPRAS` |
+
+Pruebas manuales sugeridas: entrar con esas credenciales y ver el armazón con la navegación de Compras; cerrar sesión; entrar con una contraseña incorrecta y ver el rechazo del formulario; reducir la ventana al ancho de un teléfono y abrir el menú.
+
+### Pruebas automáticas
+
+```bash
+# Desde backend/ (requiere Docker en marcha)
+uv run pytest
+
+# Desde frontend/
+npm test
+npm run e2e   # humo de Playwright: inicia sesión, ve el armazón y cierra sesión
+```
+
+`npm run e2e` siembra su propio usuario, `humo.compras@cimenta.test`, con una contraseña aleatoria en cada corrida, y no interfiere con el usuario de prueba manual.
+
+---
+
 ## 0. Ficha del proyecto
 
 ### 0.1. Autor
