@@ -48,7 +48,7 @@ uv run --env-file ../.env alembic upgrade head   # desde backend/, el esquema si
 - PostgreSQL de la **misma versión mayor** que la de producción. El esquema se construye con `alembic upgrade head` contra el contenedor y la suite se conecta con el **rol de aplicación** ([`conv-pruebas`](../conv-pruebas/SKILL.md)).
 - MinIO en testcontainers cuando el ticket toca archivos: firma, caducidad, `Content-Type` reescrito y hash solo se verifican contra un almacén real.
 - Un contenedor por sesión de pruebas, no por test. Cómo se aíslan los tests entre sí lo decide el diseño de `TKT-003`: las pruebas de concurrencia y de bitácora necesitan transacciones confirmadas de verdad, así que deshacer una transacción envolvente no sirve para todas.
-- En el pipeline (`TKT-009`), el corredor de GitHub Actions ya trae Docker: los mismos tests corren igual en local y en CI.
+- En el pipeline, el corredor de GitHub Actions trae Docker y la suite corre igual que en local: los mismos tests, con los mismos comandos.
 
 ## 4 · La imagen de producción
 

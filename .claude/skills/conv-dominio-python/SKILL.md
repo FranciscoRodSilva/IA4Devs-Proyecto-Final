@@ -5,12 +5,12 @@ description: Convenciones de la capa dominio/ de CIMENTA — Decimal exacto con 
 
 # Convenciones · capa `dominio/`
 
-La capa donde está el valor del producto y la que más fácil se contamina. Estas reglas no son estilo: tres de ellas las verifica el pipeline y falla (la de `float`, en local ya y en el pipeline desde TKT-009).
+La capa donde está el valor del producto y la que más fácil se contamina. Estas reglas no son estilo: tres de ellas las verifica el pipeline y falla (la de `float`, en local y en el pipeline).
 
 ## 1 · El dinero nunca es flotante
 
 ```python
-# ✗ Prohibido. El linter lo bloquea: en local ya; en el pipeline desde TKT-009.
+# ✗ Prohibido. El linter lo bloquea: en local y en el pipeline.
 def calcular_disponible(presupuestado: float, consumido: float) -> float: ...
 
 # ✓

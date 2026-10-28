@@ -10,6 +10,10 @@ venv/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+# Cobertura y reporte JUnit que genera la suite de backend en local y en CI
+backend/.coverage
+backend/cobertura.xml
+backend/pytest.xml
 
 # Node
 node_modules/

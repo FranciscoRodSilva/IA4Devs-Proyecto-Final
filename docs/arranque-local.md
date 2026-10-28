@@ -108,6 +108,25 @@ python -m unittest discover -s tools/tests -v
 
 `verificar_docs.py` comprueba enlaces, anclas, identificadores, conteos y codificación. `extraer_mermaid.py` valida la sintaxis de los diagramas. Sus pruebas, en `tools/tests/`, cubren la comprobación de codificación, las listas de exclusiones de los verificadores y la guarda de la siembra del humo. El detalle de cada verificador está en [`tools/README.md`](../tools/README.md).
 
+## Integración continua
+
+El pipeline, `.github/workflows/ci.yml`, corre en cada pull request los mismos comandos que este documento, cada uno en su trabajo. Si un comando pasa en local y falla en el pipeline, o al revés, la causa casi siempre es el entorno y no el comando: revisa la versión de Python y que el árbol de trabajo esté limpio.
+
+Para reproducir un trabajo en local, desde el directorio que indica cada fila:
+
+| Trabajo | Qué ejecuta | Cómo reproducirlo en local |
+|---|---|---|
+| `backend` | Formato, lint, tipos, `verificar_float` y pruebas con cobertura | Desde `backend/`, los comandos de la sección Backend, y después `uv run pytest --cov=cimenta --cov=tipos_base --cov=contrato_error --cov=servidor --cov-report=term --cov-report=xml:cobertura.xml --junitxml=pytest.xml`. Necesita Docker |
+| `fronteras` | `lint-imports` | Desde `backend/`: `uv run lint-imports` |
+| `contrato-api` | Reservado para TKT-061 | Nada que reproducir todavía |
+| `frontend` | Lint, tipos, pruebas y `tipos:verificar` | Desde `backend/`, `uv sync --locked --python 3.14`; desde `frontend/`, los comandos de la sección Frontend |
+| `humo` | Recorrido de Playwright con la base migrada | Desde la raíz, `cp .env.example .env` y `docker compose up -d db`; después, la sección Base de datos, y desde `frontend/`, `npm run e2e`. Necesita Docker |
+| `herramientas` | Pruebas de `tools/` con `unittest` | Desde la raíz: `python -m unittest discover -s tools/tests`. La salida no debe contener `skipped=`, porque la guarda del pipeline falla si aparece |
+| `workflows` | `zizmor` sobre los flujos | Desde la raíz: `uvx zizmor@1.31.1 --offline .github/workflows` |
+| `documentacion` | `verificar_docs.py` | Desde la raíz: `python tools/verificar_docs.py` |
+
+El trabajo `herramientas` corre las pruebas en el intérprete 3.14 con `uv run --no-project`; en local basta con cualquier Python de los que admite el proyecto.
+
 ## Codificación
 
 Los archivos de texto se guardan en UTF-8 y con finales de línea LF. La regla tiene una excepción deliberada:

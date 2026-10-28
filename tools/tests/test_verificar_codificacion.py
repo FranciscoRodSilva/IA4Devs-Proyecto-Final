@@ -5,8 +5,9 @@ y los scripts `.ps1` en UTF-8 con BOM: sin el BOM, Windows PowerShell 5.1
 corrompe los acentos del script (aprendizaje del 2026-10-01).
 
 Excepción acordada al convenio de pruebas: `tools/` es un directorio sin
-dependencias, así que estas pruebas usan `unittest` y no pytest. pytest las
-recoge sin cambios cuando TKT-009 las incorpore al pipeline.
+dependencias, así que estas pruebas usan `unittest` y no pytest. El pipeline
+`.github/workflows/ci.yml` ya las corre: el trabajo `herramientas` ejecuta la suite de
+`tools/` y el trabajo `documentacion` ejecuta `verificar_docs.py`, que aplica esta comprobación.
 
 Ejecución, desde la raíz del repositorio:
 
