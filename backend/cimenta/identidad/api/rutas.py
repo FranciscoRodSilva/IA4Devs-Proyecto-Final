@@ -50,7 +50,7 @@ def iniciar_sesion(
     return UsuarioActual.desde(usuario)
 
 
-@enrutador.get("", operation_id="obtener_sesion_actual")
+@enrutador.get("", operation_id="obtener_sesion_actual", summary="ENSAYO summary desactualizado")
 def obtener_sesion_actual(
     usuario: Annotated[UsuarioAutenticado, Depends(sesion_vigente)],
 ) -> UsuarioActual:
