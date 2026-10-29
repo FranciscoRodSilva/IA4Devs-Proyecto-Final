@@ -14,7 +14,9 @@ Qué cubren:
   vacía, `lycheeverse/lychee-action` y `mmdc` sobre cada Markdown con un bloque `mermaid`. Cada paso lleva
   `if: ${{ !cancelled() }}` (regla común 6), también los de preparación (`setup-node`, `setup-uv`, la instalación de
   `mermaid-cli`): si fallase uno anterior y el de preparación se saltara, el paso siguiente correría sin su
-  herramienta y taparía el hallazgo real con un «comando no encontrado».
+  herramienta y taparía el hallazgo real con un «comando no encontrado». `mermaid-cli` no se instala suelto
+  (`zizmor` marca `adhoc-packages`): `.github/mermaid/package.json` lo declara en la versión exacta `12.0.0`,
+  `.github/mermaid/package-lock.json` la fija con su `integrity` y el trabajo ejecuta `npm ci` sobre ese directorio.
 * TC-64 (`CA-14` esc. 1): `.github/workflows/enlaces.yml` se dispara un día por semana (`schedule`) y a mano
   (`workflow_dispatch`), con `permissions: contents: read`, y usa la misma configuración de `lychee` que el PR.
 * Regresión `CA-R4`: los casos TC-12, TC-13, TC-21 y TC-22 de `test_definicion_ci.py` recorren todos los workflows y
@@ -32,9 +34,14 @@ Formas que aceptan estos casos (la de la fila D5 tiene que ser una de ellas):
   la variable del código.
 * `lychee`: `lycheeverse/lychee-action@<SHA de 40> # vX.Y.Z` con `args: --config lychee.toml --no-progress` más el
   alcance, `lycheeVersion: v0.24.2` y `fail: true`.
-* `mermaid-cli`: `npm install --no-save --prefix "$RUNNER_TEMP/mmdc" @mermaid-js/mermaid-cli@12.0.0`, y un bucle
-  `for`/`while` sobre `grep -rl` de «```mermaid» en el alcance que llama a `mmdc -p .github/puppeteer-config.json`,
-  escribe `::error file=<archivo>::diagrama Mermaid inválido` por cada fallo y, tras el `done`, termina con `exit 1`.
+* `mermaid-cli`: un paso propio, antes del bucle, con `npm ci` y `working-directory: .github/mermaid` (o
+  `npm ci --prefix .github/mermaid`), sin ningún `npm install` en el trabajo; y un bucle `for`/`while` sobre
+  `grep -rl` de «```mermaid» en el alcance que llama a `.github/mermaid/node_modules/.bin/mmdc -p
+  .github/puppeteer-config.json` (ruta relativa o bajo `$GITHUB_WORKSPACE`), escribe
+  `::error file=<archivo>::diagrama Mermaid inválido` por cada fallo y, tras el `done`, termina con `exit 1`.
+  Los archivos reales: `.github/mermaid/package.json` (`"private": true` y `@mermaid-js/mermaid-cli` en `12.0.0`
+  exacta, sin `^` ni `~`), `.github/mermaid/package-lock.json` (`lockfileVersion` 3 con esa versión e `integrity`)
+  y `.gitignore` con `node_modules`.
 
 Ejecución, desde la raíz del repositorio:
 
@@ -43,6 +50,8 @@ Ejecución, desde la raíz del repositorio:
 
 from __future__ import annotations
 
+import copy
+import json
 import os
 import re
 import shlex
@@ -117,8 +126,18 @@ CRON_SEMANAL = "0 13 * * 1"
 MARKDOWNLINT = r"\bmarkdownlint-cli2(?![\w-])"
 VALE_SUELTO = r"(?<![\w-])vale(?![\w-])"
 VALE_FIJADO = rf"\buvx --from vale=={re.escape(VERSION_DE_VALE)} vale(?![\w.-])"
-INSTALA_NPM = r"\bnpm (?:install|i)(?![\w-])"
+INSTALA_NPM = r"\bnpm\s+(?:ci|install|i|add)(?![\w-])"
+NPM_QUE_RESUELVE = r"\bnpm\s+(?:install|i|add)(?![\w-])"
 INVOCA_MMDC = r"(?i)mmdc\"?\s+-"
+# El binario que instaló `npm ci` en `.github/mermaid`: relativo a la raíz o bajo `$GITHUB_WORKSPACE`.
+BINARIO_DE_MMDC = r"(?:\$\{?GITHUB_WORKSPACE\}?/|\./|(?<![\w./-]))\.github/mermaid/node_modules/\.bin/mmdc(?![\w.-])\"?\s+-"
+
+DIRECTORIO_DE_MERMAID = ".github/mermaid"
+PAQUETE_DE_MMDC = "@mermaid-js/mermaid-cli"
+ENTRADA_DEL_LOCK = f"node_modules/{PAQUETE_DE_MMDC}"
+PACKAGE_JSON_DE_MERMAID = os.path.join(RAIZ, ".github", "mermaid", "package.json")
+PACKAGE_LOCK_DE_MERMAID = os.path.join(RAIZ, ".github", "mermaid", "package-lock.json")
+GITIGNORE = os.path.join(RAIZ, ".gitignore")
 
 TEMPORAL = r"\"?\$\{?RUNNER_TEMP\}?"
 ARCHIVO_DE_VALE = TEMPORAL + r"/vale\.txt\"?"
@@ -306,30 +325,79 @@ def _comprobar_markdownlint(lista: list[list[str]], hito: tuple[int, int]) -> li
     return problemas
 
 
+def _directorio_normalizado(valor: str | None) -> str:
+    """`./.github/mermaid/`, `".github/mermaid"` y `.github/mermaid` son el mismo directorio."""
+    limpio = (valor or "").strip("\"'")
+    return limpio.removeprefix("./").rstrip("/")
+
+
+def _comprobar_instalacion_de_mermaid(
+    paso: list[str], comparte_paso_con_el_bucle: bool
+) -> list[str]:
+    """La instalación de mermaid-cli es `npm ci` sobre `.github/mermaid` (su `package.json` y su lockfile), en un paso propio.
+    `npm install <paquete>` instala fuera de un lockfile (`zizmor`: `adhoc-packages`)."""
+    problemas: list[str] = []
+    orden = comando(paso).replace("\\\n", " ")
+    encontrada = re.search(INSTALA_NPM, orden)
+    if encontrada is None:
+        return problemas
+    linea = orden[encontrada.start() :].split("\n")[0]
+    palabras = _palabras(re.split(r"[;&|<>]", linea)[0])
+    subcomando = palabras[1] if len(palabras) > 1 else ""
+    if subcomando != "ci":
+        problemas.append(
+            f"'{DOC}': la instalación de mermaid-cli ejecuta `npm {subcomando}`; debe ser `npm ci`, que instala lo que fija "
+            "el lockfile y no un paquete suelto (zizmor: adhoc-packages)"
+        )
+    prefijo: str | None = None
+    sueltos: list[str] = []
+    esperando_valor = False
+    for palabra in palabras[2:]:
+        if esperando_valor:
+            prefijo, esperando_valor = palabra, False
+        elif palabra == "--prefix":
+            esperando_valor = True
+        elif palabra.startswith("--prefix="):
+            prefijo = palabra.partition("=")[2]
+        elif not palabra.startswith("-"):
+            sueltos.append(palabra)
+    if subcomando == "ci" and sueltos:
+        problemas.append(
+            f"'{DOC}': `npm ci` no instala paquetes sueltos ({sueltos}); mermaid-cli se declara en {DIRECTORIO_DE_MERMAID}/package.json"
+        )
+    directorio_del_paso = valor_del_paso(paso, "working-directory")
+    if prefijo is not None and directorio_del_paso is not None:
+        problemas.append(
+            f"'{DOC}': la instalación de mermaid-cli declara `working-directory` y `--prefix` a la vez; "
+            "un prefijo relativo se resolvería dentro del directorio del paso"
+        )
+    efectivo = prefijo if prefijo is not None else directorio_del_paso
+    if _directorio_normalizado(efectivo) != DIRECTORIO_DE_MERMAID:
+        problemas.append(
+            f"'{DOC}': `npm ci` de mermaid-cli no se ejecuta en `{DIRECTORIO_DE_MERMAID}` "
+            f"(`working-directory: {DIRECTORIO_DE_MERMAID}` o `--prefix {DIRECTORIO_DE_MERMAID}`) y toma {efectivo!r}"
+        )
+    if comparte_paso_con_el_bucle:
+        problemas.append(
+            f"'{DOC}': la instalación de mermaid-cli comparte paso con el bucle de mmdc; debe ir en un paso propio, antes del bucle"
+        )
+    return problemas
+
+
 def _comprobar_mermaid(
     lista: list[list[str]], instalacion: tuple[int, int] | None, bucle: tuple[int, int]
 ) -> list[str]:
     problemas: list[str] = []
     if instalacion is not None:
-        orden = comando(lista[instalacion[0]]).replace("\\\n", " ")
-        linea = orden[re.search(INSTALA_NPM, orden).start() :].split("\n")[0]
-        paquetes = [p for p in _palabras(linea) if p.startswith("@mermaid-js/mermaid-cli")]
-        if (
-            not paquetes
-            or paquetes[0].partition("@mermaid-js/mermaid-cli")[2] != f"@{VERSION_DE_MMDC}"
-        ):
-            problemas.append(
-                f"'{DOC}': mermaid-cli no se instala fijado: debe ser @mermaid-js/mermaid-cli@{VERSION_DE_MMDC} (regla común 3)"
-            )
-        if not re.search(r"(?<![\w-])--no-save(?![\w-])", linea):
-            problemas.append(
-                f"'{DOC}': la instalación de mermaid-cli no lleva `--no-save`; tocaría el package.json del repositorio"
-            )
-        if not re.search(rf"(?<![\w-])--prefix(?:=|\s+){TEMPORAL}/mmdc\"?(?![\w/-])", linea):
-            problemas.append(
-                f"'{DOC}': la instalación de mermaid-cli no usa `--prefix \"$RUNNER_TEMP/mmdc\"`"
-            )
+        problemas += _comprobar_instalacion_de_mermaid(
+            lista[instalacion[0]], instalacion[0] == bucle[0]
+        )
     run = comando(lista[bucle[0]])
+    if not re.search(BINARIO_DE_MMDC, run):
+        problemas.append(
+            f"'{DOC}': mmdc no se invoca desde el binario que instaló `npm ci`: `{DIRECTORIO_DE_MERMAID}/node_modules/.bin/mmdc` "
+            "(ruta relativa a la raíz o bajo `$GITHUB_WORKSPACE`)"
+        )
     if not re.search(
         r"(?<![\w-])(?:-p|--puppeteerConfigFile)(?:=|\s+)\"?\.github/puppeteer-config\.json\"?", run
     ):
@@ -369,6 +437,103 @@ def _comprobar_mermaid(
         problemas.append(
             f"'{DOC}': el paso de mmdc recorre el repositorio entero (`.`) en lugar del alcance"
         )
+    return problemas
+
+
+def _leer_json(texto: str, archivo: str) -> tuple[dict | None, list[str]]:
+    try:
+        datos = json.loads(texto)
+    except ValueError as error:
+        return None, [f"{archivo}: no es JSON válido ({error})"]
+    if not isinstance(datos, dict):
+        return None, [f"{archivo}: la raíz debe ser un objeto JSON"]
+    return datos, []
+
+
+def comprobar_package_json_de_mermaid(texto: str) -> list[str]:
+    """CA-16 esc. 1 · TC-65. `.github/mermaid/package.json`: `"private": true` y `@mermaid-js/mermaid-cli` en `dependencies` o
+    `devDependencies` con la versión EXACTA `12.0.0` (sin `^`, `~`, rangos ni etiquetas)."""
+    archivo = f"{DIRECTORIO_DE_MERMAID}/package.json"
+    datos, problemas = _leer_json(texto, archivo)
+    if datos is None:
+        return problemas
+    if datos.get("private") is not True:
+        problemas.append(
+            f'{archivo}: debe declarar `"private": true`; este manifiesto no se publica'
+        )
+    declaradas = [
+        datos[seccion][PAQUETE_DE_MMDC]
+        for seccion in ("dependencies", "devDependencies")
+        if isinstance(datos.get(seccion), dict) and PAQUETE_DE_MMDC in datos[seccion]
+    ]
+    if not declaradas:
+        problemas.append(
+            f"{archivo}: no declara {PAQUETE_DE_MMDC} en `dependencies` ni en `devDependencies`"
+        )
+    for version in declaradas:
+        if version != VERSION_DE_MMDC:
+            problemas.append(
+                f"{archivo}: declara {PAQUETE_DE_MMDC} en {version!r}; debe ser la versión exacta {VERSION_DE_MMDC!r}, "
+                "sin `^` ni `~` (regla común 3)"
+            )
+    return problemas
+
+
+def comprobar_package_lock_de_mermaid(texto: str) -> list[str]:
+    """CA-16 esc. 1 · TC-65. `.github/mermaid/package-lock.json`: `lockfileVersion` 3, `node_modules/@mermaid-js/mermaid-cli` en
+    `12.0.0` con `integrity`, y la raíz del lock (`packages[""]`) declarando la misma versión exacta que el `package.json`."""
+    archivo = f"{DIRECTORIO_DE_MERMAID}/package-lock.json"
+    datos, problemas = _leer_json(texto, archivo)
+    if datos is None:
+        return problemas
+    if datos.get("lockfileVersion") != 3:
+        problemas.append(
+            f"{archivo}: `lockfileVersion` debe ser 3 y es {datos.get('lockfileVersion')!r}"
+        )
+    paquetes = datos.get("packages")
+    if not isinstance(paquetes, dict):
+        return problemas + [f"{archivo}: no tiene la sección `packages`"]
+    entrada = paquetes.get(ENTRADA_DEL_LOCK)
+    if not isinstance(entrada, dict):
+        problemas.append(f"{archivo}: no fija `{ENTRADA_DEL_LOCK}`")
+    else:
+        if entrada.get("version") != VERSION_DE_MMDC:
+            problemas.append(
+                f"{archivo}: fija {PAQUETE_DE_MMDC} en {entrada.get('version')!r}; debe ser {VERSION_DE_MMDC!r}"
+            )
+        if not re.fullmatch(
+            r"sha(?:256|384|512)-[A-Za-z0-9+/]+=*", str(entrada.get("integrity") or "")
+        ):
+            problemas.append(f"{archivo}: la entrada de {PAQUETE_DE_MMDC} no lleva `integrity`")
+    raiz = paquetes.get("")
+    declarada = None
+    if isinstance(raiz, dict):
+        for seccion in ("dependencies", "devDependencies"):
+            if isinstance(raiz.get(seccion), dict) and PAQUETE_DE_MMDC in raiz[seccion]:
+                declarada = raiz[seccion][PAQUETE_DE_MMDC]
+    if declarada != VERSION_DE_MMDC:
+        problemas.append(
+            f"{archivo}: la raíz del lock declara {PAQUETE_DE_MMDC} en {declarada!r} y debe ser {VERSION_DE_MMDC!r}; "
+            "el lock no corresponde al package.json"
+        )
+    return problemas
+
+
+def comprobar_gitignore_de_node_modules(texto: str) -> list[str]:
+    """`.gitignore` ignora `node_modules` en cualquier profundidad (el de `.github/mermaid` incluido): `node_modules`,
+    `node_modules/`, `**/node_modules` o `**/node_modules/`, sin una negación posterior. Anclado a la raíz (`/node_modules/`) no basta."""
+    lineas = [linea.strip() for linea in texto.splitlines()]
+    activas = [linea for linea in lineas if linea and not linea.startswith("#")]
+    problemas: list[str] = []
+    if not any(
+        linea in ("node_modules", "node_modules/", "**/node_modules", "**/node_modules/")
+        for linea in activas
+    ):
+        problemas.append(
+            ".gitignore: no ignora `node_modules/` en cualquier profundidad; `npm ci` dejaría .github/mermaid/node_modules como cambio pendiente"
+        )
+    if any(linea.startswith("!") and "node_modules" in linea for linea in activas):
+        problemas.append(".gitignore: una negación (`!`) vuelve a incluir node_modules")
     return problemas
 
 
@@ -414,15 +579,15 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
         "markdownlint-cli2": _localizar(lista, MARKDOWNLINT),
         "vale": _localizar(lista, VALE_SUELTO),
         "lychee-action": (i_lychee, 0) if i_lychee is not None else None,
-        "npm install de mermaid-cli": _localizar(lista, INSTALA_NPM),
+        "npm ci de mermaid-cli": _localizar(lista, INSTALA_NPM),
         "bucle de mmdc": _localizar(lista, INVOCA_MMDC),
     }
     previo = (-1, -1)
     anterior = "el inicio del trabajo"
     for etiqueta, hito in hitos.items():
         if hito is None:
-            if etiqueta == "npm install de mermaid-cli":
-                continue  # lo exige más abajo, junto con la versión
+            if etiqueta == "npm ci de mermaid-cli":
+                continue  # lo exige más abajo
             problemas.append(
                 f"'{DOC}': falta «{etiqueta}» en un paso del trabajo (un paso comentado o de otro trabajo no cuenta)"
             )
@@ -431,10 +596,16 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
         else:
             previo = hito
             anterior = etiqueta
-    if hitos["npm install de mermaid-cli"] is None:
+    if hitos["npm ci de mermaid-cli"] is None:
         problemas.append(
-            f"'{DOC}': falta «npm install de mermaid-cli» en un paso del trabajo (un paso comentado o de otro trabajo no cuenta)"
+            f"'{DOC}': falta «npm ci de mermaid-cli» en un paso del trabajo (un paso comentado o de otro trabajo no cuenta)"
         )
+    for paso in lista:
+        if re.search(NPM_QUE_RESUELVE, comando(paso).replace("\\\n", " ")):
+            problemas.append(
+                f"'{DOC}': el paso `{_nombre_del_paso(paso)}` ejecuta `npm install`; en el trabajo solo se instala con "
+                "`npm ci` sobre un lockfile (zizmor: adhoc-packages)"
+            )
 
     if hitos["markdownlint-cli2"] is not None:
         problemas += _comprobar_markdownlint(lista, hitos["markdownlint-cli2"])
@@ -450,9 +621,9 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
         problemas += _comprobar_paso_de_lychee(DOC, lista[i_lychee])
     if hitos["bucle de mmdc"] is not None:
         problemas += _comprobar_mermaid(
-            lista, hitos["npm install de mermaid-cli"], hitos["bucle de mmdc"]
+            lista, hitos["npm ci de mermaid-cli"], hitos["bucle de mmdc"]
         )
-        instalacion = hitos["npm install de mermaid-cli"]
+        instalacion = hitos["npm ci de mermaid-cli"]
         if instalacion is not None and instalacion > hitos["bucle de mmdc"]:
             problemas.append(f"'{DOC}': mmdc se ejecuta antes de instalar mermaid-cli")
         if instalacion is not None and (i_node is None or i_node > instalacion[0]):
@@ -664,17 +835,20 @@ PASO_LYCHEE = (
     + CON_DE_LYCHEE
 )
 
-LINEA_INSTALAR_MMDC = '        run: npm install --no-save --prefix "$RUNNER_TEMP/mmdc" @mermaid-js/mermaid-cli@12.0.0\n'
-PASO_INSTALAR_MMDC = "      - name: Instalar mermaid-cli\n" + GUARDA_DE_PASO + LINEA_INSTALAR_MMDC
+LINEAS_INSTALAR_MMDC = "        working-directory: .github/mermaid\n        run: npm ci\n"
+PASO_INSTALAR_MMDC = "      - name: Instalar mermaid-cli\n" + GUARDA_DE_PASO + LINEAS_INSTALAR_MMDC
+LLAMADA_A_MMDC = (
+    "            if ! .github/mermaid/node_modules/.bin/mmdc -p .github/puppeteer-config.json"
+    ' -i "$archivo" -o "$RUNNER_TEMP/mermaid/$n.md"; then\n'
+)
 LINEAS_DEL_BUCLE = (
     "          fallos=0\n"
     "          n=0\n"
     '          mkdir -p "$RUNNER_TEMP/mermaid"\n'
     "          while IFS= read -r archivo; do\n"
     "            n=$((n + 1))\n"
-    '            if ! "$RUNNER_TEMP/mmdc/node_modules/.bin/mmdc" -p .github/puppeteer-config.json'
-    ' -i "$archivo" -o "$RUNNER_TEMP/mermaid/$n.md"; then\n'
-    '              echo "::error file=$archivo::diagrama Mermaid inválido"\n'
+    + LLAMADA_A_MMDC
+    + '              echo "::error file=$archivo::diagrama Mermaid inválido"\n'
     "              fallos=1\n"
     "            fi\n"
     "          done < <(grep -rl '```mermaid' docs sdd README.md CLAUDE.md tools/README.md)\n"
@@ -734,6 +908,51 @@ ENLACES_D5 = (
     "    steps:\n" + PASO_CHECKOUT_DE_ENLACES + PASO_LYCHEE_DE_ENLACES
 )
 
+INTEGRIDAD_SINTETICA = "sha512-" + "A" * 86 + "=="
+PACKAGE_JSON_BASE = {
+    "name": "cimenta-mermaid",
+    "private": True,
+    "dependencies": {PAQUETE_DE_MMDC: VERSION_DE_MMDC},
+}
+PACKAGE_LOCK_BASE = {
+    "name": "cimenta-mermaid",
+    "lockfileVersion": 3,
+    "requires": True,
+    "packages": {
+        "": {
+            "name": "cimenta-mermaid",
+            "dependencies": {PAQUETE_DE_MMDC: VERSION_DE_MMDC},
+        },
+        ENTRADA_DEL_LOCK: {
+            "version": VERSION_DE_MMDC,
+            "resolved": f"https://registry.npmjs.org/{PAQUETE_DE_MMDC}/-/mermaid-cli-{VERSION_DE_MMDC}.tgz",
+            "integrity": INTEGRIDAD_SINTETICA,
+            "license": "MIT",
+        },
+    },
+}
+_BORRAR = object()
+
+
+def json_mutado(base: dict, ruta: tuple[str, ...], valor: object = _BORRAR) -> str:
+    """El JSON de `base` con el valor de `ruta` cambiado por `valor` (o la clave borrada), como texto. Falla si no cambia nada."""
+    copia = copy.deepcopy(base)
+    destino = copia
+    for clave in ruta[:-1]:
+        destino = destino[clave]
+    if valor is _BORRAR:
+        del destino[ruta[-1]]
+    else:
+        destino[ruta[-1]] = valor
+    if copia == base:
+        raise AssertionError(f"el mutante no cambia nada: {ruta!r} ya vale {valor!r}")
+    return json.dumps(copia, indent=2)
+
+
+PACKAGE_JSON_D5 = json.dumps(PACKAGE_JSON_BASE, indent=2)
+PACKAGE_LOCK_D5 = json.dumps(PACKAGE_LOCK_BASE, indent=2)
+GITIGNORE_D5 = "__pycache__/\n.env\nnode_modules/\ndist/\n"
+
 exigir_rojo_en_todos = _exigir_rojo_en_todos
 
 
@@ -783,14 +1002,10 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             "            docs sdd README.md CLAUDE.md tools/README.md \\\n"
             '            > "$RUNNER_TEMP/vale.txt" || codigo=$?\n'
         )
-        instalacion_junto_al_bucle = PASO_MERMAID.replace(
-            "        run: |\n",
-            "        run: |\n          " + LINEA_INSTALAR_MMDC.strip().removeprefix("run: ") + "\n",
-        )
         bucle_for = (
             "          fallos=0\n"
             "          for archivo in $(grep -rl '```mermaid' docs sdd README.md CLAUDE.md tools/README.md); do\n"
-            '            "$RUNNER_TEMP/mmdc/node_modules/.bin/mmdc" -p .github/puppeteer-config.json'
+            "            .github/mermaid/node_modules/.bin/mmdc -p .github/puppeteer-config.json"
             ' -i "$archivo" -o "$RUNNER_TEMP/mermaid.md" || { echo "::error file=$archivo::diagrama Mermaid inválido"; fallos=1; }\n'
             "          done\n"
             '          [ "$fallos" -eq 0 ] || exit 1\n'
@@ -812,11 +1027,29 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             "lycheeVersion entre comillas": en_documentacion(
                 "lycheeVersion: v0.24.2", "lycheeVersion: 'v0.24.2'"
             ),
-            "instalación de mermaid-cli en el mismo paso del bucle": mutar(
-                mutar(CI_D5, DOC, PASO_INSTALAR_MMDC, ""),
-                DOC,
-                PASO_MERMAID,
-                instalacion_junto_al_bucle,
+            "npm ci con --prefix en lugar de working-directory": en_documentacion(
+                LINEAS_INSTALAR_MMDC, "        run: npm ci --prefix .github/mermaid\n"
+            ),
+            "npm ci con --prefix= y comillas": en_documentacion(
+                LINEAS_INSTALAR_MMDC, '        run: npm ci --prefix=".github/mermaid"\n'
+            ),
+            "working-directory con ./ y barra final": en_documentacion(
+                "working-directory: .github/mermaid", 'working-directory: "./.github/mermaid/"'
+            ),
+            "npm ci con --no-audit --no-fund": en_documentacion(
+                "run: npm ci\n", "run: npm ci --no-audit --no-fund\n"
+            ),
+            "mmdc bajo $GITHUB_WORKSPACE": en_documentacion(
+                "if ! .github/mermaid/node_modules/.bin/mmdc",
+                'if ! "$GITHUB_WORKSPACE/.github/mermaid/node_modules/.bin/mmdc"',
+            ),
+            "mmdc bajo ${GITHUB_WORKSPACE}": en_documentacion(
+                "if ! .github/mermaid/node_modules/.bin/mmdc",
+                "if ! ${GITHUB_WORKSPACE}/.github/mermaid/node_modules/.bin/mmdc",
+            ),
+            "mmdc con ruta ./ entre comillas": en_documentacion(
+                "if ! .github/mermaid/node_modules/.bin/mmdc",
+                'if ! "./.github/mermaid/node_modules/.bin/mmdc"',
             ),
             "bucle for con || { ...; } y exit 1 en una línea": en_documentacion(
                 LINEAS_DEL_BUCLE, bucle_for
@@ -850,7 +1083,7 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             "lychee comentado": (comentar(CI_D5, DOC, PASO_LYCHEE), "«lychee-action»"),
             "instalación de mermaid-cli comentada": (
                 comentar(CI_D5, DOC, PASO_INSTALAR_MMDC),
-                "npm install de mermaid-cli",
+                "npm ci de mermaid-cli",
             ),
             "bucle de mmdc comentado": (comentar(CI_D5, DOC, PASO_MERMAID), "«bucle de mmdc»"),
             "markdownlint movido a workflows": (
@@ -900,7 +1133,7 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
                     PASO_LYCHEE + PASO_INSTALAR_MMDC + PASO_MERMAID,
                     PASO_INSTALAR_MMDC + PASO_MERMAID + PASO_LYCHEE,
                 ),
-                "«npm install de mermaid-cli» debe ir después de «lychee-action»",
+                "«npm ci de mermaid-cli» debe ir después de «lychee-action»",
             ),
             "el bucle antes de instalar mermaid-cli": (
                 en_documentacion(
@@ -1200,29 +1433,113 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
         }
         exigir_rojo_en_todos(self, comprobar_tc65_texto, casos)
 
-    def test_tc65_mutantes_mermaid_cli_fijado_y_el_bucle_falla_por_cada_diagrama(self):
-        """CA-16 esc. 1 · TC-65 — mermaid-cli 12.0.0 con `--no-save --prefix`, `-p`, el `::error` por archivo y `exit 1` tras el bucle."""
+    def test_tc65_mutantes_mermaid_cli_se_instala_con_npm_ci_y_el_bucle_falla_por_cada_diagrama(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 — mermaid-cli con `npm ci` en `.github/mermaid` (paso propio, sin `npm install`), el binario de ahí, `-p`, el `::error` por archivo y `exit 1` tras el bucle."""
+        paso_npm_install_suelto = (
+            "      - name: Instalar otra cosa\n"
+            + GUARDA_DE_PASO
+            + "        run: npm install --no-save left-pad\n"
+        )
         casos = {
-            "instalación sin versión": (
-                en_documentacion("mermaid-cli@12.0.0", "mermaid-cli"),
-                "mermaid-cli no se instala fijado",
+            "vuelve npm install con el paquete suelto": (
+                en_documentacion(
+                    LINEAS_INSTALAR_MMDC,
+                    '        run: npm install --no-save --prefix "$RUNNER_TEMP/mmdc" @mermaid-js/mermaid-cli@12.0.0\n',
+                ),
+                "debe ser `npm ci`",
             ),
-            "instalación con latest": (
-                en_documentacion("mermaid-cli@12.0.0", "mermaid-cli@latest"),
-                "mermaid-cli no se instala fijado",
+            "npm install sin paquete": (
+                en_documentacion("run: npm ci\n", "run: npm install\n"),
+                "debe ser `npm ci`",
             ),
-            "instalación de otra versión": (
-                en_documentacion("mermaid-cli@12.0.0", "mermaid-cli@11.12.0"),
-                "mermaid-cli no se instala fijado",
+            "npm i": (en_documentacion("run: npm ci\n", "run: npm i\n"), "debe ser `npm ci`"),
+            "npm install sigue en el trabajo, en otro paso": (
+                en_documentacion(PASO_INSTALAR_MMDC, PASO_INSTALAR_MMDC + paso_npm_install_suelto),
+                "ejecuta `npm install`",
             ),
-            "instalación sin --no-save": (en_documentacion(" --no-save", ""), "`--no-save`"),
-            "instalación sin --prefix": (
-                en_documentacion(' --prefix "$RUNNER_TEMP/mmdc"', ""),
-                "`--prefix",
+            "npm install en el paso del bucle": (
+                en_documentacion(
+                    "          fallos=0\n",
+                    "          npm install --no-save left-pad\n          fallos=0\n",
+                ),
+                "ejecuta `npm install`",
             ),
-            "instalación con otro prefijo": (
-                en_documentacion('--prefix "$RUNNER_TEMP/mmdc"', "--prefix frontend"),
-                "`--prefix",
+            "npm ci con el paquete como argumento": (
+                en_documentacion("run: npm ci\n", "run: npm ci @mermaid-js/mermaid-cli@12.0.0\n"),
+                "no instala paquetes sueltos",
+            ),
+            "npm ci sin working-directory": (
+                en_documentacion("        working-directory: .github/mermaid\n", ""),
+                "no se ejecuta en `.github/mermaid`",
+            ),
+            "npm ci con working-directory de frontend": (
+                en_documentacion(
+                    "working-directory: .github/mermaid", "working-directory: frontend"
+                ),
+                "no se ejecuta en `.github/mermaid`",
+            ),
+            "npm ci con working-directory de .github": (
+                en_documentacion(
+                    "working-directory: .github/mermaid", "working-directory: .github"
+                ),
+                "no se ejecuta en `.github/mermaid`",
+            ),
+            "npm ci con --prefix de otro directorio": (
+                en_documentacion(LINEAS_INSTALAR_MMDC, "        run: npm ci --prefix frontend\n"),
+                "no se ejecuta en `.github/mermaid`",
+            ),
+            "npm ci con el prefijo temporal de antes": (
+                en_documentacion(
+                    LINEAS_INSTALAR_MMDC, '        run: npm ci --prefix "$RUNNER_TEMP/mmdc"\n'
+                ),
+                "no se ejecuta en `.github/mermaid`",
+            ),
+            "working-directory y --prefix a la vez": (
+                en_documentacion("run: npm ci\n", "run: npm ci --prefix .github/mermaid\n"),
+                "`working-directory` y `--prefix` a la vez",
+            ),
+            "la instalación comparte paso con el bucle": (
+                mutar(
+                    mutar(CI_D5, DOC, PASO_INSTALAR_MMDC, ""),
+                    DOC,
+                    PASO_MERMAID,
+                    PASO_MERMAID.replace(
+                        "        run: |\n",
+                        "        run: |\n          npm ci --prefix .github/mermaid\n",
+                    ),
+                ),
+                "debe ir en un paso propio",
+            ),
+            "el bucle llama al mmdc del prefijo temporal": (
+                en_documentacion(
+                    "if ! .github/mermaid/node_modules/.bin/mmdc",
+                    'if ! "$RUNNER_TEMP/mmdc/node_modules/.bin/mmdc"',
+                ),
+                "mmdc no se invoca desde el binario que instaló `npm ci`",
+            ),
+            "el bucle llama al mmdc de frontend": (
+                en_documentacion(
+                    "if ! .github/mermaid/node_modules/.bin/mmdc",
+                    "if ! frontend/node_modules/.bin/mmdc",
+                ),
+                "mmdc no se invoca desde el binario que instaló `npm ci`",
+            ),
+            "el bucle llama a un mmdc global": (
+                en_documentacion("if ! .github/mermaid/node_modules/.bin/mmdc", "if ! mmdc"),
+                "mmdc no se invoca desde el binario que instaló `npm ci`",
+            ),
+            "el bucle llama a npx mmdc": (
+                en_documentacion("if ! .github/mermaid/node_modules/.bin/mmdc", "if ! npx mmdc"),
+                "mmdc no se invoca desde el binario que instaló `npm ci`",
+            ),
+            "el bucle llama al binario de un directorio con otro prefijo": (
+                en_documentacion(
+                    "if ! .github/mermaid/node_modules/.bin/mmdc",
+                    "if ! docs/.github/mermaid/node_modules/.bin/mmdc",
+                ),
+                "mmdc no se invoca desde el binario que instaló `npm ci`",
             ),
             "mmdc sin -p": (
                 en_documentacion(" -p .github/puppeteer-config.json", ""),
@@ -1261,7 +1578,7 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             "sin bucle": (
                 en_documentacion(
                     LINEAS_DEL_BUCLE,
-                    '          "$RUNNER_TEMP/mmdc/node_modules/.bin/mmdc" -p .github/puppeteer-config.json -i docs/README.md'
+                    "          .github/mermaid/node_modules/.bin/mmdc -p .github/puppeteer-config.json -i docs/README.md"
                     ' -o "$RUNNER_TEMP/mermaid.md"\n          exit 1\n',
                 ),
                 "no se ejecuta dentro de un bucle",
@@ -1387,6 +1704,205 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
         )
         self.assertNotEqual(comprobar_regla_comun_8(extraer_trabajos(con_interpolacion)), [])
         self.assertNotEqual(comprobar_regla_comun_9(extraer_trabajos(con_tuberia)), [])
+
+    def test_tc65_mutantes_el_manifiesto_de_mermaid_cli_pasa_en_su_forma_valida(self):
+        """CA-16 esc. 1 · TC-65 — control y formas equivalentes: `package.json`, `package-lock.json` y `.gitignore` válidos pasan; un rojo falso bloquearía la fila."""
+        self.assertEqual(comprobar_package_json_de_mermaid(PACKAGE_JSON_D5), [])
+        self.assertEqual(comprobar_package_lock_de_mermaid(PACKAGE_LOCK_D5), [])
+        self.assertEqual(comprobar_gitignore_de_node_modules(GITIGNORE_D5), [])
+        validos_json = {
+            "en devDependencies": json_mutado(
+                {**PACKAGE_JSON_BASE, "devDependencies": {PAQUETE_DE_MMDC: VERSION_DE_MMDC}},
+                ("dependencies",),
+            ),
+            "con scripts, version y otras dependencias exactas": json_mutado(
+                {
+                    **PACKAGE_JSON_BASE,
+                    "version": "1.0.0",
+                    "scripts": {"mmdc": "mmdc"},
+                    "dependencies": {PAQUETE_DE_MMDC: VERSION_DE_MMDC, "otra": "1.2.3"},
+                },
+                ("version",),
+                "0.0.0",
+            ),
+        }
+        for descripcion, texto in validos_json.items():
+            with self.subTest(package_json=descripcion):
+                self.assertEqual(comprobar_package_json_de_mermaid(texto), [])
+        validos_lock = {
+            "con la raíz en devDependencies": json_mutado(
+                PACKAGE_LOCK_BASE,
+                ("packages", ""),
+                {"devDependencies": {PAQUETE_DE_MMDC: VERSION_DE_MMDC}},
+            ),
+            "con integridad sha384": json_mutado(
+                PACKAGE_LOCK_BASE,
+                ("packages", ENTRADA_DEL_LOCK, "integrity"),
+                "sha384-" + "B" * 64,
+            ),
+            "con otras dependencias transitivas": json_mutado(
+                PACKAGE_LOCK_BASE,
+                ("packages", "node_modules/puppeteer"),
+                {"version": "23.1.0", "integrity": INTEGRIDAD_SINTETICA},
+            ),
+        }
+        for descripcion, texto in validos_lock.items():
+            with self.subTest(package_lock=descripcion):
+                self.assertEqual(comprobar_package_lock_de_mermaid(texto), [])
+        validos_gitignore = {
+            "node_modules sin barra": "node_modules\n",
+            "**/node_modules/": "# dependencias\n**/node_modules/\n",
+            "con finales de línea de Windows": "dist/\r\nnode_modules/\r\n",
+            "con una negación de otra cosa": "node_modules/\n!.env.example\n",
+        }
+        for descripcion, texto in validos_gitignore.items():
+            with self.subTest(gitignore=descripcion):
+                self.assertEqual(comprobar_gitignore_de_node_modules(texto), [])
+
+    def test_tc65_mutantes_package_json_de_mermaid_cli_fija_la_version_exacta(self):
+        """CA-16 esc. 1 · TC-65 — `package.json`: `private: true` y `@mermaid-js/mermaid-cli` en `12.0.0` exacta, no `^`, `~`, rango ni etiqueta."""
+        ruta = ("dependencies", PAQUETE_DE_MMDC)
+        fragmento_de_version = "debe ser la versión exacta '12.0.0'"
+        casos = {
+            "con acento circunflejo": (
+                json_mutado(PACKAGE_JSON_BASE, ruta, "^12.0.0"),
+                fragmento_de_version,
+            ),
+            "con tilde": (json_mutado(PACKAGE_JSON_BASE, ruta, "~12.0.0"), fragmento_de_version),
+            "con rango": (json_mutado(PACKAGE_JSON_BASE, ruta, ">=12.0.0"), fragmento_de_version),
+            "con comodín": (json_mutado(PACKAGE_JSON_BASE, ruta, "12.x"), fragmento_de_version),
+            "latest": (json_mutado(PACKAGE_JSON_BASE, ruta, "latest"), fragmento_de_version),
+            "otra versión": (json_mutado(PACKAGE_JSON_BASE, ruta, "12.0.1"), fragmento_de_version),
+            "versión anterior": (
+                json_mutado(PACKAGE_JSON_BASE, ruta, "11.12.0"),
+                fragmento_de_version,
+            ),
+            "sin la dependencia": (
+                json_mutado(PACKAGE_JSON_BASE, ("dependencies",), {}),
+                "no declara @mermaid-js/mermaid-cli",
+            ),
+            "sin la sección de dependencias": (
+                json_mutado(PACKAGE_JSON_BASE, ("dependencies",)),
+                "no declara @mermaid-js/mermaid-cli",
+            ),
+            "solo en optionalDependencies": (
+                json_mutado(
+                    {
+                        **PACKAGE_JSON_BASE,
+                        "optionalDependencies": {PAQUETE_DE_MMDC: VERSION_DE_MMDC},
+                    },
+                    ("dependencies",),
+                ),
+                "no declara @mermaid-js/mermaid-cli",
+            ),
+            "exacta en dependencies y con ^ en devDependencies": (
+                json_mutado(
+                    {**PACKAGE_JSON_BASE, "devDependencies": {PAQUETE_DE_MMDC: "^12.0.0"}},
+                    ("name",),
+                    "otro",
+                ),
+                fragmento_de_version,
+            ),
+            "sin private": (json_mutado(PACKAGE_JSON_BASE, ("private",)), '"private": true'),
+            "private falso": (
+                json_mutado(PACKAGE_JSON_BASE, ("private",), False),
+                '"private": true',
+            ),
+            "private como cadena": (
+                json_mutado(PACKAGE_JSON_BASE, ("private",), "true"),
+                '"private": true',
+            ),
+            "JSON roto": ("{ no es json", "no es JSON válido"),
+            "raíz que no es un objeto": ("[]", "la raíz debe ser un objeto JSON"),
+            "archivo vacío": ("", "no es JSON válido"),
+        }
+        exigir_rojo_en_todos(self, comprobar_package_json_de_mermaid, casos)
+
+    def test_tc65_mutantes_package_lock_de_mermaid_cli_fija_la_version_y_su_integridad(self):
+        """CA-16 esc. 1 · TC-65 — `package-lock.json`: `lockfileVersion` 3, la entrada de mermaid-cli en `12.0.0` con `integrity`, y la raíz del lock con la misma versión exacta."""
+        entrada = ("packages", ENTRADA_DEL_LOCK)
+        raiz = ("packages", "", "dependencies", PAQUETE_DE_MMDC)
+        casos = {
+            "lockfileVersion 2": (
+                json_mutado(PACKAGE_LOCK_BASE, ("lockfileVersion",), 2),
+                "`lockfileVersion` debe ser 3",
+            ),
+            "lockfileVersion 1": (
+                json_mutado(PACKAGE_LOCK_BASE, ("lockfileVersion",), 1),
+                "`lockfileVersion` debe ser 3",
+            ),
+            "sin lockfileVersion": (
+                json_mutado(PACKAGE_LOCK_BASE, ("lockfileVersion",)),
+                "`lockfileVersion` debe ser 3",
+            ),
+            "lockfileVersion como cadena": (
+                json_mutado(PACKAGE_LOCK_BASE, ("lockfileVersion",), "3"),
+                "`lockfileVersion` debe ser 3",
+            ),
+            "otra versión fijada": (
+                json_mutado(PACKAGE_LOCK_BASE, (*entrada, "version"), "12.0.1"),
+                "fija @mermaid-js/mermaid-cli en '12.0.1'",
+            ),
+            "versión fijada anterior": (
+                json_mutado(PACKAGE_LOCK_BASE, (*entrada, "version"), "11.12.0"),
+                "fija @mermaid-js/mermaid-cli en '11.12.0'",
+            ),
+            "sin la entrada del paquete": (
+                json_mutado(PACKAGE_LOCK_BASE, ("packages", ENTRADA_DEL_LOCK)),
+                "no fija `node_modules/@mermaid-js/mermaid-cli`",
+            ),
+            "sin integrity": (
+                json_mutado(PACKAGE_LOCK_BASE, (*entrada, "integrity")),
+                "no lleva `integrity`",
+            ),
+            "integrity vacía": (
+                json_mutado(PACKAGE_LOCK_BASE, (*entrada, "integrity"), ""),
+                "no lleva `integrity`",
+            ),
+            "integrity con un algoritmo inventado": (
+                json_mutado(PACKAGE_LOCK_BASE, (*entrada, "integrity"), "md5-abcd"),
+                "no lleva `integrity`",
+            ),
+            "la raíz del lock declara ^12.0.0": (
+                json_mutado(PACKAGE_LOCK_BASE, raiz, "^12.0.0"),
+                "la raíz del lock declara @mermaid-js/mermaid-cli en '^12.0.0'",
+            ),
+            "la raíz del lock declara otra versión": (
+                json_mutado(PACKAGE_LOCK_BASE, raiz, "11.12.0"),
+                "la raíz del lock declara @mermaid-js/mermaid-cli en '11.12.0'",
+            ),
+            "la raíz del lock no declara el paquete": (
+                json_mutado(PACKAGE_LOCK_BASE, ("packages", "", "dependencies"), {}),
+                "la raíz del lock declara @mermaid-js/mermaid-cli en None",
+            ),
+            "sin la sección packages": (
+                json_mutado(PACKAGE_LOCK_BASE, ("packages",)),
+                "no tiene la sección `packages`",
+            ),
+            "JSON roto": ("{ no es json", "no es JSON válido"),
+            "archivo vacío": ("", "no es JSON válido"),
+        }
+        exigir_rojo_en_todos(self, comprobar_package_lock_de_mermaid, casos)
+
+    def test_tc65_mutantes_gitignore_ignora_node_modules_en_cualquier_profundidad(self):
+        """CA-16 esc. 1 · TC-65 — `.gitignore` ignora `node_modules`, también el de `.github/mermaid`; anclado a la raíz, comentado o negado no cuenta."""
+        casos = {
+            "sin la línea": ("__pycache__/\n.env\n", "no ignora `node_modules/`"),
+            "archivo vacío": ("", "no ignora `node_modules/`"),
+            "anclado a la raíz": ("/node_modules/\n", "no ignora `node_modules/`"),
+            "solo el de frontend": ("frontend/node_modules/\n", "no ignora `node_modules/`"),
+            "solo el de .github/mermaid de otro directorio": (
+                "docs/node_modules/\n",
+                "no ignora `node_modules/`",
+            ),
+            "comentada": ("# node_modules/\n", "no ignora `node_modules/`"),
+            "con un nombre parecido": ("node_modules_viejos/\n", "no ignora `node_modules/`"),
+            "negada después": (
+                "node_modules/\n!.github/mermaid/node_modules/\n",
+                "una negación (`!`) vuelve a incluir node_modules",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_gitignore_de_node_modules, casos)
 
 
 class PruebasDeMutantesDeLaFilaD5ParaTC64(unittest.TestCase):
@@ -1768,6 +2284,14 @@ def _texto_de_enlaces(caso: unittest.TestCase) -> str:
         return archivo.read()
 
 
+def _texto_de_archivo(caso: unittest.TestCase, ruta: str, motivo: str) -> str:
+    """El texto de un archivo real. Si no existe el caso falla; nunca se salta ni da un verde por vacuidad."""
+    if not os.path.isfile(ruta):
+        caso.fail(f"No existe {os.path.relpath(ruta, RAIZ)}: {motivo}")
+    with open(ruta, encoding="utf-8") as archivo:
+        return archivo.read()
+
+
 class DefinicionDeCIFilaD5(unittest.TestCase):
     """Casos estáticos de la fila D5 sobre `.github/workflows/`. Sin los pasos o sin `enlaces.yml`, fallan; no se saltan."""
 
@@ -1789,6 +2313,32 @@ class DefinicionDeCIFilaD5(unittest.TestCase):
         ):
             with self.subTest(regla=regla.__name__):
                 self.assertEqual(regla(trabajos), [])
+
+    def test_tc65_mermaid_cli_package_json_declara_la_version_exacta_12_0_0(self):
+        """CA-16 esc. 1 · TC-65 · regla común 3 — `.github/mermaid/package.json` es privado y declara `@mermaid-js/mermaid-cli` en `12.0.0`, sin `^` ni `~`;
+        así `npm ci` no instala un paquete suelto (zizmor: adhoc-packages)."""
+        texto = _texto_de_archivo(
+            self,
+            PACKAGE_JSON_DE_MERMAID,
+            "el manifiesto de mermaid-cli de TKT-009d todavía no está definido",
+        )
+        self.assertEqual(comprobar_package_json_de_mermaid(texto), [])
+
+    def test_tc65_mermaid_cli_package_lock_fija_la_version_12_0_0_con_su_integridad(self):
+        """CA-16 esc. 1 · TC-65 · regla común 3 — `.github/mermaid/package-lock.json` (`lockfileVersion` 3) fija `node_modules/@mermaid-js/mermaid-cli`
+        en `12.0.0` con `integrity` y su raíz declara la misma versión exacta que el `package.json`."""
+        texto = _texto_de_archivo(
+            self,
+            PACKAGE_LOCK_DE_MERMAID,
+            "el lockfile de mermaid-cli de TKT-009d todavía no está definido",
+        )
+        self.assertEqual(comprobar_package_lock_de_mermaid(texto), [])
+
+    def test_tc65_gitignore_ignora_node_modules_para_que_npm_ci_no_ensucie_el_arbol(self):
+        """CA-16 esc. 1 · TC-65 — `.gitignore` ignora `node_modules` en cualquier profundidad: `npm ci` en `.github/mermaid` no deja cambios pendientes.
+        Es una regresión: nace en verde porque la línea ya existe; deja de serlo si alguien la quita o la ancla a la raíz."""
+        texto = _texto_de_archivo(self, GITIGNORE, "el .gitignore del repositorio")
+        self.assertEqual(comprobar_gitignore_de_node_modules(texto), [])
 
     def test_tc64_enlaces_se_programa_un_dia_por_semana_y_se_lanza_a_mano(self):
         """CA-14 esc. 1 · convenciones §10 · TC-64 — `enlaces.yml`: `schedule` con `0 13 * * 1`, `workflow_dispatch`, `permissions: contents: read`,
