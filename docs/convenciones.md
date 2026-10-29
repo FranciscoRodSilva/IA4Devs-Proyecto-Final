@@ -325,12 +325,12 @@ Si el código sin tests es deuda técnica, la documentación sin validación es 
 | Capa | Herramienta | Qué detecta |
 |---|---|---|
 | **Sintaxis Markdown** | `markdownlint-cli2` | Encabezados inconsistentes, listas mal indentadas, enlaces vacíos |
-| **Prosa** | `Vale` con estilo Microsoft | Voz pasiva, términos vagos, inconsistencia terminológica |
+| **Prosa** | `Vale` con el [estilo del proyecto](adr/20261029-vale-para-prosa-en-espanol.md) | Términos del glosario escritos con una variante errónea, y palabras repetidas |
 | **Enlaces** | `lychee` | URLs muertas, anclas inexistentes |
 | **Cobertura de docstrings** | `interrogate` | Funciones públicas sin documentar |
 | **Fronteras entre módulos** | `import-linter` | Un módulo que importa el dominio o la infraestructura de otro |
 | **Consistencia de la documentación** | [`tools/verificar_docs.py`](../tools/README.md) | Enlaces y anclas rotos, identificadores inexistentes, conteos descuadrados |
-| **Diagramas** | [`tools/extraer_mermaid.py`](../tools/README.md) | Un diagrama Mermaid con sintaxis inválida |
+| **Diagramas** | En local, [`tools/extraer_mermaid.py`](../tools/README.md); en CI, `@mermaid-js/mermaid-cli` | Un diagrama Mermaid con sintaxis inválida |
 | **Escenarios sin test** | [`tools/verificar_escenarios.py`](../tools/verificar_escenarios.py) | Un escenario de la especificación que ningún test cubre |
 
 Dos ajustes de criterio:

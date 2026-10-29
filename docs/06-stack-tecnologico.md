@@ -446,9 +446,9 @@ Cierra la equivalencia que [`convenciones.md` §10](convenciones.md#10-validaci�
 | **API** | adonis-autoswagger + Scalar | **OpenAPI nativo de FastAPI + Scalar** |
 | **Código** | TSDoc + TypeDoc | **Docstrings estilo Google + mkdocstrings sobre MkDocs Material** |
 | **Cobertura de docs** | `typedoc --validation.notDocumented` | **interrogate**, con umbral por módulo |
-| **Markdown** | markdownlint-cli2 | markdownlint-cli2 |
-| **Prosa** | Vale | Vale |
-| **Enlaces** | lychee | lychee |
+| **Markdown** | markdownlint-cli2 | markdownlint-cli2 0.24.0, en el trabajo `documentacion` |
+| **Prosa** | Vale | Vale 3.25.1, con el [estilo del proyecto](adr/20261029-vale-para-prosa-en-espanol.md) |
+| **Enlaces** | lychee | lychee 0.24.2, en el trabajo `documentacion` y en un cron semanal |
 
 **Scalar se conserva** porque es independiente del lenguaje: consume la especificación OpenAPI que FastAPI genera. La recomendación del material sigue siendo válida sin adaptación.
 
@@ -464,7 +464,9 @@ Comprobaciones que no existen como herramienta de terceros. Viven en [`tools/`](
 | `tools/extraer_mermaid.py` | Diagramas con sintaxis inválida, que en GitHub se renderizan como bloque de error | ✅ En uso |
 | Escenarios sin test | El verificador de §7.2, que sostiene la regla de aceptación | ✅ En uso |
 
-`verificar_docs.py` corre en el trabajo `documentacion` del pipeline, y el de escenarios en el trabajo `herramientas`. El de Mermaid se sustituirá en el pipeline por `@mermaid-js/mermaid-cli`, que hace lo mismo sin navegador.
+`verificar_docs.py` corre en el trabajo `documentacion` del pipeline, y el de escenarios en el trabajo `herramientas`. En el pipeline, los diagramas los valida `@mermaid-js/mermaid-cli` 12.0.0, que hace lo mismo sin navegador: está fijado con su lockfile en `.github/mermaid/` e instalado con `npm ci`. `tools/extraer_mermaid.py` queda para verificar en local.
+
+**Herramientas de terceros de la documentación.** markdownlint-cli2, Vale, lychee y mermaid-cli van fijadas por versión. En el pipeline, cualquier hallazgo falla su paso; en local solo informan. El detalle de lo que comprueba cada una está en [`tools/README.md`](../tools/README.md).
 
 ---
 
@@ -487,14 +489,16 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 - **`humo`**: el recorrido de Playwright con PostgreSQL levantado por Compose, la base migrada y las contraseñas de los roles fijadas. Si falla, sube el informe HTML.
 - **`herramientas`**: las pruebas de `tools/` con `unittest`. Una guarda falla el paso si alguna prueba se salta.
 - **`workflows`**: `zizmor` sobre `.github/workflows`, para auditar los propios flujos.
-- **`documentacion`**: `verificar_docs.py`.
+- **`documentacion`**: `verificar_docs.py`; `markdownlint-cli2` 0.24.0 sobre `docs/`, `sdd/` y los README; Vale 3.25.1 con el alcance, cuya salida se guarda y falla si hay cualquier alerta, incluidas las de aviso; `lychee` 0.24.2 con `fail: true`; y `@mermaid-js/mermaid-cli` 12.0.0 sobre cada diagrama. Todos los pasos llevan `if: ${{ !cancelled() }}`: un fallo no oculta los siguientes, así que un PR ve de una vez todas sus alertas documentales.
 - **`dependencias`**: `pip-audit` sobre el lock del backend, con el filtro de severidad de `tools/severidad_pip_audit.py`, y `npm audit --audit-level=high` sobre el del frontend. La política está en [§6.4](#64-dependencias).
+
+**Detector semanal de enlaces.** `.github/workflows/enlaces.yml` es un flujo aparte. Corre el mismo `lychee`, con la misma configuración, cada lunes a las 13:00 UTC y también a mano. Tiene `concurrency` con `cancel-in-progress: false`: una corrida espera a la anterior y no se solapa con ella.
 
 Dos reglas de higiene rigen el archivo. Cada acción se fija por SHA completo, con su versión en un comentario, porque una etiqueta se mueve y un SHA no. Y el intérprete de Python es el 3.14, con el mismo `uv sync --locked --python 3.14` que documenta [`arranque-local.md`](arranque-local.md), porque sin fijarlo `uv` elige el más nuevo y puede compilar mal `pyyaml`. Ningún paso lleva `continue-on-error`: una compuerta que no falla está desactivada.
 
 **Desviación respecto a TKT-009.** El trabajo `backend` no levanta MinIO. Su servicio y sus pruebas contra un almacén real llegan con TKT-059, que los añade a ese trabajo, porque antes no existe el adaptador de almacén que los usaría.
 
-Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias corre en el trabajo `dependencias`, y la calidad documental completa llega con la parte d de TKT-009. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
+Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias corre en el trabajo `dependencias`, y la calidad documental completa corre en el trabajo `documentacion`. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
 
 Dos trabajos más, que son los que meten la IA en el pipeline sin darle la última palabra:
 

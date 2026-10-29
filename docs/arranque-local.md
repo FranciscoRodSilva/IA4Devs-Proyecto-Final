@@ -124,7 +124,7 @@ Para reproducir un trabajo en local, desde el directorio que indica cada fila:
 | `humo` | Recorrido de Playwright con la base migrada | Desde la raíz, `cp .env.example .env` y `docker compose up -d --wait db`; desde `backend/`, `uv sync --locked --python 3.14`; después, las secciones Base de datos y Frontend (con su `npx playwright install --with-deps chromium`) y, desde `frontend/`, `npm run e2e`. Necesita Docker |
 | `herramientas` | Pruebas de `tools/` con `unittest` y `verificar_escenarios.py` | Desde la raíz: `python -m unittest discover -s tools/tests`. La salida no debe contener `skipped=`, porque la guarda del pipeline falla si aparece. Después, `python tools/verificar_escenarios.py`; el pipeline le pasa además `--activas-base` con el `historias_activas.txt` de la base del PR, cuando la base lo tiene |
 | `workflows` | `zizmor` sobre los flujos | Desde la raíz: `uvx zizmor@1.31.1 --offline .github/workflows` |
-| `documentacion` | `verificar_docs.py` | Desde la raíz: `python tools/verificar_docs.py` |
+| `documentacion` | `verificar_docs.py`, `markdownlint-cli2`, Vale, `lychee` y `mermaid-cli` | Desde la raíz: `python tools/verificar_docs.py`. Los demás, en [Calidad de la documentación en local](#calidad-de-la-documentación-en-local) |
 
 El trabajo `herramientas` corre las pruebas en el intérprete 3.14 con `uv run --no-project`; en local basta con cualquier Python de los que admite el proyecto.
 
@@ -150,6 +150,20 @@ npm audit --audit-level=high
 ```
 
 Sale con 0 mientras no haya avisos `high` ni `critical`; los `moderate` y `low` se listan y no fallan. Necesita acceso al registro de npm.
+
+### Calidad de la documentación en local
+
+El trabajo `documentacion` corre `markdownlint-cli2`, Vale y `lychee` sobre el mismo alcance, y en el pipeline cualquier hallazgo falla. En local **solo informan**: el hallazgo se ve, pero nada bloquea. Desde la raíz del repositorio:
+
+```bash
+npx --yes markdownlint-cli2@0.24.0 "docs/**/*.md" "sdd/**/*.md" README.md CLAUDE.md tools/README.md
+uvx --from vale==3.25.1.0 vale --output=line docs sdd README.md CLAUDE.md tools/README.md
+lychee --config lychee.toml --no-progress 'docs/**/*.md' 'sdd/**/*.md' README.md CLAUDE.md tools/README.md
+```
+
+- `markdownlint-cli2` necesita Node, que `npx` usa. Imprime cada hallazgo con su archivo y su línea. Sus reglas están en `.markdownlint-cli2.jsonc`.
+- `vale` lo ejecuta `uvx` con el envoltorio de PyPI. La primera vez descarga el binario oficial de Vale 3.25.1, así que necesita red. Lee `.vale.ini` y, sin alertas, no imprime nada.
+- `lychee` no se instala con ningún gestor de paquetes que este documento haya probado. Descarga el binario de la release oficial `v0.24.2` del repositorio `lycheeverse/lychee` y ponlo en el `PATH` antes de ejecutar el comando.
 
 ## Codificación
 

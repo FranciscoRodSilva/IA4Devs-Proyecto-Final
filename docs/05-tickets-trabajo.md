@@ -400,6 +400,8 @@ La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-
 - [ ] Línea base limpia, medida antes de editar: si supera 120 hallazgos que `--fix` no corrige, la limpieza se separa en su propio ticket
 - [ ] Detector de enlaces también en cron semanal
 
+La decisión sobre la prosa en español y su motivo están en el [ADR del 2026-10-29](adr/20261029-vale-para-prosa-en-espanol.md).
+
 ---
 
 ### TKT-062 · Revisión automatizada de pull requests con Claude Code
