@@ -21,7 +21,7 @@ Las rondas de ensayo en GitHub demostraron cada compuerta en rojo, y el PR #2 co
 | 2026-10-28 | Ronda 1 de ensayo: la violación de la ruta de inicio de sesión lleva un `as` de TypeScript | Sin él, `openapi-fetch` rompía el tipado y caía también `frontend`. Aun así cayó `frontend`, por una prueba de componente que simula esa ruta |
 | 2026-10-29 | Ronda 2 de ensayo añade un `summary` nuevo a `GET /api/v1/sesion` en lugar de cambiar uno existente | Ninguna ruta de `identidad` declaraba `summary=` |
 | 2026-10-29 | Se corrigió una prueba de TKT-008b, `Armazon.test.tsx` | Ver «Hallazgos fuera de alcance». El pipeline la mostró rota en Linux |
-| 2026-10-29 | Tras la auditoría de código se añadieron las comprobaciones de las reglas comunes 6 y 7 y del comando completo de pytest | Hallazgo F001 (Mayor), ver «Auditorías» |
+| 2026-10-29 | Tras la auditoría de código se añadieron las comprobaciones de las reglas comunes 6 y 7 y del comando completo de pytest | Hallazgo F001 de código (Mayor), ver «Auditorías» |
 
 ## Archivos tocados
 
@@ -29,7 +29,7 @@ Las rondas de ensayo en GitHub demostraron cada compuerta en rojo, y el PR #2 co
 |---|---|---|
 | `.github/workflows/ci.yml` | nuevo | entrega continua |
 | `tools/tests/test_definicion_ci.py` | nuevo | pruebas |
-| `tools/tests/test_sembrar_usuario_humo.py`, `tools/tests/test_verificar_codificacion.py` | modificado (solo docstrings) | pruebas |
+| `tools/tests/test_sembrar_usuario_humo.py`, `tools/tests/test_verificar_codificacion.py` | modificado (solo docstrings; el diseño ya lo prevé en `design.md`, sección «Documentación afectada», línea 455) | pruebas |
 | `backend/pyproject.toml`, `backend/uv.lock` | modificado (`pytest-cov`, `coverage`) | dependencias de desarrollo |
 | `.gitignore` | modificado | configuración |
 | `CLAUDE.md`, `.claude/skills/conv-docker/SKILL.md`, `.claude/skills/conv-dominio-python/SKILL.md` | modificado | documentación |
@@ -144,11 +144,18 @@ Los PR de ensayo #3 y #4 se cerraron sin fusionar y sus ramas se borraron.
 
 #### Fila A8 · cierre de la parte
 
-Recuentos antes y después: la suite de `tools/` pasó de 12 a 77 pruebas; el backend dio 1138 pruebas en verde con la dependencia nueva (no se midió un recuento previo, pero el ticket no toca `backend/tests/`); el cliente tiene 214 pruebas. El recuento de `tools/` antes del ticket (12) se midió en una copia limpia de `HEAD`, donde 3 pruebas fallaron por falta del entorno local. El diff no añade `skip`, `xfail` ni `.only`.
+Recuentos antes y después. Criterio del diseño: contar declaraciones de prueba (`def test_` en `backend/tests` y en `tools/tests`; `test(` e `it(` en `frontend/src`) en la base `4d345d0` y en el estado final. Las declaraciones `test(` e `it(` se cuentan con el patrón declarativo `(^|[^.A-Za-z_])(test|it)\(`, que excluye las llamadas `.test(` que no son declaraciones (`RegExp.test(`): `frontend/src/compartido/dinero/dinero.ts:16`, `frontend/src/compartido/dinero/dinero.ts:44` y `frontend/src/api/tipos.test.ts:122`. Con ese patrón el recuento es 139 → 139; con el patrón literal `\b(test|it)\(`, que sí capta esas tres líneas, sería 142 → 142: la conclusión no cambia. Resultado medido por el auditor: `def test_` en `backend/tests` pasa de 502 a 502; `test(`/`it(` en `frontend/src` pasa de 139 a 139 (`Armazon.test.tsx`, de 18 a 18); `def test_` en `tools/tests` pasa de 12 a 77. El 12 de `tools/` ya se había obtenido antes del ticket en una copia limpia de `HEAD`, donde 3 pruebas fallaron por falta del entorno local. Las 1138 pruebas de backend y las 214 del cliente en verde son recuentos ejecutados con la dependencia nueva; la comparación con el estado previo se hace con declaraciones, que es la métrica del criterio. Lo verifica `git diff --stat 4d345d0..HEAD -- backend/tests frontend/src`, que da:
 
-**Tests devueltos al tester:** ninguno. Ningún desarrollador editó un test. La única edición de un test archivado, `Armazon.test.tsx`, la hizo `tester-frontend`.
+```
+ frontend/src/app/armazon/Armazon.test.tsx | 31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
+```
 
-**Evidencia de ejecución al cerrar:** la suite local de `tools/` (`Ran 77 tests … OK`, sin `skipped=`) y el pipeline completo en verde del PR #2 (`actions/runs/40790629052`, con Docker en el corredor). El pipeline no se volvió a ejecutar tras el último commit, `199f37f`, que solo toca `test_definicion_ci.py`.
+El comando no muestra ningún cambio en `backend/tests/`. En `frontend/src/` solo se toca `Armazon.test.tsx`, y en ese archivo no desaparece ninguna declaración `test(` ni `it(`: hay 18 antes y 18 después, porque la edición cambia el cuerpo de dos pruebas y añade un doble. En `backend/`, el resto del diff añade la dependencia `pytest-cov` (`pyproject.toml` y `uv.lock`) y no quita nada. El diff no añade `skip`, `xfail` ni `.only`.
+
+**Tests devueltos al tester:** ninguno. Ningún desarrollador editó un test, con una excepción: `tools/tests/test_sembrar_usuario_humo.py` y `tools/tests/test_verificar_codificacion.py` se modificaron, solo en el docstring del módulo (cinco líneas cambiadas en cada uno: dos quitadas y tres añadidas), para retirar el texto obsoleto que prometía lo que haría TKT-009. Ningún caso ni aserción cambia. La edición la hizo `tester-backend`. Fuera de esa excepción, `Armazon.test.tsx` es el único test archivado que se editó, y lo hizo `tester-frontend`.
+
+**Evidencia de ejecución al cerrar:** la suite local de `tools/` (`Ran 77 tests … OK`, sin `skipped=`) y el pipeline completo sobre `15b08ff`, con los ocho trabajos en verde (`actions/runs/40793874972`). Esa ejecución incluye el commit `199f37f`, que solo toca `test_definicion_ci.py`. El pipeline del PR #2 (`actions/runs/40790629052`, con Docker en el corredor) es la verificación previa a esos cambios de pruebas, sobre el árbol sano.
 
 **Mutación en rutas críticas:** el ticket no toca dinero, límites ni congelado. Los mutantes son los de las compuertas: los de la tabla de mutación del diseño viven en `test_definicion_ci.py`, y A5 ejecutó los dos de regresión. La auditoría de código aplicó además 29 mutantes sobre el `ci.yml` real.
 
@@ -188,24 +195,28 @@ Recuentos antes y después: la suite de `tools/` pasó de 12 a 77 pruebas; el ba
 
 | Auditor | Veredicto | Hallazgos | Ciclos |
 |---|---|---|---|
-| `auditor-arquitectura` | APROBADO | 3 observaciones | 1 |
+| `auditor-arquitectura` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS (3 Menores de registro) y luego sin hallazgo bloqueante | 3 observaciones | 1 en ejecutar, 3 en revisar |
 | `auditor-sql` | No aplica | No hay esquema ni migración | — |
-| `auditor-codigo` | REQUIERE CAMBIOS, luego APROBADO | 1 Mayor, 4 Menores; reauditoría sin hallazgos | 2 |
-| `auditor-seguridad` | APROBADO | 3 observaciones bajas | 1 |
-| `auditor-docs` | APROBADO | 3 observaciones | 1 |
+| `auditor-codigo` | REQUIERE CAMBIOS, luego APROBADO; APROBADO de nuevo en `/sdd-revisar` | 1 Mayor, 4 Menores; reauditoría sin hallazgos | 2 en ejecutar, 1 en revisar |
+| `auditor-seguridad` | APROBADO en ambas pasadas | 3 observaciones bajas | 1 en ejecutar, 1 en revisar |
+| `auditor-docs` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS (Menores de exactitud) | 3 observaciones | 1 en ejecutar, 3 en revisar |
 
 ### Hallazgos y su resolución
 
 | ID | Auditor | Severidad | Ubicación | Hallazgo | Estado |
 |---|---|---|---|---|---|
-| F001 | código | Mayor | `test_definicion_ci.py` | Nueve formas de desactivar una compuerta (`continue-on-error`, `\|\| true`, `if: false`, `pytest -k`) pasaban en verde: faltaban las comprobaciones de las reglas comunes 6 y 7 | Resuelto |
-| F002 | código | Menor | `test_definicion_ci.py` | Ayudantes y constantes duplicados | Resuelto |
-| F003 | código | Menor | `test_definicion_ci.py` | Los mutantes no exigían el motivo del rojo; sustituciones de texto sin verificar | Resuelto |
-| F004 | código | Menor | `test_definicion_ci.py:1-24` | Docstring del módulo obsoleto | Resuelto (no se renombraron clases ni se partió el archivo) |
-| F005 | código | Menor | `test_definicion_ci.py` | Afirmaciones tautológicas sobre la guarda de saltos | Resuelto |
-| O001 de arquitectura | arquitectura | Observación | `test_definicion_ci.py` | El archivo (~2,100 líneas tras la corrección) supera con creces las ~265 líneas de la estimación | Persiste: se anota en `delta.md` |
+| F001 de código | código | Mayor | `test_definicion_ci.py` | Nueve formas de desactivar una compuerta (`continue-on-error`, `\|\| true`, `if: false`, `pytest -k`) pasaban en verde: faltaban las comprobaciones de las reglas comunes 6 y 7 | Resuelto |
+| F002 de código | código | Menor | `test_definicion_ci.py` | Ayudantes y constantes duplicados | Resuelto |
+| F003 de código | código | Menor | `test_definicion_ci.py` | Los mutantes no exigían el motivo del rojo; sustituciones de texto sin verificar | Resuelto |
+| F004 de código | código | Menor | `test_definicion_ci.py:1-24` | Docstring del módulo obsoleto | Resuelto (no se renombraron clases ni se partió el archivo) |
+| F005 de código | código | Menor | `test_definicion_ci.py` | Afirmaciones tautológicas sobre la guarda de saltos | Resuelto |
+| O001 de arquitectura | arquitectura | Observación | `tools/tests/test_definicion_ci.py` | El archivo, de ~2,300 líneas (2,286) tras la corrección, supera con creces las ~265 líneas de la estimación | Persiste: se anota en `delta.md` |
+| O002 de arquitectura | arquitectura | Observación | `ci.yml`, paso `upload-artifact` de `backend` | En `ci.yml:39-48`, el paso de subida de `backend` tiene `if: always()` y `if-no-files-found: error`: si `pytest` falla antes de escribir sus informes, la subida también falla y añade un segundo fallo al trabajo. La causa sigue en el registro del paso de pruebas. | Persiste |
+| O003 de arquitectura | arquitectura | Observación | `CLAUDE.md:78` | Conserva la marca «(desde TKT-009)» por ser de TKT-009c, aunque el diseño (A7) la deja para la parte c | Persiste: se retira en TKT-009c |
 | F001 a F003 de seguridad | seguridad | Baja | `ci.yml` | Falta `concurrency:`; `zizmor` sin lockfile para sus transitivas; cachés por omisión | Persiste: observaciones |
 | O001 de docs | docs | Observación | `docs/06-stack-tecnologico.md` | La guarda es un paso aparte, no parte del paso de la suite | Persiste: observación |
+| O002 de docs | docs | Observación | `sdd/tickets/tkt-009/design.md:251` | Fila A7 marcada «✓ Hecho»; su verificación cita `CLAUDE.md:78`, que conserva «(desde TKT-009)» hasta TKT-009c | Persiste: es lo previsto |
+| O003 de docs | docs | Observación | `docs/06-stack-tecnologico.md:455`, `tools/README.md:61` y `docs/05-tickets-trabajo.md:2066` | Tres textos de la parte c siguen vivos hasta TKT-009c: «⏳ TKT-009, cuando exista código que verificar» (`docs/06-stack-tecnologico.md:455`), «Se escribirá en TKT-009» (`tools/README.md:61`) y «(TKT-009)» (`docs/05-tickets-trabajo.md:2066`) | Persiste |
 
 ## Hallazgos fuera de alcance
 
@@ -247,5 +258,31 @@ Detectados de paso. **No se implementan aquí.**
 - [x] Documentación afectada actualizada en este mismo cambio
 - [x] `ruff`, `mypy`, `lint-imports` limpios (en el trabajo `backend` y `fronteras`)
 - [x] Rama correcta y sin secretos en el diff
+
+## Revisión (`/sdd-revisar`, 2026-10-29)
+
+**Completitud, corrección y coherencia.** Los diez criterios `[M]` de la spec tienen resultado y evidencia en este documento. Se implementó lo de la spec sin alcance de más, salvo la excepción de `Armazon.test.tsx`, registrada en `_index.md` y en los non-goals de la spec. Los archivos coinciden con los del diseño.
+
+**Suite ejecutada en esta revisión:**
+
+```
+docker info            -> docker 29.8.2
+uv run pytest -q       -> 1138 passed in 235.45s (0:03:55), exit=0
+uv run ruff check .    -> All checks passed!
+uv run ruff format --check . -> 153 files already formatted
+uv run mypy .          -> Success: no issues found in 153 source files
+uv run lint-imports    -> Contracts: 15 kept, 0 broken.
+herramientas.verificar_float -> hallazgos: 0
+python tools/verificar_docs.py -> ✓ Sin problemas.
+python -m unittest discover -s tools/tests -> Ran 77 tests ... OK (sin skipped=)
+```
+
+El frontend no se ejecutó en local, porque `frontend/node_modules` está roto. Su evidencia es el trabajo `frontend` del pipeline, en verde sobre `15b08ff` (`actions/runs/40793874972`).
+
+**Ciclos de corrección.** Las auditorías de esta revisión encontraron solo hallazgos Menores y ninguno Mayor ni Crítico. Arquitectura y documentación consumieron los tres ciclos. En el último, el auditor de documentación resolvió su hallazgo (`CLAUDE.md:97`) y encontró un Menor nuevo, sobre las variantes de bandera de `ruff`. Esa frase se aplicó con el texto literal del auditor y se verificó contra `ci.yml:26` y `:29`, pero **no se volvió a auditar**: el límite de tres ciclos estaba agotado y el hallazgo no era Mayor. El auditor de arquitectura no pudo reclasificar N005 a N008 por no conservar su informe anterior; sus recuentos coinciden con los de esta sección y N004, el único bloqueante, quedó resuelto.
+
+**Observaciones que quedan abiertas, ninguna bloqueante:** las de la tabla de hallazgos, más la de arquitectura N009 (la fila A8 llama «criterio del diseño» a un patrón de búsqueda que se fijó al ejecutar) y la de documentación O004 (el comentario de `frontend/playwright.config.ts` lleva `npx playwright install chromium` sin `--with-deps`).
+
+**Veredicto:** todos los criterios `[M]` cumplidos, sin hallazgo Mayor ni Crítico pendiente. `LISTO PARA PR`.
 
 **Pipeline tras el último cambio de pruebas:** el pipeline completo se volvió a ejecutar sobre `15b08ff`, que incluye el commit `199f37f`, y los ocho trabajos terminaron en verde (`actions/runs/40793874972`). Quedan dos acciones locales tuyas: restaurar `frontend/node_modules` (`npm ci`, tras cerrar el proceso que lo bloquea) y las contraseñas de roles de tu base de desarrollo, que `contrasenas_roles` reescribió con los valores de tu `.env`.

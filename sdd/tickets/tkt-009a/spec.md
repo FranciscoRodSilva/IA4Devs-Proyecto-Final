@@ -30,7 +30,7 @@ Ticket de fundación, sin historia de usuario propia. La historia es la de la [s
 
 - No añade ninguna compuerta que corresponda a otra parte, salvo el trabajo `documentacion` con solo `verificar_docs.py`, que TKT-009d amplía.
 - No levanta MinIO ni lo prueba: es de TKT-059.
-- No toca `backend/cimenta/` ni `frontend/src/` fuera de la rama de ensayo, que no se fusiona.
+- No toca `backend/cimenta/` ni `frontend/src/` fuera de la rama de ensayo, que no se fusiona. Excepción registrada el 2026-10-29 en `_index.md`: la prueba `Armazon.test.tsx` de TKT-008b.
 - Los non-goals de la [spec común](../tkt-009/spec.md#non-goals) siguen en pie.
 
 ## Reglas de negocio implicadas

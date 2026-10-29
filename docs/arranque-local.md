@@ -94,7 +94,7 @@ npm run tipos:verificar
 
 Con el backend en marcha en `127.0.0.1:8000`, `npm run dev` sirve el cliente en `http://localhost:5173` y reenvía `/api` al backend: la cookie de sesión viaja en el mismo origen. Ábrelo como `localhost`, no como `127.0.0.1`. El desarrollo local requiere Chromium o Firefox: la cookie de sesión es `Secure` y esos motores la aceptan en `http://localhost`. Chromium está comprobado por el humo de TKT-008b (3 de 3). Firefox lo admite según la especificación de *Secure Contexts* `(asumido, PA-T7)`, pero el humo no lo ha comprobado. Safari no lo admite `(asumido, PA-T7)`.
 
-`npm run e2e` arranca el backend y el cliente si no están en marcha, siembra un usuario de Compras con una contraseña aleatoria y recorre tres escenarios: entrar y salir, credenciales incorrectas y el menú en un teléfono. Antes: `docker compose up -d db`, `alembic upgrade head`, `contrasenas_roles` y una vez `npx playwright install chromium`.
+`npm run e2e` arranca el backend y el cliente si no están en marcha, siembra un usuario de Compras con una contraseña aleatoria y recorre tres escenarios: entrar y salir, credenciales incorrectas y el menú en un teléfono. Antes: `docker compose up -d db`, `alembic upgrade head`, `contrasenas_roles` y una vez `npx playwright install --with-deps chromium`.
 
 ## Verificadores de la documentación
 
@@ -110,7 +110,7 @@ python -m unittest discover -s tools/tests -v
 
 ## Integración continua
 
-El pipeline, `.github/workflows/ci.yml`, corre en cada pull request los mismos comandos que este documento, cada uno en su trabajo. Si un comando pasa en local y falla en el pipeline, o al revés, la causa casi siempre es el entorno y no el comando: revisa la versión de Python y que el árbol de trabajo esté limpio.
+El pipeline, `.github/workflows/ci.yml`, corre en cada pull request las comprobaciones que la tabla de abajo lista, cada una en su trabajo. Si un comando pasa en local y falla en el pipeline, o al revés, la causa casi siempre es el entorno y no el comando: revisa la versión de Python y que el árbol de trabajo esté limpio.
 
 Para reproducir un trabajo en local, desde el directorio que indica cada fila:
 
@@ -120,7 +120,7 @@ Para reproducir un trabajo en local, desde el directorio que indica cada fila:
 | `fronteras` | `lint-imports` | Desde `backend/`: `uv run lint-imports` |
 | `contrato-api` | Reservado para TKT-061 | Nada que reproducir todavía |
 | `frontend` | Lint, tipos, pruebas y `tipos:verificar` | Desde `backend/`, `uv sync --locked --python 3.14`; desde `frontend/`, los comandos de la sección Frontend |
-| `humo` | Recorrido de Playwright con la base migrada | Desde la raíz, `cp .env.example .env` y `docker compose up -d db`; después, la sección Base de datos, y desde `frontend/`, `npm run e2e`. Necesita Docker |
+| `humo` | Recorrido de Playwright con la base migrada | Desde la raíz, `cp .env.example .env` y `docker compose up -d --wait db`; desde `backend/`, `uv sync --locked --python 3.14`; después, las secciones Base de datos y Frontend (con su `npx playwright install --with-deps chromium`) y, desde `frontend/`, `npm run e2e`. Necesita Docker |
 | `herramientas` | Pruebas de `tools/` con `unittest` | Desde la raíz: `python -m unittest discover -s tools/tests`. La salida no debe contener `skipped=`, porque la guarda del pipeline falla si aparece |
 | `workflows` | `zizmor` sobre los flujos | Desde la raíz: `uvx zizmor@1.31.1 --offline .github/workflows` |
 | `documentacion` | `verificar_docs.py` | Desde la raíz: `python tools/verificar_docs.py` |

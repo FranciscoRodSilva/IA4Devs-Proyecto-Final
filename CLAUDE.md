@@ -94,7 +94,7 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
 
 Un comando o una comprobación marcados *desde TKT-xxx* todavía no funcionan: los habilita ese ticket, y su `/sdd-completar` quita la marca. Las marcas dicen desde cuándo la herramienta hace cumplir una regla o corre un comando; las reglas obligan desde ya. Requisitos y arranque paso a paso en [`docs/arranque-local.md`](docs/arranque-local.md).
 
-Los mismos comandos corren en cada pull request, cada uno en su trabajo, en [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+Las comprobaciones de estas secciones corren en cada pull request, agrupadas por trabajo, en [`.github/workflows/ci.yml`](.github/workflows/ci.yml), salvo `python tools/extraer_mermaid.py`, `npm run tipos:generar`, `uv run --env-file ../.env fastapi dev` y `docker compose up -d minio`, que no corren en el pipeline, y `uv run ruff format .` y `uv run ruff check --fix .`, que en el pipeline corren como `uv run ruff format --check .` y `uv run ruff check .` (sin `--fix`). El trabajo `humo` ejecuta `npm run e2e`, y este arranca el backend (`fastapi run`) y el cliente (`npm run dev`) por su cuenta mediante `webServer` de `frontend/playwright.config.ts`.
 
 ### Desde `backend/`
 
