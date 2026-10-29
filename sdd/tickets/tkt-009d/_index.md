@@ -4,7 +4,7 @@
 
 ## Estado
 
-EN REVISIÓN
+LISTO PARA PR
 
 ## Ficha
 
@@ -44,6 +44,7 @@ EN REVISIÓN
 | 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-revisar` | Ciclo 1 de corrección, en la rama `tkt-009d-correcciones-revision`, commits `c30c76e`…`d750d0d`: reauditoría con `auditor-seguridad` `APROBADO` y los demás auditores con `REQUIERE CAMBIOS` |
 | 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-revisar` | Ciclo 2 de corrección, en la rama `tkt-009d-correcciones-revision`, commits `c30c76e`…`d750d0d`: pruebas de comportamiento de los comprobadores y documentación del lock de `mermaid-cli`, de `interrogate` y del estado de la revisión |
 | 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-revisar` | Ciclo 3 de corrección, en curso: documentación de la reauditoría del ciclo 2. Sin veredicto hasta que `/sdd-revisar` vuelva a auditar |
+| 2026-10-29 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Criterios `[M]` cumplidos; suite en verde (backend 1138, `tools/` 341); PR [#19](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/19) con los nueve trabajos en verde sobre `18dce53` y fusionado. Seguridad `APROBADO`; código, arquitectura y documentación sin reauditoría formal tras agotar los tres ciclos. La persona que aprueba responde «Sí, acepto» a la excepción de cierre, como en TKT-009a, TKT-009b y TKT-009c. Siguiente: `/sdd-completar` |
 
 ## Decisiones registradas
 
