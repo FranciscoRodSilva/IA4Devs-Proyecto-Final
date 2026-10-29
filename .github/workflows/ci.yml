@@ -178,6 +178,16 @@ jobs:
       - name: Guarda contra pruebas saltadas
         run: |
           ! grep -q "skipped=" "$RUNNER_TEMP/tools.txt"
+      - name: Verificar que cada escenario exigido tenga su test
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          argumentos=()
+          if git cat-file -e "$BASE:tools/historias_activas.txt"; then
+            git show "$BASE:tools/historias_activas.txt" > "$RUNNER_TEMP/activas_base.txt"
+            argumentos=(--activas-base "$RUNNER_TEMP/activas_base.txt")
+          fi
+          python3 tools/verificar_escenarios.py "${argumentos[@]}"
 
   workflows:
     name: Seguridad de los workflows · zizmor

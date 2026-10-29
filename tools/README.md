@@ -56,6 +56,31 @@ Extrae los diagramas Mermaid de toda la documentación y genera una página que 
 
 Sírvelo por HTTP: con `file://` los navegadores bloquean la carga del módulo.
 
-## Pendiente
+## `verificar_escenarios.py`
 
-**Verificador de escenarios sin test**, descrito en [ADR-012](../docs/adr/20260918-trazabilidad-escenario-test.md): recorrerá las historias, extraerá cada `HDU-XXX esc. N` y comprobará que existe al menos un test que lo nombra. Se escribirá en TKT-009, cuando exista código que verificar.
+```bash
+python tools/verificar_escenarios.py [--raiz ruta] [--activas-base ruta]
+```
+
+Comprueba la regla de aceptación de [ADR-012](../docs/adr/20260918-trazabilidad-escenario-test.md): cada escenario que cuenta tiene al menos un test que lo nombra. Lee los escenarios de `docs/04-historias-usuario.md`, los nombres de los tests de `backend/tests/`, `frontend/src/`, `frontend/scripts/` y `frontend/e2e/` (sin `node_modules`), y `tools/historias_activas.txt`. Usa solo la biblioteca estándar. El trabajo `herramientas` del pipeline lo ejecuta en cada PR y, cuando la base del PR contiene el archivo, le pasa esa copia con `--activas-base`.
+
+**Argumentos.** `--raiz` indica la raíz del repositorio; por omisión, la que contiene `tools/`. `--activas-base` indica el `historias_activas.txt` de la base del PR: si existe, se compara con el actual, y si no existe, no se compara.
+
+**Qué cuenta.** Un escenario cuenta si su historia figura en `tools/historias_activas.txt` y no está retirado, y además su fase es 1, o es 2 y el archivo contiene la línea `fase 2`. La fase 2 se marca con el segmento ` · fase 2` en el título, o con la columna `Fase` de la tabla «El conjunto» igual a `2`. Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título; una nota en prosa no lo retira.
+
+**Etiquetas de la salida.** Cada línea empieza por su etiqueta:
+
+| Etiqueta | Qué significa | Efecto |
+|---|---|---|
+| `FALTA` | Un escenario que cuenta no tiene ningún test que lo nombre | Falla (código 1) |
+| `ERROR` | Un test nombra una historia o un escenario que no existe, o una historia o la línea `fase 2` salió de la lista respecto de la base del PR | Falla (código 1) |
+| `PENDIENTE` | Un escenario que todavía no cuenta: su historia no tiene ticket en curso, o es de fase 2 sin iniciar | Informa |
+| `RETIRADO` | Un escenario con el segmento de retiro en su título | Informa |
+
+La última línea resume los recuentos: escenarios, exigidos, cubiertos, faltan, pendientes, retirados, tests de historia y tests de fundación.
+
+**Códigos de salida.** `0` si no hay `FALTA` ni `ERROR`; `1` si hay alguno; `2` si la entrada está mal formada: una línea de `historias_activas.txt` que no es `HDU-NNN`, `fase 2`, comentario ni vacía; una historia activa que no existe en el documento; una historia sin fila en «El conjunto»; o un archivo que no está en UTF-8.
+
+**Cómo se actualiza `tools/historias_activas.txt`.** La planificación de cada sprint añade una línea `HDU-NNN` por cada historia que entra en él, y añade la línea `fase 2` cuando empieza la fase 2. Las líneas que empiezan por `#` son comentarios. Ninguna línea sale del archivo: si una historia sale, el verificador da `ERROR` contra la base del PR. Un escenario retirado se marca con su segmento en el título del documento de historias, nunca quitando la historia de la lista.
+
+**Pruebas.** `python -m unittest discover -s tools/tests -v` las ejecuta junto con el resto de `tools/`, y el trabajo `herramientas` las corre con esa misma orden. Los casos de `tools/tests/test_verificar_escenarios.py` construyen documentos de ejemplo en un directorio temporal; el de «árbol real» lee el repositorio.

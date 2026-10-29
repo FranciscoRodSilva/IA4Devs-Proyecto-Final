@@ -43,6 +43,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-10-19 | [El dominio importa solo la biblioteca estándar y `tipos_base`, verificado con un contrato propio de import-linter](20261019-lista-blanca-del-dominio.md) | Aceptado | Todo el backend · sustituye el contrato `dominio-sin-framework` de ADR-018 |
 | 2026-10-20 | [El caso de uso lanza la excepción de las reglas, y el contrato y la raíz de composición viven fuera de `cimenta/`](20261020-contrato-de-error-y-raiz-de-composicion.md) | Aceptado | Todo el backend |
 | 2026-10-21 | [Sesión y autorización por rol como dependencias de FastAPI](20261021-sesion-y-autorizacion-por-dependencia.md) | Aceptado | Todo el backend |
+| 2026-10-29 | [Política del verificador de escenarios: fase 2, retiro y lista de historias activas](20261029-politica-del-verificador-de-escenarios.md) | Aceptado | Testing, CI · completa [ADR-012](20260918-trazabilidad-escenario-test.md) |
 
 ## Plantilla
 

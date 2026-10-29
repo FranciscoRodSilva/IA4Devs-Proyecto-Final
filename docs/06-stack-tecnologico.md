@@ -398,6 +398,8 @@ Un script recorre `docs/04-historias-usuario.md`, extrae cada `HDU-XXX esc. N` y
 
 Resuelve además el problema que la regla de aceptación plantea: *"una historia se acepta solo si todos sus escenarios pasan en verde"* deja de ser una intención y pasa a ser comprobable.
 
+El script es `tools/verificar_escenarios.py` y corre en el trabajo `herramientas` del pipeline. Un escenario cuenta desde que su historia figura en `tools/historias_activas.txt`, y los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`. Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título; una nota en prosa no lo retira. En TypeScript, el nombre de un test de historia sigue la misma forma que en Python, `"hdu002_esc04 · …"`, en el primer argumento de `it`, `test` o `describe`. La política completa está en [ADR del 2026-10-29](adr/20261029-politica-del-verificador-de-escenarios.md).
+
 ### 7.3. Frontend
 
 **Vitest + Testing Library** para componentes, **Playwright** para los recorridos completos. Las pruebas de componente corren en **jsdom**, y el servidor se sustituye con **MSW**, que intercepta la petición real con sus cabeceras —así se prueba que toda mutación lleve `X-CSRF-Token`— y simula la red caída. Un recorrido de humo de Playwright, iniciar y cerrar sesión, corre contra el backend real y la base de Compose (TKT-008). La regla de ESLint que prohíbe `Number`, `parseFloat` y `parseInt` no cubre las coerciones aritméticas (`"1" * 1`, `-"1"`, `.toFixed`, `Math.round`): esa limitación se aceptó en [TKT-008a](../sdd/tickets/tkt-008a/impl.md) (F001), porque prohibirlas daría falsos positivos en código que no maneja dinero. Los dos recorridos que justifican Playwright son los que cruzan varias pantallas y tienen consecuencia real: importar y congelar una línea base, y levantar una requisición que se bloquea y acaba autorizada.
@@ -452,9 +454,9 @@ Comprobaciones que no existen como herramienta de terceros. Viven en [`tools/`](
 |---|---|---|
 | `tools/verificar_docs.py` | Enlaces relativos, anclas internas, identificadores inexistentes (`RN`, `PA`, `F`, `HDU`, `TKT`, invariantes), ADRs sin índice, rangos de tickets rotos, aritmética de story points y conteo de escenarios frente a la Definition of Done, documentos con BOM y scripts `.ps1` sin él | ✅ En uso |
 | `tools/extraer_mermaid.py` | Diagramas con sintaxis inválida, que en GitHub se renderizan como bloque de error | ✅ En uso |
-| Escenarios sin test | El verificador de §7.2, que sostiene la regla de aceptación | ⏳ TKT-009, cuando exista código que verificar |
+| Escenarios sin test | El verificador de §7.2, que sostiene la regla de aceptación | ✅ En uso |
 
-Los tres entran en el pipeline de calidad documental de TKT-009. El de Mermaid se sustituirá allí por `@mermaid-js/mermaid-cli`, que hace lo mismo sin navegador.
+`verificar_docs.py` corre en el trabajo `documentacion` del pipeline, y el de escenarios en el trabajo `herramientas`. El de Mermaid se sustituirá en el pipeline por `@mermaid-js/mermaid-cli`, que hace lo mismo sin navegador.
 
 ---
 

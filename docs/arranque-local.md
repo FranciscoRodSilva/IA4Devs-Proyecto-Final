@@ -103,10 +103,11 @@ Desde la raíz del repositorio. Solo requieren Python, sin dependencias:
 ```bash
 python tools/verificar_docs.py
 python tools/extraer_mermaid.py
+python tools/verificar_escenarios.py
 python -m unittest discover -s tools/tests -v
 ```
 
-`verificar_docs.py` comprueba enlaces, anclas, identificadores, conteos y codificación. `extraer_mermaid.py` valida la sintaxis de los diagramas. Sus pruebas, en `tools/tests/`, cubren la comprobación de codificación, las listas de exclusiones de los verificadores y la guarda de la siembra del humo. El detalle de cada verificador está en [`tools/README.md`](../tools/README.md).
+`verificar_docs.py` comprueba enlaces, anclas, identificadores, conteos y codificación. `extraer_mermaid.py` valida la sintaxis de los diagramas. `verificar_escenarios.py` comprueba que cada escenario que cuenta tenga un test que lo nombre (ADR-012). Sus pruebas, en `tools/tests/`, cubren la comprobación de codificación, las listas de exclusiones de los verificadores y la guarda de la siembra del humo. El detalle de cada verificador está en [`tools/README.md`](../tools/README.md).
 
 ## Integración continua
 
@@ -121,7 +122,7 @@ Para reproducir un trabajo en local, desde el directorio que indica cada fila:
 | `contrato-api` | Reservado para TKT-061 | Nada que reproducir todavía |
 | `frontend` | Lint, tipos, pruebas y `tipos:verificar` | Desde `backend/`, `uv sync --locked --python 3.14`; desde `frontend/`, los comandos de la sección Frontend |
 | `humo` | Recorrido de Playwright con la base migrada | Desde la raíz, `cp .env.example .env` y `docker compose up -d --wait db`; desde `backend/`, `uv sync --locked --python 3.14`; después, las secciones Base de datos y Frontend (con su `npx playwright install --with-deps chromium`) y, desde `frontend/`, `npm run e2e`. Necesita Docker |
-| `herramientas` | Pruebas de `tools/` con `unittest` | Desde la raíz: `python -m unittest discover -s tools/tests`. La salida no debe contener `skipped=`, porque la guarda del pipeline falla si aparece |
+| `herramientas` | Pruebas de `tools/` con `unittest` y `verificar_escenarios.py` | Desde la raíz: `python -m unittest discover -s tools/tests`. La salida no debe contener `skipped=`, porque la guarda del pipeline falla si aparece. Después, `python tools/verificar_escenarios.py`; el pipeline le pasa además `--activas-base` con el `historias_activas.txt` de la base del PR, cuando la base lo tiene |
 | `workflows` | `zizmor` sobre los flujos | Desde la raíz: `uvx zizmor@1.31.1 --offline .github/workflows` |
 | `documentacion` | `verificar_docs.py` | Desde la raíz: `python tools/verificar_docs.py` |
 
