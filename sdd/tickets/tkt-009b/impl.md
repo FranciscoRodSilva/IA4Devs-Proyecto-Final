@@ -19,6 +19,8 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 | 2026-10-28 | Las pruebas de Dependabot viven en `tools/tests/test_definicion_dependabot.py` | `test_definicion_ci.py` ya pasa de 3,100 líneas |
 | 2026-10-28 | El trabajo `dependencias` no ejecuta `npm ci` | `npm audit` lee `package-lock.json`; se comprobó que sale igual sin `node_modules` |
 | 2026-10-28 | Fecha del ADR: 20261029 | La mayor entre hoy y la del ADR más reciente |
+| 2026-10-29 | Orden del token en B5: se crea activo y sin permisos y se revoca después del empuje | El primer intento no fue concluyente; solo el token activo se probó (GH013) |
+| 2026-10-29 | B6 usa stream-json@3.6.0 en lugar de nanoid@3.1.30 | Ese candidato tiene tres avisos altos en la base de avisos de GitHub |
 
 ## Archivos tocados
 
@@ -29,6 +31,7 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 | `tools/tests/test_severidad_pip_audit.py` | nuevo | pruebas |
 | `tools/tests/test_definicion_ci.py` | modificado | pruebas |
 | `tools/tests/test_definicion_dependabot.py` | nuevo | pruebas |
+| `tools/tests/_ayudantes.py` | nuevo (ciclo 1 de revisión) | pruebas |
 | `.github/workflows/ci.yml` | modificado | entrega continua |
 | `.github/dependabot.yml` | nuevo | entrega continua |
 | `docs/adr/20261029-severidad-en-la-auditoria-de-dependencias.md`, `docs/adr/README.md` | nuevo, modificado | documentación |
@@ -52,10 +55,12 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 | TC-15 | `test_tc15_*` (1, más 8 de mutantes) | estático | `CA-11` esc. 1 | FALLA | PASA |
 | TC-18 | `test_tc18_*` (4, más mutantes) | **rechazo** (estático) | `CA-11` esc. 3, `CA-R3` | Nace en verde, ver abajo | PASA |
 | TC-R2a | `git diff` de `pyproject.toml` | regresión | `CA-R2` | `pip-audit --version` falla | `15 kept, 0 broken` |
-| TC-16, TC-17 | Manuales | **rechazo** | `CA-11` esc. 2, `CA-R3` esc. 2 | Empuje con un token revocado: aceptado, sin alerta | PASAN con un token activo sin permisos: `GH013` (B5) |
+| TC-16, TC-17 | Manuales | **rechazo** | `CA-11` esc. 2, `CA-R3` esc. 2 | Intento 1 no concluyente: el archivo empujado contenía un comando, no un token | PASAN con un token activo sin permisos: `GH013` (B5) |
 | TC-11a, TC-11b | Ensayo en el pipeline | **rechazo** | `CA-10` esc. 2 y 3 | — | PASAN: ronda 1 en rojo, ronda 2 en verde (B6) |
 
 **Los casos de TC-18 sobre el repositorio real nacen en verde, y se investigó.** El invariante ya se cumple: `.github/` solo tiene `workflows/ci.yml`, sin exclusiones ni `secrets.`. Para que no sean vacuos, el lector exige que `ci.yml` exista y sus mutantes sintéticos (`paths-ignore` con `.env.example`, un `secret_scanning.yml`, `secrets.X`) sí los ponen en rojo.
+
+**Cifras tras el ciclo 1 de revisión.** `tools/tests/test_severidad_pip_audit.py` tiene 70 pruebas (30 originales más las del ciclo 1 de revisión) y `tools/tests` suma 287, de las cuales 24 son de Dependabot. El ciclo 1 añadió el módulo auxiliar `tools/tests/_ayudantes.py` y tocó `tools/tests/test_definicion_ci.py`, `tools/tests/test_definicion_dependabot.py` y `tools/tests/test_severidad_pip_audit.py`. El filtro evalúa ahora todos los `GHSA` de un hallazgo, captura también `http.client.HTTPException` y `RecursionError`, valida que los alias sean cadenas, lee a lo sumo 1.000.000 de bytes de la respuesta de OSV y pasa `mypy --strict`.
 
 ### Ciclo TDD por fila
 
@@ -144,7 +149,7 @@ secret_scanning_validity_checks      disabled
 visibility                           public
 ```
 
-**Empuje de ensayo, intento 1 (token revocado antes de pegarlo): sin bloqueo y sin alerta.** El empuje de `ensayo/tkt-009b-secreto` fue aceptado, y `GET .../secret-scanning/alerts` devolvió una lista vacía tanto justo después como unos minutos más tarde. No se conoce el prefijo del token usado, así que la causa no está establecida: puede que la protección ignore un token ya revocado, o que lo pegado no tuviera forma de token de GitHub. **Consecuencia para la guía:** pedir "revocado antes" no sirve como ensayo.
+**Empuje de ensayo, intento 1: no concluyente.** El empuje de `ensayo/tkt-009b-secreto` fue aceptado, y `GET .../secret-scanning/alerts` devolvió una lista vacía tanto justo después como unos minutos más tarde. La causa quedó establecida cuando el auditor de seguridad leyó el archivo empujado en la rama remota: la línea `TOKEN=` contenía un comando de PowerShell pegado por error, no un token. Lo empujado no tenía forma de token, así que el intento no prueba nada sobre la protección, y no está demostrado cómo trata a un token revocado. **Consecuencia para la guía:** el único procedimiento verificado es el del intento 2, con un token activo y sin permisos, revocado justo después del empuje.
 
 **Empuje de ensayo, intento 2 (token personal clásico activo y sin permisos): rechazado.** Extracto del registro, sin el token ni la URL de desbloqueo:
 
@@ -158,7 +163,7 @@ remote:            path: ensayo-secreto.txt:2
  ! [remote rejected] ensayo/tkt-009b-secreto2 -> ensayo/tkt-009b-secreto2 (push declined due to repository rule violations)
 ```
 
-Se pidió y se aprobó el cambio de orden: el token se creó activo y sin permisos, y se revoca justo después del empuje. Como el empuje se rechazó, el secreto no llegó a quedar en GitHub en el intento 2. En el intento 1 sí llegó la rama `ensayo/tkt-009b-secreto` con un token revocado; se borra al terminar el ensayo.
+Se pidió y se aprobó el cambio de orden: el token se creó activo y sin permisos, y se revoca justo después del empuje. Como el empuje se rechazó, el secreto no llegó a quedar en GitHub en el intento 2. En el intento 1 sí llegó la rama `ensayo/tkt-009b-secreto`, pero con un comando de PowerShell y no con un token. Esa rama sigue en `origin`, en el commit `0c3a99e`, pendiente de que la persona dueña la borre; no contiene ningún token.
 
 #### Fila B6 · ensayo en el pipeline (lo ejecutó la persona usuaria)
 
@@ -206,7 +211,7 @@ Severity: moderate
 4 vulnerabilities (3 low, 1 moderate)
 ```
 
-El aviso moderado queda informado en el registro y el trabajo termina en verde (`CA-10` esc. 3). Ningún registro contiene `ghp_` ni `github_pat_`. El PR se cierra sin fusionar y la rama se borra al terminar la revisión.
+El aviso moderado queda informado en el registro y el trabajo termina en verde (`CA-10` esc. 3). Ningún registro contiene `ghp_` ni `github_pat_`. El PR #7 se cerró sin fusionar el 2026-10-29 y su rama `ensayo/tkt-009b-compuertas` ya no existe en `origin`.
 
 ## Modelo por paso
 
@@ -223,7 +228,7 @@ El aviso moderado queda informado en el registro y el trabajo termina en verde (
 | B7 | `ingeniero-devsecops` | `haiku` | `haiku` | — |
 | Auditoría de arquitectura y corrección | `auditor-arquitectura`, `corrector-revision` | `sonnet`, `haiku` | `sonnet`, `haiku` | — |
 
-Ningún paso subió de modelo. B5 la ejecuta la persona dueña y B6 queda para `git-entrega`.
+Ningún paso subió de modelo. B5 y B6 las ejecutaron personas, no agentes; la fila B6 del diseño asignaba `git-entrega` y no se usó.
 
 ## Resultado contra los criterios de aceptación
 
@@ -235,7 +240,7 @@ Ningún paso subió de modelo. B5 la ejecuta la persona dueña y B6 queda para `
 | `CA-11` esc. 2 | `[M]` | Cumplido | Consulta de `gh api` con los dos ajustes en `enabled`; empuje de ensayo rechazado con `GH013` (B5, TC-16 y TC-17) |
 | `CA-R2` | `[M]` | Cumplido | El diff de `pyproject.toml` es una línea del grupo `dev`; `15 kept, 0 broken` |
 | `CA-R3` | `[M]` | Cumplido | Esc. 1 por TC-18 y TC-22; esc. 2 por el empuje rechazado de B5 |
-| `CA-R4` | `[M]` | Cumplido | La suite de `tools/` pasa de 178 a 247 pruebas sin quitar ninguna ni añadir `skip` |
+| `CA-R4` | `[M]` | Cumplido | La suite de `tools/` pasa de 178 a 287 pruebas sin quitar ninguna ni añadir `skip` |
 | `CA-15` su parte | `[M]` | Cumplido | `docs/06` §6.4 y los textos de la auditoría; TC-70b sin marcas que retirar |
 
 Un Must incumplido **no se aprueba**. Con B5 y B6 hechas, no queda ningún Must pendiente.
@@ -254,14 +259,13 @@ Un Must incumplido **no se aprueba**. Con B5 y B6 hechas, no queda ningún Must 
 | F001 | arquitectura | Menor | `sdd/tickets/tkt-009b/ajustes-repositorio.md:134` | Atribuía al paso de `pip-audit` la lista de vulnerabilidades, que sale en el paso del filtro | Resuelto (confirmado por la reauditoría) |
 | F002 | arquitectura | Menor | `sdd/tickets/tkt-009b/impl.md:3` | El enlace a `delta.md`, que aún no existe, rompía `verificar_docs.py`, y la cifra de archivos estaba desactualizada | Resuelto: el enlace pasa a «delta (pendiente)» y la cifra es 159; `verificar_docs.py` da `✓ Sin problemas.` |
 
-Observaciones del auditor que no bloquean: `_aviso_ghsa` solo consulta el primer `GHSA` de un hallazgo; `zizmor` no estaba instalado en su entorno (la salida en 0 la confirmó la ejecución con `uvx` de esta sesión); `nanoid@3.1.30` resultó no servir para la ronda 2 (tres avisos altos); el candidato pasa a ser `stream-json@3.6.0`, con un único aviso medio confirmado el 2026-10-29.
+Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `GHSA` de un hallazgo (corregido en el ciclo 1 de revisión: ahora evalúa todos); `zizmor` no estaba instalado en su entorno (la salida en 0 la confirmó la ejecución con `uvx` de esta sesión); `nanoid@3.1.30` resultó no servir para la ronda 2 (tres avisos altos); el candidato pasa a ser `stream-json@3.6.0`, con un único aviso medio confirmado el 2026-10-29.
 
 ## Hallazgos fuera de alcance
 
 | Archivo | Observación | Prioridad |
 |---|---|---|
 | `docs/06-stack-tecnologico.md` §13 | La tabla «Decisiones registradas» no lista los ADR 018, 023 ni 024; es anterior a este ticket | Baja |
-| `tools/severidad_pip_audit.py` | Un aviso con varios `GHSA` de severidades distintas solo evalúa el primero | Baja |
 
 ## Documentación actualizada
 
@@ -280,7 +284,7 @@ Observaciones del auditor que no bloquean: `_aviso_ghsa` solo consulta el primer
 
 - [x] Todos los criterios `[M]` cumplidos con evidencia
 - [x] Ciclo TDD completo en cada fila ejecutable por un agente: rojo antes de verde, ningún test editado por un desarrollador
-- [x] Suite en verde, con la salida pegada arriba (247 pruebas de `tools/`)
+- [x] Suite en verde, con la salida pegada arriba (287 pruebas de `tools/` tras el ciclo 1 de la revisión)
 - [x] ≥1 test de rechazo por regla implicada
 - [x] Mutación en las rutas críticas del filtro y de la comprobación `comprobar_tc14`
 - [ ] Todas las auditorías `APROBADO`: la de arquitectura quedó en `REQUIERE CAMBIOS` en su último veredicto formal, con los dos Menores ya corregidos; falta además `/sdd-revisar`

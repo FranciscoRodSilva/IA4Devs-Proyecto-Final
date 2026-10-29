@@ -7,8 +7,8 @@ ante `HIGH`, `CRITICAL` o severidad desconocida. `LOW` y `MODERATE` se informan 
 
 Un hallazgo puede tener varios `GHSA` (el `id` y sus alias). Se consulta cada `GHSA` distinto una sola vez y gana
 el peor (`CRITICAL` > `HIGH` > `DESCONOCIDA` > `MODERATE` > `LOW`): basta un `GHSA` que falle para que falle el
-hallazgo (al primero `HIGH` o `CRITICAL` se deja de consultar). Una consulta sin severidad válida es `DESCONOCIDA`. Sin ningún `GHSA` no hay nada que consultar: el
-hallazgo es `DESCONOCIDA` y falla (fallo cerrado).
+hallazgo (al primero `HIGH` o `CRITICAL` se deja de consultar). Una consulta sin severidad válida es
+`DESCONOCIDA`. Sin ningún `GHSA` no hay nada que consultar: el hallazgo es `DESCONOCIDA` y falla (fallo cerrado).
 
 Uso, desde la raíz del repositorio:
     python tools/severidad_pip_audit.py <ruta del informe JSON de pip-audit>

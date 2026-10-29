@@ -379,7 +379,7 @@ Que otro ticket dependa de TKT-009 significa que depende de los cuatro. TKT-061 
 
 - [ ] `pip-audit` con un filtro de severidad que falla ante `HIGH`, `CRITICAL` o severidad desconocida, y `npm audit --audit-level=high`
 - [ ] `.github/dependabot.yml` para `uv`, `npm` y `github-actions`
-- [ ] Escaneo de secretos y protección de empuje activos, comprobados con `gh api` y un empuje de ensayo con un token revocado
+- [ ] Escaneo de secretos y protección de empuje activos, comprobados con `gh api` y un empuje de ensayo con un token personal activo y sin permisos, que la protección rechaza (`GH013`)
 
 La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-10-29](adr/20261029-severidad-en-la-auditoria-de-dependencias.md).
 

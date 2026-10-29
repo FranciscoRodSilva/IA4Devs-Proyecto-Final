@@ -91,7 +91,7 @@ La última línea resume los recuentos: escenarios, exigidos, cubiertos, faltan,
 python tools/severidad_pip_audit.py <ruta del informe JSON de pip-audit>
 ```
 
-No es un verificador de documentación: es la compuerta de severidad del trabajo `dependencias` del pipeline (RNF-08), y vive en `tools/` porque usa solo la biblioteca estándar, como el resto. `pip-audit` encuentra vulnerabilidades en el lock del backend, pero su informe no trae la severidad. El script toma el primer identificador `GHSA-…` del aviso, consulta OSV en `https://api.osv.dev/v1/vulns/<GHSA>` con un tiempo límite de 15 segundos y lee `database_specific.severity`. Un hallazgo sin `GHSA` no se consulta y queda como `DESCONOCIDA`.
+No es un verificador de documentación: es la compuerta de severidad del trabajo `dependencias` del pipeline (RNF-08), y vive en `tools/` porque usa solo la biblioteca estándar, como el resto. `pip-audit` encuentra vulnerabilidades en el lock del backend, pero su informe no trae la severidad. El script toma todos los identificadores `GHSA-…` distintos de cada hallazgo (su `id`, si lo es, y sus alias), consulta cada uno una sola vez en OSV, en `https://api.osv.dev/v1/vulns/<GHSA>`, con un tiempo límite de 15 segundos, y lee `database_specific.severity`. Gana la peor severidad (`CRITICAL`, `HIGH`, `DESCONOCIDA`, `MODERATE`, `LOW`). En cuanto un `GHSA` da `HIGH` o `CRITICAL` deja de consultar los demás, así que la etiqueta puede ser `ALTA` aunque otro `GHSA` del hallazgo sea `CRÍTICA`; el código de salida no cambia. Lee a lo sumo 1.000.000 de bytes de cada respuesta. Un hallazgo sin `GHSA` no se consulta y queda como `DESCONOCIDA`.
 
 El informe se produce con `pip-audit -f json -o <archivo>`, y el script acepta tanto el objeto `{"dependencies": […]}` de la versión actual como la lista sin envoltorio de las antiguas. Cualquier otra forma es un error de lectura.
 
@@ -99,7 +99,7 @@ El informe se produce con `pip-audit -f json -o <archivo>`, y el script acepta t
 
 ```text
 ALTA  django 3.2  GHSA-xxxx-xxxx-xxxx (CVE-2021-0001, PYSEC-2021-1) → falla el pipeline (RNF-08)
-MEDIA  nanoid 3.1.30  GHSA-xxxx-xxxx-xxxx
+MEDIA  paquete 1.0.0  GHSA-xxxx-xxxx-xxxx
 DESCONOCIDA  paquete 1.0.0  PYSEC-2099-1 → falla el pipeline (RNF-08)
 ```
 
@@ -111,7 +111,7 @@ Las etiquetas son `BAJA` (`LOW`), `MEDIA` (`MODERATE`), `ALTA` (`HIGH`), `CRÍTI
 |---|---|
 | `0` | Ningún hallazgo falla. Los `BAJA` y `MEDIA` se informan |
 | `1` | Algún hallazgo es `ALTA`, `CRÍTICA` o `DESCONOCIDA` |
-| `2` | El informe no existe, no se puede leer o no tiene la forma esperada, o la consulta a OSV falla. El error va por la salida de error |
+| `2` | El informe no existe, no se puede leer o no tiene la forma esperada (incluidos alias que no son cadenas); la consulta a OSV falla por red, por un error de protocolo HTTP o por JSON mal formado; o la respuesta supera 1.000.000 de bytes. El error va por la salida de error |
 
 El código `2` existe para que un fallo de `pip-audit` o de la red no pase en verde.
 

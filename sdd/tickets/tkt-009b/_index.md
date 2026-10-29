@@ -36,7 +36,8 @@ EN REVISIÓN
 | Fecha | De | A | Comando | Motivo |
 |---|---|---|---|---|
 | 2026-10-28 | — | `LISTO PARA EJECUTAR` | partición de TKT-009 | Nace de la decisión del gate de diseño de TKT-009. Spec repartida: M7, M8 y su parte de M12; `CA-10`, `CA-11`, `CA-R2`, `CA-R3` y `CA-R4`. No se ejecuta hasta que TKT-009a esté `ARCHIVADO` o `LISTO PARA PR`. Tercera parte en fusionar. La fila B5 exige acciones de la persona dueña del repositorio |
-| 2026-10-28 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas B1 a B4 y B7 hechas con su ciclo TDD y mutación; 247 pruebas de `tools/` en verde. B5 (ajustes del repositorio) y B6 (ensayo en el pipeline) las ejecutó la persona dueña el 2026-10-29 con la guía [ajustes-repositorio.md](ajustes-repositorio.md), con evidencia en `impl.md`. Arquitectura: dos Menores documentales corregidos |
+| 2026-10-28 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas B1 a B4 y B7 hechas con su ciclo TDD y mutación; 247 pruebas de `tools/` en verde. B5 y B6 pendientes. Arquitectura: dos Menores documentales corregidos |
+| 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-ejecutar` | B5 (ajustes del repositorio) y B6 (ensayo en el pipeline) hechas por personas con la guía [ajustes-repositorio.md](ajustes-repositorio.md), con evidencia en `impl.md` |
 
 ## Decisiones registradas
 

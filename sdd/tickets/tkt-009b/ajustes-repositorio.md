@@ -56,7 +56,7 @@ Se repite la consulta de la sección 1.1. Para cerrar la fila B5, la segunda con
 La prueba demuestra que la protección de empuje rechaza un secreto real, o que lo deja registrado si el empuje pasa. El token se usa solo como texto. El empuje lo hace la persona dueña con sus credenciales habituales, así que el token no necesita ningún permiso.
 
 1. **Crear el token.** En la cuenta de la persona dueña, crear un token de acceso personal clásico **sin ningún permiso** y con la caducidad más corta que ofrezca la página.
-2. **No revocarlo antes del empuje; revocarlo justo después.** El 2026-10-29 se comprobó que un token ya revocado no activó la protección de empuje ni dejó alerta (ver `impl.md`, fila B5). Con un token activo y sin permisos, el empuje se rechazó con `GH013`. Por eso el token se revoca inmediatamente después del empuje, haya sido rechazado o no. Si el empuje se rechaza, el secreto nunca llega a GitHub.
+2. **No revocarlo antes del empuje; revocarlo justo después.** El primer intento, el 2026-10-29, no fue concluyente: el archivo empujado contenía un comando de PowerShell pegado por error y no un token (ver `impl.md`, fila B5). Con un token activo y sin permisos, el empuje se rechazó con `GH013`. Por eso el procedimiento verificado usa un token activo y sin permisos, y el token se revoca inmediatamente después del empuje, haya sido rechazado o no. Si el empuje se rechaza, el secreto nunca llega a GitHub.
 3. **Preparar el clon desechable.** La prueba se hace en un clon aparte, para que el secreto nunca toque el repositorio de trabajo. El bloque está escrito para Git Bash. En PowerShell se usa `Read-Host -AsSecureString` en lugar de `read -r -s`, y el clon parte de la rama por omisión, porque la rama del ticket puede no existir todavía en el remoto. Desde Git Bash:
 
 ```bash
@@ -154,7 +154,7 @@ git revert --no-edit HEAD
 echo $?
 ```
 
-`npm audit --audit-level=high` tiene que terminar con `0`, y la última línea de su informe tiene que decir `1 moderate severity vulnerability` o el número que corresponda, sin ninguna mención a `high` ni a `critical`. Si `HEAD` no es la ronda 1, se usa el hash del commit de la ronda 1 en lugar de `HEAD`.
+`npm audit --audit-level=high` tiene que terminar con `0`, y la última línea de su informe tiene la forma `N vulnerabilities (X low, Y moderate)`, sin mención a `high` ni a `critical`. Con un único aviso en total, la línea sería `1 moderate severity vulnerability`. Si `HEAD` no es la ronda 1, se usa el hash del commit de la ronda 1 en lugar de `HEAD`.
 
 ```bash
 git add frontend/package.json frontend/package-lock.json
