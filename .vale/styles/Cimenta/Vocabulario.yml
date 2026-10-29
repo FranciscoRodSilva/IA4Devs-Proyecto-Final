@@ -1,0 +1,13 @@
+extends: substitution
+message: "Usa '%s' en lugar de '%s' (glosario)."
+level: warning
+ignorecase: true
+swap:
+  tablaroka: tablaroca
+  tabla roca: tablaroca
+  tabla-roca: tablaroca
+  plafon: plafón
+  redi mix: redimix
+  ready mix: redimix
+  perfa cinta: perfacinta
+  perfa-cinta: perfacinta
