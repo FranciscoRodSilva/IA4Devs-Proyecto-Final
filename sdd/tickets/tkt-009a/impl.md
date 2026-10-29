@@ -1,6 +1,6 @@
 # Impl · TKT-009a · Pipeline de pruebas y fronteras
 
-> [← index](_index.md) | [← design](../tkt-009/design.md) | Siguiente: delta (pendiente)
+> [← index](_index.md) | [← design](../tkt-009/design.md) | Siguiente: [delta →](delta.md)
 
 ## Qué se implementó
 
@@ -177,6 +177,10 @@ El comando no muestra ningún cambio en `backend/tests/`. En `frontend/src/` sol
 | Arreglo de `Armazon.test.tsx` | `tester-frontend` | `sonnet` | `sonnet` | Fuera de alcance, autorizado por el usuario |
 | Auditorías | cuatro auditores | `sonnet` | `sonnet` | — |
 | Corrección del ciclo 1 | `tester-backend` | `haiku` | `sonnet` | La corrección escribe lógica de pruebas y añade comprobaciones nuevas, no aplica un cambio mecánico |
+| Revisión · auditorías y confirmaciones | los cuatro auditores | `sonnet` | `sonnet` en la primera pasada; `haiku` en las reauditorías acotadas a Menores | Permitido por §14.2 |
+| Revisión · correcciones de registro | `corrector-revision` | `haiku` | `haiku` | — |
+| Revisión · R004 rojo | `tester-backend` | `sonnet` | `sonnet` | — |
+| Revisión · R004 verde (`if` en `ci.yml`, una línea) | orquestador | `haiku` | sin despacho | Una línea verificada por el rojo y por `zizmor`; no se despachó agente |
 
 ## Resultado contra los criterios de aceptación
 
@@ -197,11 +201,11 @@ El comando no muestra ningún cambio en `backend/tests/`. En `frontend/src/` sol
 
 | Auditor | Veredicto | Hallazgos | Ciclos |
 |---|---|---|---|
-| `auditor-arquitectura` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS en `/sdd-revisar` (Menores de registro, N002 a N009) y de nuevo en la confirmación final (R001 a R005, todos corregidos) | 11 hallazgos (O001 a O003, N002 a N009) y R001 a R005 | 1 en ejecutar, 4 en revisar |
+| `auditor-arquitectura` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS en `/sdd-revisar` (Menores de registro, N002 a N009) y de nuevo en la confirmación final (R001 a R005, todos corregidos) | 11 hallazgos (O001 a O003, N002 a N009) y R001 a R005 | 1 en ejecutar, 4 en revisar (la cuarta, una confirmación final que se cerró sin una quinta reauditoría) |
 | `auditor-sql` | No aplica | No hay esquema ni migración | — |
 | `auditor-codigo` | REQUIERE CAMBIOS, luego APROBADO; APROBADO de nuevo en `/sdd-revisar` | 1 Mayor, 4 Menores; reauditoría sin hallazgos | 2 en ejecutar, 1 en revisar |
 | `auditor-seguridad` | APROBADO en ambas pasadas | 3 observaciones bajas | 1 en ejecutar, 1 en revisar |
-| `auditor-docs` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS (Menores de exactitud) | 5 hallazgos (O001 a O003, N001 y O004) | 1 en ejecutar, 3 en revisar |
+| `auditor-docs` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS (Menores de exactitud) | 6 hallazgos (O001 a O003, N001, N010 y O004) | 1 en ejecutar, 3 en revisar |
 
 ### Hallazgos y su resolución
 
@@ -212,7 +216,7 @@ El comando no muestra ningún cambio en `backend/tests/`. En `frontend/src/` sol
 | F003 de código | código | Menor | `test_definicion_ci.py` | Los mutantes no exigían el motivo del rojo; sustituciones de texto sin verificar | Resuelto |
 | F004 de código | código | Menor | `test_definicion_ci.py:1-24` | Docstring del módulo obsoleto | Resuelto (no se renombraron clases ni se partió el archivo) |
 | F005 de código | código | Menor | `test_definicion_ci.py` | Afirmaciones tautológicas sobre la guarda de saltos | Resuelto |
-| O001 de arquitectura | arquitectura | Observación | `tools/tests/test_definicion_ci.py` | El archivo, de ~2,300 líneas (2,286) tras la corrección, supera con creces las ~265 líneas de la estimación | Persiste: se anota en `delta.md` |
+| O001 de arquitectura | arquitectura | Observación | `tools/tests/test_definicion_ci.py` | El archivo, de unas 2,300 líneas (2,308 al cierre) tras la corrección, supera con creces las ~265 líneas de la estimación | Persiste: se anota en `delta.md` |
 | O002 de arquitectura | arquitectura | Observación | `ci.yml`, paso `upload-artifact` de `backend` | En `ci.yml:39-48`, el paso de subida de `backend` tiene `if: always()` y `if-no-files-found: error`: si `pytest` falla antes de escribir sus informes, la subida también falla y añade un segundo fallo al trabajo. La causa sigue en el registro del paso de pruebas. | Persiste |
 | O003 de arquitectura | arquitectura | Observación | `CLAUDE.md:78` | Conserva la marca «(desde TKT-009)» por ser de TKT-009c, aunque el diseño (A7) la deja para la parte c | Persiste: se retira en TKT-009c |
 | N002 de arquitectura | arquitectura | Menor | `impl.md`, tabla «Auditorías» | Recuento de observaciones que no cuadraba con la tabla de hallazgos | Resuelto |
@@ -228,6 +232,7 @@ El comando no muestra ningún cambio en `backend/tests/`. En `frontend/src/` sol
 | O002 de docs | docs | Observación | `sdd/tickets/tkt-009/design.md:251` | Fila A7 marcada «✓ Hecho»; su verificación cita `CLAUDE.md:78`, que conserva «(desde TKT-009)» hasta TKT-009c | Persiste: es lo previsto |
 | O003 de docs | docs | Observación | `docs/06-stack-tecnologico.md:455`, `tools/README.md:61` y `docs/05-tickets-trabajo.md:2066` | Tres textos de la parte c siguen vivos hasta TKT-009c: «⏳ TKT-009, cuando exista código que verificar» (`docs/06-stack-tecnologico.md:455`), «Se escribirá en TKT-009» (`tools/README.md:61`) y «(TKT-009)» (`docs/05-tickets-trabajo.md:2066`) | Persiste |
 | N001 de docs | docs | Menor | `CLAUDE.md:97` | Discrepancia de `CLAUDE.md:97` frente a `extraer_mermaid.py` | Resuelto |
+| N010 de docs | docs | Menor | `CLAUDE.md:97` | La excepción omitía que `ruff format .` y `ruff check --fix .` corren en el pipeline como `--check` y sin `--fix`. Se aplicó el texto literal del auditor y se verificó contra `ci.yml:26` y `:29`; la confirmación final de documentación lo dio por resuelto | Resuelto |
 | O004 de docs | docs | Observación | `frontend/playwright.config.ts` | El comentario lleva `npx playwright install chromium` sin `--with-deps` | Persiste: observación |
 | R001 de arquitectura | arquitectura | Menor | `impl.md`, tabla de ajustes | Faltaba la fila de la ronda 1 con trabajos no previstos | Resuelto |
 | R002 de arquitectura | arquitectura | Menor | `_index.md`, `impl.md` | «Diez criterios `[M]`» cuando la spec declara once | Resuelto |
@@ -270,7 +275,7 @@ Detectados de paso. **No se implementan aquí.**
 - [x] Suite en verde: 77 pruebas de `tools/` en local, 1138 de backend, 214 del cliente y el pipeline completo en el PR #2
 - [x] ≥1 test de rechazo por regla implicada
 - [x] Mutación en rutas críticas: mutantes de las compuertas y los dos de regresión
-- [x] Todas las auditorías `APROBADO`
+- [ ] Todas las auditorías `APROBADO` en su último veredicto: seguridad, código y documentación sí; arquitectura quedó en `REQUIERE CAMBIOS` por Menores de registro que se corrigieron sin reauditar (ver «Revisión»)
 - [x] Sin hallazgo crítico o mayor pendiente
 - [x] Documentación afectada actualizada en este mismo cambio
 - [x] `ruff`, `mypy`, `lint-imports` limpios (en el trabajo `backend` y `fronteras`)
@@ -302,4 +307,4 @@ El frontend no se ejecutó en local, porque `frontend/node_modules` está roto. 
 
 **Veredicto:** todos los criterios `[M]` cumplidos, sin hallazgo Mayor ni Crítico pendiente. `LISTO PARA PR`.
 
-**Pipeline tras el último cambio de pruebas:** el pipeline completo se volvió a ejecutar sobre `15b08ff`, que incluye el commit `199f37f`, y los ocho trabajos terminaron en verde (`actions/runs/40793874972`). Quedan dos acciones locales tuyas: restaurar `frontend/node_modules` (`npm ci`, tras cerrar el proceso que lo bloquea) y las contraseñas de roles de tu base de desarrollo, que `contrasenas_roles` reescribió con los valores de tu `.env`.
+**Pipeline tras el último cambio de código y de configuración:** el pipeline completo se ejecutó sobre `f2bb169` y los ocho trabajos terminaron en verde (`actions/runs/40798645609`); los commits posteriores solo tocan registros de `sdd/`. Antes se había ejecutado sobre `15b08ff`, que incluye el commit `199f37f`, y los ocho trabajos terminaron en verde (`actions/runs/40793874972`). Quedan dos acciones locales tuyas: restaurar `frontend/node_modules` (`npm ci`, tras cerrar el proceso que lo bloquea) y las contraseñas de roles de tu base de desarrollo, que `contrasenas_roles` reescribió con los valores de tu `.env`.

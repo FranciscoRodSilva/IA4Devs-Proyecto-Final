@@ -83,7 +83,7 @@ Fricción del **proceso**, no del producto.
 | `agente` | Las reauditorías acotadas pierden el informe anterior: el auditor no puede reclasificar «Resuelto, Persiste, Nuevo» sin el texto literal. Hay que pasarle sus hallazgos previos en el encargo. Y cada ciclo de corrección de documentación trajo un Menor nuevo sobre el texto que el ciclo anterior había escrito, incluso aplicando el texto literal que el propio auditor dictó (`CLAUDE.md:97`, cuatro versiones). Quinta vez que se ve este patrón | Media |
 | `agente` | El desarrollador (`haiku`) añadió sin que se pidiera la versión fija de `uv` en `setup-uv` y quitó `-v` del paso de la suite; el orquestador tuvo que revisar ambas desviaciones. El primer caso se revirtió; el segundo era correcto y se documentó | Baja |
 | `guardrail` | La auditoría de código de `/sdd-ejecutar` y la de `/sdd-revisar` coincidieron esta vez, pero la primera encontró un Mayor (compuertas desactivables) que 52 pruebas y la autoverificación del tester no veían. Se repite el patrón de que la revisión con mutación exploratoria sobre el artefacto real encuentra lo que los mutantes del diseño no | Media |
-| `plantilla` | El diseño estimaba unas 265 líneas para la parte a y `test_definicion_ci.py` acabó en 2,286. Las estimaciones de líneas de las pruebas de definición no cuentan los mutantes, que son la mayor parte | Media |
+| `plantilla` | El diseño estimaba unas 265 líneas para la parte a y `test_definicion_ci.py` acabó en unas 2,300. Las estimaciones de líneas de las pruebas de definición no cuentan los mutantes, que son la mayor parte | Media |
 | `modelo` | Los dos primeros despachos de `haiku` al `ingeniero-devsecops` cerraron sin subir a `sonnet`. La corrección del ciclo 1 de código fue en `sonnet` porque escribía lógica de pruebas nueva, y las reauditorías de Menores en `haiku`, que por no conservar contexto necesitaron el historial en el encargo | Baja |
 
 ## Deuda que queda abierta
@@ -95,7 +95,7 @@ Fricción del **proceso**, no del producto.
 | `zizmor` sin lockfile para sus transitivas; cachés de `setup-uv` y `setup-node` por omisión | Riesgo bajo mientras no haya un workflow de publicación | Revisar con TKT-058 o el primer workflow de despliegue |
 | La lista blanca de opciones de pytest rechaza opciones legítimas futuras; `PYTEST_ADDOPTS: -k nada` en `env:` pasaría | Heurística declarada como límite en el docstring del módulo | Ampliar cuando una parte posterior añada opciones |
 | `ruff` no corre sobre `tools/` en el pipeline | Fuera del alcance de esta parte | Ticket de calidad de `tools/` |
-| `test_definicion_ci.py` mide 2,286 líneas | El tamaño viene de los mutantes; partirlo no cambia lo que cubre | Partir en `test_definicion_ci_trabajos.py` y `_seguridad.py` si crece más con las partes b, c y d |
+| `test_definicion_ci.py` mide unas 2,300 líneas (2,308 al cierre) | El tamaño viene de los mutantes; partirlo no cambia lo que cubre | Partir en `test_definicion_ci_trabajos.py` y `_seguridad.py` si crece más con las partes b, c y d |
 | El comentario de `frontend/playwright.config.ts` dice `npx playwright install chromium` sin `--with-deps` | Está fuera del diff de esta parte | Corregir cuando se toque ese archivo |
 | El texto «TKT-009» de la parte c sigue vivo en `docs/06` §9, `tools/README.md:61` y la ficha de TKT-069; `CLAUDE.md:78` conserva su marca | Pertenecen a TKT-009c | TKT-009c |
 | TC-58 del diseño dice «26 `FALTA`» y la fila C5, 27 | Es de la parte c | Corregir en TKT-009c |
@@ -114,7 +114,7 @@ Fricción del **proceso**, no del producto.
 >
 > **Criterios cubiertos.** `CA-1` a `CA-5`, `CA-9`, `CA-12`, `CA-R1`, `CA-R2`, `CA-R4` y la parte de `CA-15` de esta parte.
 >
-> **Cómo verificarlo.** El pipeline del propio PR está en verde (`actions/runs/40796780533`). En local: `cd backend && uv run ruff check . && uv run mypy . && uv run lint-imports && uv run python -m herramientas.verificar_float`, `uv run pytest`, `python -m unittest discover -s tools/tests` y `python tools/verificar_docs.py`. Las compuertas se ensayaron en dos PR en borrador, ya cerrados sin fusionar, con las ejecuciones `40791191850` y `40791201877`.
+> **Cómo verificarlo.** El pipeline del propio PR está en verde sobre el último commit de código y de configuración, `f2bb169` (`actions/runs/40798645609`); los commits posteriores solo tocan registros de `sdd/`. En local: `cd backend && uv run ruff check . && uv run mypy . && uv run lint-imports && uv run python -m herramientas.verificar_float`, `uv run pytest`, `python -m unittest discover -s tools/tests` y `python tools/verificar_docs.py`. Las compuertas se ensayaron en dos PR en borrador, ya cerrados sin fusionar, con las ejecuciones `40791191850` y `40791201877`.
 >
 > **Aviso a quien revisa.** La rama pasa por una excepción de alcance registrada en `_index.md`: `Armazon.test.tsx`. No toca `docs/api/openapi.yaml`.
 >

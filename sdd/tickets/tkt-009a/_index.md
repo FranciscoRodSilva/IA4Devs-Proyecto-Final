@@ -29,7 +29,7 @@ LISTO PARA PR
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas A0 a A8 | `/sdd-disenar` | Aprobado el 2026-10-28 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-29 |
-| Delta | delta.md | `/sdd-completar` | Pendiente |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-10-29 |
 
 ## Log de estados
 
