@@ -324,7 +324,7 @@ Cada ronda es un commit en la rama de ensayo. Las violaciones de una ronda caen 
 | b | 1 | `lodash@4.17.20` en `devDependencies` | `dependencias` | `npm audit` con severidad `high` |
 | b | 2 | Solo un paquete de npm cuyo único aviso sea `moderate` (candidato: `stream-json@3.6.0`; `nanoid@3.1.30` tiene avisos altos; se confirma en la base de avisos de GitHub antes de empujar, y si ya no es solo `moderate` se elige otro que lo sea) | ninguno | El aviso aparece en el registro y el trabajo queda en verde |
 | c | 1 | `HDU-001` añadida a `tools/historias_activas.txt` | `herramientas` | 27 líneas `FALTA HDU-001 esc. N` |
-| d | 1 | Un enlace relativo roto, «`tablaroka`» en un documento, un diagrama con `A -> B` en un `flowchart` y un enlace a `https://cimenta-ensayo.invalid/` | `documentacion` | `verificar_docs.py` y `lychee` con el enlace y su archivo; `Cimenta.Vocabulario` con archivo y línea; `::error` con el archivo del diagrama |
+| d | 1 | Un enlace relativo roto, «`tablaroka`» en un documento, un diagrama con `A -> B` en un `flowchart` y un enlace a una página de GitHub que no existe (404) | `documentacion` | `verificar_docs.py` y `lychee` con el enlace y su archivo; `Cimenta.Vocabulario` con archivo y línea; `::error` con el archivo del diagrama |
 
 El cron de `enlaces.yml` no se puede lanzar antes de que el archivo llegue a la rama por omisión. Su disparo se comprueba leyendo la definición (TC-64) y su detección con la misma configuración en el trabajo del PR (TC-68). La primera ejecución manual con `gh workflow run enlaces.yml` tras la fusión se anota en `delta.md`.
 
@@ -395,7 +395,7 @@ Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el 
 | TC-65 | `documentacion` ejecuta `verificar_docs.py`, `markdownlint-cli2`, `vale --output=line` con la guarda de salida vacía, `lychee` y `mmdc` | estático | `CA-13` esc. 1, `CA-16` esc. 1 | — |
 | TC-66 | Ensayo: diagrama con `A -> B`, `documentacion` en rojo con el archivo | **rechazo** | `CA-16` | esc. 2 |
 | TC-67 | Los diagramas reales pasan `mmdc` | feliz | `CA-16` | esc. 1 |
-| TC-68 | Ensayo: enlace externo a `.invalid`, `lychee` en rojo con el enlace y su archivo | **rechazo** | `CA-14` | esc. 2 |
+| TC-68 | Ensayo: enlace externo a una página de GitHub que da 404, `lychee` en rojo con el enlace y su archivo | **rechazo** | `CA-14` | esc. 2 |
 | TC-69 | El trabajo `documentacion` en verde sobre la rama del ticket: cero avisos y cero errores | regresión | `CA-13` | esc. 5 |
 | TC-70a | Parte a: `CLAUDE.md` líneas 20 a 22 (reglas 1, 2 y 3) y `conv-dominio-python` sin «desde TKT-009»; **`CLAUDE.md:78` conserva su «(desde TKT-009)»**, porque el verificador de escenarios aún no corre; `desde TKT-059` sigue presente; `verificar_docs.py` en 0 | regresión y **rechazo** | `CA-15` | esc. 1 y 2 |
 | TC-70b | Parte b: ninguna marca nueva que retirar; `docs/06-stack-tecnologico.md` §6.4 describe la política vigente; `verificar_docs.py` en 0 | regresión | `CA-15` | esc. 1 |
