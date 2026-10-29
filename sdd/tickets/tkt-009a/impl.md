@@ -63,7 +63,7 @@ Ya estaba hecha cuando empezó la ejecución: `docs/05-tickets-trabajo.md` traí
 
 **Rojo:**
 
-```
+```text
 ERROR: usage: pytest [options] [file_or_dir] [file_or_dir] [...]
 pytest: error: unrecognized arguments: --cov=cimenta
 pytest exit=4
@@ -71,7 +71,7 @@ pytest exit=4
 
 **Verde:**
 
-```
+```text
 Coverage XML written to file cobertura.xml
 1138 passed in 238.54s (0:03:58)
 pytest exit=0
@@ -103,7 +103,7 @@ pytest exit=0
 
 **Rojo de TC-20** (workflow sin `permissions` y con `pull_request_target`, en el directorio de pruebas del espacio temporal):
 
-```
+```text
 error[dangerous-triggers]: use of fundamentally insecure workflow trigger
 warning[excessive-permissions]: overly broad permissions
 exit caso pedido=14
@@ -148,7 +148,7 @@ Los PR de ensayo #3 y #4 se cerraron sin fusionar y sus ramas se borraron.
 
 Recuentos antes y después. Criterio del diseño: contar declaraciones de prueba (`def test_` en `backend/tests` y en `tools/tests`; `test(` e `it(` en `frontend/src`) en la base `4d345d0` y en el estado final. Las declaraciones `test(` e `it(` se cuentan con el patrón declarativo `(^|[^.A-Za-z_])(test|it)\(`, que excluye las llamadas `.test(` que no son declaraciones (`RegExp.test(`): `frontend/src/compartido/dinero/dinero.ts:16`, `frontend/src/compartido/dinero/dinero.ts:44` y `frontend/src/api/tipos.test.ts:122`. Con ese patrón el recuento es 139 → 139; con el patrón literal `\b(test|it)\(`, que sí capta esas tres líneas, sería 142 → 142: la conclusión no cambia. Resultado medido por el auditor: `def test_` en `backend/tests` pasa de 502 a 502; `test(`/`it(` en `frontend/src` pasa de 139 a 139 (`Armazon.test.tsx`, de 18 a 18); `def test_` en `tools/tests` pasa de 12 a 77. El 12 de `tools/` ya se había obtenido antes del ticket en una copia limpia de `HEAD`, donde 3 pruebas fallaron por falta del entorno local. Las 1138 pruebas de backend y las 214 del cliente en verde son recuentos ejecutados con la dependencia nueva; la comparación con el estado previo se hace con declaraciones, que es la métrica del criterio. Lo verifica `git diff --stat 4d345d0..HEAD -- backend/tests frontend/src`, que da:
 
-```
+```text
  frontend/src/app/armazon/Armazon.test.tsx | 31 ++++++++++++++++++++++++++++---
  1 file changed, 28 insertions(+), 3 deletions(-)
 ```
@@ -287,7 +287,7 @@ Detectados de paso. **No se implementan aquí.**
 
 **Suite ejecutada en esta revisión:**
 
-```
+```text
 docker info            -> docker 29.8.2
 uv run pytest -q       -> 1138 passed in 235.45s (0:03:55), exit=0
 uv run ruff check .    -> All checks passed!

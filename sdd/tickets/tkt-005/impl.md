@@ -90,7 +90,7 @@ Sin test propio: es infraestructura. **Verde:** `uv add --dev jsonschema pyyaml 
 
 **Rojo** (tester, `sonnet`):
 
-```
+```text
 30 failed, 3 passed in 0.67s
 E   ModuleNotFoundError: No module named 'contrato_error'
 ```
@@ -101,7 +101,7 @@ Los tres que pasan son `TC-39`. **Verde:** `33 passed in 0.33s`; `mypy`, `ruff`,
 
 **Rojo:**
 
-```
+```text
 97 failed, 38 passed in 2.85s
 E   ModuleNotFoundError: No module named 'contrato_error.excepciones'
 E   ImportError: cannot import name 'RechazoRegla' from 'contrato_error'   (TC-30)
@@ -117,7 +117,7 @@ E   ImportError: cannot import name 'RechazoRegla' from 'contrato_error'   (TC-3
 
 **Rojo:**
 
-```
+```text
 9 failed, 1 passed in 0.65s
 E   ModuleNotFoundError: No module named 'servidor'
 ```
@@ -128,7 +128,7 @@ El que pasa es `TC-104`, que usa `ast` y no importa `servidor`. **Verde:** `10 p
 
 **Rojo:**
 
-```
+```text
 67 failed, 10 passed in 3.17s
 assert 500 == 409     (24: el ErrorContrato sin manejador acaba en 500)
 El cuerpo no es JSON ('text/plain; charset=utf-8'): 'Internal Server Error'     (14)
@@ -143,7 +143,7 @@ ModuleNotFoundError: No module named 'servidor.manejadores'     (19, TC-48a)
 
 **Rojo:**
 
-```
+```text
 1 failed, 212 passed in 7.16s
 Could not find a default file to run, please provide an explicit path
 ```
@@ -174,7 +174,7 @@ Dos mutantes se aplicaron distinto del diseño: MT-14 decodifica las cabeceras a
 
 **Evidencia de ejecución al cerrar la fila** (`docker info` responde `29.8.2`):
 
-```
+```text
 FAILED tests/test_tkt005_regresion.py::test_tkt005_car6_archivos_nuevos_sin_bom_ni_crlf
 1 failed, 668 passed in 58.23s
 ```
@@ -189,7 +189,7 @@ Ver «Documentación actualizada». `python tools/verificar_docs.py`, `extraer_m
 
 **Rojo** (tester, `sonnet`): 22 pruebas nuevas o ajustadas.
 
-```
+```text
 22 failed, 223 passed in 12.09s
 assert [] == [{'clave': 'REINTENTAR', …}]     (arquitectura F001, 12 casos)
 {'campo': '[11]', …} != {'campo': 'cuerpo', …}     (arquitectura F003, 3 casos)

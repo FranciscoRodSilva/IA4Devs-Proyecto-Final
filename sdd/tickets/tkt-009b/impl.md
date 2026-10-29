@@ -70,7 +70,7 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 
 **Rojo:**
 
-```
+```text
 uv run pip-audit --version
 error: Failed to spawn: `pip-audit`
   Caused by: program not found
@@ -78,7 +78,7 @@ error: Failed to spawn: `pip-audit`
 
 **Verde:** `uv add --dev pip-audit --python 3.14` instala `pip-audit 2.10.1` y 17 paquetes más. `uv sync --locked --python 3.14` sale con 0 y `uv run lint-imports` da `Contracts: 15 kept, 0 broken`. El diff de `pyproject.toml` es una línea del grupo `dev`:
 
-```
+```diff
 +    "pip-audit>=2.10.1",
 ```
 
@@ -112,7 +112,7 @@ error: Failed to spawn: `pip-audit`
 
 **Rojo** (`python -m unittest tools.tests.test_definicion_ci.DefinicionDeCIFilaB3`):
 
-```
+```text
 FAIL: test_tc14_dependencias_corre_en_paralelo_sin_needs
 AssertionError: False is not true : el ci.yml no declara el trabajo `dependencias` (TKT-009b fila B3)
 Ran 3 tests ... FAILED (failures=3)
@@ -142,7 +142,7 @@ Además, 12 pruebas sobre texto sintético (control, formas válidas y mutantes:
 
 **Estado después:**
 
-```
+```text
 dependabot_security_updates          enabled
 secret_scanning                      enabled
 secret_scanning_push_protection      enabled
@@ -155,7 +155,7 @@ visibility                           public
 
 **Empuje de ensayo, intento 2 (token personal clásico activo y sin permisos): rechazado.** Extracto del registro, sin el token ni la URL de desbloqueo:
 
-```
+```text
 remote: error: GH013: Repository rule violations found for refs/heads/ensayo/tkt-009b-secreto2.
 remote: - GITHUB PUSH PROTECTION
 remote:     - Push cannot contain secrets
@@ -188,7 +188,7 @@ La rama `ensayo/tkt-009b-compuertas` y el PR en borrador [#7](https://github.com
 
 **Extracto del paso «Filtrar los hallazgos por severidad», ronda 1:**
 
-```
+```text
 CRÍTICA  django 3.2  GHSA-xpfp-f569-q3p2 (CVE-2021-35042, BIT-django-2021-35042, PYSEC-2021-109) → falla el pipeline (RNF-08)
 ALTA  django 3.2  GHSA-53qw-q765-4fww (CVE-2021-45115, BIT-django-2021-45115, PYSEC-2022-1) → falla el pipeline (RNF-08)
 Hallazgos: 65 · que fallan el pipeline: 40
@@ -197,7 +197,7 @@ Hallazgos: 65 · que fallan el pipeline: 40
 
 **Extracto del paso «Auditar npm», ronda 1:**
 
-```
+```text
 lodash  <=4.17.23
 Severity: high
 4 vulnerabilities (3 low, 1 high)
@@ -206,7 +206,7 @@ Severity: high
 
 **Ronda 2, pasos «Filtrar los hallazgos por severidad» y «Auditar npm»:**
 
-```
+```text
 Sin vulnerabilidades en el informe de pip-audit.
 stream-json  2.0.0 - 3.6.0
 Severity: moderate

@@ -62,7 +62,7 @@ La suite completa pasa con Docker: **854 pruebas en verde**. Los siete archivos 
 
 **Rojo** — de 24 casos recogidos (TC-14 son ocho), fallan 22 y pasan 2 (`pytest tests/test_tkt007_esquema.py --tb=no -v`, desde `backend/`, con `docker info` respondiendo `29.8.2`):
 
-```
+```text
 tests/test_tkt007_esquema.py::test_tkt007_ca01_columnas_y_nulabilidad FAILED [  4%]
 tests/test_tkt007_esquema.py::test_tkt007_ca01_clave_foranea_solo_hacia_usuario FAILED [  8%]
 tests/test_tkt007_esquema.py::test_tkt007_ca01_enum_igual_al_borrador FAILED [ 12%]
@@ -145,7 +145,7 @@ El tester escribió las tres *fixtures* en `backend/tests/conftest.py` (`guarda_
 
 Docker en marcha (`docker info` responde `29.8.2`). Salida real de `uv run pytest tests/test_tkt007_motor.py --tb=no -v`, desde `backend/`:
 
-```
+```text
 tests/test_tkt007_motor.py::test_tkt007_ca09_url_del_rol_de_aplicacion FAILED [ 20%]
 tests/test_tkt007_motor.py::test_tkt007_ca09_crear_el_motor_no_conecta FAILED [ 40%]
 tests/test_tkt007_motor.py::test_tkt007_ca09_sesion_del_rol_de_aplicacion PASSED [ 60%]
@@ -1180,7 +1180,7 @@ Una primera pasada de `ruff format --check` marcó la constante `MENSAJE_NUL` po
 
 ## Verificación final
 
-- `uv run pytest` completo con Docker: `854 passed` al cerrar `/sdd-ejecutar` y `870 passed` tras el ciclo de corrección de `/sdd-revisar` (15 casos nuevos de ` ` y uno de control).
+- `uv run pytest` completo con Docker: `854 passed` al cerrar `/sdd-ejecutar` y `870 passed` tras el ciclo de corrección de `/sdd-revisar` (15 casos nuevos de `\x00` y uno de control).
 - `ruff check`, `ruff format --check`, `mypy` (126 archivos) y `verificar_float` (14 archivos, 0 hallazgos) en verde.
 - `uv run lint-imports`: 15 contratos cumplidos, 0 rotos, sin `ignore_imports`.
 - `alembic heads`: una sola cabeza, `0003`.

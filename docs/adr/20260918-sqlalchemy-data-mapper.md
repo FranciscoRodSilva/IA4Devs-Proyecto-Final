@@ -25,7 +25,7 @@ Se elige **SQLAlchemy 2.0**, y se resuelve la ambigüedad así:
 
 > **Las reglas del dominio reciben objetos de valor, no entidades.**
 
-```
+```text
 dominio/
   valores.py      Dinero, Cantidad, Rendimiento, Porcentaje   ← decimal puro
   reglas.py       evaluar_disponibilidad(...) -> Resultado    ← funciones puras

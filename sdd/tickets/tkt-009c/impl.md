@@ -88,7 +88,7 @@ No se tocó `backend/` ni `frontend/`.
 
 **Evidencia de ejecución al cerrar:**
 
-```
+```text
 python -m unittest discover -s tools/tests  -> Ran 171 tests ... OK (sin "skipped=")
 python tools/verificar_escenarios.py        -> exigidos 0 · pendientes 162 · tests de fundación 180, exit 0
 python tools/verificar_docs.py              -> ✓ Sin problemas. (162 escenarios, 24 ADR)
@@ -188,7 +188,7 @@ Quedan, como en TKT-009a, dos acciones locales tuyas: restaurar `frontend/node_m
 
 **Suite ejecutada en esta revisión:**
 
-```
+```text
 uv run pytest -q                    -> 1138 passed in 229.84s (0:03:49), exit=0
 uv run ruff check . / format --check -> All checks passed! / 153 files already formatted
 uv run mypy .                       -> Success: no issues found in 153 source files

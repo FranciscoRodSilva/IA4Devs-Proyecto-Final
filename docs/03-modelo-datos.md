@@ -1168,7 +1168,7 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 
 **El invariante 15 se apoya en una tabla que existe solo para sostenerlo.** `modalidad_pago_semana` guarda una fila por cuadrilla y semana con la modalidad reclamada (`DESTAJO` o `NOMINA`). La unicidad es **por cuadrilla y semana, sin la obra**: `RN-22` habla de cuadrilla y semana, no de obra, y la clave dice exactamente lo que dice la regla; `obra_id` se conserva para filtrar, fuera de la unicidad. El primer pago de la semana la inserta; el segundo, si es de la otra modalidad, choca contra la restricción única y falla. Sin ella la regla dependería de una comprobación en la aplicación que cualquier ruta nueva podría saltarse, y la consecuencia —contabilizar dos veces el mismo trabajo en el semáforo— es silenciosa.
 
-```
+```text
 modalidad_pago_semana
   id UUID PK · obra_id FK · cuadrilla_id FK · semana DATE
   modalidad ENUM('DESTAJO','NOMINA')

@@ -246,7 +246,7 @@ Los motores de reglas centralizados son atractivos sobre el papel y se convierte
 
 Cada módulo tiene la misma estructura interna de cuatro capas. La dependencia apunta **siempre hacia dentro**: la infraestructura conoce al dominio, el dominio no conoce a nadie.
 
-```
+```text
 compras/
 ├── api/              Rutas HTTP, serialización, códigos de estado
 ├── aplicacion/       Casos de uso. Orquesta, abre transacciones, no decide reglas

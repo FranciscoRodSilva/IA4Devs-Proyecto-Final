@@ -69,7 +69,7 @@ En la columna `Fase`, **1+2** significa que la historia se entrega en la fase 1 
 > - **Fase 2:** HDU-002 esc. 14, la requisición sin conexión; HDU-005 esc. 15 a 20, la recepción diferida y la remisión adjunta; HDU-008 esc. 18 a 25, la medición diferida y su evidencia.
 >
 > El escenario 25 de HDU-008 —validar un avance que todavía no tiene fotos— está escrito sobre el supuesto de `PA-14` y marcado **(asumido)**: si el cliente respondiera *"sin foto no se valida"*, el escenario se invierte y nace una regla de negocio que hoy no existe.
-
+>
 > **Segunda revisión, 2026-09-18.** El cliente respondió las once preguntas abiertas y **cinco respuestas contradijeron los supuestos**. Las historias están reescritas en consecuencia:
 >
 > - **HDU-001** gana la captura del presupuesto de control, que deja de derivarse del precio de venta (PA-03), y el indicador de IVA acreditable por obra (PA-05).
@@ -77,7 +77,7 @@ En la columna `Fase`, **1+2** significa que la historia se entrega en la fase 1 
 > - **HDU-005** cambia el cierre manual de órdenes por **reprogramación del faltante** (PA-07): una orden solo se cierra al entregarse completa.
 > - **HDU-008** define las etapas de destajo **por tipo de partida** (PA-08), que es lo que hace que su costo llegue al tablero agrupado.
 > - **HDU-009** pasa de 8 a 13 puntos: aparece el **registro de jornada diaria** por empleado y obra, la semana de **viernes a jueves**, y el reparto de costo entre obras deja de ser una estimación para ser un dato derivado (PA-04).
-
+>
 > **Tercera revisión, 2026-10-17.** El cliente respondió las siete preguntas que dejó abiertas la revisión de los ajustes (`PA-16` a `PA-22`), y ningún escenario queda ya sobre un supuesto de ellas. Se añaden **cuatro escenarios de fase 1** al final de su historia, sin renumerar los existentes:
 >
 > - **HDU-005 esc. 21 a 23.** El excedente de recepción autorizado se suma a la recepción y queda marcado como excedente (`PA-16`); el reenvío sin autorización vigente o con más excedente del autorizado se rechaza; y una entrada de una orden "CERRADA" no se corrige (`PA-17`).
@@ -1354,7 +1354,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** en la fase 1 el término de destajo del consumido vale cero, y es un cero real: no existe ningún pago de destajo.
 
 > **Si este escenario falla, lo simulado bloquea compras reales con dinero que no existe.** Es la primera regla de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) y la razón por la que el consumido —[modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo)— no lee nunca del adaptador.
-
+>
 > **Los escenarios 14 y 15 tienen vigencia de fase 1.** Existen mientras existe el adaptador simulado. Cuando TKT-069 lo retira entero, en el sprint 8, añade a sus títulos el segmento `· retirado por TKT-069`, que es la marca que lee el verificador de escenarios; el texto no se reescribe, y TKT-069 cubre con su propio test que **ninguna fuente sale `SIMULADA`**. No se convierten en escenarios de fase 2: lo que comprueban deja de poder ocurrir.
 
 **Escenario 16: Partida desviada por debajo del umbral · fase 1**

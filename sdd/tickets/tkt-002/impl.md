@@ -66,7 +66,7 @@ Ticket de fundación sin base de datos ni pytest, por la excepción registrada e
 
 **Rojo** — `uv run lint-imports` antes de instalar:
 
-```
+```text
 error: Failed to spawn: lint-imports / Caused by: program not found      (código 2)
 ```
 
@@ -80,7 +80,7 @@ error: Failed to spawn: lint-imports / Caused by: program not found      (códig
 
 **Verde:** 60 archivos nuevos y el docstring de `cimenta/__init__.py`.
 
-```
+```text
 Analyzed 61 files, 0 dependencies.
 cimenta tiene exactamente los diez módulos de arquitectura §5 KEPT
 Cada módulo tiene sus cuatro capas y una sola interfaz, y su dominio no importa las otras KEPT
@@ -126,7 +126,7 @@ Hashes de `pyproject.toml`, `presupuesto/interfaz.py` y `almacen/interfaz.py` id
 
 **Verde** — contrato añadido (38 líneas); con los desechables a la vez, `--contract dominio-sin-framework` rechaza con código 1 las cuatro violaciones, incluida la cadena `indirecto -> infraestructura…orm -> sqlalchemy`.
 
-```
+```text
 TC-12 (puro.py + otro.py): código 0 · Contracts: 3 kept, 0 broken
 TC-13: cimenta.presupuesto.dominio is not allowed to import fastapi:    (código 1; 2 kept, 1 broken)
 TC-14: cimenta.compras.dominio is not allowed to import sqlalchemy:
@@ -146,7 +146,7 @@ TC-16 (--contract): cimenta.presupuesto.dominio is not allowed to import sqlalch
 
 **Verde** — contrato añadido (13 líneas):
 
-```
+```text
 TC-17 cimenta.compras is not allowed to import cimenta.presupuesto.dominio:           (código 1)
 TC-18 cimenta.almacen is not allowed to import cimenta.compras.infraestructura:
 TC-19 cimenta.presupuesto is not allowed to import cimenta.archivos.infraestructura:
@@ -165,7 +165,7 @@ TC-22 Analyzed 67 files, 3 dependencies. Contracts: 4 kept, 0 broken.           
 
 **Verde** — diez contratos añadidos tras `solo-por-interfaz` y `lint-imports` con `14 kept, 0 broken`:
 
-```
+```text
 TC-23: Analyzed 103 files, 33 dependencies. Contracts: 14 kept, 0 broken.             (código 0)
 TC-24: Illegal imports of protected package cimenta.analitica:
        - cimenta.compras.aplicacion…prohibida_analitica -> cimenta.analitica.interfaz (l.1)

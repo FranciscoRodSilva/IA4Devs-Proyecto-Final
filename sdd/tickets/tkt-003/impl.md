@@ -1,7 +1,7 @@
 # Impl · TKT-003 · PostgreSQL, migraciones y esquema de identidad
 
 > [← index](_index.md) | [← design](design.md) | Siguiente: [delta →](delta.md)
-
+>
 > **Entregas A y B ejecutadas.** El archivo cubre las once filas del orden de implementación, de la partición (b) aprobada en el gate del diseño: la entrega A (filas 1, 2, 3, 4, 7 y la parte A de la 9) y la entrega B (filas 5, 6, 8, 10, 11 y la parte B de la 9). Las dos se fusionan juntas a `Produccion`: la entrega A no se fusiona sin la B.
 
 ## Qué se implementó
@@ -99,7 +99,7 @@ TC-01 a TC-03 son comandos de Compose y se registran en la fila 2. TC-70 a TC-72
 
 Sin tests propios: habilita las siguientes filas. Versiones resueltas: `alembic` 1.20.0, `psycopg[binary]` 3.3.6, `sqlalchemy` 2.1.5; en `dev`, `import-linter` 2.15, `mypy` 2.4.0, `pytest` 9.1.1, `ruff` 0.17.1 y `testcontainers` 4.15.0. Python 3.14.3.
 
-```
+```text
 uv sync --locked             -> Resolved 37 packages / Audited 36 packages            EXIT=0
 uv run pytest                -> collected 0 items (No files were found in testpaths)    EXIT=5
 uv run lint-imports          -> Contracts: 14 kept, 0 broken.                           EXIT=0
@@ -113,7 +113,7 @@ uv run mypy .                -> Success: no issues found in 61 source files     
 
 Sus casos son comandos. **Rojo:** `docker compose up -d db` sin `compose.yaml` → `no configuration file provided: not found`, código 1. **Verde:** `PG_VERSION=18.6-1.pgdg13+2`, `PGDATA=/var/lib/postgresql/18/docker`, volumen declarado en `/var/lib/postgresql`.
 
-```
+```text
 TC-01  up -d db -> healthy en ~6 s; conexión como cimenta_migracion: SELECT current_user = cimenta_migracion
 TC-02  tabla desechable + fila; down (sin -v); up -d db; SELECT n = 1; tabla borrada después
 TC-03  docker compose --env-file <vacío> up -d db ->
@@ -128,7 +128,7 @@ docker compose config | grep -i password -> solo la contraseña de .env; puerto 
 
 **Rojo** (`tester-backend`): 3 FAILED y 8 ERROR, todos por las razones esperadas. Los ocho ERROR pasan por la fixture `plantilla_migrada`:
 
-```
+```text
 E   alembic.util.exc.CommandError: Path doesn't exist: ...\backend\migraciones.
 E   ModuleNotFoundError: No module named 'herramientas'                (TC-18)
 3 failed, 8 errors in 1.84s
@@ -136,7 +136,7 @@ E   ModuleNotFoundError: No module named 'herramientas'                (TC-18)
 
 **Verde** (`desarrollador-sql`): `herramientas/`, `migraciones/env.py`, `script.py.mako` y `v0001` con §1 y §3.
 
-```
+```text
 uv run pytest                                -> 11 passed in 2.53s
 hasattr(psycopg.pq.PGconn, 'encrypt_password') -> True
 ```
@@ -159,7 +159,7 @@ hasattr(psycopg.pq.PGconn, 'encrypt_password') -> True
 
 **Verde:** §2 de `_SUBIDA`, con los valores de D-2: aplicación `5s` y `15s`; lectura `5s` y `60s`; migración sin ninguno. `uv run pytest` → 23 passed. Contra Compose:
 
-```
+```text
 cimenta_aplicacion | {lock_timeout=5s,statement_timeout=15s}
 cimenta_lectura    | {lock_timeout=5s,statement_timeout=60s}
 cimenta_migracion  |
@@ -171,7 +171,7 @@ cimenta_migracion  |
 
 Sin código de producción. TC-70, TC-71 y TC-72:
 
-```
+```text
 TC-70 (MP-8: la conexión de «aplicación» pasa a cimenta_migracion) -> 7 failed, 16 passed; «no es la del rol de aplicación» 14 veces
 TC-71 DATABASE_URL=sqlite:///prueba_tkt003.db; uv run pytest -> código 2: «Solo se admite PostgreSQL (ADR-002)»
 TC-72 backend/cimenta/migraciones/__init__.py -> lint-imports código 1: Missing layer in container 'cimenta.migraciones'; borrado, 14 kept
@@ -203,7 +203,7 @@ Cada mutante se aplicó solo, con el SHA-256 anotado antes y comprobado al resta
 
 **Evidencia de ejecución al cerrar** (`docker info` responde, Docker 29.8.2; reejecutada por el orquestador):
 
-```
+```text
 uv run pytest -q   -> 24 passed in 27.41s
 uv run lint-imports -> Contracts: 14 kept, 0 broken.
 ```
@@ -261,7 +261,7 @@ Ejecutada por un agente general con `conv-documentacion`, por sustitución: no h
 
 188 archivos de `git ls-files --cached --others --exclude-standard` copiados a un directorio del scratchpad, con `COMPOSE_PROJECT_NAME=cimentalimpia` y el puerto 5433 para no tocar el contenedor del repositorio. El arranque de `docs/arranque-local.md` se ejecutó tal como está escrito. Entorno: 2026-10-18, Windows 11 Pro 10.0.26200; `uv` 0.10.7; Python 3.14.3; Docker Engine 29.8.2 con Compose 5.6.0; PostgreSQL 18.6; Alembic 1.20.0; psycopg 3.3.6; SQLAlchemy 2.1.5; pytest 9.1.1; testcontainers 4.15.0; ruff 0.17.1; mypy 2.4.0; import-linter 2.15; Node v24.22.0 y npm 11.19.1.
 
-```
+```text
 uv sync --locked / ruff format --check / ruff check / mypy / lint-imports   -> todos EXIT=0 (81 files; 14 kept, 0 broken)
 TC-73 (x: int = "a" en tests, herramientas y versions)                        -> mypy EXIT=1 en cada uno; desechables borrados
 docker compose up -d db (copia)                                               -> healthy a la primera

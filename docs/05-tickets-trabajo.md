@@ -65,7 +65,7 @@ Los tickets citan los endpoints por método y ruta con las convenciones del [bor
 
 ---
 
-# Épica 0 · Fundación
+## Épica 0 · Fundación
 
 **Talla: XL · ~42 SP.** Es lo que hay que construir antes de que la primera regla de negocio pueda existir. No entrega valor al cliente, y eso es esperado: entrega la capacidad de entregar valor.
 
@@ -141,7 +141,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 - [ ] Los tests corren contra PostgreSQL, **no** contra SQLite, construyen el esquema con `alembic upgrade head` y **se conectan con el rol de aplicación**
 
 > Probar contra SQLite para "ir más rápido" verificaría garantías distintas de las de producción. El decimal exacto y las restricciones declarativas son parte del diseño, no un detalle del motor.
-
+>
 > **Conectarse con el propietario en los tests anularía tres invariantes.** Los números 10, 20 y 21 son permisos: con el rol propietario, el `UPDATE` sobre la bitácora funciona y la prueba que lo intenta queda verde por no tener nada que verificar.
 
 **Non-goals** — No crea tablas de negocio: cada módulo trae las suyas. No implementa autenticación (TKT-006).
@@ -192,7 +192,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 - [ ] **Registro estructurado en JSON con `structlog` e identificador de correlación por petición**, devuelto también en el cuerpo del error para que el usuario pueda citarlo (`RNF-13`)
 
 > Es la base sobre la que se escriben todos los escenarios de rechazo de las nueve historias — cerca de la mitad de todos. Si llega tarde, cada historia inventa su propio formato de error.
-
+>
 > **El identificador de correlación vive aquí y no en TKT-058** porque tiene que viajar **dentro** del contrato de error, y porque el patrón de registro hay que establecerlo antes de que existan diez módulos que lo ignoren. Retrofitar el registro estructurado en el sprint de cierre sería tocar los diez. Lo que sí queda en TKT-058 es la **agregación** de errores, que es un servicio externo y no se puede contratar antes de tener qué agregar.
 
 **Non-goals** — No implementa ninguna regla concreta. No agrega errores en ningún servicio externo: eso es TKT-058.
@@ -276,7 +276,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 - [ ] Los tipos generados se comprueban además contra el borrador [`docs/api/openapi.yaml`](api/openapi.yaml) por la prueba de contrato de TKT-061: el cliente se genera de lo que el servidor publica, y lo que publica tiene que coincidir con lo que se especificó
 
 > Los tres componentes reutilizables salen de escenarios que se repiten en varias historias. Extraerlos aquí evita tres implementaciones divergentes de la misma pantalla.
-
+>
 > **El armazón sin conexión salió de este ticket y es TKT-063, en la fase 2.** Antes vivía aquí por la misma razón que el contrato de error —si llega después, cada flujo de campo inventa su cola—, y esa razón sigue en pie: por eso TKT-063 es un ticket de fundación propio y llega **antes** que el primer flujo diferible, no junto a él. Lo que cambió es que en la fase 1 no hay ningún flujo diferible: la recepción de HDU-005 es en línea. Montar un service worker y una cola sin nada que encolar es código que nadie ejerce durante toda la fase 1.
 
 **Non-goals** — No implementa ninguna pantalla de negocio. **No monta el armazón sin conexión** —service worker, caché persistida, cola en IndexedDB, sincronización, indicador de estado—: es TKT-063. No permite iniciar sesión sin conexión.
@@ -425,7 +425,7 @@ La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-
 - [ ] Se prueba con un PR de ensayo que viola a propósito dos reglas —un `float` en una firma de dominio y una ruta `async def`— y se verifica que **las dos** se comentan con su cita y que el PR sigue sin poder fusionarse sin aprobación humana
 
 > **Comenta y no aprueba, y es la decisión central del ticket.** Buena parte del código lo escriben agentes; un agente que aprueba lo que escribió otro agente cierra el circuito sin que ninguna persona haya leído el cambio, y la Definition of Done de cada historia exige *revisión de al menos un humano*. La IA en la revisión sirve para que esa persona llegue al PR con los hallazgos ya citados, no para sustituirla.
-
+>
 > **Viaja con TKT-009 y no después** porque la etiqueta de origen tiene que estar desde los primeros PR de funcionalidad: sin ella, la comparación de defectos entre PR de agente y PR humanos no tiene línea base.
 
 **Non-goals** — No aprueba, no fusiona, no empuja commits ni propone correcciones aplicables con un clic. No sustituye a Ruff, mypy ni `import-linter`: lo que se comprueba mecánicamente lo comprueba el pipeline. No mide la calidad segmentada por etiqueta: eso se reporta al cerrar cada sprint.
@@ -483,14 +483,14 @@ La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-
 - [ ] Añade el servicio y las pruebas de MinIO al trabajo `backend` del pipeline. TKT-009 deja ese trabajo sin MinIO hasta este ticket, porque antes no hay almacén que probar (ver su ficha)
 
 > **Las sumas de verificación del almacén hay que comprobarlas al implementar.** Firmar la subida con el SHA-256 y leerlo después con los metadatos del objeto mantiene los bytes fuera del servidor, pero depende de que MinIO y R2 admitan esa suma en URL prefirmadas. Si alguno no la devuelve, la confirmación la calcula leyendo el objeto **desde el almacén y en un trabajo**, nunca dentro de una ruta `def`. *(asumido, a verificar con la documentación vigente de los dos destinos)*
-
+>
 > **Es fundación y no funcionalidad de HDU-001** porque la fase 2 lo reutiliza entero —evidencia de avance, remisión, expediente— y porque `archivos` es un módulo transversal. Lo que sí es de HDU-001 —crear la importación con su archivo y no analizar hasta que esté `DISPONIBLE`— vive en TKT-018.
 
 **Non-goals** — No implementa galería, miniaturas ni visor (TKT-065). No implementa la anulación con motivo ni el expediente de obra (TKT-066, TKT-067). No adjunta evidencia a avances ni remisiones a entradas: son de la fase 2. No ofrece un alta genérica de archivo sin documento dueño: en la fase 1 el único documento adjuntable es la importación. No interpreta el contenido más allá de comprobar el tipo, ni el XML del CFDI. No escanea antivirus.
 
 ---
 
-# Tickets de HDU-001 · Obra y línea base
+## Tickets de HDU-001 · Obra y línea base
 
 Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación-de-la-línea-base) · 14 SP
 
@@ -687,7 +687,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 
 ---
 
-# Tickets de HDU-002 · Requisición con control de presupuesto
+## Tickets de HDU-002 · Requisición con control de presupuesto
 
 Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de-presupuesto) · 8 SP
 
@@ -830,7 +830,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 
 ---
 
-# Tickets de HDU-003 · Resolución de requisiciones bloqueadas
+## Tickets de HDU-003 · Resolución de requisiciones bloqueadas
 
 Historia: [HDU-003](04-historias-usuario.md#hdu-003--resolución-de-una-requisición-bloqueada) · 5 SP · **fase 1**
 
@@ -932,7 +932,7 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 
 ---
 
-# Tickets de HDU-004 · Proveedores y órdenes de compra
+## Tickets de HDU-004 · Proveedores y órdenes de compra
 
 Historia: [HDU-004](04-historias-usuario.md#hdu-004--proveedores-y-emisión-de-órdenes-de-compra) · 5 SP · **fase 1**
 
@@ -1037,7 +1037,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 
 ---
 
-# Tickets de HDU-005 · Entrada de material con recepción parcial
+## Tickets de HDU-005 · Entrada de material con recepción parcial
 
 Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-recepción-parcial) · 11 SP — **8 en la fase 1**, en línea, con los escenarios 1 a 14 y 21 a 23 —la entrada con excedente autorizado y la corrección sobre una orden `CERRADA`, que llegaron con las respuestas del cliente del 2026-10-17 a `PA-16` y `PA-17`—; **3 en la fase 2** con los escenarios 15 a 20, que son la captura diferible y la remisión adjunta (TKT-066, TKT-068)
 
@@ -1220,7 +1220,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 
 ---
 
-# Tickets de HDU-006 · Semáforo de obra
+## Tickets de HDU-006 · Semáforo de obra
 
 Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP · **fase 1**, con la mano de obra y el avance servidos por un adaptador simulado hasta que TKT-069 lo retira en el sprint 8 ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md))
 
@@ -1248,9 +1248,9 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 - [ ] **Test `test_hdu006_esc14_…` del puerto**: con `SIMULADO`, el puerto declara `SIMULADA` en destajo, nómina y avance físico. La parte HTTP del mismo escenario —`fuentes[]` y la desviación con `ilustrativa: true`— es de TKT-040
 
 > **El riesgo de esta decisión no está en el tablero sino en la regla.** Un destajo simulado que llegara al consumido bloquearía requisiciones reales con dinero que no existe. Por eso el escenario 15 es de rechazo y vive en este ticket, no en la interfaz: lo que hay que probar es que el número que decide no se entera de que hay datos simulados.
-
+>
 > **Los escenarios 14 y 15 de HDU-006 tienen vigencia de fase 1.** Cuando TKT-069 retira el adaptador simulado, sus tests se retiran con él y los escenarios salen del verificador con el segmento `· retirado por TKT-069` en su título; no se reescriben. Lo que queda es su contrario: que ninguna fuente salga `SIMULADA`.
-
+>
 > **Cuando nazca `pago_destajo` en la fase 2, el término de destajo del consumido deja de ser cero** porque `avance` implementa el puerto `FuenteEjercido` de `compras` (TKT-069), no porque se amplíe aquí ninguna consulta. El adaptador simulado se **elimina en el sprint 8, con TKT-069**; no se conserva como opción, porque sería configuración muerta con capacidad de mentir.
 
 **Non-goals** — No implementa el adaptador real (TKT-069). No genera datos simulados en tiempo de ejecución ni los proyecta. No toca el cálculo del consumido de TKT-021.
@@ -1345,7 +1345,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 
 ---
 
-# Endurecimiento y operación
+## Endurecimiento y operación
 
 **No pertenecen a ninguna historia porque sirven a todas.** TKT-057 y TKT-058 son los dos tickets que cubren los requisitos no funcionales del [PRD §9](01-descripcion-producto.md#9-requisitos-no-funcionales): lo que tiene que ser cierto para que las 25 reglas de negocio signifiquen algo. TKT-061 se les une por la misma razón aplicada al contrato del API: lo que tiene que ser cierto para que el borrador signifique algo.
 
@@ -1425,14 +1425,14 @@ Están separados de la Épica 0 a propósito. La fundación entrega *la capacida
 - [ ] Prueba de rendimiento del semáforo con volumen sembrado que falla el pipeline por encima de 2 s (`RNF-15`). En la fase 1 mide la consulta con las fuentes simuladas de TKT-060; desde el sprint 8 corre contra el adaptador real de TKT-069 ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md))
 
 > **Va en el sprint 6, el último de la fase 1, por una razón y no por comodidad:** dos de sus criterios no se pueden ejecutar antes. No se contrata una base gestionada para un sistema que aún no existe, y la prueba de rendimiento necesita el semáforo con todas sus columnas, que no está completo hasta el sprint 5. Lo que sí podía adelantarse —el registro estructurado— se adelantó a TKT-005.
-
+>
 > **Dónde entra la IA, y dónde no.** El script de restauración, el `Dockerfile` y la configuración del pipeline los puede escribir un agente, y pasan por la revisión de TKT-062 y por una persona como cualquier PR. **El ensayo de restauración no**: es un procedimiento con testigo (`RNF-11`), y su valor es precisamente que alguien comprobó con sus ojos que el sistema volvió.
 
 **Non-goals** — No implementa alta disponibilidad: `RNF-12` la descarta expresamente. No monta infraestructura de métricas ni trazado distribuido: hay un proceso. No emite el registro estructurado: eso es TKT-005. No elige el destino de despliegue: se decide aparte, y este ticket solo exige las dos restricciones que ese destino tiene que cumplir.
 
 ---
 
-# Fase 2 · Mano de obra y campo
+## Fase 2 · Mano de obra y campo
 
 **Fase 2** · HDU-007, HDU-008, HDU-009, la parte diferible de HDU-005 y la captura en campo. Sus tickets son TKT-042 a TKT-053, TKT-055 y TKT-056 —las tres historias de mano de obra—, y TKT-063 a TKT-068, que absorben lo que el antiguo bloque *pendiente de descomponer* enumeraba: el armazón sin conexión (TKT-063), la sincronización idempotente en el servidor (TKT-064), el componente de subida y galería (TKT-065), la evidencia y el expediente (TKT-066, TKT-067) y la recepción diferible (TKT-068).
 
@@ -1462,7 +1462,7 @@ Ninguna bloquea la fase 1, pero las cuatro cambian el diseño de la fase 2. Conv
 
 > **Las preguntas de negocio de la fase 2 ya están respondidas.** `PA-19` —semana del destajo—, `PA-20` —conflicto de modalidad—, `PA-21` —base de pago del destajo y fondo de garantía— y `PA-22` —reglas de nómina— las contestó el cliente el 2026-10-17, y los tickets que dependían de ellas las citan como resueltas. Lo que esas respuestas dejaron sin decir está en los [supuestos asumidos sin bloqueo del PRD §10](01-descripcion-producto.md#10-supuestos-y-preguntas-abiertas) y se marca **(asumido, sin bloqueo)** donde se usa.
 
-# Tickets de HDU-007 · Catálogo de personal y cuadrillas
+## Tickets de HDU-007 · Catálogo de personal y cuadrillas
 
 Historia: [HDU-007](04-historias-usuario.md#hdu-007--catálogo-de-personal-y-cuadrillas) · 5 SP
 
@@ -1568,7 +1568,7 @@ Es un bloque de catálogo sin reglas duras salvo `RN-13`, pero bloquea a las dos
 
 ---
 
-# Tickets de HDU-008 · Avance de destajo
+## Tickets de HDU-008 · Avance de destajo
 
 Historia: [HDU-008](04-historias-usuario.md#hdu-008--avance-de-destajo-medido-y-validado) · 12 SP
 
@@ -1651,7 +1651,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 - [ ] Toda operación escribe en la bitácora en la misma transacción
 
 > **Este ticket no se fusiona antes que el término de destajo del consumido.** Desde el primer pago real, `RN-03` tiene que restarlo del disponible del tipo de partida: un `pago_destajo` que existe y no consume es exactamente la cifra parcial que el producto existe para impedir. Por eso depende del [adaptador real](#sustitución-del-adaptador-simulado) para fusionarse, aunque no para desarrollarse.
-
+>
 > **Si la talla L no cabe en el sprint, la costura está entre el alcance y lo demás.** Precarga y corrección del alcance van juntas y no necesitan medición; medición, validación y pago van juntas porque el pago no existe sin validación. Partir por otro sitio deja una máquina de estados a medias.
 
 **Non-goals** — No libera el fondo de garantía retenido (`RN-12`, v1.1). No implementa `FuenteEjercido` para el destajo: es TKT-069, con el que viaja. No aplica descuentos ad-hoc. No genera estimaciones de cobro al cliente. No registra el pago efectivo: lo calcula. **No evalúa `RN-03` al generar el pago**: la regla bloquea requisiciones, y un pago de destajo consume la bolsa sin bloquearse; convertirlo en bloqueo sería una regla nueva. No deja que quien mide fije el número contra el que se le mide.
@@ -1695,7 +1695,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 
 ---
 
-# Tickets de HDU-009 · Nómina semanal
+## Tickets de HDU-009 · Nómina semanal
 
 Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 
@@ -1858,7 +1858,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 
 ---
 
-# Transversal a HDU-008 y HDU-009 · RN-22
+## Transversal a HDU-008 y HDU-009 · RN-22
 
 ---
 
@@ -1883,16 +1883,16 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 - [ ] `GET /api/v1/obras/{obra_id}/modalidades-pago?semana=…` para consulta
 
 > **Este ticket es uno solo a propósito.** Las dos historias describen la misma comprobación desde lados opuestos: HDU-008 impide generar destajo si ya hay nómina, HDU-009 impide lo contrario. Implementarlas por separado produciría dos comprobaciones que pueden divergir, y el fallo que evitan —contabilizar dos veces el mismo trabajo en el semáforo— es silencioso. Viaja con la primera de las dos historias y la segunda consume la tabla y la regla que deja creadas.
-
+>
 > **La tabla y la regla viven en `personal`**, no en `avance`. La arista `avance → personal` ya existe; si `avance` fuera el dueño, `personal` necesitaría la inversa y el grafo dejaría de ser acíclico, que es lo que `import-linter` rechaza ([arquitectura §5](02-arquitectura.md#por-qué-rn-22-vive-en-personal)).
-
+>
 > **Normalizar la semana no es un detalle de formato.** El invariante 15 compara fechas: si el destajo guardara la fecha de la medición y la nómina la de corte, la restricción única nunca encontraría dos filas iguales y `RN-22` pasaría todos sus tests unitarios sin impedir nada.
 
 **Non-goals** — No decide qué modalidad aplica a una cuadrilla: la reclama el primer pago de la semana. No implementa la cancelación ni el recálculo: las acciones apuntan a las rutas de TKT-047 y TKT-050.
 
 ---
 
-# Captura en campo · sin conexión y evidencia
+## Captura en campo · sin conexión y evidencia
 
 Cierra el bloque que la Entrega 1 dejó *pendiente de descomponer*. Absorbe sus cinco trabajos —partir TKT-008 (→ TKT-063), las rutas de captura aceptan `id` del cliente (→ TKT-064), diseño para teléfono (→ TKT-048 y TKT-068), componente de subida y galería (→ TKT-065), adjuntar en cada punto (→ TKT-066 y TKT-067)—; el sexto, el módulo `archivos` mínimo, es TKT-059 de la fase 1, del que dependen todos estos. Las decisiones están en [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) y [ADR-016](adr/20261001-almacenamiento-de-objetos.md) y aquí no se reabren.
 
@@ -2094,7 +2094,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 
 ---
 
-# Sustitución del adaptador simulado
+## Sustitución del adaptador simulado
 
 En la fase 1, `analitica` lee la mano de obra y el avance por el puerto de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) con un adaptador simulado (TKT-060). Este ticket lo sustituye por el real y lo retira entero.
 
@@ -2143,16 +2143,16 @@ En la fase 1, `analitica` lee la mano de obra y el avance por el puerto de [ADR-
 - [ ] Desde este ticket, la prueba de rendimiento de `RNF-15` de TKT-058 corre contra el adaptador real con su volumen sembrado, como ADR-017 exige al sustituirlo
 
 > **Viaja con TKT-047 y no después.** Entre el primer pago de destajo real y este ticket habría una ventana en la que el destajo existe y no consume: una requisición pasaría contra un disponible que ya no es real. Por eso TKT-047 no se fusiona sin este, aunque se desarrollen en paralelo.
-
+>
 > **La nómina sale `SIN_DATOS` del sprint 8 al 9.** Este ticket no depende de TKT-049 ni de TKT-056: la lectura de `imputacion_nomina_obra` llega con TKT-056, y con ella los tests de HDU-009 esc. 7 y 18. `SIN_DATOS` es correcto entretanto: la nómina real todavía no existe, y el aviso de cifra parcial ya sabe pintarla.
-
+>
 > **Se retira entero, en el sprint 8.** Conservar la nómina simulada mientras llega el cálculo pondría una cifra ficticia junto a un destajo real en la misma fila de totales; `SIN_DATOS` dice la verdad. Si una demostración necesitara la nómina antes de TKT-050, se cargan nóminas reales de prueba por los casos de uso, no se resucita el adaptador.
 
 **Non-goals** — No cambia la consulta del semáforo ni añade columnas. No conecta la nómina (TKT-056). No prorratea la nómina entre partidas. No convierte un pago de destajo en una operación que bloquea: `RN-03` sigue regulando requisiciones.
 
 ---
 
-# Plan de sprints
+## Plan de sprints
 
 ## Advertencia sobre la velocidad
 
@@ -2185,13 +2185,13 @@ El buffer no es pesimismo: los PR generados por agente exigen revisión más cui
 > **El sprint 1 se queda en ~21 SP y hay que decirlo.** TKT-057 entra ahí porque una autenticación sin límite de intentos no es una autenticación a medias, y TKT-062 porque la etiqueta de origen tiene que existir antes del primer PR de funcionalidad. El armazón sin conexión que salió de TKT-008 **no** compensa: nunca estuvo estimado.
 >
 > **La costura por donde parte, en este orden:** primero **TKT-062 se va al sprint 4** —nada depende de él, y mientras tanto la etiqueta de origen se pone a mano y se revisa al cerrar el sprint—, lo que deja el sprint 1 en ~19, como estaba. Si tampoco aguanta, los tres componentes reutilizables de TKT-008 —pantalla de bloqueo, formulario de catálogo y captura de motivo— viajan con su primer consumidor: el formulario con TKT-012, la pantalla de bloqueo con TKT-024 y la captura de motivo con TKT-028. El esqueleto, el inicio de sesión y el cliente de API se quedan, porque sin ellos el sprint 2 no arranca.
-
+>
 > **El sprint 2 se queda en ~21 SP, y es el más pesado de la fase.** HDU-001 son 14 puntos por sí sola —lee Excel del mundo real, que viene roto—, TKT-010 va aquí por dependencia y TKT-059 porque el Excel no puede pasar por el API y no hay otra puerta. Ninguno de los tres se puede mover.
 >
 > **La costura:** de TKT-059, el sprint 2 solo necesita la subida, la confirmación por hash y la validación de tipo. **La URL de descarga y el barrido de `PENDIENTE` caducados** pueden ir al sprint 4 sin que HDU-001 lo note, y dejan el 2 en ~19 y el 4 en ~13. El precio es declarado: hasta entonces, una subida abandonada deja una fila en `PENDIENTE` que nadie barre. No corrompe nada —la importación no arranca sin `DISPONIBLE`—, pero es una fila que miente sobre su estado, que es justo lo que el barrido existe para impedir.
-
+>
 > **TKT-010 no está en el sprint 1, y no por holgura sino por dependencia.** Los datos semilla cargan `empresa`, `tipo_partida` e `insumo`, tablas que crea TKT-011 en el sprint 2. Sembrarlas antes fallaría por tabla inexistente.
-
+>
 > **HDU-006 se reparte entre los sprints 4 y 5, y no es partir la historia por comodidad.** El escalón 2 de TKT-039, TKT-040 y TKT-041 necesita entradas reales, que llegan con TKT-035 en el sprint 5 y con ellas la implementación de `FuenteEjercido` por `almacen`; hasta entonces el ejercido es un *cero real*. La historia se da por terminada al cerrar el 5, con sus escenarios en verde salvo la parte de nómina del 7, que es de la fase 2; en el 4 se demuestra con el aviso de cifra parcial del escenario 6, que existe precisamente para eso.
 
 ### El sprint 6 tiene holgura a propósito
@@ -2214,13 +2214,13 @@ Lo que **no** es negociable es la condición de salida: no se pone el sistema en
 **~43 SP en cuatro sprints.** Ninguno pasa del compromiso.
 
 > **El armazón sin conexión va en el sprint 7, antes del primer flujo diferible**, que es TKT-048 en el 8. Es la razón por la que salió de TKT-008 y la razón por la que no se funde con ninguna historia: si llegara junto a la medición, HDU-005 inventaría después su propia cola. El escenario 14 de HDU-002 —la requisición sin conexión se rechaza en el cliente y no se encola— viaja con él.
-
+>
 > **Los adjuntos de la medición van con TKT-048 en el sprint 8**, no con TKT-067 en el 10: la captura y la validación llegan en el 8, y dejar sus fotos para el 10 habría dejado dos sprints de avance sin evidencia. TKT-048 pasa de talla M a L y TKT-067 de M a S. **Los puntos no se mueven**: son de HDU-008 y ya contaban en el sprint 8.
-
+>
 > **El adaptador simulado se retira entero, en el sprint 8, con TKT-069.** Viaja con TKT-047, el primer pago de destajo real: entre ese pago y la sustitución habría una ventana en la que el destajo existe y no consume. **El sprint 8 es además el momento en que el término de destajo del `consumido` de `RN-03` deja de ser cero**: `avance` implementa el puerto `FuenteEjercido` de `compras` ([modelo de datos §15](03-modelo-datos.md#el-consumido-de-rn-03)), y la prueba de concurrencia de TKT-022 se vuelve a ejecutar con pagos de destajo en la partida. La nómina no se conserva simulada mientras llega su cálculo: sale `SIN_DATOS` hasta que TKT-056 la conecta en el sprint 9, que dice la verdad y que el aviso de cifra parcial ya sabe pintar ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)). Desde el 8, la prueba de `RNF-15` corre contra el adaptador real.
-
+>
 > **TKT-053 viaja con HDU-008, la primera de las dos historias que ejercen `RN-22`**, y HDU-009 consume en el sprint 9 la tabla y la regla que deja creadas.
-
+>
 > **La costura de HDU-009 sigue declarada, ahora como reserva.** Si la velocidad no aguanta, la historia se parte en *registro de jornada diaria* —TKT-049, TKT-055 y TKT-056, 5 SP, la mitad que alimenta el semáforo— y *cálculo de nómina con créditos y pagos agrupados* —TKT-050, TKT-051 y TKT-052, 8 SP—. La primera se queda en el 9 y la segunda va al 10, que tiene holgura para ella y queda en ~11. El precio es declarado: la nómina del semáforo sigue `SIN_DATOS` hasta el 10, porque el importe por obra llega con el cálculo (TKT-050), no con la jornada. A 13 SP la costura no hace falta de entrada; declararla por adelantado evita decidirla a mitad de sprint y con prisa.
 
 **El objetivo del sprint es la pieza más importante de estas tablas.** Si alguien pregunta qué se hizo, la respuesta es el objetivo, no la lista de tickets.

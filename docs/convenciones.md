@@ -47,7 +47,7 @@ El anti-patrón que este proyecto evita explícitamente: un único `README.md` d
 
 ## 3. Estructura del repositorio
 
-```
+```text
 IA4Devs-Proyecto-Final/
 ├── .claude/                        Agentes, skills, hooks y comandos del pipeline SDD
 ├── .editorconfig                   Codificación y finales de línea por tipo de archivo
@@ -103,7 +103,7 @@ La especificación es el artefacto del que se deriva todo lo demás. Nada se imp
 
 ### La pirámide
 
-```
+```text
 PRD              Visión, alcance MVP, métricas de éxito
  └── EPIC        Bloque grande de capacidad. Una hipótesis de producto
       └── HISTORIA DE USUARIO   Comportamiento observable. INVEST. Cabe en un sprint

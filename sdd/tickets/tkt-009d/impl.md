@@ -33,7 +33,7 @@ D1 y D2 no tienen pruebas de `unittest`: sus casos (TC-60 y TC-61) son ejecucion
 
 **Rojo.** Dos formas de probar que `Vale` no avisa sin la configuración del proyecto, sobre un `prueba.md` con «tablaroka»:
 
-```
+```text
 sin .vale.ini:
 [.vale.ini not found]:E100:no config file found
 EXIT=2
@@ -45,7 +45,7 @@ EXIT=0
 
 **Verde.** Con la configuración del repositorio:
 
-```
+```text
 prueba.md:3:4:Cimenta.Vocabulario:Usa 'tablaroca' en lugar de 'tablaroka' (glosario).
 EXIT=0
 ```

@@ -14,7 +14,7 @@ El pipeline y los comandos están resumidos en [`CLAUDE.md`](../CLAUDE.md). Los 
 
 ## El flujo, en una pantalla
 
-```
+```text
 /sdd-definir  →  /sdd-disenar  →  [GATE humano]  →  /sdd-ejecutar  →  /sdd-revisar  →  /sdd-completar
                                                                             │
                                                                auditorías en paralelo

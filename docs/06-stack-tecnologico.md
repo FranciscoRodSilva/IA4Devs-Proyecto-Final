@@ -173,7 +173,7 @@ El riesgo que se evita es el clásico y no lo detecta ningún linter: una llamad
 
 Esta es la ambigüedad que más problemas causa en una arquitectura por capas, así que conviene fijarla:
 
-```
+```text
 dominio/
   valores.py      Dinero, Cantidad, Rendimiento, Porcentaje     ← decimal puro
   reglas.py       evaluar_disponibilidad(...) -> Resultado      ← funciones puras

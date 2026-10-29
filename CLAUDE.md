@@ -51,7 +51,7 @@ Detalle y alternativas descartadas: [`docs/06-stack-tecnologico.md`](docs/06-sta
 
 ## Estructura del backend
 
-```
+```text
 backend/cimenta/<modulo>/
 ├── api/              Rutas HTTP, DTO, códigos de estado
 ├── aplicacion/       Casos de uso. Abre transacción, orquesta. NO decide reglas
