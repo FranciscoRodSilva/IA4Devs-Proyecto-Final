@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA PR
+ARCHIVADO
 
 ## Ficha
 
@@ -29,7 +29,7 @@ LISTO PARA PR
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas B1 a B7 | `/sdd-disenar` | Aprobado el 2026-10-28 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-28; B5 y B6 hechas el 2026-10-29; revisión cerrada en `LISTO PARA PR` |
-| Delta | delta.md | `/sdd-completar` | Pendiente |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-10-29 |
 
 ## Log de estados
 
@@ -40,6 +40,7 @@ LISTO PARA PR
 | 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-ejecutar` | B5 (ajustes del repositorio) y B6 (ensayo en el pipeline) hechas por personas con la guía [ajustes-repositorio.md](ajustes-repositorio.md), con evidencia en `impl.md` |
 | 2026-10-29 | `EN REVISIÓN` | `REQUIERE DECISIÓN` | `/sdd-revisar` | Criterios `[M]` cumplidos y suite en verde (backend 1138, `tools/` 295). Tres ciclos de corrección agotados: seguridad `APROBADO`; código, arquitectura y documentación en `REQUIERE CAMBIOS` con Menores y un Mayor documental (la marca `(asumido)` del corte), cuyos textos literales se aplicaron sin reauditoría formal. Decide la persona que aprueba: `A-12` (corte en el primer GHSA `HIGH` o `CRITICAL`) y la excepción de cierre. Pendientes suyos: borrar la rama `ensayo/tkt-009b-secreto` |
 | 2026-10-29 | `REQUIERE DECISIÓN` | `LISTO PARA PR` | usuario | La persona que aprueba responde «Sí, acepto»: acepta `A-12` (el filtro corta en el primer GHSA `HIGH` o `CRITICAL`; solo cambia la etiqueta) y la excepción de cierre sin reauditoría formal, como en TKT-009a y TKT-009c. Siguiente: `/sdd-completar`. Pendientes suyos: borrar la rama `ensayo/tkt-009b-secreto` y confirmar la revocación del token |
+| 2026-10-29 | `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` | `delta.md` escrito y auditado por `auditor-docs` (tres Mayores y nueve Menores de cifras, de trazabilidad y de la cita del token, todos corregidos con su texto literal), observaciones de proceso en `sdd/_evolucion.md` y revisadas por `meta-sdd`. Cierre con la excepción de la revisión aceptada por la persona que aprueba: tres auditores en `REQUIERE CAMBIOS` en el ciclo 3 sin reauditoría formal. Antes del PR: empujar los commits locales, borrar la rama `ensayo/tkt-009b-secreto` y confirmar la revocación del token; el PR #6 de TKT-009c es la base |
 
 ## Decisiones registradas
 

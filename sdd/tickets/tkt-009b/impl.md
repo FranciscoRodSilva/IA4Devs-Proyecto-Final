@@ -1,6 +1,6 @@
 # Impl · TKT-009b · Cadena de suministro
 
-> [← index](_index.md) | [← design](../tkt-009/design.md) | Siguiente: delta (pendiente)
+> [← index](_index.md) | [← design](../tkt-009/design.md) | Siguiente: [delta →](delta.md)
 
 ## Qué se implementó
 
@@ -62,7 +62,7 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 
 **Los casos de TC-18 sobre el repositorio real nacen en verde, y se investigó.** El invariante ya se cumple: `.github/` solo tiene `workflows/ci.yml`, sin exclusiones ni `secrets.`. Para que no sean vacuos, el lector exige que `ci.yml` exista y sus mutantes sintéticos (`paths-ignore` con `.env.example`, un `secret_scanning.yml`, `secrets.X`) sí los ponen en rojo.
 
-**Cifras tras los ciclos 1 a 3 de revisión.** `tools/tests/test_severidad_pip_audit.py` tiene 78 pruebas (30 `test_tc` originales y 48 `test_ca10_*` añadidas en la revisión: 40, 7 y 1 de los ciclos 1, 2 y 3; por prefijo, 2 `test_ca10_esc01_`, 12 `test_ca10_esc02_`, 2 `test_ca10_esc03_` y 32 `test_ca10_a3_`) y `tools/tests` suma 295, de las cuales 24 son de Dependabot. El ciclo 1 añadió el módulo auxiliar `tools/tests/_ayudantes.py` y tocó `tools/tests/test_definicion_ci.py`, `tools/tests/test_definicion_dependabot.py` y `tools/tests/test_severidad_pip_audit.py`. El filtro evalúa ahora todos los `GHSA` de un hallazgo, captura también `http.client.HTTPException` y `RecursionError`, valida que los alias sean cadenas, lee a lo sumo 1.000.000 de bytes de la respuesta de OSV y pasa `mypy --strict`.
+**Cifras tras los ciclos 1 a 3 de revisión.** `tools/tests/test_severidad_pip_audit.py` tiene 78 pruebas (30 `test_tc` originales y 48 `test_ca10_*` añadidas en la revisión: 40, 7 y 1 de los ciclos 1, 2 y 3; por prefijo, 2 `test_ca10_esc01_`, 12 `test_ca10_esc02_`, 2 `test_ca10_esc03_` y 32 `test_ca10_a3_`) y `tools/tests` suma 295, de las cuales 24 son de Dependabot. El ciclo 1 añadió el módulo auxiliar `tools/tests/_ayudantes.py` y tocó `tools/tests/test_definicion_ci.py`, `tools/tests/test_definicion_dependabot.py` y `tools/tests/test_severidad_pip_audit.py`. El filtro consulta ahora los `GHSA` de un hallazgo hasta el primero `HIGH` o `CRITICAL`, captura también `http.client.HTTPException` y `RecursionError`, valida que los alias sean cadenas, lee a lo sumo 1.000.000 de bytes de la respuesta de OSV y pasa `mypy --strict`.
 
 ### Ciclo TDD por fila
 
@@ -265,7 +265,7 @@ Un Must incumplido **no se aprueba**. Con B5 y B6 hechas, no queda ningún Must 
 | F004 | arquitectura | Menor | `docs/05-tickets-trabajo.md:382` y fila B5 del diseño | Pedían «token revocado», pero el único procedimiento verificado usa un token activo y sin permisos | Resuelto |
 | O3 | arquitectura | Observación | `tools/tests/test_definicion_ci.py` | El archivo está sin formatear desde antes de este ticket | Persiste, fuera de alcance |
 
-Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `GHSA` de un hallazgo (corregido en el ciclo 1 de revisión: ahora evalúa todos); `zizmor` no estaba instalado en su entorno (la salida en 0 la confirmó la ejecución con `uvx` de esta sesión); `nanoid@3.1.30` resultó no servir para la ronda 2 (tres avisos altos); el candidato pasa a ser `stream-json@3.6.0`, con un único aviso medio confirmado el 2026-10-29.
+Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `GHSA` de un hallazgo (corregido en el ciclo 1 de revisión: ahora consulta los `GHSA` hasta el primero `HIGH` o `CRITICAL`); `zizmor` no estaba instalado en su entorno (la salida en 0 la confirmó la ejecución con `uvx` de esta sesión); `nanoid@3.1.30` resultó no servir para la ronda 2 (tres avisos altos); el candidato pasa a ser `stream-json@3.6.0`, con un único aviso medio confirmado el 2026-10-29.
 
 ### Revisión (`/sdd-revisar`, 2026-10-29)
 
@@ -291,7 +291,7 @@ Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `
 * **Ciclo 1 de reauditoría.** Seguridad `APROBADO`, sin hallazgos que bloqueen; queda la tarea de la persona dueña de borrar la rama remota `ensayo/tkt-009b-secreto`, que no contiene token. Código `REQUIERE CAMBIOS`: R-COD-F007 Mayor (huecos de prueba del orden de severidades), R-COD-F008 y R-COD-F009 Menores. Arquitectura `REQUIERE CAMBIOS`: R-ARQ-N1 (renombrar las pruebas por escenario) y R-ARQ-N2 (las tablas de esta sección). Documentación `REQUIERE CAMBIOS`: R-DOC-F011 Mayor y R-DOC-F012 a R-DOC-F016.
 * **Ciclo 2 de corrección.** `039b5d4` (7 pruebas nuevas del orden de severidades, los empates y los bordes del tope) y `ad7e261` (pruebas nombradas por escenario y documentación al día).
 * **Ciclo 2 de reauditoría.** Código `REQUIERE CAMBIOS`: R-COD-N1 Menor (no se fijaba qué `GHSA` decide en un hallazgo `DESCONOCIDA`) y las observaciones R-COD-O1 a R-COD-O3. Arquitectura `REQUIERE CAMBIOS`: R-ARQ-N3 a R-ARQ-N6, Menores. Documentación `REQUIERE CAMBIOS`: R-DOC-F011 persiste y R-DOC-F017, R-DOC-F018 y R-DOC-F019 son Mayores; R-DOC-F020 es Menor.
-* **Ciclo 3 de corrección** (`e77d91b` y esta pasada de documentación). La reauditoría 3 aportó R-DOC-F021 (Mayor), R-DOC-F022 y R-DOC-F024 (Menores), R-ARQ-F002-r3 y R-ARQ-F003-r3, la observación R-ARQ-O-a-r3, la observación R-DOC-O-A-r3 y las observaciones de código R-COD-O4 y R-COD-O5. Esta pasada de documentación los atiende (tabla siguiente) y sigue pendiente de verificación.
+* **Ciclo 3 de corrección** (`e77d91b` y esta pasada de documentación). La reauditoría 3 aportó R-DOC-F021 (Mayor), R-DOC-F022 y R-DOC-F024 (Menores), R-ARQ-F002-r3 y R-ARQ-F003-r3, la observación R-ARQ-O-a-r3, la observación R-DOC-O-A-r3 la observación R-COD-O4 y R-COD-O5, y R-COD-N2 (Menor: dos docstrings de código sin la excepción entre `HIGH` y `CRITICAL`, aplicada al final del ciclo 3). Esta pasada de documentación los atiende (tabla siguiente) y sigue pendiente de verificación.
 * **Estado de seguridad.** Su reauditoría fue la del ciclo 1 y dio `APROBADO`, sin hallazgos que bloqueen. No se reauditó tras los ciclos 2 y 3 porque solo cambiaron documentación, nombres de pruebas y una prueba nueva (`test_ca10_esc02_empate_de_dos_ghsa_sin_severidad_conserva_el_primero_como_aviso`), y el código de producción del filtro no cambió desde `c94ceb4` salvo docstrings.
 * **Docstrings.** Los docstrings de `Hallazgo.aviso`, de `_peor` y del módulo de `tools/severidad_pip_audit.py` se ajustaron en el ciclo 3 y se commitean con esta pasada; no cambia ninguna línea de lógica.
 
