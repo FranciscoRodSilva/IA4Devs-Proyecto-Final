@@ -6,7 +6,7 @@
 
 Las filas D1 a D5 y D7 de la parte d del [diseño común](../tkt-009/design.md#parte-d--calidad-documental). La línea base documental, que superaba el umbral de 120 hallazgos de `A-5` (183), se limpió en este ticket por decisión de la persona que aprueba: `markdownlint-cli2`, `Vale` y `lychee` dan cero sobre el alcance. El trabajo `documentacion` de `ci.yml` ejecuta ahora el verificador propio, `markdownlint-cli2`, `Vale` con el vocabulario del glosario, `lychee` y `mermaid-cli`, y `enlaces.yml` repite la comprobación de enlaces cada lunes. El ADR de `Vale` para prosa en español y la documentación afectada cierran la fila D7.
 
-**La fila D6**, el ensayo en el pipeline, la ejecutó la persona usuaria con dos PR en borrador: la ronda 1 puso en rojo los cinco pasos esperados y la limpieza dejó todo en verde (ver «Fila D6»).
+**La fila D6**, el ensayo en el pipeline, la ejecutó la persona usuaria con dos PR en borrador: la ronda 1 puso en rojo cinco pasos (cuatro previstos y el de `markdownlint`, añadido en el ensayo) y la limpieza dejó todo en verde (ver «Fila D6»).
 
 ## Ajustes respecto al design
 
@@ -109,7 +109,7 @@ Alcance: 119 archivos (`docs/**/*.md`, `sdd/**/*.md`, `README.md`, `CLAUDE.md` y
 | Herramienta | Antes | Después | Qué se hizo |
 |---|---|---|---|
 | `markdownlint-cli2` (`b6d8f34`) | 164 (MD040 106, MD028 29, MD025 16, MD001 13) | 0 | Idioma en 106 bloques de código (`text`, y `diff` en uno); 29 citas separadas por una línea en blanco se unen con `>`; 16 encabezados de primer nivel de `docs/05-tickets-trabajo.md` pasan a segundo nivel sin cambiar su texto ni las anclas; un byte NUL real de `sdd/tickets/tkt-007/impl.md` pasa al texto visible `\x00`. Los 164 de esta fila son los 162 de la medición más 2 MD040 de los dos bloques del propio impl.md, escrito después de medir. |
-| `Vale` (`9a9f8b4`) | 26 (`Vale.Terms` 13, `Cimenta.Vocabulario` 8, `Vale.Repetition` 5) | 0 | Los nombres literales (`PLAFONES Y CAJILLOS`, rutas, datos de entrada) y las citas intencionales de «`tablaroka`» van en código en línea; cuatro repeticiones reales («del del proceso») se corrigen y una «A» repetida en una celda se reformula. Ninguna regla se apagó ni se tocó el vocabulario. En `docs/04-historias-usuario.md` cambian tres pasos de escenario (líneas 503, 1330 y 1589; no son títulos): el nombre de la partida, que estaba en mayúsculas sin código, pasa a código en línea. Los títulos `**Escenario N:` y su significado no cambian |
+| `Vale` (`9a9f8b4`) | 26 (`Vale.Terms` 13, `Cimenta.Vocabulario` 8, `Vale.Repetition` 5) | 0 | Los nombres literales (`PLAFONES Y CAJILLOS`, rutas, datos de entrada) y las citas intencionales de «`tablaroka`» van en código en línea; cuatro repeticiones reales («del del proceso») se corrigen y una «A» repetida en una celda se reformula. Ninguna regla se apagó ni se tocó el vocabulario. En `docs/04-historias-usuario.md` cambian tres pasos de escenario (líneas 503, 1330 y 1589; no son títulos): el nombre de la partida, que estaba en mayúsculas sin código, pasa a código en línea. Los títulos `**Escenario N:` y su significado no cambian Las 26 incluyen 6 alertas de los documentos del propio ticket escritos durante D2 (5 en `impl.md` y 1 en `_index.md`), que la medición de 20 no contaba; el umbral no cambia: 183 sin el ticket y 191 con él, por encima de 120. |
 | `lychee` | 1 error de 1333 enlaces | 0 errores de 1347 | El cambio de `sdd/tickets/tkt-006/impl.md:670` (el dato `<Ana@Cimenta.TEST>` en código en línea) resuelve el único enlace roto |
 
 **Decisión de jerarquía.** La bajada de los H1 de `docs/05` a H2 deja algunos encabezados hijos como H2 hermanos de su sección: `tools/verificar_docs.py` exige que los encabezados de ticket sean H3. Cambiar esa regla del verificador es una decisión posterior.
@@ -196,7 +196,7 @@ Los registros de ambas ejecuciones no contienen `ghp_` ni `github_pat_`. El dete
 
 ## Auditorías
 
-Primera pasada de cierre de fase. Los Menores documentales están aplicados en este documento, pero la reauditoría no se ha hecho: ninguna auditoría ha aprobado este ticket todavía.
+Primera pasada de cierre de fase y una reauditoría acotada, ambas con `REQUIERE CAMBIOS` por Menores documentales. Los de la primera pasada (F001, F003, F004 y F006) están resueltos y la reauditoría los confirmó. Ella encontró dos Menores y una observación nuevos (N001 a N003), que se aplicaron con su texto literal sin una segunda reauditoría. Ninguna auditoría ha aprobado este ticket todavía: `/sdd-revisar` vuelve a auditarlo.
 
 | Auditor | Veredicto | Hallazgos | Nota |
 |---|---|---|---|
@@ -214,6 +214,10 @@ Estado de los hallazgos:
 | F005 | Observación | `.github/mermaid` sin auditoría ni Dependabot | **Observación**: no se actúa en este ticket |
 | F006 | Observación | Tres pasos de escenario de `docs/04` cambiaron de texto a código sin que la fila D4 lo aclarara | **Resuelto** al aplicar esta corrección |
 | F007 | Observación | El pipeline no se ha comprobado sobre el último commit | **Pendiente**: empujar y comprobar el pipeline sobre el último commit |
+| N001 | Menor | La verificación final decía que D2 tenía ciclo con rojo antes de verde | **Resuelto**: D2 es una medición sin ciclo |
+| N002 | Menor | Se hablaba de cinco violaciones previstas y de la cobertura de TC-62, TC-63, TC-66 y TC-68 para todas | **Resuelto**: cuatro previstas más la de `markdownlint`, que no tiene TC |
+| N003 | Observación | Las 26 alertas de `Vale` frente a las 20 de la medición | **Resuelto**: 6 son de los documentos del propio ticket escritos durante D2 |
+| N004 | Observación | `lychee` no se pudo ejecutar en la reauditoría | **Pendiente**: se confirma en el pipeline al empujar, junto con F007 |
 
 ## Hallazgos fuera de alcance
 
@@ -245,9 +249,9 @@ El commit `6b8ad11` (fila D7) tocó doce archivos, no once: el ADR y su entrada 
 ## Verificación final
 
 - [x] Todos los criterios `[M]` cumplidos con evidencia: CA-13, CA-14, CA-16 (`[S]`), CA-R4 y CA-15 en su parte, en «Resultado contra los criterios de aceptación»
-- [x] Ciclo por fila: D1, D2 y D5 con rojo antes de verde (D5 con su ajuste); D3, D4 y D7 sin pruebas nuevas, verificadas con los verificadores; D6 lo ejecutó la persona usuaria, con la ronda 1 en rojo y la limpieza en verde
+- [x] Ciclo por fila: D1 y D5 con rojo antes de verde (D5 con su ajuste); D2 es una medición sin ciclo, y sus casos TC-60 y TC-61 son ejecuciones locales de `Vale`; D3, D4 y D7 sin pruebas nuevas, verificadas con los verificadores; D6 lo ejecutó la persona usuaria, con la ronda 1 en rojo y la limpieza en verde
 - [x] Suite en verde: `python -m unittest discover -s tools/tests` da 325 pruebas sin fallos
-- [x] Rechazos: cada violación de la ronda 1 del ensayo pone en rojo su paso con archivo y línea (TC-62, TC-63, TC-66 y TC-68)
+- [x] Rechazos: las cuatro violaciones previstas en el diseño ponen en rojo su paso con archivo y línea (TC-62, TC-63, TC-66 y TC-68). El fallo de `markdownlint` (MD040, `docs/convenciones.md:404`) no estaba previsto y no tiene TC; si se quiere uno propio, es un cambio de diseño que aprueba la persona que aprueba
 - [x] Mutación de los comprobadores: las pruebas de D5 en `tools/tests/test_definicion_documentacion.py` incluyen clases `PruebasDeMutantes…` que comprueban que cada mutante es detectado
 - [x] Documentación actualizada en la fila D7 (ver la tabla de arriba), y `verificar_docs.py` en 0
 - [ ] Todas las auditorías APROBADO: **no**. `auditor-arquitectura` está en REQUIERE CAMBIOS por Menores: F001 y F003 aplicados en esta corrección; F002 queda a cargo de la persona usuaria; falta la reauditoría
