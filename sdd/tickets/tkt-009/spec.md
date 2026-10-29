@@ -440,7 +440,7 @@ Escenario: Rechazo · El trabajo no oculta un test saltado
 
 | | Criterio | ¿Pasa? | Nota |
 |---|---|---|---|
-| **I** | Independiente en valor y despliegue | Sí | Depende de TKT-002 y TKT-008, ambos archivados. Bloquea a TKT-061 y TKT-062 |
+| **I** | Independiente en valor y despliegue | Sí | Depende de TKT-002 archivado; TKT-008a, TKT-008b y TKT-008c archivados; el paraguas TKT-008 sigue EN CURSO (A-10). Bloquea a TKT-061 y TKT-062 |
 | **N** | Describe el qué, no impone el cómo | Con reservas | Los criterios heredados del ticket nombran herramientas (`pip-audit`, `Vale`); es el contrato del ticket, no una elección nueva |
 | **V** | Un rol del PRD obtiene algo que hoy no tiene | Sí | Quien revisa un PR recibe las reglas de `CLAUDE.md` ya comprobadas |
 | **E** | Estimable sin investigar antes | Con reservas | Faltan tres piezas por descubrir en diseño: la severidad en `pip-audit` (`A-3`), cómo se verifica el escaneo de secretos (`A-4`) y cuántos avisos de `Vale` hay en la línea base (`A-5`) |

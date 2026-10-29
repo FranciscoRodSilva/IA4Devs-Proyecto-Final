@@ -19,9 +19,11 @@ Las rondas de ensayo en GitHub demostraron cada compuerta en rojo, y el PR #2 co
 | 2026-10-28 | `upload-artifact` de `backend` lleva `if-no-files-found: error` | Un informe ausente es un fallo, no un aviso. El diseño no fijaba valor |
 | 2026-10-28 | A3 `⚠ Ajustado`: el recorrido de Playwright no se pudo ejecutar en local | `frontend/node_modules` estaba bloqueado por un proceso (EPERM) y el servidor de Vite del puerto 5173 usaba ese árbol roto. La verificación real fue el trabajo `humo` en GitHub, en verde |
 | 2026-10-28 | Ronda 1 de ensayo: la violación de la ruta de inicio de sesión lleva un `as` de TypeScript | Sin él, `openapi-fetch` rompía el tipado y caía también `frontend`. Aun así cayó `frontend`, por una prueba de componente que simula esa ruta |
+| 2026-10-28 | Ronda 1 de ensayo: trabajos no previstos. `herramientas` cayó por TC-22 al detectar `pull_request_target` en `ensayo.yml`, y `frontend` por una prueba de componente que simula la ruta cambiada | `herramientas` cayó porque TC-22 detecta `pull_request_target` en `ensayo.yml`, una segunda compuerta sobre la misma violación. `frontend` cayó por la prueba de componente citada en el punto anterior. La tabla de ensayo del diseño no recogía ninguno de los dos |
 | 2026-10-29 | Ronda 2 de ensayo añade un `summary` nuevo a `GET /api/v1/sesion` en lugar de cambiar uno existente | Ninguna ruta de `identidad` declaraba `summary=` |
 | 2026-10-29 | Se corrigió una prueba de TKT-008b, `Armazon.test.tsx` | Ver «Hallazgos fuera de alcance». El pipeline la mostró rota en Linux |
 | 2026-10-29 | Tras la auditoría de código se añadieron las comprobaciones de las reglas comunes 6 y 7 y del comando completo de pytest | Hallazgo F001 de código (Mayor), ver «Auditorías» |
+| 2026-10-29 | La regla común 6 se comprueba también en el trabajo `documentacion`, y su paso «Verificar la documentación» lleva `if: ${{ !cancelled() }}` | Hallazgo R004 de arquitectura (Menor) en la confirmación final: el diseño pedía el `if` en `backend`, `frontend` y `documentacion`, y el pipeline lo cumplía solo en los dos primeros. Hoy `documentacion` tiene un solo paso, pero la parte d añadirá más y un fallo de `verificar_docs.py` los saltaría. Rojo: 2 de 65 casos fallaban sobre el `ci.yml` real; verde: 65 de 65 |
 
 ## Archivos tocados
 
@@ -195,11 +197,11 @@ El comando no muestra ningún cambio en `backend/tests/`. En `frontend/src/` sol
 
 | Auditor | Veredicto | Hallazgos | Ciclos |
 |---|---|---|---|
-| `auditor-arquitectura` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS (3 Menores de registro) y luego sin hallazgo bloqueante | 3 observaciones | 1 en ejecutar, 3 en revisar |
+| `auditor-arquitectura` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS en `/sdd-revisar` (Menores de registro, N002 a N009) y de nuevo en la confirmación final (R001 a R005, todos corregidos) | 11 hallazgos (O001 a O003, N002 a N009) y R001 a R005 | 1 en ejecutar, 4 en revisar |
 | `auditor-sql` | No aplica | No hay esquema ni migración | — |
 | `auditor-codigo` | REQUIERE CAMBIOS, luego APROBADO; APROBADO de nuevo en `/sdd-revisar` | 1 Mayor, 4 Menores; reauditoría sin hallazgos | 2 en ejecutar, 1 en revisar |
 | `auditor-seguridad` | APROBADO en ambas pasadas | 3 observaciones bajas | 1 en ejecutar, 1 en revisar |
-| `auditor-docs` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS (Menores de exactitud) | 3 observaciones | 1 en ejecutar, 3 en revisar |
+| `auditor-docs` | APROBADO en `/sdd-ejecutar`; en `/sdd-revisar`, REQUIERE CAMBIOS (Menores de exactitud) | 5 hallazgos (O001 a O003, N001 y O004) | 1 en ejecutar, 3 en revisar |
 
 ### Hallazgos y su resolución
 
@@ -213,10 +215,25 @@ El comando no muestra ningún cambio en `backend/tests/`. En `frontend/src/` sol
 | O001 de arquitectura | arquitectura | Observación | `tools/tests/test_definicion_ci.py` | El archivo, de ~2,300 líneas (2,286) tras la corrección, supera con creces las ~265 líneas de la estimación | Persiste: se anota en `delta.md` |
 | O002 de arquitectura | arquitectura | Observación | `ci.yml`, paso `upload-artifact` de `backend` | En `ci.yml:39-48`, el paso de subida de `backend` tiene `if: always()` y `if-no-files-found: error`: si `pytest` falla antes de escribir sus informes, la subida también falla y añade un segundo fallo al trabajo. La causa sigue en el registro del paso de pruebas. | Persiste |
 | O003 de arquitectura | arquitectura | Observación | `CLAUDE.md:78` | Conserva la marca «(desde TKT-009)» por ser de TKT-009c, aunque el diseño (A7) la deja para la parte c | Persiste: se retira en TKT-009c |
+| N002 de arquitectura | arquitectura | Menor | `impl.md`, tabla «Auditorías» | Recuento de observaciones que no cuadraba con la tabla de hallazgos | Resuelto |
+| N003 de arquitectura | arquitectura | Menor | `tools/tests/test_sembrar_usuario_humo.py`, `tools/tests/test_verificar_codificacion.py` | Docstrings de `tools/tests` modificados sin declarar en el registro | Resuelto |
+| N004 de arquitectura | arquitectura | Bloqueante | `impl.md`, fila A8 | Recuento de `test(` e `it(` de 139 frente a 142 | Resuelto |
+| N005 de arquitectura | arquitectura | Observación | `impl.md` | Observación de cifras o trazabilidad, ya corregida en `impl.md` | Resuelto |
+| N006 de arquitectura | arquitectura | Observación | `impl.md` | Observación de cifras o trazabilidad, ya corregida en `impl.md` | Resuelto |
+| N007 de arquitectura | arquitectura | Observación | `impl.md` | Observación de cifras o trazabilidad, ya corregida en `impl.md` | Resuelto |
+| N008 de arquitectura | arquitectura | Observación | `impl.md` | Observación de cifras o trazabilidad, ya corregida en `impl.md` | Resuelto |
+| N009 de arquitectura | arquitectura | Observación | `impl.md`, fila A8 | La fila A8 llama «criterio del diseño» a un patrón de búsqueda que se fijó al ejecutar | Persiste: observación |
 | F001 a F003 de seguridad | seguridad | Baja | `ci.yml` | Falta `concurrency:`; `zizmor` sin lockfile para sus transitivas; cachés por omisión | Persiste: observaciones |
 | O001 de docs | docs | Observación | `docs/06-stack-tecnologico.md` | La guarda es un paso aparte, no parte del paso de la suite | Persiste: observación |
 | O002 de docs | docs | Observación | `sdd/tickets/tkt-009/design.md:251` | Fila A7 marcada «✓ Hecho»; su verificación cita `CLAUDE.md:78`, que conserva «(desde TKT-009)» hasta TKT-009c | Persiste: es lo previsto |
 | O003 de docs | docs | Observación | `docs/06-stack-tecnologico.md:455`, `tools/README.md:61` y `docs/05-tickets-trabajo.md:2066` | Tres textos de la parte c siguen vivos hasta TKT-009c: «⏳ TKT-009, cuando exista código que verificar» (`docs/06-stack-tecnologico.md:455`), «Se escribirá en TKT-009» (`tools/README.md:61`) y «(TKT-009)» (`docs/05-tickets-trabajo.md:2066`) | Persiste |
+| N001 de docs | docs | Menor | `CLAUDE.md:97` | Discrepancia de `CLAUDE.md:97` frente a `extraer_mermaid.py` | Resuelto |
+| O004 de docs | docs | Observación | `frontend/playwright.config.ts` | El comentario lleva `npx playwright install chromium` sin `--with-deps` | Persiste: observación |
+| R001 de arquitectura | arquitectura | Menor | `impl.md`, tabla de ajustes | Faltaba la fila de la ronda 1 con trabajos no previstos | Resuelto |
+| R002 de arquitectura | arquitectura | Menor | `_index.md`, `impl.md` | «Diez criterios `[M]`» cuando la spec declara once | Resuelto |
+| R003 de arquitectura | arquitectura | Menor | `impl.md` | Recuentos y filas de la tabla de hallazgos sin cuadrar | Resuelto |
+| R004 de arquitectura | arquitectura | Menor | `ci.yml`, `test_definicion_ci.py` | El paso de `documentacion` carecía de `if: ${{ !cancelled() }}` y la regla común 6 no se comprobaba en ese trabajo | Resuelto (rojo y verde en «Ajustes respecto al design») |
+| R005 de arquitectura | arquitectura | Menor | `sdd/tickets/tkt-009/_index.md`, `spec.md` | Estados atrasados del paraguas: diseño pendiente, rama inexistente, TKT-008 archivado | Resuelto |
 
 ## Hallazgos fuera de alcance
 
@@ -261,7 +278,7 @@ Detectados de paso. **No se implementan aquí.**
 
 ## Revisión (`/sdd-revisar`, 2026-10-29)
 
-**Completitud, corrección y coherencia.** Los diez criterios `[M]` de la spec tienen resultado y evidencia en este documento. Se implementó lo de la spec sin alcance de más, salvo la excepción de `Armazon.test.tsx`, registrada en `_index.md` y en los non-goals de la spec. Los archivos coinciden con los del diseño.
+**Completitud, corrección y coherencia.** Los once criterios `[M]` (CA-1 a CA-5, CA-9, CA-12, CA-R1, CA-R2, CA-R4 y CA-15) de la spec tienen resultado y evidencia en este documento. Se implementó lo de la spec sin alcance de más, salvo la excepción de `Armazon.test.tsx`, registrada en `_index.md` y en los non-goals de la spec. Los archivos coinciden con los del diseño.
 
 **Suite ejecutada en esta revisión:**
 

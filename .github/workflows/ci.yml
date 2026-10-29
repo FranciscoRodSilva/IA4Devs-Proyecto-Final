@@ -200,4 +200,5 @@ jobs:
         with:
           persist-credentials: false
       - name: Verificar la documentación
+        if: ${{ !cancelled() }}
         run: python3 tools/verificar_docs.py

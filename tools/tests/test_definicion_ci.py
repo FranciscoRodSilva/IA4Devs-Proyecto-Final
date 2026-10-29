@@ -1310,7 +1310,7 @@ def comprobar_regla_comun_8(trabajos: dict[str, list[str]]) -> list[str]:
 IF_QUE_NO_APAGA = ("${{!cancelled()}}", "!cancelled()", "${{always()}}", "always()", "${{failure()}}", "failure()")
 IF_DE_LAS_COMPUERTAS = ("${{!cancelled()}}", "!cancelled()")
 ENMASCARA_EL_FALLO = re.compile(r"\|\|\s*(?:true\b|:(?!\w)|exit\s+0\b)")
-ES_COMPROBACION = re.compile(r"\b(?:uv run|npm run|npm test)\b")
+ES_COMPROBACION = re.compile(r"\b(?:uv run|npm run|npm test|python3 tools/verificar_docs\.py)(?![\w.])")
 ENCUENTRA_PYTEST = re.compile(r"(?:^|[\s;&|])pytest(?![\w.:/-])")
 FIN_DE_LA_ORDEN = re.compile(r"\n|&&|\|\||;|\|")
 OPCION_DE_INFORME = re.compile(r"--cov(?:=\S*)?|--cov-report=\S+|--junitxml=\S+|-q+|-v+|-ra|--tb=\w+")
@@ -1361,20 +1361,28 @@ def comprobar_regla_comun_7(trabajos: dict[str, list[str]]) -> list[str]:
 
 
 def comprobar_regla_comun_6(trabajos: dict[str, list[str]]) -> list[str]:
-    """Regla común 6: en `backend` y `frontend`, todo paso de comprobación (`uv run ...`, `npm run ...`, `npm test`; no la
-    sincronización ni la instalación) declara `if: ${{ !cancelled() }}`, para que un fallo no oculte los que vienen detrás."""
+    """Regla común 6: en `backend`, `frontend` y `documentacion`, todo paso de comprobación (`uv run ...`, `npm run ...`,
+    `npm test`, `python3 tools/verificar_docs.py`; no la sincronización ni la instalación) declara `if: ${{ !cancelled() }}`,
+    para que un fallo no oculte los que vienen detrás. Los tres trabajos son obligatorios y `documentacion` debe tener al
+    menos un paso de comprobación."""
     problemas = []
-    for id_trabajo in ("backend", "frontend"):
+    for id_trabajo in ("backend", "frontend", "documentacion"):
         if id_trabajo not in trabajos:
             problemas.append(f"no existe el trabajo '{id_trabajo}'")
             continue
+        comprobaciones = 0
         for paso in pasos(trabajos[id_trabajo]):
             orden = comando(paso)
-            if ES_COMPROBACION.search(orden) and _expresion_de_if(valor_del_paso(paso, "if")) not in IF_DE_LAS_COMPUERTAS:
+            if not ES_COMPROBACION.search(orden):
+                continue
+            comprobaciones += 1
+            if _expresion_de_if(valor_del_paso(paso, "if")) not in IF_DE_LAS_COMPUERTAS:
                 problemas.append(
                     f"'{id_trabajo}': el paso de comprobación `{_primera_linea(orden, '')}` no declara `if: ${{{{ !cancelled() }}}}`; "
                     "tras un fallo anterior no correría y se vería solo el primer fallo"
                 )
+        if id_trabajo == "documentacion" and comprobaciones == 0:
+            problemas.append(f"'{id_trabajo}': no tiene ningún paso de comprobación (`python3 tools/verificar_docs.py`)")
     return problemas
 
 
@@ -1957,14 +1965,15 @@ GUARDA_DE_PASO = "        if: ${{ !cancelled() }}\n"
 
 
 def con_guardas(texto: str) -> str:
-    """Añade `if: ${{ !cancelled() }}` a cada paso de comprobación (`uv run`, `npm run`, `npm test`) de `backend` y `frontend`."""
+    """Añade `if: ${{ !cancelled() }}` a cada paso de comprobación (`uv run`, `npm run`, `npm test`) de `backend` y `frontend`,
+    y al `python3 tools/verificar_docs.py` de `documentacion`."""
     for id_trabajo in ("backend", "frontend"):
         inicio, fin = _rebanada(texto, id_trabajo)
         bloque = re.sub(
             r"(?m)^(      - run: (?:uv run|npm run|npm test)\b.*\n)", lambda m: m.group(1) + GUARDA_DE_PASO, texto[inicio:fin]
         )
         texto = texto[:inicio] + bloque + texto[fin:]
-    return texto
+    return mutar(texto, "documentacion", PASO_VERIFICAR_DOCS, con_guarda(PASO_VERIFICAR_DOCS))
 
 
 def con_guarda(paso: str, expresion: str = "${{ !cancelled() }}") -> str:
@@ -1984,6 +1993,7 @@ PASO_PYTEST_G = con_guarda(PASO_PYTEST)
 PASO_LINT_G = con_guarda(PASO_LINT)
 PASO_NPM_TEST_G = con_guarda(PASO_NPM_TEST)
 PASO_TIPOS_G = con_guarda(PASO_TIPOS)
+PASO_VERIFICAR_DOCS_G = con_guarda(PASO_VERIFICAR_DOCS)
 
 COMPROBACIONES_DE_COMPUERTAS = (comprobar_regla_comun_6, comprobar_regla_comun_7, comprobar_pytest_sin_filtros)
 
@@ -2111,7 +2121,7 @@ class PruebasDeMutantesDeLasCompuertas(unittest.TestCase):
                 self.assertEqual(comprobar_regla_comun_7(extraer_trabajos(texto)), [])
 
     def test_compuertas_mutantes_regla_comun_6_todo_paso_de_comprobacion_lleva_if_no_cancelado(self):
-        """Regla común 6 — en `backend` y `frontend`, un paso de comprobación sin `if: ${{ !cancelled() }}` deja el caso en rojo."""
+        """Regla común 6 — en `backend`, `frontend` y `documentacion`, un paso de comprobación sin `if: ${{ !cancelled() }}` deja el caso en rojo."""
         casos = {
             "ruff format sin if": (mutar(CI_CON_GUARDAS, "backend", PASO_FORMAT_G, "      - run: uv run ruff format --check .\n"), "uv run ruff format"),
             "ruff check sin if": (mutar(CI_CON_GUARDAS, "backend", PASO_RUFF_G, "      - run: uv run ruff check .\n"), "uv run ruff check"),
@@ -2135,6 +2145,18 @@ class PruebasDeMutantesDeLasCompuertas(unittest.TestCase):
             "tipos:verificar sin if": (mutar(CI_CON_GUARDAS, "frontend", PASO_TIPOS_G, PASO_TIPOS), "tipos:verificar"),
             "trabajo backend ausente": (mutar(CI_CON_GUARDAS, "backend", "  backend:\n", "  construccion:\n"), "'backend'"),
             "trabajo frontend ausente": (mutar(CI_CON_GUARDAS, "frontend", "  frontend:\n", "  cliente:\n"), "'frontend'"),
+            "verificar_docs sin if": (mutar(CI_CON_GUARDAS, "documentacion", PASO_VERIFICAR_DOCS_G, PASO_VERIFICAR_DOCS), "verificar_docs"),
+            "verificar_docs con if: always()": (
+                mutar(CI_CON_GUARDAS, "documentacion", PASO_VERIFICAR_DOCS_G, con_guarda(PASO_VERIFICAR_DOCS, "always()")),
+                "verificar_docs",
+            ),
+            "verificar_docs con el if comentado": (
+                mutar(CI_CON_GUARDAS, "documentacion", PASO_VERIFICAR_DOCS_G, PASO_VERIFICAR_DOCS + "        # if: ${{ !cancelled() }}\n"),
+                "verificar_docs",
+            ),
+            "paso de verificar_docs ausente": (mutar(CI_CON_GUARDAS, "documentacion", PASO_VERIFICAR_DOCS_G, ""), "'documentacion'"),
+            "paso de verificar_docs comentado": (comentar(CI_CON_GUARDAS, "documentacion", PASO_VERIFICAR_DOCS_G), "'documentacion'"),
+            "trabajo documentacion ausente": (mutar(CI_CON_GUARDAS, "documentacion", "  documentacion:\n", "  docs:\n"), "'documentacion'"),
         }
         exigir_rojo_en_todos(self, comprobar_regla_comun_6, casos)
 
@@ -2227,7 +2249,7 @@ class DefinicionDeCIDeLasCompuertas(unittest.TestCase):
         self.assertEqual(comprobar_regla_comun_7(_trabajos_de_ci(self)), [])
 
     def test_regla_comun_6_todo_paso_de_comprobacion_de_backend_y_frontend_sigue_corriendo(self):
-        """Regla común 6 — cada `uv run` de `backend` y cada `npm run`/`npm test` de `frontend` lleva `if: ${{ !cancelled() }}`."""
+        """Regla común 6 — cada `uv run` de `backend`, cada `npm run`/`npm test` de `frontend` y el `verificar_docs.py` de `documentacion` lleva `if: ${{ !cancelled() }}`."""
         self.assertEqual(comprobar_regla_comun_6(_trabajos_de_ci(self)), [])
 
     def test_pytest_de_backend_es_el_comando_completo_del_diseno(self):

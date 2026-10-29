@@ -10,7 +10,7 @@ LISTO PARA EJECUTAR · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
 >
 > | Parte | Hub | Depende de |
 > |---|---|---|
-> | TKT-009a · Pipeline de pruebas y fronteras | [tkt-009a](../tkt-009a/_index.md) | TKT-002, TKT-008 |
+> | TKT-009a · Pipeline de pruebas y fronteras | [tkt-009a](../tkt-009a/_index.md) | TKT-002, TKT-008a, TKT-008b, TKT-008c |
 > | TKT-009c · Verificador de escenarios | [tkt-009c](../tkt-009c/_index.md) | TKT-009a |
 > | TKT-009b · Cadena de suministro | [tkt-009b](../tkt-009b/_index.md) | TKT-009a |
 > | TKT-009d · Calidad de documentación | [tkt-009d](../tkt-009d/_index.md) | TKT-009a |
@@ -31,14 +31,14 @@ LISTO PARA EJECUTAR · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
 | **Capas en alcance** | Entrega continua y herramientas. Ninguna capa de la aplicación |
 | **Depende de** | TKT-002 (ARCHIVADO) · TKT-008a, TKT-008b y TKT-008c (ARCHIVADOS); el paraguas TKT-008 sigue «EN CURSO» |
 | **Bloquea a** | TKT-061, TKT-062 y los tickets que dependen del pipeline |
-| **Rama** | `tkt-009-pipeline-ci` |
+| **Rama** | `tkt-009a-pipeline-pruebas` (a) · `tkt-009c-verificador-escenarios` (c) · `tkt-009b-cadena-suministro` (b) · `tkt-009d-calidad-documental` (d) |
 
 ## Artefactos
 
 | Artefacto | Enlace | Comando | Estado |
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-10-28 |
-| Design | [design.md](design.md) | `/sdd-disenar` | Escrito el 2026-10-28, pendiente de aprobación |
+| Design | [design.md](design.md) | `/sdd-disenar` | Aprobado el 2026-10-28 |
 | Impl | impl.md | `/sdd-ejecutar` | Pendiente |
 | Delta | delta.md | `/sdd-completar` | Pendiente |
 

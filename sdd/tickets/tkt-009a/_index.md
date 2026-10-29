@@ -37,7 +37,7 @@ LISTO PARA PR
 |---|---|---|---|---|
 | 2026-10-28 | — | `LISTO PARA EJECUTAR` | partición de TKT-009 | Nace de la decisión del gate de diseño de TKT-009, aprobado por el usuario con todas las recomendaciones. Spec repartida: M1, M2, M3, M4, M6, M9 y su parte de M12; `CA-1` a `CA-5`, `CA-9`, `CA-12`, `CA-R1`, `CA-R2` y `CA-R4`. Primera parte en fusionar |
 | 2026-10-29 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas A0 a A8 hechas con ciclo TDD. Pipeline de ocho trabajos en verde en el PR #2; rondas de ensayo 1 y 2 en rojo como se esperaba. Cuatro auditorías `APROBADO` (código tras un ciclo de corrección por un hallazgo Mayor). Se corrigió de paso una prueba de TKT-008b que fallaba en Linux. Detalle en [impl.md](impl.md) |
-| 2026-10-29 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Diez criterios `[M]` cumplidos con evidencia. Suite ejecutada: 1138 pruebas de backend, `ruff`, `mypy`, `lint-imports` y `verificar_docs.py` en verde, y 77 pruebas de `tools/`. Cuatro auditorías sin hallazgos Mayores ni Críticos tras tres ciclos de corrección de registro y documentación (solo Menores). Una frase de `CLAUDE.md` se aplicó sin reauditar por límite de ciclos |
+| 2026-10-29 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Once criterios `[M]` (CA-1 a CA-5, CA-9, CA-12, CA-R1, CA-R2, CA-R4 y CA-15) cumplidos con evidencia. Suite ejecutada: 1138 pruebas de backend, `ruff`, `mypy`, `lint-imports` y `verificar_docs.py` en verde, y 77 pruebas de `tools/`. Cuatro auditorías sin hallazgos Mayores ni Críticos tras tres ciclos de corrección de registro y documentación (solo Menores). Una frase de `CLAUDE.md` se aplicó sin reauditar por límite de ciclos |
 
 ## Decisiones registradas
 
