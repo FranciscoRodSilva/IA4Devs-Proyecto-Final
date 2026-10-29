@@ -128,6 +128,29 @@ Para reproducir un trabajo en local, desde el directorio que indica cada fila:
 
 El trabajo `herramientas` corre las pruebas en el intérprete 3.14 con `uv run --no-project`; en local basta con cualquier Python de los que admite el proyecto.
 
+### Auditar las dependencias en local
+
+El trabajo `dependencias` audita el lock del backend y el del frontend con la política de [stack §6.4](06-stack-tecnologico.md#64-dependencias). Para reproducirlo, desde `backend/`, en una shell de Bash (Git Bash en Windows):
+
+```bash
+AUDITORIA="$(mktemp -d)"
+uv export --locked --all-groups --no-emit-project --format requirements.txt -o "$AUDITORIA/req.txt"
+uv run pip-audit -r "$AUDITORIA/req.txt" --require-hashes --disable-pip --strict -f json -o "$AUDITORIA/pip-audit.json" || true
+uv run python ../tools/severidad_pip_audit.py "$AUDITORIA/pip-audit.json"
+echo $?
+rm -rf "$AUDITORIA"
+```
+
+`pip-audit` termina en 1 cuando encuentra vulnerabilidades, por eso su línea lleva `|| true`: quien decide es el script, que sale con 0 si ningún hallazgo falla, con 1 si alguno es `ALTA`, `CRÍTICA` o `DESCONOCIDA`, y con 2 si el informe no existe o OSV no responde. Sin el `|| true`, la auditoría se cortaría antes de llegar al script. La versión de `uv` en uso también escribe el contenido del `req.txt` por la salida estándar; si estorba, añade `> /dev/null` a la línea de `uv export`.
+
+Desde `frontend/`, el frontend se audita con la opción nativa de `npm`:
+
+```bash
+npm audit --audit-level=high
+```
+
+Sale con 0 mientras no haya avisos `high` ni `critical`; los `moderate` y `low` se listan y no fallan. Necesita acceso al registro de npm.
+
 ## Codificación
 
 Los archivos de texto se guardan en UTF-8 y con finales de línea LF. La regla tiene una excepción deliberada:

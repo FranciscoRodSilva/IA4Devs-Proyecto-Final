@@ -213,3 +213,42 @@ jobs:
       - name: Verificar la documentación
         if: ${{ !cancelled() }}
         run: python3 tools/verificar_docs.py
+
+  dependencias:
+    name: Dependencias · auditoría de vulnerabilidades
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: frontend/package.json
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Sincronizar dependencias del backend
+        working-directory: backend
+        run: uv sync --locked --python 3.14
+      - name: Exportar el lock del backend
+        working-directory: backend
+        run: uv export --locked --all-groups --no-emit-project --format requirements.txt -o "$RUNNER_TEMP/req.txt"
+      # pip-audit termina en 1 cuando encuentra una vulnerabilidad; por eso este paso lleva `|| true` y es el
+      # único del pipeline que lo lleva. Sin él, el guion se cortaría aquí y el informe no llegaría al script
+      # siguiente. Quien decide si el pipeline falla es tools/severidad_pip_audit.py (RNF-08): sale con 2 si el
+      # informe falta o no se puede leer, así que un error de pip-audit tampoco pasa en verde.
+      # Excepciones: ninguna al arrancar. Una vulnerabilidad se acepta solo con `--ignore-vuln <ID>` en este paso,
+      # con un comentario que nombre quién la decidió, su motivo y la fecha de revisión.
+      - name: Auditar Python con pip-audit
+        if: ${{ !cancelled() }}
+        working-directory: backend
+        run: |
+          uv run pip-audit -r "$RUNNER_TEMP/req.txt" --require-hashes --disable-pip --strict -f json -o "$RUNNER_TEMP/pip-audit.json" || true
+      - name: Filtrar los hallazgos por severidad
+        if: ${{ !cancelled() }}
+        run: python3 tools/severidad_pip_audit.py "$RUNNER_TEMP/pip-audit.json"
+      - name: Auditar npm
+        if: ${{ !cancelled() }}
+        working-directory: frontend
+        run: npm audit --audit-level=high

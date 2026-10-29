@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+ARCHIVADO
 
 ## Ficha
 
@@ -28,14 +28,19 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas B1 a B7 | `/sdd-disenar` | Aprobado el 2026-10-28 |
-| Impl | impl.md | `/sdd-ejecutar` | Pendiente |
-| Delta | delta.md | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-28; B5 y B6 hechas el 2026-10-29; revisión cerrada en `LISTO PARA PR` |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-10-29 |
 
 ## Log de estados
 
 | Fecha | De | A | Comando | Motivo |
 |---|---|---|---|---|
 | 2026-10-28 | — | `LISTO PARA EJECUTAR` | partición de TKT-009 | Nace de la decisión del gate de diseño de TKT-009. Spec repartida: M7, M8 y su parte de M12; `CA-10`, `CA-11`, `CA-R2`, `CA-R3` y `CA-R4`. No se ejecuta hasta que TKT-009a esté `ARCHIVADO` o `LISTO PARA PR`. Tercera parte en fusionar. La fila B5 exige acciones de la persona dueña del repositorio |
+| 2026-10-28 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas B1 a B4 y B7 hechas con su ciclo TDD y mutación; 247 pruebas de `tools/` en verde. B5 y B6 pendientes. Arquitectura: dos Menores documentales corregidos |
+| 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-ejecutar` | B5 (ajustes del repositorio) y B6 (ensayo en el pipeline) hechas por personas con la guía [ajustes-repositorio.md](ajustes-repositorio.md), con evidencia en `impl.md` |
+| 2026-10-29 | `EN REVISIÓN` | `REQUIERE DECISIÓN` | `/sdd-revisar` | Criterios `[M]` cumplidos y suite en verde (backend 1138, `tools/` 295). Tres ciclos de corrección agotados: seguridad `APROBADO`; código, arquitectura y documentación en `REQUIERE CAMBIOS` con Menores y un Mayor documental (la marca `(asumido)` del corte), cuyos textos literales se aplicaron sin reauditoría formal. Decide la persona que aprueba: `A-12` (corte en el primer GHSA `HIGH` o `CRITICAL`) y la excepción de cierre. Pendientes suyos: borrar la rama `ensayo/tkt-009b-secreto` |
+| 2026-10-29 | `REQUIERE DECISIÓN` | `LISTO PARA PR` | usuario | La persona que aprueba responde «Sí, acepto»: acepta `A-12` (el filtro corta en el primer GHSA `HIGH` o `CRITICAL`; solo cambia la etiqueta) y la excepción de cierre sin reauditoría formal, como en TKT-009a y TKT-009c. Siguiente: `/sdd-completar`. Pendientes suyos: borrar la rama `ensayo/tkt-009b-secreto` y confirmar la revocación del token |
+| 2026-10-29 | `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` | `delta.md` escrito y auditado por `auditor-docs` (tres Mayores y nueve Menores de cifras, de trazabilidad y de la cita del token, todos corregidos con su texto literal), observaciones de proceso en `sdd/_evolucion.md` y revisadas por `meta-sdd`. Cierre con la excepción de la revisión aceptada por la persona que aprueba: tres auditores en `REQUIERE CAMBIOS` en el ciclo 3 sin reauditoría formal. Antes del PR: empujar los commits locales, borrar la rama `ensayo/tkt-009b-secreto` y confirmar la revocación del token; el PR #6 de TKT-009c es la base |
 
 ## Decisiones registradas
 

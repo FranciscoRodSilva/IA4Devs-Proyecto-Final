@@ -322,6 +322,14 @@ openpyxl parsea un ZIP que viene de fuera. En modo `read_only` el consumo es aco
 
 `pip-audit` para Python y `npm audit` para el frontend, **fallando el pipeline** ante severidad alta, más Dependabot para las actualizaciones y el escaneo de secretos de GitHub sobre el repositorio.
 
+**Política de severidad vigente** ([ADR del 2026-10-29](adr/20261029-severidad-en-la-auditoria-de-dependencias.md)):
+
+* **Python.** `pip-audit` informa cada vulnerabilidad del lock del backend, y `tools/severidad_pip_audit.py` toma la severidad del aviso de GitHub (`GHSA`) desde OSV. Un hallazgo puede tener varios `GHSA` (su `id` y sus alias): el filtro consulta cada uno una vez y se queda con la peor severidad, y se detiene en el primero que sea `HIGH` o `CRITICAL`. Fallan `HIGH` y `CRITICAL`. `MODERATE` y `LOW` se informan y no fallan. Una vulnerabilidad cuya severidad no se puede leer, porque no tiene `GHSA` o OSV no informa severidad, aparece como `DESCONOCIDA` y **falla**: el fallo es cerrado. Si el informe no se lee o la consulta a OSV falla (red, HTTP, JSON mal formado o respuesta de más de 1.000.000 de bytes), el script termina con código 2 y el trabajo queda en rojo.
+* **Frontend.** `npm audit --audit-level=high`. Falla con `high` y `critical`, e informa `moderate` y `low` sin fallar. Incluye las dependencias de desarrollo, porque `--omit=dev` se descartó: las herramientas corren en CI junto al código.
+* **Excepciones.** Una vulnerabilidad de Python se acepta solo con `--ignore-vuln <ID>` en el paso de `pip-audit` del trabajo `dependencias`, con un comentario que nombre quién la decidió, su motivo y la fecha de revisión. No hay ninguna al arrancar. Para npm no hay lista de excepciones: un aviso alto se corrige actualizando o se escala por escrito; no se ignora con una bandera.
+
+**Credenciales de desarrollo de `.env.example`.** Las contraseñas `solo-desarrollo-*` del archivo y la del usuario de prueba de TKT-008b no tienen excepción en el escaneo de secretos: no hay archivo de exclusión ni `paths-ignore`, porque una exclusión por ruta dejaría sin escanear cualquier otro secreto que alguien pegara en ese archivo. Si una alerta genérica marcara alguno de esos valores, se descarta **esa alerta concreta** como «usada en pruebas», citando esta nota. La nota es la documentación de la excepción. El criterio [CA-11](../sdd/tickets/tkt-009/spec.md) pedía una excepción declarada; esta forma es una reinterpretación `(asumido)`, que se señaló en el gate del diseño.
+
 Es lo más barato de toda esta sección y responde a un riesgo propio de este proyecto: buena parte del código lo escriben agentes, y un agente añade una dependencia con la misma facilidad con la que escribe una función. Nadie va a auditar ese árbol a mano.
 
 ### 6.5. Privilegio mínimo en el motor
@@ -480,12 +488,13 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 - **`herramientas`**: las pruebas de `tools/` con `unittest`. Una guarda falla el paso si alguna prueba se salta.
 - **`workflows`**: `zizmor` sobre `.github/workflows`, para auditar los propios flujos.
 - **`documentacion`**: `verificar_docs.py`.
+- **`dependencias`**: `pip-audit` sobre el lock del backend, con el filtro de severidad de `tools/severidad_pip_audit.py`, y `npm audit --audit-level=high` sobre el del frontend. La política está en [§6.4](#64-dependencias).
 
 Dos reglas de higiene rigen el archivo. Cada acción se fija por SHA completo, con su versión en un comentario, porque una etiqueta se mueve y un SHA no. Y el intérprete de Python es el 3.14, con el mismo `uv sync --locked --python 3.14` que documenta [`arranque-local.md`](arranque-local.md), porque sin fijarlo `uv` elige el más nuevo y puede compilar mal `pyyaml`. Ningún paso lleva `continue-on-error`: una compuerta que no falla está desactivada.
 
 **Desviación respecto a TKT-009.** El trabajo `backend` no levanta MinIO. Su servicio y sus pruebas contra un almacén real llegan con TKT-059, que los añade a ese trabajo, porque antes no existe el adaptador de almacén que los usaría.
 
-Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias llega con la parte b de TKT-009 y la calidad documental completa con la parte d. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
+Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias corre en el trabajo `dependencias`, y la calidad documental completa llega con la parte d de TKT-009. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
 
 Dos trabajos más, que son los que meten la IA en el pipeline sin darle la última palabra:
 

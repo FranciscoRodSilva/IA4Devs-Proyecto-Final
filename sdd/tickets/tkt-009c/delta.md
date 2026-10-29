@@ -117,6 +117,6 @@ Fricción del **proceso**, no del producto.
 >
 > **Cómo verificarlo.** El pipeline del PR está en verde sobre `229bbf7` (`actions/runs/40814645637`). En local: `python -m unittest discover -s tools/tests`, `python tools/verificar_escenarios.py` (hoy `exigidos 0 · pendientes 162`) y `python tools/verificar_docs.py`. El ensayo con `HDU-001` activa, en un PR en borrador ya cerrado sin fusionar, puso el paso del verificador en rojo con `exigidos 27 · faltan 27` (`actions/runs/40812135088`).
 >
-> **Aviso a quien revisa.** No toca `docs/api/openapi.yaml`. La última reauditoría de documentación quedó en `REQUIERE CAMBIOS` por dos Menores aplicados sin una cuarta reauditoría; consta en `sdd/tickets/tkt-009c/impl.md`.
+> **Aviso a quien revisa.** No toca `docs/api/openapi.yaml`. Al cerrar el ticket, la última reauditoría de documentación había quedado en `REQUIERE CAMBIOS` por dos Menores aplicados sin una cuarta reauditoría. Una reauditoría posterior, del 2026-10-28, verificó que esos dos Menores quedaron bien aplicados y encontró un Menor nuevo (F009, la objeción 8 del diseño); se corrigió y una segunda reauditoría dio `APROBADO`. El detalle consta en `sdd/tickets/tkt-009c/impl.md`.
 >
 > 🤖 Generated with [Claude Code](https://claude.com/claude-code)
