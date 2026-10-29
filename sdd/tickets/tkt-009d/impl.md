@@ -192,7 +192,7 @@ Los registros de ambas ejecuciones no contienen `ghp_` ni `github_pat_`. El dete
 | `CA-13` `[M]` | `[M]` | **Cumplido** | `markdownlint-cli2`, `Vale` y `lychee` dan cero hallazgos sobre el alcance (la línea base de 183 se limpió en D3 y D4). El trabajo `documentacion` está en verde en el [PR #17](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/17) (ejecución [40938042934](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40938042934)) y en rojo, con cada violación en su archivo y línea, en el [PR de ensayo #18](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/18) (ejecución [40939362032](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40939362032)) |
 | `CA-14` `[M]` | `[M]` | **Cumplido** | `enlaces.yml` tiene el cron semanal y `workflow_dispatch` (TC-64). En la ronda 1 del ensayo, `lychee` pone en rojo el enlace externo a una página de GitHub que da 404 |
 | `CA-16` `[S]` | `[S]` | **Cumplido** | En la ronda 1 del ensayo, `mermaid-cli` pone en rojo el diagrama `A -> B` (prioridad `Should`). En la ejecución 40938042934 los diagramas reales pasan |
-| `CA-R4` `[M]` | `[M]` | **Cumplido** | La suite de `tools/` pasa de 295 (antes de D5) a 325 pruebas en el cierre de la fila D5 (332 tras el ciclo 1 de `/sdd-revisar` y 338 tras el ciclo 2) (`python -m unittest discover -s tools/tests`), sin quitar ninguna ni añadir `skip`, `xfail` ni `.only`. Las 162 líneas `**Escenario N:` no cambian desde D3 |
+| `CA-R4` `[M]` | `[M]` | **Cumplido** | La suite de `tools/` pasa de 295 (antes de D5) a 325 pruebas en el cierre de la fila D5 (332 tras el ciclo 1 de `/sdd-revisar`, 338 tras el ciclo 2 y 341 tras el ciclo 3) (`python -m unittest discover -s tools/tests`), sin quitar ninguna ni añadir `skip`, `xfail` ni `.only`. Las 162 líneas `**Escenario N:` no cambian desde D3 |
 | `CA-15` su parte | `[M]` | **Cumplido** | D7: `convenciones` §10, `conv-documentacion` y `docs/06` §9 y §10 |
 
 ## Auditorías
@@ -215,7 +215,7 @@ Estado de los hallazgos:
 | F004 | Observación | La fila D4 de `markdownlint-cli2` decía 164 sin explicar la diferencia con los 162 de la medición | **Resuelto** al aplicar esta corrección |
 | F005 | Observación | `.github/mermaid` sin auditoría ni Dependabot | **Resuelto** en el ciclo 1 de `/sdd-revisar`: el trabajo `dependencias` audita `.github/mermaid` con `npm audit --audit-level=high` y Dependabot lo vigila cada semana |
 | F006 | Observación | Tres pasos de escenario de `docs/04` cambiaron de texto a código sin que la fila D4 lo aclarara | **Resuelto** al aplicar esta corrección |
-| F007 | Observación | El pipeline no se ha comprobado sobre el último commit | **Resuelto**: la ejecución [40943128945](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40943128945) sobre `b00f4da` dejó los nueve trabajos en verde |
+| F007 | Observación | El pipeline no se ha comprobado sobre el último commit | **Persiste (parcial)**: la ejecución [40943128945](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40943128945) sobre `b00f4da` dejó los nueve trabajos en verde; el HEAD de la rama (`d750d0d` y los commits posteriores) no tiene ejecución de CI y el paso «Auditar el lock de mermaid-cli» (`.github/workflows/ci.yml`) nunca ha corrido en CI. |
 | N001 | Menor | La verificación final decía que D2 tenía ciclo con rojo antes de verde | **Resuelto**: D2 es una medición sin ciclo |
 | N002 | Menor | Se hablaba de cinco violaciones previstas y de la cobertura de TC-62, TC-63, TC-66 y TC-68 para todas | **Resuelto**: cuatro previstas más la de `markdownlint`, que no tiene TC |
 | N003 | Observación | Las 26 alertas de `Vale` frente a las 20 de la medición | **Resuelto**: 6 son de los documentos del propio ticket escritos durante D2 |
@@ -253,14 +253,14 @@ El commit `6b8ad11` (fila D7) tocó doce archivos, no once: el ADR y su entrada 
 
 - [x] Todos los criterios `[M]` cumplidos con evidencia: CA-13, CA-14, CA-16 (`[S]`), CA-R4 y CA-15 en su parte, en «Resultado contra los criterios de aceptación»
 - [x] Ciclo por fila: D1 y D5 con rojo antes de verde (D5 con su ajuste); D2 es una medición sin ciclo, y sus casos TC-60 y TC-61 son ejecuciones locales de `Vale`; D3, D4 y D7 sin pruebas nuevas, verificadas con los verificadores; D6 lo ejecutó la persona usuaria, con la ronda 1 en rojo y la limpieza en verde
-- [x] Suite en verde: `python -m unittest discover -s tools/tests` da 338 pruebas sin fallos
+- [x] Suite en verde: `python -m unittest discover -s tools/tests` da 341 pruebas sin fallos
 - [x] Rechazos: las cuatro violaciones previstas en el diseño ponen en rojo su paso con archivo y línea (TC-62, TC-63, TC-66 y TC-68). El fallo de `markdownlint` (MD040, `docs/convenciones.md:404`) no estaba previsto y no tiene TC; si se quiere uno propio, es un cambio de diseño que aprueba la persona que aprueba
 - [x] Mutación de los comprobadores: las pruebas de D5 en `tools/tests/test_definicion_documentacion.py` incluyen clases `PruebasDeMutantes…` que comprueban que cada mutante es detectado
 - [x] Documentación actualizada en la fila D7 (ver la tabla de arriba), y `verificar_docs.py` en 0
-- [ ] Todas las auditorías APROBADO: **no**. `auditor-arquitectura` y su reauditoría están en REQUIERE CAMBIOS por Menores, ya aplicados (F001 a F007 y N001 a N004 resueltos); falta que `/sdd-revisar` vuelva a auditar
+- [ ] Todas las auditorías APROBADO: **no**. `auditor-arquitectura` y su reauditoría están en REQUIERE CAMBIOS por Menores, ya aplicados (F001 a F006 y N001 a N004 resueltos; F007 persiste de forma parcial hasta que la rama se empuje y el pipeline pase sobre el último commit); falta que `/sdd-revisar` vuelva a auditar
 - [x] Rama correcta y sin secretos en el diff
 
-Pendiente para `delta.md`: anotar la ejecución manual de `enlaces.yml` [40943983006](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40943983006), `success` sobre `6fb4cb6`.
+Pendiente para `delta.md`: anotar la ejecución manual de `enlaces.yml` [40943983006](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40943983006), `success` sobre `6fb4cb6`. Queda a cargo de la persona usuaria: empujar `tkt-009d-correcciones-revision` y comprobar el pipeline sobre el último commit (F007 y R-ARQ-C1-06).
 
 ## Revisión (`/sdd-revisar`, 2026-10-29)
 
@@ -276,7 +276,7 @@ Pendiente para `delta.md`: anotar la ejecución manual de `enlaces.yml` [4094398
 | `lint-imports` | 15 contratos, 0 rotos |
 | `verificar_float` | 18 archivos, 0 hallazgos |
 | `verificar_docs.py` | En verde |
-| Pruebas de `tools/` | 338 pruebas |
+| Pruebas de `tools/` | 325 pruebas (en `6fb4cb6`; 332 tras el ciclo 1, 338 tras el ciclo 2 y 341 tras el ciclo 3) |
 | `markdownlint-cli2` | 0 hallazgos |
 | `Vale` | 0 alertas |
 | `zizmor` | Sin hallazgos |
@@ -296,7 +296,7 @@ Pendiente para `delta.md`: anotar la ejecución manual de `enlaces.yml` [4094398
 
 | Auditor | Veredicto | Hallazgos |
 |---|---|---|
-| `auditor-seguridad` | **APROBADO** | `R-SEG-F001` Resuelto; `R-SEG-F002` a `R-SEG-F005` persisten como costes aceptados de severidad `BAJA` |
+| `auditor-seguridad` | **APROBADO** (registro del orquestador: el informe del auditor no se guardó en disco) | `R-SEG-F001` Resuelto; `R-SEG-F002` a `R-SEG-F005` persisten como costes aceptados de severidad `BAJA` |
 | `auditor-codigo` | **REQUIERE CAMBIOS** | `R-COD-F001` Mayor reducido (10 mutantes de flujo vivos en el paso de `mmdc` y el de `Vale`); `R-COD-F005b`, `R-COD-F005c`, `R-COD-F007` y `R-COD-F008` Menores |
 | `auditor-arquitectura` | **REQUIERE CAMBIOS** | `R-ARQ-C1-01` a `R-ARQ-C1-04` Menores; `R-ARQ-C1-05` y `R-ARQ-C1-06` observaciones |
 | `auditor-docs` | **REQUIERE CAMBIOS** | `R-DOC-F001` Mayor; `R-DOC-F002` y `R-DOC-F003` Menores |
@@ -310,13 +310,23 @@ Estado de los hallazgos de la reauditoría:
 | R-COD-F001 | Mayor | 10 mutantes de flujo vivos en el paso de `mmdc` y el de `Vale` | En corrección en el ciclo 2 (pruebas) |
 | R-COD-F005b, R-COD-F005c, R-COD-F007, R-COD-F008 | Menor | Menores de código de la reauditoría | En corrección en el ciclo 2 (pruebas) |
 | R-ARQ-C1-01 | Menor | Falta el lock de `mermaid-cli` en `docs/06` §6.4 y en el bloque local de `docs/arranque-local.md` | Corregido en el ciclo 2, pendiente de reauditar |
-| R-ARQ-C1-02 | Menor | Cifra de pruebas de `tools/` desactualizada en este documento | Corregido en el ciclo 2 (338), pendiente de reauditar |
+| R-ARQ-C1-02 | Menor | Cifra de pruebas de `tools/` desactualizada en este documento | Corregido en el ciclo 2 (338) y actualizado en el ciclo 3 (341), pendiente de reauditar |
 | R-ARQ-C1-03 | Menor | El ADR de `Vale` omite el resultado del run 40943924695 y el aviso residual de `katex`, y deja «Brecha cerrada» entre los costes | Corregido en el ciclo 2, pendiente de reauditar |
 | R-ARQ-C1-04 | Menor | El diseño de TKT-009 y `docs/05` siguen con tres ecosistemas de Dependabot y sin el paso de `mermaid-cli` | Corregido en el ciclo 2, pendiente de reauditar |
 | R-ARQ-C1-05 | Observación | Flujo de actualización de `@mermaid-js/mermaid-cli` frente a TC-65 | Recogido en el ADR de `Vale` como coste aceptado, `(asumido)` |
-| R-ARQ-C1-06 | Observación | Observación de arquitectura sin acción | Sin acción en el ciclo 2 |
+| R-ARQ-C1-06 | Observación | Los commits del ciclo 1 no tienen ejecución de CI: la rama no está en `origin` | Persiste hasta empujar la rama y comprobar el pipeline sobre el último commit |
 | R-DOC-F001 | Mayor | `docs/06` §6.4 y §10 no mencionaban el lock de `mermaid-cli` ni la cuarta entrada de Dependabot | Corregido en el ciclo 2, pendiente de reauditar |
-| R-DOC-F002 | Menor | Cifras de pruebas de `tools/` de este documento | Corregido en el ciclo 2 (338), pendiente de reauditar |
+| R-DOC-F002 | Menor | Cifras de pruebas de `tools/` de este documento | Corregido en el ciclo 2 (338) y actualizado en el ciclo 3 (341), pendiente de reauditar |
 | R-DOC-F003 | Menor | `docs/06` §8 presentaba `interrogate` como si ya corriera en el pipeline | Corregido en el ciclo 2, pendiente de reauditar |
 
 **Ciclo 2 de corrección, en curso.** Aplica los hallazgos anteriores: la documentación en esta pasada y las pruebas de `tools/` en otra. La revisión no tiene veredicto todavía; `/sdd-revisar` vuelve a auditar al terminar el ciclo.
+
+## Veredicto de la revisión (2026-10-29)
+
+**Pendiente.** Los tres ciclos de corrección de `/sdd-revisar` están agotados y el ticket no tiene todavía veredicto. Situación al cerrar el ciclo 3:
+
+- **Seguridad:** `APROBADO` en su reauditoría del ciclo 1 (registro del orquestador; el informe no se guardó en disco). Su MEDIA, la auditoría del lock de `mermaid-cli`, se resolvió con el paso «Auditar el lock de mermaid-cli» y la cuarta entrada de Dependabot.
+- **Código, arquitectura y documentación:** `REQUIERE CAMBIOS` en la reauditoría del ciclo 2. Todos sus hallazgos se aplicaron con su texto literal en el ciclo 3 (entre ellos el Mayor R-COD-F009, `localizar_bash` frente a salida que no es UTF-8, con su prueba en rojo primero), **sin una reauditoría formal**, porque los ciclos estaban agotados.
+- **Sin ejecutar en el pipeline:** la rama `tkt-009d-correcciones-revision` no está en GitHub. Las pruebas de comportamiento que ejecutan con `bash` el `run:` de los pasos de `mermaid-cli` y de `Vale` solo se han ejecutado en Windows con Git Bash; en Linux (el trabajo `herramientas`) se han revisado a mano. El paso nuevo `Auditar el lock de mermaid-cli` y la cuarta entrada de Dependabot tampoco han corrido en CI.
+- **Para cerrar:** empujar la rama, abrir el PR y comprobar que los nueve trabajos pasan; después, que la persona que aprueba acepte la excepción de cierre (tres auditorías sin reauditoría formal), como en TKT-009a, TKT-009b y TKT-009c.
+

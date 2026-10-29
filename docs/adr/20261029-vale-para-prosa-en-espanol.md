@@ -61,3 +61,5 @@ Se elige el **estilo propio mínimo** porque:
 * Si una regla de `Cimenta.Vocabulario` da un falso positivo más de una vez en un trimestre, se revisa la regla. No se apaga sin un ADR. Es un umbral propuesto, no medido.
 * Si el paquete `vale` de PyPI deja de descargar el binario oficial, o cuando el asset se fije por SHA.
 * Si el glosario añade términos que Vale debe exigir, se amplía `accept.txt` y se revisa esta decisión en el mismo cambio.
+
+El lock instala `katex` 0.16.47, dentro de ese rango. Según `npm audit`, todas las versiones de `@mermaid-js/mermaid-cli` desde la 11.15.0 dependen de `katex` vulnerable; el arreglo sugerido es rebajar a la 11.14.0, un cambio de ruptura. La decisión es de la persona que aprueba.

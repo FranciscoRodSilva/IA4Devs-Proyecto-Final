@@ -267,7 +267,7 @@ Escenario: Una vulnerabilidad de severidad baja o media no falla
 ### CA-11 `[M]` · Dependabot y escaneo de secretos
 
 ```gherkin
-Escenario: Dependabot cubre los tres ecosistemas
+Escenario: Dependabot cubre los tres ecosistemas (desde TKT-009d, cuatro entradas)
   Dado el archivo ".github/dependabot.yml"
   Cuando se lee
   Entonces declara actualizaciones para "uv" o "pip" en "backend/", "npm" en "frontend/" y "github-actions"
