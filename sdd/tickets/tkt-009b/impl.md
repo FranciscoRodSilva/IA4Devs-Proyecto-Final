@@ -6,7 +6,7 @@
 
 Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#parte-b--cadena-de-suministro). `pip-audit` entra en el grupo `dev`. El filtro `tools/severidad_pip_audit.py` toma la severidad del aviso de GitHub en OSV y falla ante `HIGH`, `CRITICAL` o severidad desconocida. El trabajo `dependencias` de `ci.yml` encadena `uv export`, `pip-audit`, el filtro y `npm audit --audit-level=high`. Dependabot cubre `uv`, `npm` y `github-actions` cada semana. El ADR de severidad, la política de `docs/06` §6.4 y la guía de auditoría local cierran la documentación.
 
-**La fila B5 la ejecutó la persona dueña el 2026-10-29** (ver «Fila B5» abajo). **Queda pendiente la fila B6**, el ensayo en el pipeline, que exige una rama de ensayo y un PR en borrador que abre la persona usuaria a mano. La guía [ajustes-repositorio.md](ajustes-repositorio.md) deja redactados los comandos y las rondas. Por eso los escenarios `CA-10` esc. 2 y 3 en el pipeline no tienen todavía evidencia, y este ticket **no puede pasar a `LISTO PARA PR`** hasta que la tengan.
+**La fila B5 la ejecutó la persona dueña el 2026-10-29** (ver «Fila B5» abajo). **La fila B6**, el ensayo en el pipeline, la ejecutó la persona usuaria el mismo día con una rama de ensayo y un PR en borrador (ver «Fila B6»). La guía [ajustes-repositorio.md](ajustes-repositorio.md) dejó redactados los comandos y las rondas. Con ellas, todas las filas están hechas y el ticket queda listo para `/sdd-revisar`.
 
 ## Ajustes respecto al design
 
@@ -53,7 +53,7 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 | TC-18 | `test_tc18_*` (4, más mutantes) | **rechazo** (estático) | `CA-11` esc. 3, `CA-R3` | Nace en verde, ver abajo | PASA |
 | TC-R2a | `git diff` de `pyproject.toml` | regresión | `CA-R2` | `pip-audit --version` falla | `15 kept, 0 broken` |
 | TC-16, TC-17 | Manuales | **rechazo** | `CA-11` esc. 2, `CA-R3` esc. 2 | Empuje con un token revocado: aceptado, sin alerta | PASAN con un token activo sin permisos: `GH013` (B5) |
-| TC-11a, TC-11b | Ensayo en el pipeline | **rechazo** | `CA-10` esc. 2 y 3 | — | **Pendientes (B6)** |
+| TC-11a, TC-11b | Ensayo en el pipeline | **rechazo** | `CA-10` esc. 2 y 3 | — | PASAN: ronda 1 en rojo, ronda 2 en verde (B6) |
 
 **Los casos de TC-18 sobre el repositorio real nacen en verde, y se investigó.** El invariante ya se cumple: `.github/` solo tiene `workflows/ci.yml`, sin exclusiones ni `secrets.`. Para que no sean vacuos, el lector exige que `ci.yml` exista y sus mutantes sintéticos (`paths-ignore` con `.env.example`, un `secret_scanning.yml`, `secrets.X`) sí los ponen en rojo.
 
@@ -160,6 +160,54 @@ remote:            path: ensayo-secreto.txt:2
 
 Se pidió y se aprobó el cambio de orden: el token se creó activo y sin permisos, y se revoca justo después del empuje. Como el empuje se rechazó, el secreto no llegó a quedar en GitHub en el intento 2. En el intento 1 sí llegó la rama `ensayo/tkt-009b-secreto` con un token revocado; se borra al terminar el ensayo.
 
+#### Fila B6 · ensayo en el pipeline (lo ejecutó la persona usuaria)
+
+La rama `ensayo/tkt-009b-compuertas` y el PR en borrador [#7](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/7), hacia `tkt-009b-cadena-suministro`, se prepararon el 2026-10-29. Los tres commits se comprobaron antes en local, y los empujó la persona usuaria en dos tiempos para que cada ronda tuviera su propia ejecución. Las violaciones nunca se fusionan.
+
+**Comprobación local previa.** Ronda 1: el filtro sale con 1 y `npm audit --audit-level=high` sale con 1. Ronda 2: el filtro sale con 0 y `npm audit` sale con 0, informando un aviso moderado. `nanoid@3.1.30`, el candidato original, se descartó porque la base de avisos de GitHub le asigna tres avisos altos; lo sustituye `stream-json@3.6.0`, con un único aviso medio (`GHSA-jj87-hc4r-jwfw`).
+
+| Ronda | Commit | Ejecución | Resultado | Trabajo en rojo |
+|---|---|---|---|---|
+| 1 · `django==3.2` y `lodash@4.17.20` | `77e6fb2` | [40892962684](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40892962684) | `failure` | Solo `dependencias`; los otros ocho trabajos en verde |
+| 2 · revertida la ronda 1 y `stream-json@3.6.0` | `1d6e937` | [40893078834](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40893078834) | `success` | Ninguno; los nueve trabajos en verde |
+
+**Pasos del trabajo `dependencias`.**
+
+| Paso | Ronda 1 | Ronda 2 |
+|---|---|---|
+| Auditar Python con pip-audit | `success` (lleva `\|\| true`) | `success` |
+| Filtrar los hallazgos por severidad | **`failure`** | `success` |
+| Auditar npm | **`failure`** | `success` |
+
+**Extracto del paso «Filtrar los hallazgos por severidad», ronda 1:**
+
+```
+CRÍTICA  django 3.2  GHSA-xpfp-f569-q3p2 (CVE-2021-35042, BIT-django-2021-35042, PYSEC-2021-109) → falla el pipeline (RNF-08)
+ALTA  django 3.2  GHSA-53qw-q765-4fww (CVE-2021-45115, BIT-django-2021-45115, PYSEC-2022-1) → falla el pipeline (RNF-08)
+Hallazgos: 65 · que fallan el pipeline: 40
+##[error]Process completed with exit code 1.
+```
+
+**Extracto del paso «Auditar npm», ronda 1:**
+
+```
+lodash  <=4.17.23
+Severity: high
+4 vulnerabilities (3 low, 1 high)
+##[error]Process completed with exit code 1.
+```
+
+**Ronda 2, pasos «Filtrar los hallazgos por severidad» y «Auditar npm»:**
+
+```
+Sin vulnerabilidades en el informe de pip-audit.
+stream-json  2.0.0 - 3.6.0
+Severity: moderate
+4 vulnerabilities (3 low, 1 moderate)
+```
+
+El aviso moderado queda informado en el registro y el trabajo termina en verde (`CA-10` esc. 3). Ningún registro contiene `ghp_` ni `github_pat_`. El PR se cierra sin fusionar y la rama se borra al terminar la revisión.
+
 ## Modelo por paso
 
 | Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
@@ -182,7 +230,7 @@ Ningún paso subió de modelo. B5 la ejecuta la persona dueña y B6 queda para `
 | Criterio | Nivel | Estado | Evidencia |
 |---|---|---|---|
 | `CA-10` esc. 1 | `[M]` | Cumplido | TC-35 y TC-14; la cadena real da código 0 |
-| `CA-10` esc. 2 y 3 | `[M]` | **Parcial** | TC-30 a TC-34 en verde; falta el ensayo en el pipeline (B6, TC-11a y TC-11b) |
+| `CA-10` esc. 2 y 3 | `[M]` | Cumplido | TC-30 a TC-34 en verde; ensayo en el pipeline: ronda 1 en rojo y ronda 2 en verde con el aviso informado (B6, TC-11a y TC-11b) |
 | `CA-11` esc. 1 y 3 | `[M]` | Cumplido | TC-15 y TC-18 |
 | `CA-11` esc. 2 | `[M]` | Cumplido | Consulta de `gh api` con los dos ajustes en `enabled`; empuje de ensayo rechazado con `GH013` (B5, TC-16 y TC-17) |
 | `CA-R2` | `[M]` | Cumplido | El diff de `pyproject.toml` es una línea del grupo `dev`; `15 kept, 0 broken` |
@@ -190,7 +238,7 @@ Ningún paso subió de modelo. B5 la ejecuta la persona dueña y B6 queda para `
 | `CA-R4` | `[M]` | Cumplido | La suite de `tools/` pasa de 178 a 247 pruebas sin quitar ninguna ni añadir `skip` |
 | `CA-15` su parte | `[M]` | Cumplido | `docs/06` §6.4 y los textos de la auditoría; TC-70b sin marcas que retirar |
 
-Un Must incumplido **no se aprueba**: `CA-10` esc. 2 y 3 sigue parcial hasta el ensayo de B6, y bloquea el paso a `LISTO PARA PR`.
+Un Must incumplido **no se aprueba**. Con B5 y B6 hechas, no queda ningún Must pendiente.
 
 ## Auditorías
 
@@ -224,13 +272,13 @@ Observaciones del auditor que no bloquean: `_aviso_ghsa` solo consulta el primer
 | `docs/06-stack-tecnologico.md` | §6.4 con la política y la nota de `.env.example`; §10 con el trabajo `dependencias` |
 | `docs/arranque-local.md`, `tools/README.md` | Auditoría de dependencias en local y sección de `severidad_pip_audit.py` |
 | `docs/05-tickets-trabajo.md` | Enlace al ADR en la ficha de TKT-009b |
-| `sdd/tickets/tkt-009/design.md` | B1 a B4 y B7 en `✓ Hecho`; B5 y B6 en `Pendiente` |
+| `sdd/tickets/tkt-009/design.md` | B1 a B7 en `✓ Hecho` |
 
 `python tools/verificar_docs.py` → `✓ Sin problemas.`
 
 ## Verificación final
 
-- [ ] Todos los criterios `[M]` cumplidos con evidencia: **faltan `CA-10` esc. 2 y 3 en el pipeline (B6)**
+- [x] Todos los criterios `[M]` cumplidos con evidencia
 - [x] Ciclo TDD completo en cada fila ejecutable por un agente: rojo antes de verde, ningún test editado por un desarrollador
 - [x] Suite en verde, con la salida pegada arriba (247 pruebas de `tools/`)
 - [x] ≥1 test de rechazo por regla implicada
