@@ -6,10 +6,9 @@ JSON, toma la severidad del aviso de GitHub (`GHSA-…`) consultando OSV en `dat
 ante `HIGH`, `CRITICAL` o severidad desconocida. `LOW` y `MODERATE` se informan y no fallan.
 
 Un hallazgo puede tener varios `GHSA` (el `id` y sus alias). Se consulta cada `GHSA` distinto una sola vez y gana
-el peor (`CRITICAL` > `HIGH` > `DESCONOCIDA` > `MODERATE` > `LOW`): basta un `GHSA` que falle para que falle el
-hallazgo (al primero `HIGH` o `CRITICAL` se deja de consultar). Entre `HIGH` y `CRITICAL` gana el primero que
-aparezca, porque al primero se deja de consultar. Una consulta sin severidad válida es
-`DESCONOCIDA`. Sin ningún `GHSA` no hay nada que consultar: el hallazgo es `DESCONOCIDA` y falla (fallo cerrado).
+el peor de los consultados (`CRITICAL` > `HIGH` > `DESCONOCIDA` > `MODERATE` > `LOW`): basta un `GHSA` que falle
+para que falle el hallazgo (al primero `HIGH` o `CRITICAL` se deja de consultar). Entre `HIGH` y `CRITICAL` gana
+el primero que aparezca, porque al primero se deja de consultar. Una consulta sin severidad válida es `DESCONOCIDA`. Sin ningún `GHSA` no hay nada que consultar: el hallazgo es `DESCONOCIDA` y falla (fallo cerrado).
 
 Uso, desde la raíz del repositorio:
     python tools/severidad_pip_audit.py <ruta del informe JSON de pip-audit>
@@ -57,7 +56,8 @@ TOPE_RESPUESTA_OSV = 1_000_000  # bytes
 class Hallazgo:
     """Una vulnerabilidad de `pip-audit` con su severidad (RNF-08).
 
-    `aviso` es el `GHSA-…` que decidió la severidad (el de la peor), o `None` si el hallazgo no tiene ninguno. `alias` son los alias del aviso de
+    `aviso` es el `GHSA-…` que decidió la severidad (el de la peor, salvo entre `HIGH` y `CRITICAL`, donde gana el
+    primero que aparezca), o `None` si el hallazgo no tiene ninguno. `alias` son los alias del aviso de
     `pip-audit` tal como llegan; no entra en la igualdad, que solo mira lo que decide el filtro.
     """
 
@@ -142,7 +142,8 @@ def _severidad_de(respuesta: object) -> str:
 
 
 def _peor(avisos: list[str], consultar: Callable[[str], object]) -> tuple[str | None, str]:
-    """Consulta cada GHSA una vez y devuelve el que tiene la peor severidad, con esa severidad (RNF-08).
+    """Consulta cada GHSA una vez y devuelve el que tiene la peor severidad, salvo entre `HIGH` y `CRITICAL`, donde gana el
+    primero, con esa severidad (RNF-08).
 
     Ante un empate gana el primero. En cuanto un GHSA da `HIGH` o `CRITICAL` el hallazgo ya falla y no se consultan
     los siguientes. Sin GHSA devuelve `(None, DESCONOCIDA)` sin consultar.

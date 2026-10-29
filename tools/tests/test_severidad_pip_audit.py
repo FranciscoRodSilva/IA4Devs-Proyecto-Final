@@ -1239,8 +1239,8 @@ class TestMutantesDeLaRespuestaDeOsv(PruebaBase):
 class TestMutantesDeLaSalida(PruebaBase):
     """Mutantes 8, 9 y 10: el resumen, la URL consultada y el paréntesis de alias, con el texto exacto."""
 
-    def test_ca10_a3_la_linea_de_resumen_afirma_los_dos_numeros_exactos(self) -> None:
-        """RNF-08 · CA-10 — 3 hallazgos, 2 que fallan: `Hallazgos: 3 · que fallan el pipeline: 2`, en ese orden."""
+    def test_ca10_esc02_la_linea_de_resumen_afirma_los_dos_numeros_exactos(self) -> None:
+        """RNF-08 · CA-10 esc. 2 — 3 hallazgos, 2 que fallan: `Hallazgos: 3 · que fallan el pipeline: 2`, en ese orden."""
         ruta = self.escribir_informe(
             informe_con(
                 dependencia("flask", "2.0", [vulnerabilidad(GHSA_ALTA, [])]),
@@ -1261,8 +1261,8 @@ class TestMutantesDeLaSalida(PruebaBase):
         self.assertEqual(1, codigo)
         self.assertEqual("Hallazgos: 3 · que fallan el pipeline: 2", lineas[-1])
 
-    def test_ca10_a3_la_linea_de_resumen_sin_fallos_dice_cero(self) -> None:
-        """RNF-08 · CA-10 — 2 hallazgos y ninguno falla: `Hallazgos: 2 · que fallan el pipeline: 0` y exit 0."""
+    def test_ca10_esc03_la_linea_de_resumen_sin_fallos_dice_cero(self) -> None:
+        """RNF-08 · CA-10 esc. 3 — 2 hallazgos y ninguno falla: `Hallazgos: 2 · que fallan el pipeline: 0` y exit 0."""
         ruta = self.escribir_informe(
             informe_con(
                 dependencia("flask", "2.0", [vulnerabilidad(GHSA_BAJA, [])]),
@@ -1496,7 +1496,7 @@ class TestDesconocidaPesaMasQueModerate(PruebaBase):
 class TestSeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
     """F008 · `Hallazgo.aviso` es el GHSA que decidió la severidad: el primero en un empate, y solo se corta en HIGH o CRITICAL."""
 
-    def test_ca10_esc03_empate_de_dos_ghsa_low_conserva_el_primero_como_aviso_y_consulta_los_dos(
+    def test_ca10_a3_empate_de_dos_ghsa_low_conserva_el_primero_como_aviso_y_consulta_los_dos(
         self,
     ) -> None:
         """RNF-08 · CA-10 — [LOW, LOW]: gana el primero (`<`, no `<=`); LOW no corta, así que se consulta también el segundo."""
@@ -1512,7 +1512,7 @@ class TestSeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
         self.assertEqual("LOW", hallazgos[0].severidad)
         self.assertEqual([GHSA_BAJA, GHSA_OTRO], osv.consultas)
 
-    def test_ca10_esc02_ghsa_sin_severidad_y_despues_high_no_corta_y_el_aviso_es_el_segundo(
+    def test_ca10_a3_ghsa_sin_severidad_y_despues_high_no_corta_y_el_aviso_es_el_segundo(
         self,
     ) -> None:
         """RNF-08 · CA-10 — [sin severidad, HIGH]: DESCONOCIDA no corta la consulta; gana el HIGH y su GHSA es el aviso."""
@@ -1548,7 +1548,7 @@ class TestSeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
 class TestBordesDelPrefijoGhsaYDelTopeDeLectura(PruebaBase):
     """Observaciones baratas del auditor: reconocimiento del prefijo GHSA y borde exacto del tope de lectura."""
 
-    def test_ca10_esc02_un_ghsa_en_minusculas_no_se_reconoce_no_se_consulta_y_es_desconocida(
+    def test_ca10_a3_un_ghsa_en_minusculas_no_se_reconoce_no_se_consulta_y_es_desconocida(
         self,
     ) -> None:
         """RNF-08 · CA-10 — `ghsa-abcd-efgh-ijkl` no es un GHSA (el prefijo distingue mayúsculas): sin consulta, DESCONOCIDA, exit 1."""
@@ -1585,7 +1585,7 @@ class TestBordesDelPrefijoGhsaYDelTopeDeLectura(PruebaBase):
         ):
             modulo.consultar_osv(GHSA_ALTA)
 
-    def test_ca10_esc02_un_id_con_el_texto_ghsa_pegado_sin_guion_no_es_un_ghsa(self) -> None:
+    def test_ca10_a3_un_id_con_el_texto_ghsa_pegado_sin_guion_no_es_un_ghsa(self) -> None:
         """RNF-08 · CA-10 — `GHSAabcd` no lleva el guion del prefijo `GHSA-`: no se consulta y el hallazgo es DESCONOCIDA."""
         modulo = self.sev()
         osv = OsvFalso(por_omision=respuesta_osv("LOW"))

@@ -475,6 +475,7 @@ La de **Fundación**, más el genérico de [`sdd/metodologia.md` §8](../../../s
 | `A-9` | **Python 3.14 en CI**, como fija `PA-T10`, aunque `requires-python` sea `>=3.13` y `mypy` apunte a 3.13 `(asumido)` | Un fallo solo en 3.13 no se detectaría | Heredada de TKT-008 |
 | `A-10` | **El paraguas TKT-008 sigue «EN CURSO»** aunque sus tres partes están archivadas | Dependencia nominal sin cerrar | Abierta: cerrarlo en `/sdd-completar` o antes |
 | `A-11` | **`Vale` con estilo de inglés sobre prosa en español** (`docs/convenciones.md`, §12) `(asumido)`: el diseño elige las reglas que sirven al español | Falsos positivos masivos | Abierta |
+| `A-12` | **¿Se acepta que el filtro deje de consultar al primer `GHSA` `HIGH` o `CRITICAL` de un hallazgo, aunque otro `GHSA` del mismo hallazgo sea más grave?** `(asumido)` Solo cambia la etiqueta (`ALTA` en lugar de `CRÍTICA`); el código de salida es el mismo | Una etiqueta menos grave que la real en el registro del paso; el pipeline falla igual | Abierta, para quien aprueba la revisión de TKT-009b |
 
 ## Pasada adversarial
 

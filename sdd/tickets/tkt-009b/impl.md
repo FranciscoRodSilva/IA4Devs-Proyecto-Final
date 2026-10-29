@@ -13,16 +13,16 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 | Fecha | Cambio | Motivo |
 |---|---|---|
 | 2026-10-28 | `Hallazgo` lleva un sexto campo, `alias`, con `compare=False` | Imprimir «(CVE-…, PYSEC-…)» sin romper la igualdad de cinco argumentos que fijan las pruebas |
-| 2026-10-28 | Una severidad de OSV desconocida o ausente es `DESCONOCIDA` y falla | Extiende el fallo cerrado de `A-3` a valores no reconocidos |
+| 2026-10-28 | Una severidad de OSV desconocida o ausente es `DESCONOCIDA` y falla | Extiende el fallo cerrado de `A-3` a valores no reconocidos `(asumido)` |
 | 2026-10-28 | `consultar_osv` codifica el identificador con `quote(..., safe="")` | Un identificador con caracteres especiales no altera la URL |
 | 2026-10-28 | `comprobar_regla_comun_7` admite el `\|\| true` de `uv run pip-audit` en el trabajo `dependencias` | El diseño pide ese `\|\| true` y a la vez prohíbe todo el resto; la excepción está acotada y tiene sus pruebas |
 | 2026-10-28 | Las pruebas de Dependabot viven en `tools/tests/test_definicion_dependabot.py` | `test_definicion_ci.py` ya pasa de 3100 líneas |
-| 2026-10-28 | Los tests en rojo de B2, B3 y B4 los escribe `tester-backend` (`sonnet`), no `ingeniero-devsecops` (`haiku`) | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
+| 2026-10-28 | Los tests en rojo de B2, B3 y B4 los escribe `tester-backend` (`sonnet`), no `ingeniero-devsecops` (`haiku`) | La convención de TDD de «Convenciones de código» de `CLAUDE.md` dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | 2026-10-28 | El trabajo `dependencias` no ejecuta `npm ci` | `npm audit` lee `package-lock.json`; se comprobó que sale igual sin `node_modules` |
 | 2026-10-28 | Fecha del ADR: 20261029 | La mayor entre hoy y la del ADR más reciente |
 | 2026-10-29 | Orden del token en B5: se crea activo y sin permisos y se revoca después del empuje | El primer intento no fue concluyente; solo el token activo se probó (GH013) |
 | 2026-10-29 | B6 usa stream-json@3.6.0 en lugar de nanoid@3.1.30 | Ese candidato tiene tres avisos altos en la base de avisos de GitHub |
-| 2026-10-29 | `Hallazgo.aviso` pasa de «el primer GHSA» a «el GHSA que fija la severidad: el peor de los consultados, con corte en el primer HIGH o CRITICAL» | El primer GHSA dejaba pasar en verde un aviso con un segundo GHSA alto (fallo abierto, hallazgo R-F001 de código); lo decide la corrección, y la persona que aprueba debe confirmarlo |
+| 2026-10-29 | `Hallazgo.aviso` pasa de «el primer GHSA» a «el GHSA que fija la severidad: el peor de los consultados, con corte en el primer HIGH o CRITICAL» | El primer GHSA dejaba pasar en verde un aviso con un segundo GHSA alto (fallo abierto, hallazgo R-COD-F001 de código); lo decide la corrección, y la persona que aprueba debe confirmarlo (pregunta abierta `A-12` de la [spec](../tkt-009/spec.md)) |
 
 ## Archivos tocados
 
@@ -62,7 +62,7 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 
 **Los casos de TC-18 sobre el repositorio real nacen en verde, y se investigó.** El invariante ya se cumple: `.github/` solo tiene `workflows/ci.yml`, sin exclusiones ni `secrets.`. Para que no sean vacuos, el lector exige que `ci.yml` exista y sus mutantes sintéticos (`paths-ignore` con `.env.example`, un `secret_scanning.yml`, `secrets.X`) sí los ponen en rojo.
 
-**Cifras tras los ciclos 1 a 3 de revisión.** `tools/tests/test_severidad_pip_audit.py` tiene 78 pruebas (30 `test_tc` originales, 47 de la revisión —40 del ciclo 1 y 7 del ciclo 2— y 1 del ciclo 3) y `tools/tests` suma 295, de las cuales 24 son de Dependabot. El ciclo 1 añadió el módulo auxiliar `tools/tests/_ayudantes.py` y tocó `tools/tests/test_definicion_ci.py`, `tools/tests/test_definicion_dependabot.py` y `tools/tests/test_severidad_pip_audit.py`. El filtro evalúa ahora todos los `GHSA` de un hallazgo, captura también `http.client.HTTPException` y `RecursionError`, valida que los alias sean cadenas, lee a lo sumo 1.000.000 de bytes de la respuesta de OSV y pasa `mypy --strict`.
+**Cifras tras los ciclos 1 a 3 de revisión.** `tools/tests/test_severidad_pip_audit.py` tiene 78 pruebas (30 `test_tc` originales y 48 `test_ca10_*` añadidas en la revisión: 40, 7 y 1 de los ciclos 1, 2 y 3; por prefijo, 2 `test_ca10_esc01_`, 12 `test_ca10_esc02_`, 2 `test_ca10_esc03_` y 32 `test_ca10_a3_`) y `tools/tests` suma 295, de las cuales 24 son de Dependabot. El ciclo 1 añadió el módulo auxiliar `tools/tests/_ayudantes.py` y tocó `tools/tests/test_definicion_ci.py`, `tools/tests/test_definicion_dependabot.py` y `tools/tests/test_severidad_pip_audit.py`. El filtro evalúa ahora todos los `GHSA` de un hallazgo, captura también `http.client.HTTPException` y `RecursionError`, valida que los alias sean cadenas, lee a lo sumo 1.000.000 de bytes de la respuesta de OSV y pasa `mypy --strict`.
 
 ### Ciclo TDD por fila
 
@@ -221,17 +221,17 @@ El aviso moderado queda informado en el registro y el trabajo termina en verde (
 |---|---|---|---|---|
 | Rama | `git-entrega` | `haiku` | `haiku` | — |
 | B1 | `ingeniero-devsecops` | `haiku` | `haiku` | — |
-| B2 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
+| B2 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La convención de TDD de «Convenciones de código» de `CLAUDE.md` dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | B2 · verde | `ingeniero-devsecops` | `haiku` | `haiku` | — |
 | B2 · mutación | `tester-backend` | `sonnet` | `sonnet` | — |
-| B3 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
+| B3 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La convención de TDD de «Convenciones de código» de `CLAUDE.md` dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | B3 · verde | `ingeniero-devsecops` | `haiku` | `haiku` | — |
-| B4 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
+| B4 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La convención de TDD de «Convenciones de código» de `CLAUDE.md` dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | B4 · verde | `ingeniero-devsecops` | `haiku` | `haiku` | — |
 | B7 | `ingeniero-devsecops` | `haiku` | `haiku` | — |
 | Auditoría de arquitectura y corrección | `auditor-arquitectura`, `corrector-revision` | `sonnet`, `haiku` | `sonnet`, `haiku` | — |
 
-Tres pasos subieron de modelo: el rojo de B2, B3 y B4 pasó de `haiku` a `sonnet` al encargarse a `tester-backend`, por la regla 6 de `CLAUDE.md` que consta en «Ajustes respecto al design». Ningún paso subió de modelo por no cerrar tras dos intentos. B5 y B6 las ejecutaron personas, no agentes; la fila B6 del diseño asignaba `git-entrega` y no se usó.
+Tres pasos subieron de modelo: el rojo de B2, B3 y B4 pasó de `haiku` a `sonnet` al encargarse a `tester-backend`, por la convención de TDD de «Convenciones de código» de `CLAUDE.md` que consta en «Ajustes respecto al design». Ningún paso subió de modelo por no cerrar tras dos intentos. B5 y B6 las ejecutaron personas, no agentes; la fila B6 del diseño asignaba `git-entrega` y no se usó.
 
 ## Resultado contra los criterios de aceptación
 
@@ -284,34 +284,46 @@ Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `
 | `zizmor@1.31.1 --offline` | `No findings` |
 | `verificar_escenarios` | exigidos 0, cubiertos 0, faltan 0, pendientes 162 (ninguna historia activa) |
 
-**Auditorías de la revisión, por ciclo.** Los identificadores de la revisión llevan el prefijo `R-` (R-F001…) y cada fila indica auditor y ciclo, para no confundirlos con F001 a F004 de la ejecución. Nada de lo que sigue es un veredicto definitivo: son hechos fechados el 2026-10-29, y el ciclo 3 espera su reauditoría.
+**Auditorías de la revisión, por ciclo.** Los identificadores de la revisión llevan el prefijo `R-` y el del auditor (`R-ARQ-`, `R-COD-`, `R-SEG-`, `R-DOC-`), de modo que ninguno se repite entre auditores ni se confunde con F001 a F004 de la ejecución. Los auditores numeran por su cuenta en cada pasada y la reauditoría 3 reutilizó F002 y F003 de arquitectura, así que esos identificadores llevan el sufijo `-r3`. Nada de lo que sigue es un veredicto definitivo: son hechos fechados el 2026-10-29, y el ciclo 3 espera su verificación.
 
-* **Auditoría inicial de la revisión.** Arquitectura `REQUIERE CAMBIOS` (R-F003 y R-F004, Menores). Código `REQUIERE CAMBIOS`: R-F001 y R-F002 Mayores (fallo abierto con varios `GHSA` y `HTTPException` sin capturar), R-F004 Mayor (13 mutantes vivos), R-F003, R-F005 y R-F006 Menores. Seguridad `REQUIERE CAMBIOS`: R-F001 y R-F002 `MEDIA`, R-F003 a R-F007 `BAJA`. Documentación `REQUIERE CAMBIOS`: R-F001 y R-F002 Mayores, R-F003 a R-F010 Menores.
+* **Auditoría inicial de la revisión.** Arquitectura `REQUIERE CAMBIOS` (R-ARQ-F003 y R-ARQ-F004, Menores). Código `REQUIERE CAMBIOS`: R-COD-F001 y R-COD-F002 Mayores (fallo abierto con varios `GHSA` y `HTTPException` sin capturar), R-COD-F004 Mayor (13 mutantes vivos), R-COD-F003, R-COD-F005 y R-COD-F006 Menores. Seguridad `REQUIERE CAMBIOS`: R-SEG-F001 y R-SEG-F002 `MEDIA`, R-SEG-F003 a R-SEG-F007 `BAJA`. Documentación `REQUIERE CAMBIOS`: R-DOC-F001 y R-DOC-F002 Mayores, R-DOC-F003 a R-DOC-F010 Menores.
 * **Ciclo 1 de corrección.** Pruebas en rojo en `25ac431` (25 fallos del ejecutor, subpruebas incluidas, de 16 métodos), código en `c94ceb4` y documentación en `5d6c7c4`.
-* **Ciclo 1 de reauditoría.** Seguridad `APROBADO`, sin hallazgos que bloqueen; queda la tarea de la persona dueña de borrar la rama remota `ensayo/tkt-009b-secreto`, que no contiene token. Código `REQUIERE CAMBIOS`: R-F007 Mayor (huecos de prueba del orden de severidades), R-F008 y R-F009 Menores. Arquitectura `REQUIERE CAMBIOS`: N1 (renombrar las pruebas por escenario) y N2 (las tablas de esta sección). Documentación `REQUIERE CAMBIOS`: R-F011 Mayor y R-F012 a R-F016.
+* **Ciclo 1 de reauditoría.** Seguridad `APROBADO`, sin hallazgos que bloqueen; queda la tarea de la persona dueña de borrar la rama remota `ensayo/tkt-009b-secreto`, que no contiene token. Código `REQUIERE CAMBIOS`: R-COD-F007 Mayor (huecos de prueba del orden de severidades), R-COD-F008 y R-COD-F009 Menores. Arquitectura `REQUIERE CAMBIOS`: R-ARQ-N1 (renombrar las pruebas por escenario) y R-ARQ-N2 (las tablas de esta sección). Documentación `REQUIERE CAMBIOS`: R-DOC-F011 Mayor y R-DOC-F012 a R-DOC-F016.
 * **Ciclo 2 de corrección.** `039b5d4` (7 pruebas nuevas del orden de severidades, los empates y los bordes del tope) y `ad7e261` (pruebas nombradas por escenario y documentación al día).
-* **Ciclo 2 de reauditoría.** Código `REQUIERE CAMBIOS`: N1 Menor (no se fijaba qué `GHSA` decide en un hallazgo `DESCONOCIDA`) y las observaciones O1 a O3. Arquitectura `REQUIERE CAMBIOS`: N3 a N6, Menores. Documentación `REQUIERE CAMBIOS`: R-F011 persiste y R-F017, R-F018 y R-F019 son Mayores; R-F020 es Menor.
-* **Ciclo 3 de corrección** (`e77d91b` y esta pasada de documentación): pendiente de reauditoría. Seguridad no se reaudita en el ciclo 3, porque solo cambiaron documentación y nombres de pruebas.
+* **Ciclo 2 de reauditoría.** Código `REQUIERE CAMBIOS`: R-COD-N1 Menor (no se fijaba qué `GHSA` decide en un hallazgo `DESCONOCIDA`) y las observaciones R-COD-O1 a R-COD-O3. Arquitectura `REQUIERE CAMBIOS`: R-ARQ-N3 a R-ARQ-N6, Menores. Documentación `REQUIERE CAMBIOS`: R-DOC-F011 persiste y R-DOC-F017, R-DOC-F018 y R-DOC-F019 son Mayores; R-DOC-F020 es Menor.
+* **Ciclo 3 de corrección** (`e77d91b` y esta pasada de documentación). La reauditoría 3 aportó R-DOC-F021 (Mayor), R-DOC-F022 y R-DOC-F024 (Menores), R-ARQ-F002-r3 y R-ARQ-F003-r3, la observación R-ARQ-O-a-r3, la observación R-DOC-O-A-r3 y las observaciones de código R-COD-O4 y R-COD-O5. Esta pasada de documentación los atiende (tabla siguiente) y sigue pendiente de verificación.
+* **Estado de seguridad.** Su reauditoría fue la del ciclo 1 y dio `APROBADO`, sin hallazgos que bloqueen. No se reauditó tras los ciclos 2 y 3 porque solo cambiaron documentación, nombres de pruebas y una prueba nueva (`test_ca10_esc02_empate_de_dos_ghsa_sin_severidad_conserva_el_primero_como_aviso`), y el código de producción del filtro no cambió desde `c94ceb4` salvo docstrings.
+* **Docstrings.** Los docstrings de `Hallazgo.aviso`, de `_peor` y del módulo de `tools/severidad_pip_audit.py` se ajustaron en el ciclo 3 y se commitean con esta pasada; no cambia ninguna línea de lógica.
 
 | Auditor · ciclo | ID | Severidad | Hallazgo | Estado |
 |---|---|---|---|---|
-| código · reauditoría 1 | R-F007 | Mayor | Huecos de prueba del orden de severidades | Resuelto en el ciclo 2 (`039b5d4`) |
-| código · reauditoría 1 | R-F008, R-F009 | Menor | Menores de código | Resuelto en el ciclo 2 (`039b5d4`) |
-| código · reauditoría 2 | N1 | Menor | No se fijaba qué `GHSA` decide en un hallazgo `DESCONOCIDA` | Resuelto en el ciclo 3 (`e77d91b`); pendiente de reauditoría |
-| código · reauditoría 2 | O1 | Observación | El docstring del módulo no decía quién gana entre `HIGH` y `CRITICAL` | Resuelto en el ciclo 3; pendiente de reauditoría |
-| código · reauditoría 2 | O2, O3 | Observación | Observaciones que no bloquean | Pendiente de reauditoría |
-| arquitectura · reauditoría 1 | N1 | Menor | Renombrar las pruebas por escenario | Resuelto en el ciclo 2 (`ad7e261`) y completado en el ciclo 3; pendiente de reauditoría |
-| arquitectura · reauditoría 1 | N2 | Menor | Las tablas de esta sección | Resuelto en el ciclo 2; pendiente de reauditoría |
-| arquitectura · reauditoría 2 | N3 | Menor | Un veredicto de reauditoría presentado como definitivo o anticipado | Resuelto en el ciclo 3 con esta reescritura; pendiente de reauditoría |
-| arquitectura · reauditoría 2 | N4 | Menor | Renombrado de las pruebas de robustez | Lo hace otro agente en el ciclo 3; pendiente de reauditoría |
-| arquitectura · reauditoría 2 | N5 | Menor | Cambio de `Hallazgo.aviso` sin constar en «Ajustes respecto al design» | Resuelto en el ciclo 3; pendiente de reauditoría |
-| arquitectura · reauditoría 2 | N6 | Menor | Cifras (`verificar_escenarios`, cuatro Menores, «25 en rojo») e identificadores repetidos | Resuelto en el ciclo 3; pendiente de reauditoría |
-| docs · reauditoría 1 | R-F011 | Mayor | La línea de `aviso` del diseño no describía el GHSA que fija la severidad | Persistía tras el ciclo 2; resuelto en el ciclo 3, pendiente de reauditoría |
-| docs · reauditoría 1 | R-F012 a R-F016 | Menor | Menores de documentación | Resuelto en el ciclo 2 (`ad7e261`); no figuran entre los hallazgos de la reauditoría 2 |
-| docs · reauditoría 2 | R-F017 | Mayor | «Modelo por paso» omitía que tres pasos subieron de modelo | Resuelto en el ciclo 3; pendiente de reauditoría |
-| docs · reauditoría 2 | R-F018 | Mayor | Veredictos de reauditoría presentados como definitivos | Resuelto en el ciclo 3; pendiente de reauditoría |
-| docs · reauditoría 2 | R-F019 | Mayor | Cifras de la suite desactualizadas | Resuelto en el ciclo 3; pendiente de reauditoría |
-| docs · reauditoría 2 | R-F020 | Menor | El ADR no decía que el filtro consulta hasta el primer `HIGH` o `CRITICAL` | Resuelto en el ciclo 3; pendiente de reauditoría |
+| código · reauditoría 1 | R-COD-F007 | Mayor | Huecos de prueba del orden de severidades | Resuelto, deducido de su ausencia en la reauditoría siguiente; no verificado uno a uno |
+| código · reauditoría 1 | R-COD-F008, R-COD-F009 | Menor | Menores de código | Resuelto, deducido de su ausencia en la reauditoría siguiente; no verificado uno a uno |
+| código · reauditoría 2 | R-COD-N1 | Menor | No se fijaba qué `GHSA` decide en un hallazgo `DESCONOCIDA` | Resuelto en el ciclo 3 (`e77d91b`); pendiente de verificación |
+| código · reauditoría 2 | R-COD-O1 | Observación | El docstring del módulo no decía quién gana entre `HIGH` y `CRITICAL` | Resuelto en el ciclo 3; pendiente de verificación |
+| código · reauditoría 2 | R-COD-O2 | Observación | El mutante `PREFIJO_GHSA in valor` en lugar de `startswith` es equivalente en la práctica | No bloquea; sin acción |
+| código · reauditoría 2 | R-COD-O3 | Observación | El número de escenario en el nombre de las pruebas de robustez era aproximado | Resuelto con el renombrado a `test_ca10_a3_*`; pendiente de verificación |
+| código · reauditoría 3 | R-COD-O4 | Observación | Docstrings sin «esc. N» en cuatro pruebas | Resuelto con el renombrado o queda como observación que no bloquea |
+| código · reauditoría 3 | R-COD-O5 | Observación | Prueba opcional para la pareja `HIGH`, `CRITICAL` | Resuelto con el renombrado o queda como observación que no bloquea |
+| arquitectura · reauditoría 1 | R-ARQ-N1 | Menor | Renombrar las pruebas por escenario | Resuelto en el ciclo 2 (`ad7e261`) y completado en el ciclo 3; pendiente de verificación |
+| arquitectura · reauditoría 1 | R-ARQ-N2 | Menor | Las tablas de esta sección | Resuelto en el ciclo 2; pendiente de verificación |
+| arquitectura · reauditoría 2 | R-ARQ-N3 | Menor | Un veredicto de reauditoría presentado como definitivo o anticipado | Resuelto en el ciclo 3 con esta reescritura; pendiente de verificación |
+| arquitectura · reauditoría 2 | R-ARQ-N4 | Menor | Renombrado de las pruebas de robustez | Lo hace otro agente en el ciclo 3; pendiente de verificación |
+| arquitectura · reauditoría 2 | R-ARQ-N5 | Menor | Cambio de `Hallazgo.aviso` sin constar en «Ajustes respecto al design» | Resuelto en el ciclo 3; pendiente de verificación |
+| arquitectura · reauditoría 2 | R-ARQ-N6 | Menor | Cifras (`verificar_escenarios`, cuatro Menores, «25 en rojo») e identificadores repetidos | Resuelto en el ciclo 3; pendiente de verificación |
+| arquitectura · reauditoría 3 | R-ARQ-F002-r3 | Menor | Identificadores repetidos entre auditores en la sección de revisión | Resuelto con los prefijos de esta sección; pendiente de verificación |
+| arquitectura · reauditoría 3 | R-ARQ-F003-r3 | Menor | Constancia de los docstrings de `Hallazgo.aviso` y `_peor` ajustados en el ciclo 3 | Resuelto: ajustados y commiteados, sin cambio de lógica; pendiente de verificación |
+| arquitectura · reauditoría 3 | R-ARQ-O-a-r3 | Observación | Faltaba `(asumido)` en la consecuencia de `DESCONOCIDA` y código 2 | Resuelto en el ADR y en «Ajustes respecto al design»; pendiente de verificación |
+| docs · reauditoría 1 | R-DOC-F011 | Mayor | La línea de `aviso` del diseño no describía el GHSA que fija la severidad | Persistía tras el ciclo 2; resuelto en el ciclo 3, pendiente de verificación |
+| docs · reauditoría 1 | R-DOC-F012 a R-DOC-F016 | Menor | Menores de documentación | Resuelto, deducido de su ausencia en la reauditoría siguiente; no verificado uno a uno |
+| docs · reauditoría 2 | R-DOC-F017 | Mayor | «Modelo por paso» omitía que tres pasos subieron de modelo | Resuelto en el ciclo 3; pendiente de verificación |
+| docs · reauditoría 2 | R-DOC-F018 | Mayor | Veredictos de reauditoría presentados como definitivos | Resuelto en el ciclo 3; pendiente de verificación |
+| docs · reauditoría 2 | R-DOC-F019 | Mayor | Cifras de la suite desactualizadas | Resuelto en el ciclo 3; pendiente de verificación |
+| docs · reauditoría 2 | R-DOC-F020 | Menor | El ADR no decía que el filtro consulta hasta el primer `HIGH` o `CRITICAL` | Resuelto en el ciclo 3; pendiente de verificación |
+| docs · reauditoría 3 | R-DOC-F021 | Mayor | El corte en el primer `HIGH` o `CRITICAL` cambia el diseño aprobado y no estaba marcado | Resuelto: `(asumido)` en el diseño y pregunta abierta `A-12` en la spec, citada en el ADR; pendiente de verificación |
+| docs · reauditoría 3 | R-DOC-F022 | Menor | «La regla 6 de `CLAUDE.md`» citaba una regla que es otra cosa | Resuelto: ahora cita la convención de TDD de «Convenciones de código»; pendiente de verificación |
+| docs · reauditoría 3 | R-DOC-F024 | Menor | «Solo cambiaron documentación y nombres de pruebas» no era exacto | Resuelto con el texto del ciclo 3 y el estado de seguridad; pendiente de verificación |
+| docs · reauditoría 3 | R-DOC-O-A-r3 | Observación | El docstring del módulo decía «gana el peor» sin acotarlo a los consultados | Resuelto: «gana el peor de los consultados»; pendiente de verificación |
 
 **Nombres de las pruebas del filtro.** Las pruebas de robustez del filtro (errores de lectura o de consulta con código 2, formas inválidas, tope de lectura, codificación y formato) se nombran `test_ca10_a3_*`, y solo las que afirman un escenario de `CA-10` llevan `test_ca10_escNN_*`.
 
@@ -342,11 +354,20 @@ Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `
 
 - [x] Todos los criterios `[M]` cumplidos con evidencia
 - [x] Ciclo TDD completo en cada fila ejecutable por un agente: rojo antes de verde, ningún test editado por un desarrollador
-- [x] Suite en verde, con la salida pegada arriba (295 pruebas de `tools/` tras los ciclos 1 a 3 de la revisión)
+- [x] Suite en verde, con la salida pegada arriba (backend `1138 passed`; 295 pruebas de `tools/` tras los tres ciclos de la revisión)
 - [x] ≥1 test de rechazo por regla implicada
 - [x] Mutación en las rutas críticas del filtro y de la comprobación `comprobar_tc14`
-- [ ] Todas las auditorías `APROBADO`: la de arquitectura quedó en `REQUIERE CAMBIOS` en su último veredicto formal, con los cuatro Menores (F001 a F004 de la ejecución) corregidos y la observación O3 en pie; falta además `/sdd-revisar`
-- [x] Sin hallazgo crítico o mayor pendiente
+- [ ] Todas las auditorías `APROBADO`: **no**. Seguridad quedó en `APROBADO` en su reauditoría del ciclo 1. Código, arquitectura y documentación quedaron en `REQUIERE CAMBIOS` en la reauditoría del ciclo 3 (código y arquitectura con Menores; documentación con un Mayor, la marca `(asumido)` y la pregunta abierta sobre el corte). Los textos literales que pidieron se aplicaron después, con la suite y `verificar_docs.py` en verde, **sin una reauditoría formal**, porque los tres ciclos de corrección ya estaban agotados
+- [x] Sin hallazgo crítico pendiente. El Mayor documental de la reauditoría 3 se corrigió con su texto literal, pero queda como decisión de la persona que aprueba (`A-12`)
 - [x] Documentación afectada actualizada en este mismo cambio
-- [x] `lint-imports` en `15 kept, 0 broken`; `ruff` limpio sobre los archivos nuevos de `tools/`. `mypy` no aplica: no se tocó `backend/`
+- [x] `lint-imports` en `15 kept, 0 broken`; `ruff` y `mypy --strict` limpios sobre los archivos nuevos de `tools/`; el backend corrió `ruff`, `mypy`, `lint-imports` y `verificar_float` en verde
 - [x] Rama correcta y sin secretos en el diff
+
+## Veredicto de la revisión (2026-10-29)
+
+**`REQUIERE DECISIÓN`.** El trabajo está completo: los criterios `[M]` están cumplidos con evidencia, la suite pasa y no hay hallazgos críticos. No se emite `LISTO PARA PR` por dos motivos que no le corresponden a un agente:
+
+1. **Decisión de diseño `A-12`.** El filtro corta en el primer `GHSA` `HIGH` o `CRITICAL` de un hallazgo. El código de salida es siempre el correcto; solo cambia la etiqueta (`ALTA` en lugar de `CRÍTICA`). Lo introdujo el corrector para conciliar dos pruebas y cambia el diseño aprobado, así que debe confirmarlo quien aprueba. Lo mismo vale para la extensión de `A-3` a `DESCONOCIDA` y a los fallos de red.
+2. **Excepción de cierre.** Tres auditores terminaron en `REQUIERE CAMBIOS` con los ciclos agotados y sus textos literales se aplicaron sin una reauditoría. Es la misma excepción que se aceptó en TKT-009a y TKT-009c, y la persona dueña debe aceptarla.
+
+**Tareas de la persona dueña, fuera del código:** borrar la rama remota `ensayo/tkt-009b-secreto` (commit `0c3a99e`, sin token) y confirmar que el token del segundo intento de B5 está revocado. Antes del PR, empujar los commits locales de la rama del ticket y rebasarla sobre `Produccion` cuando 009a y 009c se fusionen.
