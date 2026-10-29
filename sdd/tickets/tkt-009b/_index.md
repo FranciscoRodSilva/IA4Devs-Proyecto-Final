@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+EN REVISIÓN
 
 ## Ficha
 
@@ -28,7 +28,7 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas B1 a B7 | `/sdd-disenar` | Aprobado el 2026-10-28 |
-| Impl | impl.md | `/sdd-ejecutar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-28; B5 y B6 pendientes de la persona dueña |
 | Delta | delta.md | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -36,6 +36,7 @@ LISTO PARA EJECUTAR
 | Fecha | De | A | Comando | Motivo |
 |---|---|---|---|---|
 | 2026-10-28 | — | `LISTO PARA EJECUTAR` | partición de TKT-009 | Nace de la decisión del gate de diseño de TKT-009. Spec repartida: M7, M8 y su parte de M12; `CA-10`, `CA-11`, `CA-R2`, `CA-R3` y `CA-R4`. No se ejecuta hasta que TKT-009a esté `ARCHIVADO` o `LISTO PARA PR`. Tercera parte en fusionar. La fila B5 exige acciones de la persona dueña del repositorio |
+| 2026-10-28 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas B1 a B4 y B7 hechas con su ciclo TDD y mutación; 247 pruebas de `tools/` en verde. **Quedan pendientes B5 (ajustes del repositorio) y B6 (ensayo en el pipeline), que ejecuta la persona dueña con la guía [ajustes-repositorio.md](ajustes-repositorio.md); sin ellas `CA-10` esc. 2 y 3, `CA-11` esc. 2 y `CA-R3` esc. 2 no tienen evidencia y el ticket no puede pasar a `LISTO PARA PR`.** Arquitectura: dos Menores documentales corregidos |
 
 ## Decisiones registradas
 

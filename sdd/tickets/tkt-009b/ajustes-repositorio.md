@@ -131,7 +131,7 @@ Si `uv add` no resuelve la dependencia con la versión del proyecto, se anota el
 
 **Mensajes esperados en el trabajo `dependencias`:**
 
-* El paso «Auditar Python con pip-audit» termina en verde, porque lleva `|| true`. Su salida lista vulnerabilidades de `django` con identificadores `PYSEC-…` o `GHSA-…`.
+* El paso «Auditar Python con pip-audit» termina en verde, porque lleva `|| true`. El informe completo se escribe en un archivo JSON (`-f json -o`), así que la salida del paso solo muestra el recuento, `Found N known vulnerabilities in 1 package`, y algún aviso. No lista los identificadores `PYSEC-…` ni `GHSA-…` de `django`: esos aparecen en el paso «Filtrar los hallazgos por severidad».
 * El paso «Filtrar los hallazgos por severidad» termina en rojo. Muestra una línea `ALTA` o `CRÍTICA` para `django 3.2`, con el aviso `GHSA-…` y el sufijo `→ falla el pipeline (RNF-08)`, y acaba con `Hallazgos: <n> · que fallan el pipeline: <m>`, con `m` mayor que cero.
 * El paso «Auditar npm» termina en rojo. Muestra `lodash` con severidad `high` y la línea de resumen de `npm audit`, con el número de vulnerabilidades altas.
 
