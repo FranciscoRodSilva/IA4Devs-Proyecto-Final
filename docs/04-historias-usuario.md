@@ -500,7 +500,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 **Escenario 1: Consulta del disponible antes de capturar**
 
 - **Dado que** el usuario va a levantar una requisición
-- **Cuando** selecciona la obra y el tipo de partida —"MUROS", "PLAFONES Y CAJILLOS", "ENCHAPES" o "GENERALES"—
+- **Cuando** selecciona la obra y el tipo de partida —"MUROS", "`PLAFONES Y CAJILLOS`", "ENCHAPES" o "GENERALES"—
 - **Entonces** el sistema muestra el importe tope capturado, el consumido y el disponible de ese tipo de partida **en el conjunto de la obra**
 - **Y** muestra por cada insumo la cantidad presupuestada y la ya consumida
 - **Y** el disponible no se calcula por ubicación: son cuatro bolsas por obra, no una por departamento.
@@ -1327,7 +1327,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 
 - **Dado que** la obra tiene 14 niveles y 143 departamentos
 - **Cuando** el usuario abre el semáforo
-- **Entonces** ve una fila por tipo de partida —"MUROS", "PLAFONES Y CAJILLOS", "ENCHAPES", "GENERALES"— agregando toda la obra
+- **Entonces** ve una fila por tipo de partida —"MUROS", "`PLAFONES Y CAJILLOS`", "ENCHAPES", "GENERALES"— agregando toda la obra
 - **Y** no ve una fila por cada partida de cada departamento
 - **Y** el desglose por ubicación —por nivel y por área— sigue disponible al abrir una partida, pero no es el nivel de control.
 
@@ -1586,7 +1586,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Dado que** una obra va a trabajarse por destajo
 - **Cuando** el usuario da de alta una etapa indicando su clave —"METAL", "TAPADO" o "PASTA"—, el **tipo de partida** al que pertenece y sus precios de venta y de destajo por m²
 - **Entonces** queda registrada por obra y tipo de partida, no de forma global
-- **Y** "METAL · MUROS" y "METAL · PLAFONES Y CAJILLOS" son dos etapas distintas con precios propios
+- **Y** "METAL · MUROS" y "METAL · `PLAFONES Y CAJILLOS`" son dos etapas distintas con precios propios
 - **Y** el precio de venta y el de destajo se capturan por separado
 - **Y** es esa asignación la que permite que el costo de destajo llegue a la partida en el semáforo.
 

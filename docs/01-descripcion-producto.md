@@ -270,7 +270,7 @@ Las funcionalidades F3.2 y F3.5 son **diseño desde cero**: el cliente pidió ex
 | Tipo de partida | Presupuestado | Comprometido | Ejercido | Avance físico | Desviación |
 |---|---|---|---|---|---|
 | MUROS | Tope de control capturado | OC emitidas sin recibir | Entradas + destajo | m² validados ÷ m² de alcance | Ejercido − (Presupuestado × Avance) |
-| PLAFONES Y CAJILLOS | … | … | … | … | … |
+| `PLAFONES Y CAJILLOS` | … | … | … | … | … |
 | **Mano de obra de nómina** | — | — | Imputada desde las jornadas | — | *no imputada a partida* |
 
 La columna que importa es la última. **Compara dinero gastado contra obra realmente construida**, no contra el calendario. Un tipo de partida al 40 % de avance con el 70 % del presupuesto ejercido está en rojo aunque falten meses de plazo — y hoy eso es invisible hasta el cierre.

@@ -291,7 +291,7 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 
 | # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
 |---|---|---|---|---|---|---|
-| D1 | Los seis archivos de configuración de la tabla de arriba. Rojo previo: en un directorio temporal, un `.md` con «tablaroka» no produce ningún aviso de `Vale` sin la configuración | TC-60, TC-61 | `ingeniero-devsecops` | `haiku` | Con la configuración: el `.md` con «tablaroka» da un aviso `Cimenta.Vocabulario` con su línea y código 0; un `.md` con los ocho términos del glosario, cero alertas | Pendiente |
+| D1 | Los seis archivos de configuración de la tabla de arriba. Rojo previo: en un directorio temporal, un `.md` con «`tablaroka`» no produce ningún aviso de `Vale` sin la configuración | TC-60, TC-61 | `ingeniero-devsecops` | `haiku` | Con la configuración: el `.md` con «`tablaroka`» da un aviso `Cimenta.Vocabulario` con su línea y código 0; un `.md` con los ocho términos del glosario, cero alertas | Pendiente |
 | D2 | **Medición de la línea base, sin editar.** Sobre el alcance: hallazgos de `markdownlint-cli2` por regla; los que quedan tras `--fix` en una copia desechable; alertas de `Vale` por regla; enlaces rotos de `lychee`. Tabla en `impl.md`. **Umbral:** si los hallazgos que `--fix` no corrige, más las alertas de `Vale`, más los enlaces rotos suman **más de 120**, la parte se detiene y se ejecuta `/sdd-escalar` proponiendo partir la limpieza en su propio ticket. Si `Vale.Repetition` marca celdas contiguas de tabla como repetición, se desactiva la regla en `.vale.ini` y se anota; ninguna otra regla se apaga para bajar el número | — | `ingeniero-devsecops` | `haiku` | Tabla de recuento en `impl.md` y decisión aplicada según el umbral | Pendiente |
 | D3 | Limpieza automática: `markdownlint-cli2 --fix` sobre el alcance, en un commit propio que no contiene otro cambio, después de fusionadas las partes a, c y b | TC-69 (parcial) | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con el mismo número de escenarios y de puntos; `git diff -U0 -- docs/04-historias-usuario.md` sin ninguna línea `**Escenario N:` cambiada (si aparece, se revierte a mano); `git diff --stat` en `impl.md` | Pendiente |
 | D4 | Limpieza manual de lo que queda, un commit por herramienta | TC-69 | `ingeniero-devsecops` | `haiku` | `markdownlint-cli2`, `vale --output=line` y `lychee` sobre el alcance, con cero hallazgos | Pendiente |
@@ -318,7 +318,7 @@ Cada ronda es un commit en la rama de ensayo. Las violaciones de una ronda caen 
 | b | 1 | `lodash@4.17.20` en `devDependencies` | `dependencias` | `npm audit` con severidad `high` |
 | b | 2 | Solo un paquete de npm cuyo único aviso sea `moderate` (candidato: `stream-json@3.6.0`; `nanoid@3.1.30` tiene avisos altos; se confirma en la base de avisos de GitHub antes de empujar, y si ya no es solo `moderate` se elige otro que lo sea) | ninguno | El aviso aparece en el registro y el trabajo queda en verde |
 | c | 1 | `HDU-001` añadida a `tools/historias_activas.txt` | `herramientas` | 27 líneas `FALTA HDU-001 esc. N` |
-| d | 1 | Un enlace relativo roto, «tablaroka» en un documento, un diagrama con `A -> B` en un `flowchart` y un enlace a `https://cimenta-ensayo.invalid/` | `documentacion` | `verificar_docs.py` y `lychee` con el enlace y su archivo; `Cimenta.Vocabulario` con archivo y línea; `::error` con el archivo del diagrama |
+| d | 1 | Un enlace relativo roto, «`tablaroka`» en un documento, un diagrama con `A -> B` en un `flowchart` y un enlace a `https://cimenta-ensayo.invalid/` | `documentacion` | `verificar_docs.py` y `lychee` con el enlace y su archivo; `Cimenta.Vocabulario` con archivo y línea; `::error` con el archivo del diagrama |
 
 El cron de `enlaces.yml` no se puede lanzar antes de que el archivo llegue a la rama por omisión. Su disparo se comprueba leyendo la definición (TC-64) y su detección con la misma configuración en el trabajo del PR (TC-68). La primera ejecución manual con `gh workflow run enlaces.yml` tras la fusión se anota en `delta.md`.
 
@@ -381,9 +381,9 @@ Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el 
 | TC-56 | Sobre el árbol real: código 0, 162 pendientes | feliz | `CA-7` | esc. 1 |
 | TC-57 | El trabajo `herramientas` ejecuta el verificador y le pasa la base del PR por `env` | estático | `CA-6` | esc. 1 |
 | TC-58 | Ensayo: HDU-001 activa, `herramientas` en rojo con 27 `FALTA` | **rechazo** | `CA-6` | esc. 1 |
-| TC-60 | `Vale` local sobre «tablaroka»: aviso con línea y código 0 | feliz | `CA-13` | esc. 2 |
+| TC-60 | `Vale` local sobre «`tablaroka`»: aviso con línea y código 0 | feliz | `CA-13` | esc. 2 |
 | TC-61 | `Vale` sobre los ocho términos del glosario: cero alertas | **rechazo** (de falso error) | `CA-13` | esc. 4 |
-| TC-62 | Ensayo: «tablaroka», `documentacion` en rojo con archivo y línea | **rechazo** | `CA-13` | esc. 3 |
+| TC-62 | Ensayo: «`tablaroka`», `documentacion` en rojo con archivo y línea | **rechazo** | `CA-13` | esc. 3 |
 | TC-63 | Ensayo: enlace relativo roto, `documentacion` en rojo con archivo y línea | **rechazo** | `CA-13` | esc. 3 |
 | TC-64 | `enlaces.yml` tiene `schedule` con un cron de un día por semana y `workflow_dispatch` | estático | `CA-14` | esc. 1 |
 | TC-65 | `documentacion` ejecuta `verificar_docs.py`, `markdownlint-cli2`, `vale --output=line` con la guarda de salida vacía, `lychee` y `mmdc` | estático | `CA-13` esc. 1, `CA-16` esc. 1 | — |

@@ -31,7 +31,7 @@ D1 y D2 no tienen pruebas de `unittest`: sus casos (TC-60 y TC-61) son ejecucion
 
 #### Fila D1 · configuración de las herramientas
 
-**Rojo.** Dos formas de probar que `Vale` no avisa sin la configuración del proyecto, sobre un `prueba.md` con «tablaroka»:
+**Rojo.** Dos formas de probar que `Vale` no avisa sin la configuración del proyecto, sobre un `prueba.md` con «`tablaroka`»:
 
 ```text
 sin .vale.ini:
@@ -79,9 +79,9 @@ Alcance: 119 archivos (`docs/**/*.md`, `sdd/**/*.md`, `README.md`, `CLAUDE.md` y
 
 **`Vale.Repetition`:** 5 alertas y **ninguna es de celdas contiguas de tabla**, así que el diseño no permite apagar la regla. Cuatro son repeticiones reales en prosa («del del proceso») en `docs/02-arquitectura.md:357`, `sdd/tickets/tkt-004/delta.md:11`, `sdd/tickets/tkt-004/design.md:706` y `sdd/tickets/tkt-004/impl.md:9`. La quinta, `sdd/tickets/tkt-003/design.md:484`, es un falso positivo de contenido (la «A» repetida dentro de una celda).
 
-**`Cimenta.Vocabulario`:** las 5 alertas están en `sdd/tickets/tkt-009/design.md` (líneas 292, 294, 319, 382 y 384) y citan «tablaroka» a propósito, como ejemplo del error que la regla detecta. Hay que decidir antes de D4 cómo escribirlas (entre comillas de código, p. ej.) sin apagar la regla.
+**`Cimenta.Vocabulario`:** las 5 alertas están en `sdd/tickets/tkt-009/design.md` (líneas 292, 294, 319, 382 y 384) y citan «`tablaroka`» a propósito, como ejemplo del error que la regla detecta. Hay que decidir antes de D4 cómo escribirlas (entre comillas de código, p. ej.) sin apagar la regla.
 
-**`Vale.Terms`:** 10 alertas por mayúsculas («PLAFONES», «CAJILLOS» en `docs/01-descripcion-producto.md` y `docs/04-historias-usuario.md`) y por «cimenta» en minúscula en `sdd/tickets/tkt-003/design.md` y `sdd/tickets/tkt-006/impl.md`.
+**`Vale.Terms`:** 10 alertas por mayúsculas («`PLAFONES`», «`CAJILLOS`» en `docs/01-descripcion-producto.md` y `docs/04-historias-usuario.md`) y por «`cimenta`» en minúscula en `sdd/tickets/tkt-003/design.md` y `sdd/tickets/tkt-006/impl.md`.
 
 **Decisión pendiente.** El umbral de `A-5` está superado (183 contra 120). El diseño dice que, en ese caso, la parte se detiene y se propone separar la limpieza en su propio ticket. Esta ejecución se detiene aquí: ver `_index.md`.
 
