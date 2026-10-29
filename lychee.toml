@@ -5,4 +5,5 @@ include_fragments = "none"
 max_retries = 3
 timeout = 20
 accept = ["200..=206", "429"]
-exclude = ['cimenta\.test']
+# Medium responde 403 a los corredores de GitHub y 200 a una persona: no es un enlace roto.
+exclude = ['cimenta\.test', '^https://medium\.com/']
