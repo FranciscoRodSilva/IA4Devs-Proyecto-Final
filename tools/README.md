@@ -2,17 +2,17 @@
 
 Tres comprobaciones que no existen como herramienta de terceros y que este proyecto necesita **porque su documentación es el entregable**. Se escribieron durante la Entrega 1 y ya detectaron fallos reales: un diagrama con sintaxis inválida, enlaces a un documento que aún no existía, un conteo de escenarios descuadrado tras renumerar y un ancla rota al renumerar las secciones del stack.
 
-Complementan a las herramientas estándar del pipeline —`markdownlint-cli2`, `Vale` y `lychee`—, que cubren sintaxis Markdown, prosa y enlaces externos. Ver [`docs/convenciones.md` §10](../docs/convenciones.md#10-validación-de-documentación-en-ci).
+Complementan a las herramientas estándar del pipeline —`markdownlint-cli2`, `Vale` y `lychee`—, que cubren sintaxis Markdown, prosa y enlaces (URLs y archivos). Ver [`docs/convenciones.md` §10](../docs/convenciones.md#10-validación-de-documentación-en-ci).
 
 ## Herramientas documentales de terceros
 
-Las cuatro van fijadas por versión. En el pipeline, cualquier hallazgo falla su paso; en local, solo informan. Su configuración está en el repositorio: `.markdownlint-cli2.jsonc`, `.vale.ini` con `.vale/` (vocabulario y regla de sustitución), `lychee.toml` y `.github/mermaid/`.
+Las cuatro van fijadas por versión. En el pipeline, cualquier hallazgo falla su paso; en local, `Vale` imprime avisos y las demás imprimen sus errores sin bloquear nada, porque no hay pipeline. Su configuración está en el repositorio: `.markdownlint-cli2.jsonc`, `.vale.ini` con `.vale/` (vocabulario y regla de sustitución), `lychee.toml` y `.github/mermaid/`.
 
 | Herramienta | Versión | Qué comprueba | Dónde corre |
 |---|---|---|---|
 | `markdownlint-cli2` | 0.24.0 | Sintaxis Markdown, por ejemplo los saltos de nivel de encabezado (MD001) y los bloques de código sin idioma (MD040) | Pipeline (`documentacion`) y local |
 | `Vale` | 3.25.1 | Prosa: el vocabulario del glosario escrito con su forma correcta (`Vale.Terms` y `Cimenta.Vocabulario`) y las palabras repetidas (`Vale.Repetition`). No revisa ortografía ni el estilo en inglés, por el [ADR del 2026-10-29](../docs/adr/20261029-vale-para-prosa-en-espanol.md) | Pipeline (`documentacion`) y local |
-| `lychee` | 0.24.2 | Enlaces externos rotos. Las anclas internas las comprueba `verificar_docs.py` | Pipeline (`documentacion` y el cron `enlaces.yml`, cada lunes a las 13:00 UTC) y local |
+| `lychee` | 0.24.2 | URLs muertas y enlaces a archivos que no existen. Las anclas las comprueba `verificar_docs.py` | Pipeline (`documentacion` y el cron `enlaces.yml`, cada lunes a las 13:00 UTC) y local |
 | `@mermaid-js/mermaid-cli` | 12.0.0 | Sintaxis de cada diagrama Mermaid | Pipeline (`documentacion`); en local, `extraer_mermaid.py` |
 
 ## `verificar_docs.py`
@@ -65,7 +65,7 @@ Extrae los diagramas Mermaid de toda la documentación y genera una página que 
 
 **Por qué importa:** un diagrama con error de sintaxis no se ve como un diagrama roto en GitHub — se ve como un bloque de error en medio del documento.
 
-**Por qué necesita navegador:** el único parser fiable de Mermaid es el suyo. El pipeline no lo usa: valida los diagramas con [`@mermaid-js/mermaid-cli`](https://github.com/mermaid-js/mermaid-cli) 12.0.0, que hace lo mismo sin navegador. Este script queda para verificar en local sin instalar Node.
+**Por qué necesita navegador:** el único parser fiable de Mermaid es el suyo. El pipeline no lo usa: valida los diagramas con [`@mermaid-js/mermaid-cli`](https://github.com/mermaid-js/mermaid-cli) 12.0.0, que ejecuta Chromium sin cabeza en el corredor. Este script queda para verificar en local sin instalar Node.
 
 Sírvelo por HTTP: con `file://` los navegadores bloquean la carga del módulo.
 

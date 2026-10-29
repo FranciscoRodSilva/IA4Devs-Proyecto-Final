@@ -1,4 +1,4 @@
-"""Pruebas estáticas de la parte d del pipeline: el trabajo `documentacion` y `.github/workflows/enlaces.yml`.
+"""Pruebas de la parte d del pipeline: el trabajo `documentacion` y `.github/workflows/enlaces.yml`.
 
 TKT-009d · fila D5. Comprueban lo que el pipeline *declara*, no lo que hace al correr, con el mismo método que
 `test_definicion_ci.py` (de donde se importan los ayudantes): `tools/` no tiene dependencias y la biblioteca estándar
@@ -6,6 +6,11 @@ no trae un analizador de YAML, así que el texto se lee con expresiones regulare
 y cada caso busca dentro del bloque de su trabajo. Cada comprobación vive en una función `comprobar_*` que devuelve
 la lista de problemas, y las pruebas sobre texto sintético demuestran que se pone en rojo ante cada mutante y por la
 razón esperada (cada mutante exige un fragmento del mensaje, no solo que la lista no esté vacía).
+
+Además de leer el texto, los pasos de Vale y de mermaid-cli se **ejecutan** (F001): el `run:` real de `ci.yml` corre con `bash`
+sobre un árbol temporal, con un `uvx` y un `mmdc` de mentira, y se comprueba su código de salida y sus anotaciones. Hace falta
+un `bash` (en Windows, el de Git for Windows; si `bash` es el de WSL, define `CIMENTA_BASH`); sin él las pruebas fallan, no se
+saltan. Ver `localizar_bash` en `_ayudantes.py`.
 
 Qué cubren:
 
@@ -30,18 +35,23 @@ Formas que aceptan estos casos (la de la fila D5 tiene que ser una de ellas):
 * `markdownlint`: `npx --yes markdownlint-cli2@0.24.0 "docs/**/*.md" "sdd/**/*.md" README.md CLAUDE.md tools/README.md`.
 * `Vale`: `uvx --from vale==3.25.1.0 vale --output=line docs sdd README.md CLAUDE.md tools/README.md >
   "$RUNNER_TEMP/vale.txt"` con el código de salida guardado (`|| estado=$?`), luego `cat` del archivo, y al final la
-  guarda de salida vacía (`[ ! -s "$RUNNER_TEMP/vale.txt" ]`, o `if [ -s ... ]; then exit 1; fi`) que también consulta
-  la variable del código.
+  guarda de salida vacía, en una de dos formas y nada más: `[ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ]`
+  como última línea del paso, o `if [ "$codigo" -ne 0 ] || [ -s "$RUNNER_TEMP/vale.txt" ]; then exit 1; fi`.
 * `lychee`: `lycheeverse/lychee-action@<SHA de 40> # vX.Y.Z` con `args: --config lychee.toml --no-progress` más el
-  alcance, `lycheeVersion: v0.24.2` y `fail: true`.
+  alcance (ninguna otra opción: ni `--offline` ni `--exclude`), `lycheeVersion: v0.24.2` y `fail: true`. `setup-node`
+  lleva `node-version-file: frontend/package.json`, y ni el trabajo ni el flujo declaran `defaults` con `working-directory`.
 * `mermaid-cli`: un paso propio, antes del bucle, con `npm ci` y `working-directory: .github/mermaid` (o
   `npm ci --prefix .github/mermaid`), sin ningún `npm install` en el trabajo; y un bucle `for`/`while` sobre
-  `grep -rl` de «```mermaid» en el alcance que llama a `.github/mermaid/node_modules/.bin/mmdc -p
-  .github/puppeteer-config.json` (ruta relativa o bajo `$GITHUB_WORKSPACE`), escribe
-  `::error file=<archivo>::diagrama Mermaid inválido` por cada fallo y, tras el `done`, termina con `exit 1`.
+  `grep -rl` (recursivo y que lista archivos) de «```mermaid» en el alcance que llama a
+  `.github/mermaid/node_modules/.bin/mmdc -p .github/puppeteer-config.json -i "$archivo"` (ruta relativa o bajo
+  `$GITHUB_WORKSPACE`), con la llamada negada y sola (`if ! mmdc ...; then`, o `mmdc ... || { ...; }`); escribe
+  `::error file=$archivo::diagrama Mermaid inválido`, pone `fallos=1` en la rama que falla (con `fallos=0` antes del
+  bucle) y, tras el `done`, termina con `exit 1` condicionado por `fallos` (`-ne 0` o `-eq 1`), como último comando del paso.
   Los archivos reales: `.github/mermaid/package.json` (`"private": true` y `@mermaid-js/mermaid-cli` en `12.0.0`
-  exacta, sin `^` ni `~`), `.github/mermaid/package-lock.json` (`lockfileVersion` 3 con esa versión e `integrity`)
-  y `.gitignore` con `node_modules`.
+  exacta, sin `^` ni `~`), `.github/mermaid/package-lock.json` (`lockfileVersion` 3 con esa versión e `integrity`),
+  `.github/puppeteer-config.json` (`--no-sandbox` en `args`) y `.gitignore` con `node_modules`.
+* `enlaces.yml`: `on:` es exactamente `schedule` y `workflow_dispatch`; declara `concurrency` con un `group` y
+  `cancel-in-progress: false`; su `lychee-action` (SHA incluido) y sus `args` son los del trabajo `documentacion`.
 
 Ejecución, desde la raíz del repositorio:
 
@@ -56,14 +66,23 @@ import os
 import re
 import shlex
 import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
 DIRECTORIO_DE_PRUEBAS = os.path.dirname(os.path.abspath(__file__))
 if DIRECTORIO_DE_PRUEBAS not in sys.path:
     sys.path.insert(0, DIRECTORIO_DE_PRUEBAS)
 
-from _ayudantes import exigir_rojo_en_todos as _exigir_rojo_en_todos  # noqa: E402
-from _ayudantes import sustituir  # noqa: E402
+import _ayudantes  # noqa: E402
+from _ayudantes import (  # noqa: E402
+    ejecutar_en_bash,
+    exigir_rojo,
+    exigir_rojo_en_todos,
+    localizar_bash,
+    sustituir,
+)
 from test_definicion_ci import (  # noqa: E402
     CI_B3,
     DIRECTORIO_DE_FLUJOS,
@@ -100,6 +119,7 @@ from test_definicion_ci import (  # noqa: E402
     comprobar_tc21,
     comprobar_tc22,
     comprobar_trabajo_documentacion,
+    directorio_por_omision,
     extraer_trabajos,
     mover,
     mutar,
@@ -122,6 +142,8 @@ VERSION_DE_VALE = "3.25.1.0"
 VERSION_DE_LYCHEE = "v0.24.2"
 VERSION_DE_MMDC = "12.0.0"
 CRON_SEMANAL = "0 13 * * 1"
+ARCHIVO_DE_NODE = "frontend/package.json"
+DISPARADORES_DE_ENLACES = {"schedule", "workflow_dispatch"}
 
 MARKDOWNLINT = r"\bmarkdownlint-cli2(?![\w-])"
 VALE_SUELTO = r"(?<![\w-])vale(?![\w-])"
@@ -137,6 +159,7 @@ PAQUETE_DE_MMDC = "@mermaid-js/mermaid-cli"
 ENTRADA_DEL_LOCK = f"node_modules/{PAQUETE_DE_MMDC}"
 PACKAGE_JSON_DE_MERMAID = os.path.join(RAIZ, ".github", "mermaid", "package.json")
 PACKAGE_LOCK_DE_MERMAID = os.path.join(RAIZ, ".github", "mermaid", "package-lock.json")
+PUPPETEER_CONFIG = os.path.join(RAIZ, ".github", "puppeteer-config.json")
 GITIGNORE = os.path.join(RAIZ, ".gitignore")
 
 TEMPORAL = r"\"?\$\{?RUNNER_TEMP\}?"
@@ -223,7 +246,14 @@ def _comprobar_paso_de_lychee(id_trabajo: str, paso: list[str]) -> list[str]:
         palabras = _palabras(argumentos)
         if "--no-progress" not in palabras:
             problemas.append(f"'{id_trabajo}': lychee-action no lleva `--no-progress`")
-        alcance = _alcance_de(_sin_el_par_config(palabras))
+        sin_config = _sin_el_par_config(palabras)
+        sobrantes = [p for p in sin_config if p.startswith("-") and p != "--no-progress"]
+        if sobrantes:
+            problemas.append(
+                f"'{id_trabajo}': lychee-action lleva opciones fuera de `--config` y `--no-progress`: {sobrantes}; "
+                "cambiarían qué enlaces se comprueban (`--offline`, `--exclude`...)"
+            )
+        alcance = _alcance_de(sin_config)
         if alcance != sorted(ALCANCE_CON_GLOB):
             problemas.append(
                 f"'{id_trabajo}': el alcance de lychee-action debe ser {sorted(ALCANCE_CON_GLOB)} y es {alcance}"
@@ -239,15 +269,37 @@ def _comprobar_paso_de_lychee(id_trabajo: str, paso: list[str]) -> list[str]:
     return problemas
 
 
+def _guarda_de_salida_vacia(resto: str, codigo: str) -> re.Match[str] | None:
+    """La guarda de Vale, en una de las dos únicas formas aceptadas y con cada prueba en su sentido.
+
+    * A, la de `ci.yml`: `[ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ]`, en cualquier orden, como línea completa.
+      Es el estado del último comando del paso, así que decide el resultado.
+    * B: `if [ "$codigo" -ne 0 ] || [ -s "$RUNNER_TEMP/vale.txt" ]; then exit 1; fi`, con `-s` sin negar.
+
+    Un `-s` sin `!` en la forma A, un `-eq` donde va `-ne`, la prueba dentro de un `echo` o un `-s` negado en la forma B no
+    comprueban lo que dicen, y la guarda ya no protege el paso.
+    """
+    variable = r"\[\s+\"?\$\{?" + codigo + r"\}?\"?\s+"
+    codigo_cero = variable + r"-eq\s+0\s+\]"
+    codigo_distinto = variable + r"-ne\s+0\s+\]"
+    vacia = r"\[\s+!\s+-s\s+" + ARCHIVO_DE_VALE + r"\s+\]"
+    con_contenido = r"\[\s+-s\s+" + ARCHIVO_DE_VALE + r"\s+\]"
+    forma_a = rf"(?:{codigo_cero}\s*&&\s*{vacia}|{vacia}\s*&&\s*{codigo_cero})"
+    forma_b = (
+        rf"if\s+(?:{codigo_distinto}\s*\|\|\s*{con_contenido}|{con_contenido}\s*\|\|\s*{codigo_distinto})"
+        r"\s*;\s*then\s+exit 1\s*;?\s*fi"
+    )
+    return re.search(rf"(?m)^[ \t]*(?:{forma_a}|{forma_b})[ \t]*$", resto)
+
+
 def _comprobar_vale(lista: list[list[str]], hito: tuple[int, int]) -> list[str]:
     """Vale en CI: versión fija, `--output=line`, salida a `$RUNNER_TEMP/vale.txt`, impresión del archivo y falla si el código
     de salida no es 0 **o** el archivo no está vacío (los avisos no cambian el código de salida de Vale: solo `error`)."""
     problemas: list[str] = []
     run = comando(lista[hito[0]]).replace("\\\n", " ")
     fijado = re.search(VALE_FIJADO, run)
-    inicio = (
-        fijado.start() if fijado else (re.search(VALE_SUELTO, run) or re.search(r"", run)).start()
-    )
+    donde_empieza = fijado or re.search(VALE_SUELTO, run)
+    inicio = donde_empieza.start() if donde_empieza is not None else 0
     if fijado is None:
         problemas.append(
             f"'{DOC}': Vale no se invoca como `uvx --from vale=={VERSION_DE_VALE} vale`; sin la versión fija "
@@ -273,17 +325,24 @@ def _comprobar_vale(lista: list[list[str]], hito: tuple[int, int]) -> list[str]:
         problemas.append(
             f"'{DOC}': el paso de Vale no imprime `$RUNNER_TEMP/vale.txt`; el PR no vería los hallazgos"
         )
-    guarda = re.search(rf"(?<![\w-])-s\s+{ARCHIVO_DE_VALE}(?![\w.])", resto)
+    captura = re.search(r"(\w+)=\$\?", resto)
+    guarda = _guarda_de_salida_vacia(resto, captura.group(1) if captura else r"\w+")
     if guarda is None:
         problemas.append(
-            f"'{DOC}': Vale sin la guarda de salida vacía (`[ ! -s \"$RUNNER_TEMP/vale.txt\" ]`): un aviso, que no cambia "
-            "el código de salida, no pondría el paso en rojo"
+            f"'{DOC}': Vale sin la guarda de salida vacía: un aviso, que no cambia el código de salida, no pondría el paso en "
+            'rojo. Solo se acepta `[ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ]` como última línea del paso, o '
+            '`if [ "$codigo" -ne 0 ] || [ -s "$RUNNER_TEMP/vale.txt" ]; then exit 1; fi`'
         )
-    elif impresion is not None and guarda.start() < impresion.start():
-        problemas.append(
-            f"'{DOC}': la guarda de salida vacía de Vale va antes de imprimir el archivo; el fallo ocultaría los hallazgos"
-        )
-    captura = re.search(r"(\w+)=\$\?", resto)
+    else:
+        if impresion is not None and guarda.start() < impresion.start():
+            problemas.append(
+                f"'{DOC}': la guarda de salida vacía de Vale va antes de imprimir el archivo; el fallo ocultaría los hallazgos"
+            )
+        if resto[guarda.end() :].strip():
+            problemas.append(
+                f"'{DOC}': la guarda de salida vacía de Vale no es lo último del paso; lo que venga después "
+                "(un `exit 0`, por ejemplo) ocultaría su fallo"
+            )
     if captura is None or not re.search(
         rf"\$\{{?{captura.group(1)}(?![\w])", resto[captura.end() :]
     ):
@@ -404,26 +463,7 @@ def _comprobar_mermaid(
         problemas.append(
             f"'{DOC}': mmdc no recibe `-p .github/puppeteer-config.json`; Chromium no arranca en el corredor sin ese arreglo"
         )
-    inicio_del_bucle = re.search(r"(?m)^\s*(?:for|while)\s", run)
-    fines = list(re.finditer(r"(?m)^\s*done\b", run))
-    if inicio_del_bucle is None or not fines:
-        problemas.append(
-            f"'{DOC}': mmdc no se ejecuta dentro de un bucle (`for`/`while` ... `done`) sobre los Markdown con diagramas"
-        )
-    else:
-        error = re.search(r"::error file=\S+::diagrama Mermaid inválido", run)
-        if error is None or not inicio_del_bucle.start() < error.start() < fines[-1].start():
-            problemas.append(
-                f"'{DOC}': el bucle de mmdc no escribe `::error file=<archivo>::diagrama Mermaid inválido` por cada fallo"
-            )
-        if not re.search(r"\bexit 1\b", run[fines[-1].end() :]):
-            problemas.append(
-                f"'{DOC}': el paso de mmdc no termina con `exit 1` después del bucle si hubo algún diagrama inválido"
-            )
-    if "```mermaid" not in run:
-        problemas.append(
-            f"'{DOC}': el paso de mmdc no selecciona los Markdown que contienen un bloque ```mermaid"
-        )
+    problemas += _comprobar_bucle_de_mmdc(run)
     for nombre, patron in (
         ("docs", r"(?<![\w./-])docs(?![\w-])"),
         ("sdd", r"(?<![\w./-])sdd(?![\w-])"),
@@ -436,6 +476,149 @@ def _comprobar_mermaid(
     if re.search(r"\b(?:grep|find)\b[^\n]*\s\.(?:\s|$)", run):
         problemas.append(
             f"'{DOC}': el paso de mmdc recorre el repositorio entero (`.`) en lugar del alcance"
+        )
+    return problemas
+
+
+# Una orden que no encadena otras: ni `;`, ni `|`, ni `&&` (un `2>&1` sí cabe).
+ORDEN_SIMPLE = r"(?:[^;|&]|&(?!&))*"
+
+
+def _variable_del_bucle(cabecera: str) -> str | None:
+    """La variable que recorre los archivos: `for archivo in ...` o `while ... read -r archivo`."""
+    for_ = re.match(r"\s*for\s+(\w+)\s+in\b", cabecera)
+    if for_:
+        return for_.group(1)
+    leer = re.search(r"\bread\s+(?:-\w+\s+)*(\w+)\s*(?:;|<|$)", cabecera)
+    return leer.group(1) if leer else None
+
+
+def _problema_de_la_llamada_a_mmdc(run: str) -> str | None:
+    """La llamada a mmdc va negada y sola: `if ! mmdc ...; then`, o `mmdc ... || { ...; }`.
+
+    Si va sin negar, el cuerpo del `if` corre cuando el diagrama es VÁLIDO; si la condición encadena otro comando
+    (`; true;`, `| cat`, `&&`), el estado que decide ya no es el de mmdc. En ambos casos el bucle no marca ningún fallo.
+    """
+    binario = re.search(BINARIO_DE_MMDC, run)
+    if binario is None:
+        return None  # lo informa el llamador
+    inicio = run.rfind("\n", 0, binario.start()) + 1
+    fin = run.find("\n", binario.end())
+    antes = run[inicio : binario.start()]
+    despues = run[binario.start() : fin if fin != -1 else len(run)].rstrip()
+    if re.fullmatch(r"""\s*if\s+!\s+["']?""", antes):
+        if re.fullmatch(ORDEN_SIMPLE + r"\s*;\s*then", despues):
+            return None
+        return (
+            f"'{DOC}': la condición `if ! mmdc ...` encadena otro comando (`;`, `|`, `&&`) y el estado que decide ya no es el de "
+            "mmdc; un diagrama inválido no se detectaría"
+        )
+    if re.fullmatch(r"""\s*["']?""", antes) and re.match(ORDEN_SIMPLE + r"\|\|\s*\{", despues):
+        return None
+    return (
+        f"'{DOC}': la llamada a mmdc no está negada (`if ! mmdc ...; then` o `mmdc ... || {{ ...; }}`); el cuerpo correría "
+        "cuando el diagrama es válido"
+    )
+
+
+def _comprobar_bucle_de_mmdc(run: str) -> list[str]:
+    """El bucle sobre los Markdown con diagramas: llamada negada, `-i` con la variable del bucle, `::error` por archivo, la
+    variable de fallos (iniciada en 0 y puesta en 1 en la rama que falla) y un `exit 1` condicionado por ella tras el `done`."""
+    problemas: list[str] = []
+    problema_de_la_llamada = _problema_de_la_llamada_a_mmdc(run)
+    if problema_de_la_llamada:
+        problemas.append(problema_de_la_llamada)
+    inicio_del_bucle = re.search(r"(?m)^\s*(?:for|while)\s", run)
+    fines = list(re.finditer(r"(?m)^\s*done\b", run))
+    if inicio_del_bucle is None or not fines:
+        problemas.append(
+            f"'{DOC}': mmdc no se ejecuta dentro de un bucle (`for`/`while` ... `done`) sobre los Markdown con diagramas"
+        )
+    else:
+        problemas += _comprobar_el_cuerpo_del_bucle(run, inicio_del_bucle, fines[-1])
+    seleccion = re.search(r"""\bgrep\s+((?:-\S+\s+)*)["']?```mermaid""", run)
+    if seleccion is None:
+        problemas.append(
+            f"'{DOC}': el paso de mmdc no selecciona los Markdown que contienen un bloque ```mermaid"
+        )
+    else:
+        opciones = seleccion.group(1).split()
+        if not any(
+            re.fullmatch(r"-[A-Za-z]*[rR][A-Za-z]*", o) or o.endswith("recursive") for o in opciones
+        ):
+            problemas.append(
+                f"'{DOC}': el `grep` de los Markdown con diagramas no es recursivo (`-r`); sobre un directorio no entra en él"
+            )
+        if not any(
+            re.fullmatch(r"-[A-Za-z]*l[A-Za-z]*", o) or o == "--files-with-matches"
+            for o in opciones
+        ):
+            problemas.append(
+                f"'{DOC}': el `grep` de los Markdown con diagramas no lista nombres de archivo (`-l`) y el bucle recibiría líneas"
+            )
+    return problemas
+
+
+def _comprobar_el_cuerpo_del_bucle(
+    run: str, inicio: re.Match[str], fin: re.Match[str]
+) -> list[str]:
+    problemas: list[str] = []
+    variable = _variable_del_bucle(run[inicio.start() :].split("\n")[0])
+    if variable is not None and not re.search(
+        rf"""(?<![\w-])(?:-i|--input)(?:=|\s+)["']?\$\{{?{variable}\}}?["']?(?![\w])""", run
+    ):
+        problemas.append(
+            f"'{DOC}': mmdc no recibe `-i \"${variable}\"`; con otro archivo el bucle no valida el diagrama que recorre"
+        )
+    error = re.search(r"::error file=(\S+?)::diagrama Mermaid inválido", run)
+    binario = re.search(BINARIO_DE_MMDC, run)
+    if (
+        error is None
+        or not inicio.start() < error.start() < fin.start()
+        or (binario is not None and error.start() < binario.start())
+    ):
+        problemas.append(
+            f"'{DOC}': el bucle de mmdc no escribe `::error file=<archivo>::diagrama Mermaid inválido` por cada fallo"
+        )
+        error = None
+    elif variable is not None and not re.fullmatch(
+        rf"""["']?\$\{{?{variable}\}}?""", error.group(1)
+    ):
+        problemas.append(
+            f"'{DOC}': el `::error file=` no nombra el archivo del bucle (`${variable}`) sino {error.group(1)!r}"
+        )
+    marca = None
+    if error is not None:
+        cierre = re.search(r"(?m)^\s*fi\b|\}", run[error.end() :])
+        segmento = (
+            run[error.end() : error.end() + cierre.start()]
+            if cierre
+            else run[error.end() : fin.start()]
+        )
+        marca = re.search(r"(?<![\w$])(\w+)=1(?![\w.])", segmento)
+        if marca is None:
+            problemas.append(
+                f"'{DOC}': el bucle de mmdc no marca el fallo: falta `fallos=1` entre el `::error` y el cierre de su rama"
+            )
+    fallos = marca.group(1) if marca else None
+    if fallos is not None and not re.search(rf"(?m)^\s*{fallos}=0\s*$", run[: inicio.start()]):
+        problemas.append(
+            f"'{DOC}': el paso de mmdc no inicia `{fallos}=0` antes del bucle; sin iniciar, `[ \"${fallos}\" -ne 0 ]` da error (2), "
+            "la condición es falsa y el paso termina en verde"
+        )
+    variable_de_fallos = re.escape(fallos) if fallos else r"\w+"
+    prueba = rf'\[\s+"?\$\{{?{variable_de_fallos}\}}?"?\s+'
+    hubo_fallos = prueba + r"(?:-ne\s+0|-eq\s+1)\s+\]"
+    sin_fallos = prueba + r"-eq\s+0\s+\]"
+    salida = (
+        rf"if\s+{hubo_fallos}\s*;\s*then\s+exit 1\s*;?\s*fi"
+        rf"|{hubo_fallos}\s*&&\s*exit 1"
+        rf"|{sin_fallos}\s*\|\|\s*exit 1"
+    )
+    if not re.search(rf"(?m)^[ \t]*(?:{salida})\s*\Z", run[fin.end() :]):
+        problemas.append(
+            f"'{DOC}': el paso de mmdc no termina con `exit 1` después del bucle condicionado por la variable de fallos "
+            '(`if [ "$fallos" -ne 0 ]; then exit 1; fi`, como último comando del paso)'
         )
     return problemas
 
@@ -537,6 +720,21 @@ def comprobar_gitignore_de_node_modules(texto: str) -> list[str]:
     return problemas
 
 
+def comprobar_puppeteer_config(texto: str) -> list[str]:
+    """CA-16 esc. 1 · TC-65. `.github/puppeteer-config.json`, el que recibe `mmdc -p`: un objeto con `args` (una lista) que incluye
+    `--no-sandbox`. Sin él Chromium no arranca como root en el corredor, y todos los diagramas fallarían por eso."""
+    archivo = ".github/puppeteer-config.json"
+    datos, problemas = _leer_json(texto, archivo)
+    if datos is None:
+        return problemas
+    argumentos = datos.get("args")
+    if not isinstance(argumentos, list):
+        return [f"{archivo}: no declara `args` como una lista de argumentos de Chromium"]
+    if "--no-sandbox" not in argumentos:
+        problemas.append(f"{archivo}: `args` no lleva `--no-sandbox` y es {argumentos!r}")
+    return problemas
+
+
 def comprobar_acciones_fijadas(texto: str, id_trabajo: str) -> list[str]:
     """Regla común 2. Sobre el texto sin podar, porque la etiqueta `# vX.Y.Z` es un comentario: cada `uses:` del trabajo apunta
     a un SHA de 40 caracteres hexadecimales y lleva su etiqueta."""
@@ -555,6 +753,17 @@ def comprobar_acciones_fijadas(texto: str, id_trabajo: str) -> list[str]:
     return problemas
 
 
+def _comprobar_checkout(
+    id_trabajo: str, lista: list[list[str]], i_checkout: int | None, consecuencia: str = ""
+) -> list[str]:
+    """El trabajo tiene `actions/checkout` y este no persiste las credenciales (regla común 4)."""
+    if i_checkout is None:
+        return [f"'{id_trabajo}': falta actions/checkout{consecuencia}"]
+    if not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
+        return [f"'{id_trabajo}': el checkout debe declarar `persist-credentials: false`"]
+    return []
+
+
 def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
     """CA-13 esc. 1 y CA-16 esc. 1 · TC-65. El trabajo `documentacion` ejecuta, en orden, `verificar_docs.py`,
     `markdownlint-cli2@0.24.0`, Vale (con la guarda de salida vacía), `lychee-action` y `mmdc`; cada paso posterior al checkout
@@ -566,10 +775,7 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
     problemas = comprobar_regla_comun_1({DOC: bloque})
 
     i_checkout = _indice_de_uses(lista, "actions/checkout@")
-    if i_checkout is None:
-        problemas.append(f"'{DOC}': falta actions/checkout")
-    elif not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
-        problemas.append(f"'{DOC}': el checkout debe declarar `persist-credentials: false`")
+    problemas += _comprobar_checkout(DOC, lista, i_checkout)
     i_node = _indice_de_uses(lista, "actions/setup-node@")
     i_uv = _indice_de_uses(lista, "astral-sh/setup-uv@")
     i_lychee = _indice_de_uses(lista, "lycheeverse/lychee-action@")
@@ -586,8 +792,6 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
     anterior = "el inicio del trabajo"
     for etiqueta, hito in hitos.items():
         if hito is None:
-            if etiqueta == "npm ci de mermaid-cli":
-                continue  # lo exige más abajo
             problemas.append(
                 f"'{DOC}': falta «{etiqueta}» en un paso del trabajo (un paso comentado o de otro trabajo no cuenta)"
             )
@@ -596,10 +800,6 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
         else:
             previo = hito
             anterior = etiqueta
-    if hitos["npm ci de mermaid-cli"] is None:
-        problemas.append(
-            f"'{DOC}': falta «npm ci de mermaid-cli» en un paso del trabajo (un paso comentado o de otro trabajo no cuenta)"
-        )
     for paso in lista:
         if re.search(NPM_QUE_RESUELVE, comando(paso).replace("\\\n", " ")):
             problemas.append(
@@ -607,6 +807,13 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
                 "`npm ci` sobre un lockfile (zizmor: adhoc-packages)"
             )
 
+    if i_node is not None:
+        con_node = valor_del_paso(lista[i_node], "with") or ""
+        if (_entrada_de_with(con_node, "node-version-file") or "").strip("\"'") != ARCHIVO_DE_NODE:
+            problemas.append(
+                f"'{DOC}': setup-node no declara `node-version-file: {ARCHIVO_DE_NODE}`; sin él la versión de Node "
+                "dejaría de ser la del cliente"
+            )
     if hitos["markdownlint-cli2"] is not None:
         problemas += _comprobar_markdownlint(lista, hitos["markdownlint-cli2"])
         if i_node is None or i_node > hitos["markdownlint-cli2"][0]:
@@ -631,6 +838,15 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
                 f"'{DOC}': falta actions/setup-node antes de instalar mermaid-cli; npm necesita Node"
             )
 
+    return problemas + _comprobar_cada_paso_y_el_trabajo(bloque, lista, i_checkout)
+
+
+def _comprobar_cada_paso_y_el_trabajo(
+    bloque: list[str], lista: list[list[str]], i_checkout: int | None
+) -> list[str]:
+    """Reglas comunes 6, 7 y 9 en cada paso posterior al checkout, y lo que no debe declarar el trabajo: `continue-on-error`,
+    `secrets.` y un `working-directory` por omisión (que movería sin avisar el `npm ci`, el bucle de mmdc y los verificadores)."""
+    problemas: list[str] = []
     for k, paso in enumerate(lista):
         if i_checkout is not None and k <= i_checkout:
             continue
@@ -657,21 +873,285 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
         )
     if LEE_SECRETOS.search("\n".join(bloque)):
         problemas.append(f"'{DOC}': lee `secrets.`; ningún workflow del proyecto usa secretos")
+    por_omision = directorio_por_omision(bloque)
+    if por_omision not in (None, "."):
+        problemas.append(
+            f"'{DOC}': declara `defaults.run.working-directory: {por_omision}`; los pasos correrían fuera de la raíz y el "
+            "`working-directory` de cada uno ya no diría dónde corre"
+        )
     return problemas
 
 
 def comprobar_tc65_texto(texto: str) -> list[str]:
     """TC-65 sobre el texto de `ci.yml`: la estructura del trabajo y el fijado por SHA de sus acciones."""
-    return comprobar_tc65(extraer_trabajos(texto)) + comprobar_acciones_fijadas(texto, DOC)
+    problemas = comprobar_tc65(extraer_trabajos(texto)) + comprobar_acciones_fijadas(texto, DOC)
+    if re.search(r"(?m)^defaults\s*:", sin_comentarios(texto)):
+        problemas.append(
+            f"ci.yml: declara `defaults:` a nivel de flujo; se aplicaría también al trabajo '{DOC}' sin que sus pasos lo digan"
+        )
+    return problemas
 
 
-def comprobar_tc64(texto: str) -> list[str]:
-    """CA-14 esc. 1 · TC-64. `enlaces.yml` se dispara con `schedule` y un único `cron` de un día por semana (`0 13 * * 1`) y con
-    `workflow_dispatch`; declara `permissions: contents: read` a nivel de flujo sin escritura alguna; no usa `pull_request_target`
-    ni `secrets.`; tiene un trabajo con checkout (`persist-credentials: false`) y `lychee-action` con la configuración del PR;
-    todas sus acciones van fijadas por SHA; corredor `ubuntu-24.04` y `timeout-minutes`."""
+# ---------------------------------------------------------------------------------------------------------
+# Comportamiento: se ejecuta el `run:` real de un paso con bash (F001)
+#
+# Las comprobaciones de arriba leen el texto del paso y no pueden ver su flujo: `fallos=1` seguido de `fallos=0`,
+# un `exit 0` antes de la marca, un `continue` antes de mmdc, `while false` o un `codigo=0` tras el `cat` de Vale
+# dejan el texto "correcto" y el paso inútil. Aquí el `run:` se extrae de `ci.yml`, se ejecuta con `bash -eo pipefail`
+# (como `shell: bash` en GitHub) sobre un árbol temporal y con un `mmdc` y un `uvx` de mentira, y se comprueba qué
+# código de salida y qué anotaciones produce. Siguen vivas las comprobaciones estáticas de lo que el programa de
+# mentira no ve: `-p`, el alcance, la ruta del binario y las versiones.
+#
+# Límite conocido (F006), no exigido: si ningún Markdown del alcance tiene un bloque `mermaid`, el bucle no corre y
+# el paso termina en verde. Hoy es el comportamiento del diseño (no hay nada que validar) y las pruebas no lo fijan.
+# ---------------------------------------------------------------------------------------------------------
+
+PASO_DE_MERMAID = "Diagramas con mermaid-cli"
+PASO_DE_VALE = "Prosa con Vale"
+RUTA_DE_MMDC = ".github/mermaid/node_modules/.bin/mmdc"
+
+# mmdc de mentira: valida el archivo que recibe con `-i`; sale 1 si contiene `INVALID`, 2 si no recibe un archivo legible o
+# si falta `-o` (o su carpeta no existe), como el mmdc real con un Markdown de entrada.
+MMDC_DE_MENTIRA = """#!/usr/bin/env bash
+entrada=""
+salida=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -i) entrada="$2"; shift 2 ;;
+    -o) salida="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+if [ -z "$entrada" ] || [ ! -f "$entrada" ]; then
+  echo "mmdc de mentira: falta -i con un archivo legible" >&2
+  exit 2
+fi
+if [ -z "$salida" ] || [ ! -d "$(dirname "$salida")" ]; then
+  echo "mmdc de mentira: falta -o con una carpeta existente" >&2
+  exit 2
+fi
+if grep -q INVALID "$entrada"; then
+  exit 1
+fi
+exit 0
+"""
+
+# uvx de mentira: imprime lo que dicte `CIMENTA_VALE_SALIDA` y sale con `CIMENTA_VALE_CODIGO`.
+UVX_DE_MENTIRA = """#!/usr/bin/env bash
+printf '%s' "$CIMENTA_VALE_SALIDA"
+exit "${CIMENTA_VALE_CODIGO:-0}"
+"""
+
+DIAGRAMA_VALIDO = "# Diagrama\n\n```mermaid\ngraph TD\n  A --> B\n```\n"
+DIAGRAMA_INVALIDO = "# Diagrama\n\n```mermaid\nINVALID\n```\n"
+ARBOL_BASE = {
+    "docs/leeme.md": "# Docs\n",
+    "sdd/leeme.md": "# SDD\n",
+    "README.md": "# Léeme\n",
+    "CLAUDE.md": "# Claude\n",
+    "tools/README.md": "# Tools\n",
+}
+ALERTA_DE_VALE = "docs/a.md:3:1:Vale.Terms:Usa 'cadena' en lugar de 'string'."
+
+
+def _run_del_paso(texto_ci: str, nombre: str) -> str | None:
+    """El `run:` del paso `nombre` del trabajo `documentacion` de `ci.yml`, o `None` si no existe."""
+    bloque = extraer_trabajos(texto_ci).get(DOC)
+    for paso in pasos(bloque) if bloque else []:
+        if valor_del_paso(paso, "name") == nombre and comando(paso):
+            return comando(paso)
+    return None
+
+
+def _desviaciones(
+    nombre: str,
+    resultado: tuple[int, str],
+    codigo: int,
+    presentes: tuple[str, ...],
+    ausentes: tuple[str, ...],
+) -> list[str]:
+    salida_del_paso, salida = resultado
     problemas: list[str] = []
-    activo = sin_comentarios(texto)
+    if salida_del_paso != codigo:
+        problemas.append(
+            f"escenario «{nombre}»: el paso salió con {salida_del_paso} y debía salir con {codigo}; salida: {salida[-400:]!r}"
+        )
+    problemas += [
+        f"escenario «{nombre}»: la salida no contiene {texto!r}: {salida[-400:]!r}"
+        for texto in presentes
+        if texto not in salida
+    ]
+    problemas += [
+        f"escenario «{nombre}»: la salida contiene {texto!r}"
+        for texto in ausentes
+        if texto in salida
+    ]
+    return problemas
+
+
+def _anotacion(archivo: str) -> str:
+    return f"::error file={archivo}::diagrama Mermaid inválido"
+
+
+# (nombre, archivos del escenario, código de salida esperado, anotaciones que deben salir, anotaciones que no)
+ESCENARIOS_DE_MERMAID: tuple[
+    tuple[str, dict[str, str], int, tuple[str, ...], tuple[str, ...]], ...
+] = (
+    (
+        "un diagrama inválido en docs",
+        {"docs/malo.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("docs/malo.md"),),
+        (),
+    ),
+    (
+        "solo diagramas válidos",
+        {"docs/bueno.md": DIAGRAMA_VALIDO, "README.md": DIAGRAMA_VALIDO},
+        0,
+        (),
+        ("::error",),
+    ),
+    (
+        "inválido en docs y válido después, en sdd",
+        {"docs/malo.md": DIAGRAMA_INVALIDO, "sdd/bueno.md": DIAGRAMA_VALIDO},
+        1,
+        (_anotacion("docs/malo.md"),),
+        (_anotacion("sdd/bueno.md"),),
+    ),
+    (
+        "válido en README y inválido en sdd",
+        {"README.md": DIAGRAMA_VALIDO, "sdd/malo.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("sdd/malo.md"),),
+        (_anotacion("README.md"),),
+    ),
+    (
+        "dos archivos inválidos, cada uno con su anotación",
+        {"docs/malo.md": DIAGRAMA_INVALIDO, "tools/README.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("docs/malo.md"), _anotacion("tools/README.md")),
+        (),
+    ),
+    (
+        "un archivo con espacio en el nombre, inválido, se anota entero",
+        {"docs/con espacio.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("docs/con espacio.md"),),
+        (),
+    ),
+    (
+        "un archivo con espacio en el nombre, válido, pasa",
+        {"docs/con espacio.md": DIAGRAMA_VALIDO},
+        0,
+        (),
+        ("::error",),
+    ),
+    (
+        "un Markdown sin bloque mermaid no se valida",
+        {"docs/texto.md": "# Texto\n\nINVALID, pero sin diagrama.\n"},
+        0,
+        (),
+        ("::error",),
+    ),
+)
+
+
+def comprobar_comportamiento_de_mermaid(texto_ci: str) -> list[str]:
+    """Ejecuta el `run:` real del paso de mermaid-cli con un `mmdc` de mentira y devuelve cada escenario que no se cumple."""
+    run = _run_del_paso(texto_ci, PASO_DE_MERMAID)
+    if run is None:
+        return [f"'{DOC}': no hay un paso «{PASO_DE_MERMAID}» con `run:` que ejecutar"]
+    problemas: list[str] = []
+    for nombre, archivos, codigo, presentes, ausentes in ESCENARIOS_DE_MERMAID:
+        resultado = ejecutar_en_bash(
+            run, archivos={**ARBOL_BASE, **archivos}, ejecutables={RUTA_DE_MMDC: MMDC_DE_MENTIRA}
+        )
+        problemas += _desviaciones(nombre, resultado, codigo, presentes, ausentes)
+    return problemas
+
+
+# (nombre, salida de Vale, código de Vale, código esperado del paso, la alerta debe verse en la salida)
+ESCENARIOS_DE_VALE: tuple[tuple[str, str, int, int, bool], ...] = (
+    (
+        "una alerta con código 0 (los avisos no cambian el código)",
+        ALERTA_DE_VALE + "\n",
+        0,
+        1,
+        True,
+    ),
+    ("sin salida y con código 0", "", 0, 0, False),
+    ("sin salida y con código 1 (error de Vale)", "", 1, 1, False),
+    ("una alerta con código 1", ALERTA_DE_VALE + "\n", 1, 1, True),
+)
+
+
+def comprobar_comportamiento_de_vale(texto_ci: str) -> list[str]:
+    """Ejecuta el `run:` real del paso de Vale con un `uvx` de mentira y devuelve cada escenario que no se cumple."""
+    run = _run_del_paso(texto_ci, PASO_DE_VALE)
+    if run is None:
+        return [f"'{DOC}': no hay un paso «{PASO_DE_VALE}» con `run:` que ejecutar"]
+    problemas: list[str] = []
+    for nombre, salida_de_vale, codigo_de_vale, codigo, se_ve in ESCENARIOS_DE_VALE:
+        resultado = ejecutar_en_bash(
+            run,
+            archivos=ARBOL_BASE,
+            en_path={"uvx": UVX_DE_MENTIRA},
+            entorno={
+                "CIMENTA_VALE_SALIDA": salida_de_vale,
+                "CIMENTA_VALE_CODIGO": str(codigo_de_vale),
+            },
+        )
+        problemas += _desviaciones(
+            nombre,
+            resultado,
+            codigo,
+            (ALERTA_DE_VALE,) if se_ve else (),
+            () if se_ve else (ALERTA_DE_VALE,),
+        )
+    return problemas
+
+
+def _columna(linea: str) -> int:
+    return len(linea) - len(linea.lstrip(" "))
+
+
+def _claves_de_on(disparadores: str) -> set[str]:
+    """Los disparadores de primer nivel de `on:`: las claves del mapa, o los nombres de la forma en línea (`on: [a, b]`) o en lista."""
+    lineas = disparadores.splitlines()
+    claves = set(re.findall(r"[\w-]+", lineas[0])) if lineas else set()
+    cuerpo = [linea for linea in lineas[1:] if linea.strip()]
+    if not cuerpo:
+        return claves
+    primera_columna = min(_columna(linea) for linea in cuerpo)
+    for linea in cuerpo:
+        if _columna(linea) != primera_columna:
+            continue
+        encontrada = re.match(r"\s*(?:-\s+)?([\w-]+)\s*(?::|$)", linea)
+        if encontrada:
+            claves.add(encontrada.group(1))
+    return claves
+
+
+def _concurrencia_sin_cancelar(texto: str) -> bool:
+    """`concurrency:` a nivel de flujo con un `group` y `cancel-in-progress: false`."""
+    lineas = sin_comentarios(texto).splitlines()
+    for k, linea in enumerate(lineas):
+        if not re.fullmatch(r"concurrency\s*:", linea):
+            continue
+        cuerpo = []
+        for siguiente in lineas[k + 1 :]:
+            if _columna(siguiente) == 0:
+                break
+            cuerpo.append(siguiente.strip())
+        return any(re.fullmatch(r"group:\s*\S.*", c) for c in cuerpo) and any(
+            re.fullmatch(r"""cancel-in-progress:\s*["']?false["']?""", c) for c in cuerpo
+        )
+    return False
+
+
+def _comprobar_disparadores_de_enlaces(texto: str) -> list[str]:
+    """Cómo se dispara `enlaces.yml`: `schedule` con un único `cron` semanal, `workflow_dispatch`, `on:` exacto y `concurrency`."""
+    problemas: list[str] = []
     disparadores = _disparadores(texto)
     if not re.search(r"(?<![\w-])schedule\s*:", disparadores):
         problemas.append(
@@ -701,7 +1181,25 @@ def comprobar_tc64(texto: str) -> list[str]:
         problemas.append(
             "enlaces.yml: no declara `workflow_dispatch`; no se puede lanzar a mano tras fusionar"
         )
+    disparadores_declarados = _claves_de_on(disparadores)
+    if disparadores_declarados != DISPARADORES_DE_ENLACES:
+        problemas.append(
+            f"enlaces.yml: `on:` declara {sorted(disparadores_declarados)} y debe declarar exactamente "
+            f"{sorted(DISPARADORES_DE_ENLACES)}; otro disparador lo correría en cada PR o con permisos de otro contexto"
+        )
+    if not _concurrencia_sin_cancelar(texto):
+        problemas.append(
+            "enlaces.yml: no declara `concurrency` con un `group` y `cancel-in-progress: false`; una corrida a mano que "
+            "coincida con el cron cancelaría la otra, o se solaparían"
+        )
+    return problemas
 
+
+def _comprobar_trabajos_de_enlaces(texto: str) -> list[str]:
+    """Qué hace `enlaces.yml` una vez disparado: permisos de solo lectura, sin secretos ni `pull_request_target`, y un trabajo con
+    checkout sin credenciales persistidas y `lychee-action` con la configuración del PR; todas las acciones fijadas por SHA."""
+    problemas: list[str] = []
+    activo = sin_comentarios(texto)
     permisos = _permisos_de_flujo(texto)
     if permisos is None:
         problemas.append("enlaces.yml: no declara `permissions:` a nivel de flujo")
@@ -732,17 +1230,11 @@ def comprobar_tc64(texto: str) -> list[str]:
             continue
         encontrado = True
         i_checkout = _indice_de_uses(lista, "actions/checkout@")
-        if i_checkout is None:
-            problemas.append(
-                f"'{id_trabajo}': falta actions/checkout; lychee no tendría los Markdown que revisar"
-            )
-        else:
-            if i_checkout > i_lychee:
-                problemas.append(f"'{id_trabajo}': actions/checkout va después de lychee-action")
-            if not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
-                problemas.append(
-                    f"'{id_trabajo}': el checkout debe declarar `persist-credentials: false`"
-                )
+        if i_checkout is not None and i_checkout > i_lychee:
+            problemas.append(f"'{id_trabajo}': actions/checkout va después de lychee-action")
+        problemas += _comprobar_checkout(
+            id_trabajo, lista, i_checkout, "; lychee no tendría los Markdown que revisar"
+        )
         problemas += _comprobar_paso_de_lychee(id_trabajo, lista[i_lychee])
     if not encontrado:
         problemas.append("enlaces.yml: ningún trabajo usa lycheeverse/lychee-action")
@@ -751,13 +1243,23 @@ def comprobar_tc64(texto: str) -> list[str]:
     return problemas
 
 
-def _configuracion_de_lychee(texto: str) -> tuple[tuple[str, ...], str, str] | None:
+def comprobar_tc64(texto: str) -> list[str]:
+    """CA-14 esc. 1 · TC-64. `enlaces.yml` se dispara con `schedule` y un único `cron` de un día por semana (`0 13 * * 1`) y con
+    `workflow_dispatch`; declara `permissions: contents: read` a nivel de flujo sin escritura alguna; no usa `pull_request_target`
+    ni `secrets.`; tiene un trabajo con checkout (`persist-credentials: false`) y `lychee-action` con la configuración del PR;
+    todas sus acciones van fijadas por SHA; corredor `ubuntu-24.04` y `timeout-minutes`."""
+    return _comprobar_disparadores_de_enlaces(texto) + _comprobar_trabajos_de_enlaces(texto)
+
+
+def _configuracion_de_lychee(texto: str) -> tuple[str, tuple[str, ...], str, str] | None:
+    """La acción (`uses:` con su SHA), los `args` ordenados, `fail` y `lycheeVersion` del trabajo que usa lychee-action."""
     for bloque in extraer_trabajos(texto).values():
         lista = pasos(bloque)
         i_lychee = _indice_de_uses(lista, "lycheeverse/lychee-action@")
         if i_lychee is not None:
             con = valor_del_paso(lista[i_lychee], "with") or ""
             return (
+                valor_del_paso(lista[i_lychee], "uses") or "",
                 tuple(sorted(_palabras(_entrada_de_with(con, "args") or ""))),
                 (_entrada_de_with(con, "fail") or "").strip("\"'").lower(),
                 (_entrada_de_with(con, "lycheeVersion") or "").strip("\"'"),
@@ -766,8 +1268,8 @@ def _configuracion_de_lychee(texto: str) -> tuple[tuple[str, ...], str, str] | N
 
 
 def comprobar_misma_configuracion_de_lychee(ci: str, enlaces: str) -> list[str]:
-    """CA-14 esc. 1 · TC-64. El detector semanal lleva exactamente la configuración del PR: mismos `args` (sin importar el
-    orden ni las comillas), mismo `fail` y misma versión de lychee; así lo que el cron encuentra es lo que el PR habría visto."""
+    """CA-14 esc. 1 · TC-64. El detector semanal lleva exactamente la configuración del PR: la misma acción (el mismo SHA), mismos
+    `args` (sin importar el orden ni las comillas), mismo `fail` y misma versión de lychee; así lo que el cron encuentra es lo que el PR habría visto."""
     del_pr = _configuracion_de_lychee(ci)
     semanal = _configuracion_de_lychee(enlaces)
     if del_pr is None:
@@ -841,6 +1343,7 @@ LLAMADA_A_MMDC = (
     "            if ! .github/mermaid/node_modules/.bin/mmdc -p .github/puppeteer-config.json"
     ' -i "$archivo" -o "$RUNNER_TEMP/mermaid/$n.md"; then\n'
 )
+FIN_DEL_BUCLE = '          if [ "$fallos" -ne 0 ]; then\n            exit 1\n          fi\n'
 LINEAS_DEL_BUCLE = (
     "          fallos=0\n"
     "          n=0\n"
@@ -852,9 +1355,7 @@ LINEAS_DEL_BUCLE = (
     "              fallos=1\n"
     "            fi\n"
     "          done < <(grep -rl '```mermaid' docs sdd README.md CLAUDE.md tools/README.md)\n"
-    '          if [ "$fallos" -ne 0 ]; then\n'
-    "            exit 1\n"
-    "          fi\n"
+    + FIN_DEL_BUCLE
 )
 PASO_MERMAID = (
     "      - name: Diagramas con mermaid-cli\n"
@@ -886,12 +1387,12 @@ CI_D5 = sustituir(
     DOCUMENTACION_D5,
 )
 
-PASO_CHECKOUT_DE_ENLACES = PASO_CHECKOUT_D5
 PASO_LYCHEE_DE_ENLACES = (
     "      - name: Enlaces con lychee\n"
     + f"        uses: lycheeverse/lychee-action@{SHA_LYCHEE} # v2.9.0\n"
     + CON_DE_LYCHEE
 )
+CONCURRENCIA_DE_ENLACES = "concurrency:\n  group: enlaces\n  cancel-in-progress: false\n"
 ENLACES_D5 = (
     "name: Enlaces\n"
     "on:\n"
@@ -899,13 +1400,12 @@ ENLACES_D5 = (
     '    - cron: "0 13 * * 1"\n'
     "  workflow_dispatch:\n"
     "permissions:\n"
-    "  contents: read\n"
-    "jobs:\n"
+    "  contents: read\n" + CONCURRENCIA_DE_ENLACES + "jobs:\n"
     "  enlaces:\n"
     "    name: Enlaces · detector semanal con lychee\n"
     "    runs-on: ubuntu-24.04\n"
     "    timeout-minutes: 15\n"
-    "    steps:\n" + PASO_CHECKOUT_DE_ENLACES + PASO_LYCHEE_DE_ENLACES
+    "    steps:\n" + PASO_CHECKOUT_D5 + PASO_LYCHEE_DE_ENLACES
 )
 
 INTEGRIDAD_SINTETICA = "sha512-" + "A" * 86 + "=="
@@ -952,8 +1452,7 @@ def json_mutado(base: dict, ruta: tuple[str, ...], valor: object = _BORRAR) -> s
 PACKAGE_JSON_D5 = json.dumps(PACKAGE_JSON_BASE, indent=2)
 PACKAGE_LOCK_D5 = json.dumps(PACKAGE_LOCK_BASE, indent=2)
 GITIGNORE_D5 = "__pycache__/\n.env\nnode_modules/\ndist/\n"
-
-exigir_rojo_en_todos = _exigir_rojo_en_todos
+PUPPETEER_CONFIG_D5 = '{"args": ["--no-sandbox"]}'
 
 
 def sin_guarda(paso: str) -> str:
@@ -1053,6 +1552,34 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             ),
             "bucle for con || { ...; } y exit 1 en una línea": en_documentacion(
                 LINEAS_DEL_BUCLE, bucle_for
+            ),
+            "guarda de Vale con las pruebas en orden inverso": en_documentacion(
+                LINEA_GUARDA, '          [ ! -s "$RUNNER_TEMP/vale.txt" ] && [ "$codigo" -eq 0 ]\n'
+            ),
+            "guarda de Vale con if en varias líneas y las pruebas en orden inverso": en_documentacion(
+                LINEA_GUARDA,
+                '          if [ -s "$RUNNER_TEMP/vale.txt" ] || [ "$codigo" -ne 0 ]; then\n'
+                "            exit 1\n"
+                "          fi\n",
+            ),
+            "salida del bucle con -eq 1": en_documentacion(
+                '[ "$fallos" -ne 0 ]', '[ "$fallos" -eq 1 ]'
+            ),
+            "salida del bucle con && exit 1": en_documentacion(
+                FIN_DEL_BUCLE, '          [ "${fallos}" -ne 0 ] && exit 1\n'
+            ),
+            "la variable de fallos con otro nombre": en_documentacion(
+                LINEAS_DEL_BUCLE, LINEAS_DEL_BUCLE.replace("fallos", "errores")
+            ),
+            "grep -R": en_documentacion("grep -rl", "grep -Rl"),
+            "grep -r -l": en_documentacion("grep -rl", "grep -r -l"),
+            "la salida de mmdc descartada con 2>&1 dentro del if": en_documentacion(
+                '-o "$RUNNER_TEMP/mermaid/$n.md"; then',
+                '-o "$RUNNER_TEMP/mermaid/$n.md" > /dev/null 2>&1; then',
+            ),
+            "node-version-file entre comillas": en_documentacion(
+                "node-version-file: frontend/package.json",
+                'node-version-file: "frontend/package.json"',
             ),
             "un paso de más entre Vale y lychee": en_documentacion(
                 PASO_LYCHEE,
@@ -1390,6 +1917,22 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
                 en_documentacion("'sdd/**/*.md' README.md", "'sdd/**/*.md' .claude README.md"),
                 "el alcance de lychee-action",
             ),
+            "lychee con --offline": (
+                en_documentacion(" --no-progress", " --no-progress --offline"),
+                "opciones fuera de `--config` y `--no-progress`",
+            ),
+            "lychee con --exclude y su valor": (
+                en_documentacion(" --no-progress", " --no-progress --exclude example.com"),
+                "opciones fuera de `--config` y `--no-progress`",
+            ),
+            "lychee con --exclude=valor": (
+                en_documentacion(" --no-progress", " --no-progress --exclude=example.com"),
+                "opciones fuera de `--config` y `--no-progress`",
+            ),
+            "lychee con --exclude-path": (
+                en_documentacion(" --no-progress", " --no-progress --exclude-path docs"),
+                "opciones fuera de `--config` y `--no-progress`",
+            ),
             "sin args": (en_documentacion(ARGS_DE_LYCHEE, ""), "no declara `args:`"),
             "sin lycheeVersion": (
                 en_documentacion("          lycheeVersion: v0.24.2\n", ""),
@@ -1564,15 +2107,13 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
                 "no escribe `::error file=<archivo>::diagrama Mermaid inválido`",
             ),
             "sin exit 1": (
-                en_documentacion(
-                    '          if [ "$fallos" -ne 0 ]; then\n            exit 1\n          fi\n', ""
-                ),
+                en_documentacion(FIN_DEL_BUCLE, ""),
                 "no termina con `exit 1`",
             ),
             "exit 1 dentro del bucle, que corta en el primer diagrama": (
-                en_documentacion(
-                    '          if [ "$fallos" -ne 0 ]; then\n            exit 1\n          fi\n', ""
-                ).replace("              fallos=1\n", "              exit 1\n"),
+                en_documentacion(FIN_DEL_BUCLE, "").replace(
+                    "              fallos=1\n", "              exit 1\n"
+                ),
                 "no termina con `exit 1`",
             ),
             "sin bucle": (
@@ -1620,6 +2161,172 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             ),
         }
         exigir_rojo_en_todos(self, comprobar_tc65_texto, casos)
+
+    def test_tc65_mutantes_el_bucle_de_mmdc_detecta_el_fallo_y_sale_con_exit_1_solo_si_lo_hubo(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 — el bucle de mmdc no se comprueba por presencia de fragmentos: la llamada va negada y sola,
+        `fallos=1` está en la rama que falla, `exit 1` es un comando completo condicionado por `fallos` y `grep` es recursivo."""
+        llamada = "if ! .github/mermaid/node_modules/.bin/mmdc"
+        cierre_de_la_condicion = '-o "$RUNNER_TEMP/mermaid/$n.md"; then'
+        casos = {
+            "fallos=1 cambiado por fallos=0": (
+                en_documentacion("              fallos=1\n", "              fallos=0\n"),
+                "no marca el fallo",
+            ),
+            "fallos=1 fuera de la rama que falla": (
+                en_documentacion(
+                    "              fallos=1\n            fi\n",
+                    "            fi\n            fallos=1\n",
+                ),
+                "no marca el fallo",
+            ),
+            "se marca otra variable que la del exit": (
+                en_documentacion("              fallos=1\n", "              otro=1\n"),
+                "no termina con `exit 1`",
+            ),
+            "la variable de fallos sin iniciar": (
+                en_documentacion("          fallos=0\n", ""),
+                "no inicia `fallos=0` antes del bucle",
+            ),
+            "exit 1 cuando no hubo fallos (-eq 0)": (
+                en_documentacion('[ "$fallos" -ne 0 ]', '[ "$fallos" -eq 0 ]'),
+                "no termina con `exit 1`",
+            ),
+            "exit 1 con -ne 1": (
+                en_documentacion('[ "$fallos" -ne 0 ]', '[ "$fallos" -ne 1 ]'),
+                "no termina con `exit 1`",
+            ),
+            "exit 1 como texto de un echo": (
+                en_documentacion("            exit 1\n", '            echo "exit 1"\n'),
+                "no termina con `exit 1`",
+            ),
+            "exit 1 incondicional": (
+                en_documentacion(FIN_DEL_BUCLE, "          exit 1\n"),
+                "no termina con `exit 1`",
+            ),
+            "un exit 0 después del exit 1 condicionado": (
+                en_documentacion(FIN_DEL_BUCLE, FIN_DEL_BUCLE + "          exit 0\n"),
+                "no termina con `exit 1`",
+            ),
+            "la llamada a mmdc sin negar": (
+                en_documentacion(llamada, "if .github/mermaid/node_modules/.bin/mmdc"),
+                "no está negada",
+            ),
+            "mmdc encadenada con && a un bloque de error": (
+                en_documentacion(
+                    LLAMADA_A_MMDC,
+                    "            .github/mermaid/node_modules/.bin/mmdc -p .github/puppeteer-config.json"
+                    ' -i "$archivo" -o "$RUNNER_TEMP/mermaid/$n.md" && { echo "::error file=$archivo::diagrama Mermaid inválido"; fallos=1; }\n'
+                    "            if false; then\n",
+                ),
+                "no está negada",
+            ),
+            "un true encadenado dentro del if": (
+                en_documentacion(
+                    cierre_de_la_condicion, '-o "$RUNNER_TEMP/mermaid/$n.md"; true; then'
+                ),
+                "encadena otro comando",
+            ),
+            "una tubería en la condición del if": (
+                en_documentacion(
+                    cierre_de_la_condicion, '-o "$RUNNER_TEMP/mermaid/$n.md" | cat; then'
+                ),
+                "encadena otro comando",
+            ),
+            "grep sin -r": (
+                en_documentacion("grep -rl '```mermaid'", "grep -l '```mermaid'"),
+                "no es recursivo",
+            ),
+            "grep sin -l": (
+                en_documentacion("grep -rl '```mermaid'", "grep -r '```mermaid'"),
+                "no lista nombres de archivo",
+            ),
+            "mmdc sobre un archivo fijo en lugar de la variable del bucle": (
+                en_documentacion('-i "$archivo"', "-i README.md"),
+                "mmdc no recibe `-i",
+            ),
+            "el ::error nombra un archivo fijo": (
+                en_documentacion("::error file=$archivo::", "::error file=README.md::"),
+                "no nombra el archivo del bucle",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc65_texto, casos)
+
+    def test_tc65_mutantes_la_guarda_de_salida_vacia_de_vale_solo_acepta_sus_dos_formas(self):
+        """CA-13 esc. 1 · TC-65 — la guarda de Vale es `[ "$codigo" -eq 0 ] && [ ! -s ... ]` como última línea, o `if [ ... -ne 0 ] ||
+        [ -s ... ]; then exit 1; fi`; la presencia de `-s vale.txt` no basta, y cada prueba tiene que ir en su sentido."""
+        guarda = "Vale sin la guarda de salida vacía"
+        archivo = '"$RUNNER_TEMP/vale.txt"'
+
+        def con_guarda(linea: str) -> str:
+            return en_documentacion(LINEA_GUARDA, f"          {linea}\n")
+
+        casos = {
+            "la prueba -s sin negar en la forma A": (
+                con_guarda(f'[ "$codigo" -eq 0 ] && [ -s {archivo} ]'),
+                guarda,
+            ),
+            "-eq cambiado por -ne en la forma A": (
+                con_guarda(f'[ "$codigo" -ne 0 ] && [ ! -s {archivo} ]'),
+                guarda,
+            ),
+            "&& cambiado por || en la forma A": (
+                con_guarda(f'[ "$codigo" -eq 0 ] || [ ! -s {archivo} ]'),
+                guarda,
+            ),
+            "la guarda dentro de un echo": (
+                con_guarda(f"echo '[ \"$codigo\" -eq 0 ] && [ ! -s {archivo} ]'"),
+                guarda,
+            ),
+            "la guarda como argumento de un comando": (
+                con_guarda(f'echo hecho [ "$codigo" -eq 0 ] && [ ! -s {archivo} ]'),
+                guarda,
+            ),
+            "un exit 0 después de la guarda": (
+                en_documentacion(LINEA_GUARDA, LINEA_GUARDA + "          exit 0\n"),
+                "no es lo último del paso",
+            ),
+            "la forma B con la prueba -s negada": (
+                con_guarda(f'if [ "$codigo" -ne 0 ] || [ ! -s {archivo} ]; then exit 1; fi'),
+                guarda,
+            ),
+            "la forma B con -eq 0 en lugar de -ne 0": (
+                con_guarda(f'if [ "$codigo" -eq 0 ] || [ -s {archivo} ]; then exit 1; fi'),
+                guarda,
+            ),
+            "la forma B con && en lugar de ||": (
+                con_guarda(f'if [ "$codigo" -ne 0 ] && [ -s {archivo} ]; then exit 1; fi'),
+                guarda,
+            ),
+            "la forma B que sale con exit 0": (
+                con_guarda(f'if [ "$codigo" -ne 0 ] || [ -s {archivo} ]; then exit 0; fi'),
+                guarda,
+            ),
+            "la forma B sin cuerpo que salga": (
+                con_guarda(f'if [ "$codigo" -ne 0 ] || [ -s {archivo} ]; then echo hallazgos; fi'),
+                guarda,
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc65_texto, casos)
+
+    def test_tc65_mutantes_el_contenido_de_puppeteer_config_pasa_el_sandbox_a_chromium(self):
+        """CA-16 esc. 1 · TC-65 — `.github/puppeteer-config.json` lleva `--no-sandbox`: sin él, Chromium no arranca como root
+        en el corredor y mmdc falla en todos los diagramas por una razón que no es de los diagramas."""
+        self.assertEqual(comprobar_puppeteer_config(PUPPETEER_CONFIG_D5), [])
+        casos = {
+            "vaciado a {}": ("{}", "no declara `args`"),
+            "args vacío": ('{"args": []}', "no lleva `--no-sandbox`"),
+            "otro argumento": ('{"args": ["--disable-gpu"]}', "no lleva `--no-sandbox`"),
+            "un argumento que solo se le parece": (
+                '{"args": ["--no-sandbox-fake"]}',
+                "no lleva `--no-sandbox`",
+            ),
+            "args como cadena": ('{"args": "--no-sandbox"}', "no declara `args`"),
+            "JSON roto": ("{ no es json", "no es JSON válido"),
+            "raíz que no es un objeto": ('["--no-sandbox"]', "la raíz debe ser un objeto JSON"),
+        }
+        exigir_rojo_en_todos(self, comprobar_puppeteer_config, casos)
 
     def test_tc65_mutantes_reglas_comunes_del_trabajo(self):
         """CA-13 esc. 1 · TC-65 y reglas comunes 1, 2, 4, 5, 7 y 9 — corredor, tiempo, credenciales, SHA, secretos y tuberías."""
@@ -1682,6 +2389,37 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
                 "no está fijada por SHA de 40 caracteres",
             ),
             "tubería sin shell: bash": (con_tuberia, "usa una tubería sin `shell: bash`"),
+            "setup-node sin node-version-file": (
+                en_documentacion(
+                    "        with:\n          node-version-file: frontend/package.json\n", ""
+                ),
+                "setup-node no declara `node-version-file: frontend/package.json`",
+            ),
+            "setup-node con node-version en lugar del archivo": (
+                en_documentacion("node-version-file: frontend/package.json", "node-version: 22"),
+                "setup-node no declara `node-version-file: frontend/package.json`",
+            ),
+            "setup-node con el package.json de otro directorio": (
+                en_documentacion(
+                    "node-version-file: frontend/package.json", "node-version-file: package.json"
+                ),
+                "setup-node no declara `node-version-file: frontend/package.json`",
+            ),
+            "defaults.run.working-directory en el trabajo": (
+                en_documentacion(
+                    "    timeout-minutes: 15\n",
+                    "    timeout-minutes: 15\n    defaults:\n      run:\n        working-directory: backend\n",
+                ),
+                "declara `defaults.run.working-directory: backend`",
+            ),
+            "defaults a nivel de flujo": (
+                sustituir(
+                    CI_D5,
+                    "\njobs:\n",
+                    "\ndefaults:\n  run:\n    working-directory: backend\njobs:\n",
+                ),
+                "declara `defaults:` a nivel de flujo",
+            ),
         }
         exigir_rojo_en_todos(self, comprobar_tc65_texto, casos)
         # Con `shell: bash` la tubería es legítima (regla común 9).
@@ -1702,8 +2440,20 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             "          done < <(grep -rl '```mermaid' docs sdd README.md CLAUDE.md tools/README.md)\n",
             "          done < <(grep -rl '```mermaid' docs sdd README.md CLAUDE.md tools/README.md | sort)\n",
         )
-        self.assertNotEqual(comprobar_regla_comun_8(extraer_trabajos(con_interpolacion)), [])
-        self.assertNotEqual(comprobar_regla_comun_9(extraer_trabajos(con_tuberia)), [])
+        exigir_rojo(
+            self,
+            comprobar_regla_comun_8,
+            con_interpolacion,
+            "interpola ${{ }} dentro de run:",
+            preparar=extraer_trabajos,
+        )
+        exigir_rojo(
+            self,
+            comprobar_regla_comun_9,
+            con_tuberia,
+            "usa una tubería sin `shell: bash`",
+            preparar=extraer_trabajos,
+        )
 
     def test_tc65_mutantes_el_manifiesto_de_mermaid_cli_pasa_en_su_forma_valida(self):
         """CA-16 esc. 1 · TC-65 — control y formas equivalentes: `package.json`, `package-lock.json` y `.gitignore` válidos pasan; un rojo falso bloquearía la fila."""
@@ -1939,6 +2689,14 @@ class PruebasDeMutantesDeLaFilaD5ParaTC64(unittest.TestCase):
                 "            'docs/**/*.md' 'sdd/**/*.md'\n"
                 "            README.md CLAUDE.md tools/README.md\n",
             ),
+            "workflow_dispatch con entradas": sustituir(
+                ENLACES_D5,
+                "  workflow_dispatch:\n",
+                "  workflow_dispatch:\n    inputs:\n      motivo:\n        required: false\n",
+            ),
+            "concurrency con cancel-in-progress entre comillas": sustituir(
+                ENLACES_D5, "cancel-in-progress: false", 'cancel-in-progress: "false"'
+            ),
             "args con las mismas palabras en otro orden": sustituir(
                 ENLACES_D5,
                 ARGS_DE_LYCHEE,
@@ -2012,6 +2770,50 @@ class PruebasDeMutantesDeLaFilaD5ParaTC64(unittest.TestCase):
                 sustituir(ENLACES_D5, "  workflow_dispatch:\n", "  push:  # workflow_dispatch\n"),
                 "workflow_dispatch",
             ),
+            "además pull_request": (
+                sustituir(
+                    ENLACES_D5, "  workflow_dispatch:\n", "  workflow_dispatch:\n  pull_request:\n"
+                ),
+                "debe declarar exactamente ['schedule', 'workflow_dispatch']",
+            ),
+            "además push": (
+                sustituir(ENLACES_D5, "  workflow_dispatch:\n", "  workflow_dispatch:\n  push:\n"),
+                "debe declarar exactamente ['schedule', 'workflow_dispatch']",
+            ),
+            "además workflow_run": (
+                sustituir(
+                    ENLACES_D5, "  workflow_dispatch:\n", "  workflow_dispatch:\n  workflow_run:\n"
+                ),
+                "debe declarar exactamente ['schedule', 'workflow_dispatch']",
+            ),
+            "además pull_request antes de schedule": (
+                sustituir(ENLACES_D5, "on:\n", "on:\n  pull_request:\n"),
+                "debe declarar exactamente ['schedule', 'workflow_dispatch']",
+            ),
+            "sin concurrency": (
+                sustituir(ENLACES_D5, CONCURRENCIA_DE_ENLACES, ""),
+                "cancel-in-progress: false",
+            ),
+            "concurrency comentada": (
+                sustituir(
+                    ENLACES_D5,
+                    CONCURRENCIA_DE_ENLACES,
+                    "# concurrency:\n#   group: enlaces\n#   cancel-in-progress: false\n",
+                ),
+                "cancel-in-progress: false",
+            ),
+            "concurrency que cancela la corrida en curso": (
+                sustituir(ENLACES_D5, "cancel-in-progress: false", "cancel-in-progress: true"),
+                "cancel-in-progress: false",
+            ),
+            "concurrency sin cancel-in-progress": (
+                sustituir(ENLACES_D5, "  cancel-in-progress: false\n", ""),
+                "cancel-in-progress: false",
+            ),
+            "concurrency sin group": (
+                sustituir(ENLACES_D5, "  group: enlaces\n", ""),
+                "cancel-in-progress: false",
+            ),
         }
         exigir_rojo_en_todos(self, comprobar_tc64, casos)
 
@@ -2071,19 +2873,19 @@ class PruebasDeMutantesDeLaFilaD5ParaTC64(unittest.TestCase):
         """CA-14 esc. 1 · TC-64 — checkout sin credenciales persistidas, lychee-action con `fail: true`, acciones por SHA, corredor y tiempo."""
         casos = {
             "sin checkout": (
-                mutar(ENLACES_D5, "enlaces", PASO_CHECKOUT_DE_ENLACES, ""),
+                mutar(ENLACES_D5, "enlaces", PASO_CHECKOUT_D5, ""),
                 "falta actions/checkout",
             ),
             "checkout comentado": (
-                comentar(ENLACES_D5, "enlaces", PASO_CHECKOUT_DE_ENLACES),
+                comentar(ENLACES_D5, "enlaces", PASO_CHECKOUT_D5),
                 "falta actions/checkout",
             ),
             "checkout después de lychee": (
                 mutar(
                     ENLACES_D5,
                     "enlaces",
-                    PASO_CHECKOUT_DE_ENLACES + PASO_LYCHEE_DE_ENLACES,
-                    PASO_LYCHEE_DE_ENLACES + PASO_CHECKOUT_DE_ENLACES,
+                    PASO_CHECKOUT_D5 + PASO_LYCHEE_DE_ENLACES,
+                    PASO_LYCHEE_DE_ENLACES + PASO_CHECKOUT_D5,
                 ),
                 "actions/checkout va después de lychee-action",
             ),
@@ -2105,6 +2907,14 @@ class PruebasDeMutantesDeLaFilaD5ParaTC64(unittest.TestCase):
             "alcance sin sdd": (
                 sustituir(ENLACES_D5, " 'sdd/**/*.md'", ""),
                 "el alcance de lychee-action",
+            ),
+            "lychee con --offline": (
+                sustituir(ENLACES_D5, " --no-progress", " --no-progress --offline"),
+                "opciones fuera de `--config` y `--no-progress`",
+            ),
+            "lychee con --exclude": (
+                sustituir(ENLACES_D5, " --no-progress", " --no-progress --exclude=example.com"),
+                "opciones fuera de `--config` y `--no-progress`",
             ),
             "sin lycheeVersion": (
                 sustituir(ENLACES_D5, "          lycheeVersion: v0.24.2\n", ""),
@@ -2181,24 +2991,27 @@ class PruebasDeMutantesDeLaFilaD5ParaTC64(unittest.TestCase):
                 "ningún trabajo usa lycheeverse/lychee-action",
             ),
         }
-        for descripcion, (texto, fragmento) in casos.items():
-            with self.subTest(mutante=descripcion):
-                problemas = comprobar_misma_configuracion_de_lychee(CI_D5, texto)
-                self.assertNotEqual(
-                    problemas, [], "el mutante debía poner la comparación en rojo y pasó en verde"
-                )
-                self.assertTrue(
-                    any(fragmento in p for p in problemas),
-                    f"el rojo no es por la razón esperada: {problemas}",
-                )
+        casos["enlaces con otro SHA de lychee-action"] = (
+            sustituir(ENLACES_D5, SHA_LYCHEE, "0" * 40),
+            "difiere de la del PR",
+        )
+        exigir_rojo_en_todos(
+            self, lambda texto: comprobar_misma_configuracion_de_lychee(CI_D5, texto), casos
+        )
         # El otro sentido: el PR cambia su configuración y el detector semanal se queda con la vieja.
-        cambia_el_pr = en_documentacion("--no-progress", "--no-progress --verbose")
-        self.assertNotEqual(comprobar_misma_configuracion_de_lychee(cambia_el_pr, ENLACES_D5), [])
-        self.assertNotEqual(
-            comprobar_misma_configuracion_de_lychee(
-                en_documentacion("lycheeVersion: v0.24.2", "lycheeVersion: v0.23.0"), ENLACES_D5
+        en_el_pr = {
+            "el PR añade un argumento": en_documentacion(
+                "--no-progress", "--no-progress --verbose"
             ),
-            [],
+            "el PR cambia de versión de lychee": en_documentacion(
+                "lycheeVersion: v0.24.2", "lycheeVersion: v0.23.0"
+            ),
+            "el PR cambia de SHA de lychee-action": en_documentacion(SHA_LYCHEE, "0" * 40),
+        }
+        exigir_rojo_en_todos(
+            self,
+            lambda ci: comprobar_misma_configuracion_de_lychee(ci, ENLACES_D5),
+            {descripcion: (ci, "difiere de la del PR") for descripcion, ci in en_el_pr.items()},
         )
 
     def test_tc64_mutantes_regresion_ca_r4_enlaces_no_rompe_tc13_tc21_ni_tc22(self):
@@ -2259,13 +3072,12 @@ class PruebasDeMutantesDeLaFilaD5ParaTC64(unittest.TestCase):
         )
         for descripcion, comprobacion, texto, fragmento in casos:
             with self.subTest(mutante=descripcion):
-                problemas = comprobacion({**base, "enlaces.yml": texto})
-                self.assertNotEqual(
-                    problemas, [], "el mutante debía poner la comprobación en rojo y pasó en verde"
-                )
-                self.assertTrue(
-                    any(fragmento in p for p in problemas),
-                    f"el rojo no es por la razón esperada: {problemas}",
+                exigir_rojo(
+                    self,
+                    comprobacion,
+                    texto,
+                    fragmento,
+                    preparar=lambda enlaces: {**base, "enlaces.yml": enlaces},
                 )
 
 
@@ -2292,6 +3104,196 @@ def _texto_de_archivo(caso: unittest.TestCase, ruta: str, motivo: str) -> str:
         return archivo.read()
 
 
+def _ci_real(caso: unittest.TestCase) -> str:
+    return _leer_flujos(caso)["ci.yml"]
+
+
+# Bytes que no son UTF-8 ni cp1252 válidos (`\xff\xfe` y `\x81\x8d\x8f\x90\x9d`): lo que imprime un lanzador de WSL sin distribución.
+BYTES_ILEGIBLES = b"\xff\xfeB\x00A\x00\x81\x8d\x8f\x90\x9d"
+
+
+def _bash_de_mentira_con_bytes_ilegibles(carpeta: Path) -> str:
+    """Un ejecutable que se hace pasar por `bash` e imprime `BYTES_ILEGIBLES`: un `.cmd` en Windows, un guion `sh` en el resto."""
+    emisor = carpeta / "emisor.py"
+    emisor.write_text(
+        f"import sys\nsys.stdout.buffer.write({BYTES_ILEGIBLES!r})\nsys.stdout.buffer.flush()\n",
+        encoding="utf-8",
+    )
+    if os.name == "nt":
+        lanzador = carpeta / "bash.cmd"
+        lanzador.write_bytes(f'@"{sys.executable}" "{emisor}"\r\n'.encode())
+    else:
+        lanzador = carpeta / "bash"
+        lanzador.write_bytes(f'#!/bin/sh\nexec "{sys.executable}" "{emisor}"\n'.encode())
+        lanzador.chmod(0o755)
+    return str(lanzador)
+
+
+class PruebasDeMutantesDeFlujoDelTrabajoDocumentacion(unittest.TestCase):
+    """F001 — mutantes que dejan el texto del paso «correcto» pero cambian lo que hace. Solo los mata ejecutar el `run:`."""
+
+    def test_tc65_mutantes_de_flujo_del_paso_de_mermaid_se_detectan_al_ejecutarlo(self):
+        """CA-16 esc. 1 · TC-65 — nueve mutantes de flujo (la marca de fallo se borra, el bucle no corre o la selección no encuentra
+        nada) dejan el paso en verde con un diagrama inválido; el escenario que los detecta es el del diagrama inválido, salvo
+        `else fallos=0`, que solo cae con un diagrama válido después de uno inválido."""
+        ci = _ci_real(self)
+        marca = "fallos=1"
+        sangria = "              "
+        casos = {
+            "fallos=1 seguido de fallos=0": sustituir(
+                ci, marca, marca + "\n" + sangria + "fallos=0"
+            ),
+            "exit 0 antes de fallos=1": sustituir(ci, marca, "exit 0\n" + sangria + marca),
+            "fallos=0 tras el done": sustituir(
+                ci, "tools/README.md)\n", "tools/README.md)\n          fallos=0\n"
+            ),
+            "fallos=0 justo antes de comprobar fallos": sustituir(
+                ci,
+                'if [ "$fallos" -ne 0 ]; then',
+                'fallos=0\n          if [ "$fallos" -ne 0 ]; then',
+            ),
+            "continue antes de mmdc": sustituir(
+                ci,
+                "if ! .github/mermaid/node_modules/.bin/mmdc",
+                "continue\n            if ! .github/mermaid/node_modules/.bin/mmdc",
+            ),
+            "while false": sustituir(ci, "while IFS= read -r archivo; do", "while false; do"),
+            "grep con otro patrón": sustituir(ci, "'```mermaid'", "'```nomermaid'"),
+            "grep sin -l, el bucle recibe líneas": sustituir(ci, "grep -rl '", "grep -rh '"),
+        }
+        # `else fallos=0` solo cae si un diagrama válido viene después de uno inválido.
+        casos["else fallos=0"] = (
+            sustituir(
+                ci,
+                marca + "\n            fi",
+                marca + "\n            else\n              fallos=0\n            fi",
+            ),
+            "inválido en docs y válido después, en sdd",
+        )
+        exigir_rojo_en_todos(
+            self,
+            comprobar_comportamiento_de_mermaid,
+            casos,
+            fragmento="escenario «un diagrama inválido en docs»",
+        )
+
+    def test_tc65_mutantes_sin_salida_para_mmdc_se_detectan_al_ejecutarlo(self):
+        """CA-16 esc. 1 · TC-65 · F012 — el mmdc real exige `-o` con una carpeta existente: sin `-o`, o sin el `mkdir -p` que la crea,
+        falla incluso con un diagrama válido. Lo detecta el escenario de solo diagramas válidos, no el del inválido."""
+        ci = _ci_real(self)
+        exigir_rojo_en_todos(
+            self,
+            comprobar_comportamiento_de_mermaid,
+            {
+                "mmdc sin -o": sustituir(ci, ' -o "$RUNNER_TEMP/mermaid/$n.md"', ""),
+                "sin mkdir de la carpeta de salida": sustituir(
+                    ci, 'mkdir -p "$RUNNER_TEMP/mermaid"', "true"
+                ),
+            },
+            fragmento="escenario «solo diagramas válidos»",
+        )
+
+    def test_tc65_mutantes_de_flujo_del_paso_de_vale_se_detectan_al_ejecutarlo(self):
+        """CA-13 esc. 1 · TC-65 — un `codigo=0` o un `: > vale.txt` después del `cat` no cambian el texto de la guarda pero la anulan:
+        el paso sale en verde con una alerta (que no cambia el código de salida de Vale) o con un error de Vale sin salida."""
+        ci = _ci_real(self)
+        impresion = 'cat "$RUNNER_TEMP/vale.txt"'
+        exigir_rojo_en_todos(
+            self,
+            comprobar_comportamiento_de_vale,
+            {
+                "codigo=0 después del cat": (
+                    sustituir(ci, impresion, impresion + "\n          codigo=0"),
+                    "escenario «sin salida y con código 1",
+                ),
+                "vaciar vale.txt después del cat": (
+                    sustituir(ci, impresion, impresion + '\n          : > "$RUNNER_TEMP/vale.txt"'),
+                    "escenario «una alerta con código 0",
+                ),
+                "exit 0 al final": (
+                    sustituir(
+                        ci,
+                        '[ ! -s "$RUNNER_TEMP/vale.txt" ]',
+                        '[ ! -s "$RUNNER_TEMP/vale.txt" ]\n          exit 0',
+                    ),
+                    # Bajo `-e`, una alerta ya corta en la guarda; solo el error de Vale sin salida llega al `exit 0`.
+                    "escenario «sin salida y con código 1",
+                ),
+                "la guarda antes del cat": (
+                    sustituir(
+                        ci,
+                        impresion
+                        + '\n          [ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ]',
+                        '[ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ] || exit 1\n          '
+                        + impresion,
+                    ),
+                    "la salida no contiene",
+                ),
+            },
+        )
+
+    def test_tc65_mutantes_sin_paso_ejecutable_se_detectan(self):
+        """CA-16 esc. 1 · TC-65 — si el paso se renombra o se comenta no hay nada que ejecutar y la comprobación lo dice, en lugar de dar verde."""
+        ci = _ci_real(self)
+        exigir_rojo(
+            self,
+            comprobar_comportamiento_de_mermaid,
+            sustituir(ci, "name: Diagramas con mermaid-cli", "name: Diagramas"),
+            "no hay un paso «Diagramas con mermaid-cli»",
+        )
+        exigir_rojo(
+            self,
+            comprobar_comportamiento_de_vale,
+            sustituir(ci, "name: Prosa con Vale", "name: Prosa"),
+            "no hay un paso «Prosa con Vale»",
+        )
+
+    def test_tc65_sin_un_bash_utilizable_la_prueba_falla_con_un_mensaje_claro(self):
+        """CA-16 esc. 1 · TC-65 — si `CIMENTA_BASH` apunta a algo que no es un bash utilizable, `localizar_bash` lanza `AssertionError`
+        con el candidato y el motivo; no se salta ni se da por verde (el pipeline prohíbe `skipped=`)."""
+        inexistente = {"CIMENTA_BASH": os.path.join(RAIZ, "no-existe", "bash")}
+        with (
+            mock.patch.dict(os.environ, inexistente),
+            self.assertRaises(AssertionError) as capturado,
+        ):
+            localizar_bash.__wrapped__()
+        self.assertIn("No hay un bash utilizable", str(capturado.exception))
+        self.assertIn("no-existe", str(capturado.exception))
+
+    def test_tc65_un_bash_que_imprime_bytes_ilegibles_se_rechaza_y_se_prueba_el_siguiente_candidato(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 · F009 — el `bash.exe` del lanzador de WSL sin distribución imprime UTF-16 o cp1252, no UTF-8.
+        `localizar_bash` lo rechaza con «no imprime su versión» (sin `UnicodeDecodeError` ni `AttributeError`) y pasa al
+        siguiente candidato válido, que en Windows es el Git bash."""
+        real = localizar_bash()
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temporal:
+            ilegible = _bash_de_mentira_con_bytes_ilegibles(Path(temporal))
+            motivo = _ayudantes._motivo_de_rechazo(ilegible)
+            self.assertIsNotNone(motivo)
+            self.assertIn("no imprime su versión", motivo)
+            with mock.patch.object(
+                _ayudantes, "_candidatos_de_bash", return_value=[ilegible, real]
+            ):
+                self.assertEqual(localizar_bash.__wrapped__(), real)
+
+    def test_tc65_un_cimenta_bash_con_bytes_ilegibles_falla_con_el_motivo_y_no_con_una_excepcion_ajena(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 · F009 — si `CIMENTA_BASH` imprime bytes ilegibles, la prueba falla con `AssertionError`
+        que nombra el candidato y «no imprime su versión»; nunca con `UnicodeDecodeError` ni `AttributeError`."""
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temporal:
+            ilegible = _bash_de_mentira_con_bytes_ilegibles(Path(temporal))
+            with (
+                mock.patch.dict(os.environ, {"CIMENTA_BASH": ilegible}),
+                self.assertRaises(AssertionError) as capturado,
+            ):
+                localizar_bash.__wrapped__()
+        self.assertIn("No hay un bash utilizable", str(capturado.exception))
+        self.assertIn(ilegible, str(capturado.exception))
+        self.assertIn("no imprime su versión", str(capturado.exception))
+
+
 class DefinicionDeCIFilaD5(unittest.TestCase):
     """Casos estáticos de la fila D5 sobre `.github/workflows/`. Sin los pasos o sin `enlaces.yml`, fallan; no se saltan."""
 
@@ -2299,6 +3301,19 @@ class DefinicionDeCIFilaD5(unittest.TestCase):
         """CA-13 esc. 1 y CA-16 esc. 1 · convenciones §10 · TC-65 — `documentacion`: verificar_docs, markdownlint-cli2@0.24.0, Vale 3.25.1.0
         con la guarda de salida vacía, lychee-action por SHA con `fail: true` y mmdc 12.0.0 por cada Markdown con un diagrama."""
         self.assertEqual(comprobar_tc65_texto(_leer_flujos(self)["ci.yml"]), [])
+
+    def test_tc65_el_paso_de_mermaid_ejecutado_rechaza_el_diagrama_invalido_y_acepta_el_valido(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 — se ejecuta el `run:` real con un `mmdc` de mentira: un diagrama inválido (en cualquier posición, aunque
+        vengan válidos después) da salida 1 y `::error file=<archivo>::diagrama Mermaid inválido` solo para él; solo válidos, salida 0.
+        Límite F006, no exigido: sin ningún Markdown con bloque `mermaid` el paso termina en verde."""
+        self.assertEqual(comprobar_comportamiento_de_mermaid(_ci_real(self)), [])
+
+    def test_tc65_el_paso_de_vale_ejecutado_falla_con_una_alerta_o_un_error_y_pasa_sin_ellos(self):
+        """CA-13 esc. 1 · TC-65 — se ejecuta el `run:` real con un `uvx` de mentira: una alerta con código 0 da salida 1 y se imprime;
+        un error de Vale (código 1) sin salida da salida 1; sin alerta y con código 0 da salida 0."""
+        self.assertEqual(comprobar_comportamiento_de_vale(_ci_real(self)), [])
 
     def test_tc65_documentacion_cumple_las_reglas_comunes_6_7_8_y_9(self):
         """CA-13 esc. 1 · convenciones §10 · TC-65 — los pasos nuevos no se desactivan, no interpolan `${{ }}` en `run:` ni usan tuberías sin `shell: bash`.
@@ -2333,6 +3348,16 @@ class DefinicionDeCIFilaD5(unittest.TestCase):
             "el lockfile de mermaid-cli de TKT-009d todavía no está definido",
         )
         self.assertEqual(comprobar_package_lock_de_mermaid(texto), [])
+
+    def test_tc65_mermaid_cli_puppeteer_config_lleva_no_sandbox(self):
+        """CA-16 esc. 1 · TC-65 — `.github/puppeteer-config.json`, que recibe `mmdc -p`, lleva `--no-sandbox`; sin él Chromium no arranca
+        como root en el corredor."""
+        texto = _texto_de_archivo(
+            self,
+            PUPPETEER_CONFIG,
+            "la configuración de Puppeteer de TKT-009d todavía no está definida",
+        )
+        self.assertEqual(comprobar_puppeteer_config(texto), [])
 
     def test_tc65_gitignore_ignora_node_modules_para_que_npm_ci_no_ensucie_el_arbol(self):
         """CA-16 esc. 1 · TC-65 — `.gitignore` ignora `node_modules` en cualquier profundidad: `npm ci` en `.github/mermaid` no deja cambios pendientes.

@@ -46,15 +46,20 @@ Se elige el **estilo propio mínimo** porque:
 * Una sola configuración sirve en local y en CI.
 * La línea base queda medida y registrada, así que la limpieza se puede auditar.
 
+**Brecha cerrada.** Las actualizaciones de seguridad de Dependabot sí cubrían el lock de `.github/mermaid/` (la ejecución dinámica 40943924695 de Dependabot sobre ese lock lo muestra; terminó en `failure` con `audit result not viable: dependency_still_vulnerable` y `update_not_possible`, y sin PR), pero las de versión faltaban. Desde la corrección del ciclo 1 de `/sdd-revisar` de TKT-009d, el trabajo `dependencias` audita `.github/mermaid` con `npm audit --audit-level=high` y Dependabot lo vigila cada semana. Con ello se cumple `RNF-08` también para ese lock. La conclusión sobre cobertura se mantiene. Queda un aviso bajo residual, `katex` 0.11.0 a 0.18.1 (GHSA-238p-pmpm-9mq7, severidad baja): `npm audit --audit-level=high` sale con 0 y dos avisos bajos.
+
 **Negativas o costes aceptados**
 
-* El binario de Vale no tiene hash fijado en el repositorio (ver la decisión).
+* El paquete `vale` de PyPI descarga el binario oficial sin hash fijado en el repositorio (ver la decisión). Prioridad baja, `(asumido)`.
+* `npx --yes markdownlint-cli2@0.24.0` resuelve sus dependencias transitivas en cada ejecución, porque no hay lockfile para esa herramienta. Prioridad baja, `(asumido)`.
 * `--no-sandbox` en el corredor (ver la decisión).
 * Vale no revisa la voz pasiva ni la ortografía. La voz activa que pide la convención se revisa a mano.
-* El trabajo `dependencias` audita el lock del frontend y el del backend, pero no el de `.github/mermaid/`, y Dependabot tampoco lo cubre. Hoy esa comprobación es manual, con `npm audit`. Es una brecha frente a `RNF-08` que se propone cerrar con un paso en `dependencias`, y la decisión queda en manos de la persona que aprueba.
+* Actualizar `@mermaid-js/mermaid-cli` cuesta un cambio extra. Cuando Dependabot de versiones proponga una versión nueva, las pruebas TC-65 de `tools/tests/test_definicion_documentacion.py` exigen la versión exacta 12.0.0, así que el PR debe actualizar también esa versión en las pruebas. Es un coste aceptado, `(asumido)`.
 
 **Cuándo revisar esta decisión**
 
 * Si una regla de `Cimenta.Vocabulario` da un falso positivo más de una vez en un trimestre, se revisa la regla. No se apaga sin un ADR. Es un umbral propuesto, no medido.
 * Si el paquete `vale` de PyPI deja de descargar el binario oficial, o cuando el asset se fije por SHA.
 * Si el glosario añade términos que Vale debe exigir, se amplía `accept.txt` y se revisa esta decisión en el mismo cambio.
+
+El lock instala `katex` 0.16.47, dentro de ese rango. Según `npm audit`, todas las versiones de `@mermaid-js/mermaid-cli` desde la 11.15.0 dependen de `katex` vulnerable; el arreglo sugerido es rebajar a la 11.14.0, un cambio de ruptura. La decisión es de la persona que aprueba.

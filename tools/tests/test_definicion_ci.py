@@ -2566,6 +2566,10 @@ VERSION_DE_NODE = re.compile(r"""^node-version-file:\s*["']?frontend/package\.js
 NIVEL_DE_NPM_AUDIT = re.compile(r"""(?<![\w-])--audit-level(?:=|\s+)["']?([\w-]+)""")
 OMITE_LO_DE_DESARROLLO = re.compile(r"(?<![\w-])(?:--omit(?:=|\s+)\S*dev|--production|--only(?:=|\s+)\S*prod)")
 LEE_SECRETOS = re.compile(r"\bsecrets\b(?=\s*[.\[])")
+# Dos auditorías de npm, cada una con su lock: el del cliente (`frontend/`) y el de mermaid-cli (`.github/mermaid/`).
+DIRECTORIO_DE_MERMAID = ".github/mermaid"
+NPM_AUDIT_DE_MERMAID = "npm audit (mermaid)"
+ETIQUETAS_DE_NPM_AUDIT = ("npm audit", NPM_AUDIT_DE_MERMAID)
 
 
 def _invocacion(orden: str, patron: str) -> str:
@@ -2596,8 +2600,9 @@ def _informe_que_recibe_el_script(invocacion: str) -> str | None:
 def comprobar_tc14(trabajos: dict[str, list[str]]) -> list[str]:
     """RNF-08 · CA-10 esc. 1 · TC-14 (fila B3). El trabajo `dependencias` exporta el lock del backend a un archivo, lo audita con
     `uv run pip-audit` (`-r`, `--require-hashes`, `--disable-pip`, `--strict`, `-f json` y `|| true`: su código 1 no corta el
-    paso), pasa el informe a `python3 tools/severidad_pip_audit.py` DESPUÉS de pip-audit y, en `frontend/`, ejecuta
-    `npm audit --audit-level=high` sin excluir las dependencias de desarrollo. Los tres pasos de comprobación llevan
+    paso), pasa el informe a `python3 tools/severidad_pip_audit.py` DESPUÉS de pip-audit y ejecuta DOS veces
+    `npm audit --audit-level=high` sin excluir las dependencias de desarrollo: en `frontend/` y, después, en
+    `.github/mermaid/` (el lock de mermaid-cli, F001 de la revisión de TKT-009d). Los cuatro pasos de comprobación llevan
     `if: ${{ !cancelled() }}` (regla común 6); solo pip-audit puede terminar en `|| true`. El trabajo no lee `secrets.`, no
     declara `continue-on-error`, declara `shell: bash` en todo paso con tubería, usa checkout con `persist-credentials: false`,
     setup-uv y setup-node con `node-version-file: frontend/package.json`, `runs-on: ubuntu-24.04` y `timeout-minutes: 15`."""
@@ -2624,16 +2629,18 @@ def comprobar_tc14(trabajos: dict[str, list[str]]) -> list[str]:
             ("uv run pip-audit", PIP_AUDIT, "backend"),
             ("python3 tools/severidad_pip_audit.py", SEVERIDAD_PIP_AUDIT, None),
             ("npm audit", NPM_AUDIT, "frontend"),
+            (NPM_AUDIT_DE_MERMAID, NPM_AUDIT, DIRECTORIO_DE_MERMAID),
         ],
     )
     problemas += secuencia
     for etiqueta, posicion in posiciones.items():
         if i_checkout is not None and posicion[0] < i_checkout:
             problemas.append(f"'dependencias': «{etiqueta}» va antes del checkout")
-        if i_uv is not None and etiqueta != "npm audit" and posicion[0] < i_uv:
+        if i_uv is not None and etiqueta not in ETIQUETAS_DE_NPM_AUDIT and posicion[0] < i_uv:
             problemas.append(f"'dependencias': «{etiqueta}» va antes de setup-uv")
-    if i_node is not None and "npm audit" in posiciones and posiciones["npm audit"][0] < i_node:
-        problemas.append("'dependencias': «npm audit» va antes de setup-node")
+    for etiqueta in ETIQUETAS_DE_NPM_AUDIT:
+        if i_node is not None and etiqueta in posiciones and posiciones[etiqueta][0] < i_node:
+            problemas.append(f"'dependencias': «{etiqueta}» va antes de setup-node")
 
     def invocacion(etiqueta: str, patron: str) -> str:
         return _invocacion(comando(lista[posiciones[etiqueta][0]]), patron)
@@ -2681,22 +2688,24 @@ def comprobar_tc14(trabajos: dict[str, list[str]]) -> list[str]:
             )
         if ENMASCARA_EL_FALLO.search(_orden_sin_cadenas(orden)):
             problemas.append("'dependencias': el script de severidad enmascara su fallo con `|| true`; es quien hace fallar el pipeline")
-    if "npm audit" in posiciones:
-        orden = invocacion("npm audit", NPM_AUDIT)
+    for etiqueta in ETIQUETAS_DE_NPM_AUDIT:
+        if etiqueta not in posiciones:
+            continue
+        orden = invocacion(etiqueta, NPM_AUDIT)
         nivel = NIVEL_DE_NPM_AUDIT.search(orden)
         if nivel is None:
-            problemas.append("'dependencias': npm audit no lleva --audit-level=high")
+            problemas.append(f"'dependencias': {etiqueta} no lleva --audit-level=high")
         elif nivel.group(1) != "high":
-            problemas.append(f"'dependencias': npm audit usa --audit-level={nivel.group(1)} y debe ser high")
+            problemas.append(f"'dependencias': {etiqueta} usa --audit-level={nivel.group(1)} y debe ser high")
         if OMITE_LO_DE_DESARROLLO.search(orden):
             problemas.append(
-                "'dependencias': npm audit excluye las dependencias de desarrollo (--omit=dev, --production o --only=prod); "
+                f"'dependencias': {etiqueta} excluye las dependencias de desarrollo (--omit=dev, --production o --only=prod); "
                 "una herramienta vulnerable también bloquea"
             )
         if ENMASCARA_EL_FALLO.search(_orden_sin_cadenas(orden)):
-            problemas.append("'dependencias': npm audit enmascara su fallo con `|| true`; un hallazgo alto no pondría el trabajo en rojo")
+            problemas.append(f"'dependencias': {etiqueta} enmascara su fallo con `|| true`; un hallazgo alto no pondría el trabajo en rojo")
 
-    for etiqueta in ("uv run pip-audit", "python3 tools/severidad_pip_audit.py", "npm audit"):
+    for etiqueta in ("uv run pip-audit", "python3 tools/severidad_pip_audit.py") + ETIQUETAS_DE_NPM_AUDIT:
         if etiqueta in posiciones and _expresion_de_if(valor_del_paso(lista[posiciones[etiqueta][0]], "if")) not in IF_DE_LAS_COMPUERTAS:
             problemas.append(
                 f"'dependencias': el paso de «{etiqueta}» no declara `if: ${{{{ !cancelled() }}}}` (regla común 6); "
@@ -2738,6 +2747,9 @@ LINEA_SEVERIDAD = '        run: python3 tools/severidad_pip_audit.py "$RUNNER_TE
 PASO_SEVERIDAD = "      - name: Filtrar los hallazgos por severidad\n" + GUARDA_DE_COMPUERTA + LINEA_SEVERIDAD
 LINEA_NPM_AUDIT = "        run: npm audit --audit-level=high\n"
 PASO_NPM_AUDIT = "      - name: Auditar npm\n" + GUARDA_DE_COMPUERTA + "        working-directory: frontend\n" + LINEA_NPM_AUDIT
+PASO_NPM_AUDIT_MERMAID = (
+    "      - name: Auditar el lock de mermaid-cli\n" + GUARDA_DE_COMPUERTA + "        working-directory: .github/mermaid\n" + LINEA_NPM_AUDIT
+)
 
 DEPENDENCIAS_SINTETICO = (
     "  dependencias:\n"
@@ -2752,6 +2764,7 @@ DEPENDENCIAS_SINTETICO = (
     + PASO_PIP_AUDIT
     + PASO_SEVERIDAD
     + PASO_NPM_AUDIT
+    + PASO_NPM_AUDIT_MERMAID
 )
 
 CI_B3 = CI_CON_GUARDAS + DEPENDENCIAS_SINTETICO
@@ -2776,6 +2789,19 @@ def con_linea(base: str, viejo: str, nuevo: str) -> str:
 def con_paso(paso: str, nuevo: str) -> str:
     """`CI_B3` con el `paso` de `dependencias` sustituido por `nuevo`."""
     return mutar(CI_B3, "dependencias", paso, nuevo)
+
+
+def con_npm(viejo: str, nuevo: str, paso: str = PASO_NPM_AUDIT) -> str:
+    """`CI_B3` con `viejo` cambiado por `nuevo` en la línea de `npm audit` del `paso` dado (por omisión, el de `frontend`).
+    La línea `npm audit` está en dos pasos, así que el cambio se acota al paso."""
+    if viejo not in LINEA_NPM_AUDIT:
+        raise AssertionError(f"el mutante no es aplicable: {viejo!r} no está en {LINEA_NPM_AUDIT!r}")
+    return con_paso(paso, paso.replace(LINEA_NPM_AUDIT, LINEA_NPM_AUDIT.replace(viejo, nuevo)))
+
+
+def con_npm_de_mermaid(viejo: str, nuevo: str) -> str:
+    """`con_npm` sobre el paso que audita el lock de mermaid-cli."""
+    return con_npm(viejo, nuevo, PASO_NPM_AUDIT_MERMAID)
 
 
 class PruebasDeMutantesDeLaFilaB3(unittest.TestCase):
@@ -2807,8 +2833,17 @@ class PruebasDeMutantesDeLaFilaB3(unittest.TestCase):
             "pip-audit con --output y --format": con_linea(LINEA_PIP_AUDIT, "-f json", "--format json").replace(
                 '-o "$RUNNER_TEMP/pip-audit.json"', '--output "$RUNNER_TEMP/pip-audit.json"'
             ),
-            "npm audit con el nivel separado por espacio": con_linea(LINEA_NPM_AUDIT, "--audit-level=high", "--audit-level high"),
-            "npm audit con --json además": con_linea(LINEA_NPM_AUDIT, "--audit-level=high", "--audit-level=high --json"),
+            "npm audit con el nivel separado por espacio": con_npm("--audit-level=high", "--audit-level high"),
+            "npm audit con --json además": con_npm("--audit-level=high", "--audit-level=high --json"),
+            "npm audit de mermaid con el nivel separado por espacio": con_npm_de_mermaid("--audit-level=high", "--audit-level high"),
+            "npm audit de mermaid con --json además": con_npm_de_mermaid("--audit-level=high", "--audit-level=high --json"),
+            "npm audit de mermaid con working-directory entre comillas": con_paso(
+                PASO_NPM_AUDIT_MERMAID,
+                PASO_NPM_AUDIT_MERMAID.replace("working-directory: .github/mermaid", 'working-directory: ".github/mermaid"'),
+            ),
+            "npm audit de mermaid con if entre comillas": con_paso(
+                PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID.replace("${{ !cancelled() }}", '"${{ !cancelled() }}"')
+            ),
             "un paso de más entre pip-audit y el script": mutar(
                 CI_B3, "dependencias", PASO_SEVERIDAD, "      - run: echo intermedio\n" + PASO_SEVERIDAD
             ),
@@ -2837,6 +2872,31 @@ class PruebasDeMutantesDeLaFilaB3(unittest.TestCase):
             "pip-audit comentado": (comentar(CI_B3, "dependencias", PASO_PIP_AUDIT), "uv run pip-audit"),
             "script de severidad comentado": (comentar(CI_B3, "dependencias", PASO_SEVERIDAD), "python3 tools/severidad_pip_audit.py"),
             "npm audit comentado": (comentar(CI_B3, "dependencias", PASO_NPM_AUDIT), "npm audit"),
+            "npm audit de mermaid comentado": (
+                comentar(CI_B3, "dependencias", PASO_NPM_AUDIT_MERMAID), "falta «npm audit (mermaid)»"
+            ),
+            "npm audit de mermaid movido a documentacion": (
+                mover(CI_B3, "dependencias", "documentacion", PASO_NPM_AUDIT_MERMAID, PASO_CHECKOUT_SIMPLE),
+                "falta «npm audit (mermaid)»",
+            ),
+            "npm audit de mermaid movido a frontend": (
+                mover(CI_B3, "dependencias", "frontend", PASO_NPM_AUDIT_MERMAID, PASO_NPM_CI), "falta «npm audit (mermaid)»"
+            ),
+            "npm audit de mermaid solo en un name": (
+                con_paso(
+                    PASO_NPM_AUDIT_MERMAID,
+                    PASO_NPM_AUDIT_MERMAID.replace("Auditar el lock de mermaid-cli", "npm audit").replace(LINEA_NPM_AUDIT, "        run: echo omitido\n"),
+                ),
+                "falta «npm audit (mermaid)»",
+            ),
+            "npm audit de mermaid antes que el de frontend": (
+                mutar(CI_B3, "dependencias", PASO_NPM_AUDIT + PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID + PASO_NPM_AUDIT),
+                "«npm audit» debe ejecutarse con working-directory: frontend",
+            ),
+            "npm audit de mermaid antes del script de severidad": (
+                mutar(CI_B3, "dependencias", PASO_SEVERIDAD + PASO_NPM_AUDIT + PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID + PASO_SEVERIDAD + PASO_NPM_AUDIT),
+                "falta «npm audit (mermaid)»",
+            ),
             "script de severidad movido a documentacion": (
                 mover(CI_B3, "dependencias", "documentacion", PASO_SEVERIDAD, PASO_CHECKOUT_SIMPLE),
                 "python3 tools/severidad_pip_audit.py",
@@ -2933,32 +2993,110 @@ class PruebasDeMutantesDeLaFilaB3(unittest.TestCase):
     def test_tc14_mutantes_npm_audit_incluye_desarrollo_nivel_high_y_no_se_enmascara(self):
         """RNF-08 · CA-10 esc. 2 — `npm audit` no admite `--omit=dev`, otro nivel que `high`, ni `|| true`, y corre en `frontend/`."""
         casos = {
-            "sin --audit-level": (con_linea(LINEA_NPM_AUDIT, " --audit-level=high", ""), "no lleva --audit-level=high"),
-            "--audit-level=critical": (con_linea(LINEA_NPM_AUDIT, "=high", "=critical"), "debe ser high"),
-            "--audit-level=moderate": (con_linea(LINEA_NPM_AUDIT, "=high", "=moderate"), "debe ser high"),
-            "--audit-level=low": (con_linea(LINEA_NPM_AUDIT, "=high", "=low"), "debe ser high"),
-            "--audit-level moderate con espacio": (con_linea(LINEA_NPM_AUDIT, "=high", " moderate"), "debe ser high"),
-            "--omit=dev": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --omit=dev "), "dependencias de desarrollo"),
-            "--omit dev con espacio": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --omit dev "), "dependencias de desarrollo"),
+            "sin --audit-level": (con_npm(" --audit-level=high", ""), "no lleva --audit-level=high"),
+            "--audit-level=critical": (con_npm("=high", "=critical"), "debe ser high"),
+            "--audit-level=moderate": (con_npm("=high", "=moderate"), "debe ser high"),
+            "--audit-level=low": (con_npm("=high", "=low"), "debe ser high"),
+            "--audit-level moderate con espacio": (con_npm("=high", " moderate"), "debe ser high"),
+            "--omit=dev": (con_npm("audit ", "audit --omit=dev "), "dependencias de desarrollo"),
+            "--omit dev con espacio": (con_npm("audit ", "audit --omit dev "), "dependencias de desarrollo"),
             "--omit=optional --omit=dev": (
-                con_linea(LINEA_NPM_AUDIT, "audit ", "audit --omit=optional --omit=dev "), "dependencias de desarrollo"
+                con_npm("audit ", "audit --omit=optional --omit=dev "), "dependencias de desarrollo"
             ),
-            "--production": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --production "), "dependencias de desarrollo"),
-            "--only=prod": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --only=prod "), "dependencias de desarrollo"),
-            "|| true": (con_linea(LINEA_NPM_AUDIT, "=high", "=high || true"), "npm audit enmascara su fallo"),
-            "|| exit 0": (con_linea(LINEA_NPM_AUDIT, "=high", "=high || exit 0"), "npm audit enmascara su fallo"),
-            "|| :": (con_linea(LINEA_NPM_AUDIT, "=high", "=high || :"), "npm audit enmascara su fallo"),
+            "--production": (con_npm("audit ", "audit --production "), "dependencias de desarrollo"),
+            "--only=prod": (con_npm("audit ", "audit --only=prod "), "dependencias de desarrollo"),
+            "|| true": (con_npm("=high", "=high || true"), "npm audit enmascara su fallo"),
+            "|| exit 0": (con_npm("=high", "=high || exit 0"), "npm audit enmascara su fallo"),
+            "|| :": (con_npm("=high", "=high || :"), "npm audit enmascara su fallo"),
             "desde la raíz": (
                 con_paso(PASO_NPM_AUDIT, PASO_NPM_AUDIT.replace("        working-directory: frontend\n", "")), "working-directory: frontend"
             ),
+            "desde backend": (
+                con_paso(PASO_NPM_AUDIT, PASO_NPM_AUDIT.replace("working-directory: frontend", "working-directory: backend")),
+                "working-directory: frontend",
+            ),
         }
         exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_npm_audit_del_lock_de_mermaid_cli_es_obligatorio_y_con_las_mismas_condiciones(self):
+        """RNF-08 · CA-10 esc. 2 · F001 — el lock de `.github/mermaid` se audita en el mismo trabajo: paso propio, en ese directorio,
+        nivel `high` exacto, sin `--omit=dev`, sin `|| true`, sin `continue-on-error` y con `if: ${{ !cancelled() }}`."""
+        etiqueta = "npm audit (mermaid)"
+        casos = {
+            "falta el paso": (con_paso(PASO_NPM_AUDIT_MERMAID, ""), f"falta «{etiqueta}»"),
+            "paso comentado": (comentar(CI_B3, "dependencias", PASO_NPM_AUDIT_MERMAID), f"falta «{etiqueta}»"),
+            "paso movido a otro trabajo": (
+                mover(CI_B3, "dependencias", "documentacion", PASO_NPM_AUDIT_MERMAID, PASO_CHECKOUT_SIMPLE), f"falta «{etiqueta}»"
+            ),
+            "dos auditorías de frontend y ninguna de mermaid": (
+                con_paso(PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID.replace(".github/mermaid", "frontend")),
+                f"«{etiqueta}» debe ejecutarse con working-directory: .github/mermaid y tiene 'frontend'",
+            ),
+            "directorio equivocado: .github": (
+                con_paso(PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID.replace(".github/mermaid", ".github")),
+                f"«{etiqueta}» debe ejecutarse con working-directory: .github/mermaid y tiene '.github'",
+            ),
+            "directorio equivocado: con barra inicial": (
+                con_paso(PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID.replace("working-directory: .github", "working-directory: /.github")),
+                f"«{etiqueta}» debe ejecutarse con working-directory: .github/mermaid",
+            ),
+            "sin working-directory (raíz)": (
+                con_paso(PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID.replace("        working-directory: .github/mermaid\n", "")),
+                f"«{etiqueta}» debe ejecutarse con working-directory: .github/mermaid y tiene None",
+            ),
+            "sin --audit-level": (con_npm_de_mermaid(" --audit-level=high", ""), f"{etiqueta} no lleva --audit-level=high"),
+            "--audit-level=critical": (con_npm_de_mermaid("=high", "=critical"), f"{etiqueta} usa --audit-level=critical y debe ser high"),
+            "--audit-level=moderate": (con_npm_de_mermaid("=high", "=moderate"), f"{etiqueta} usa --audit-level=moderate y debe ser high"),
+            "--audit-level=low": (con_npm_de_mermaid("=high", "=low"), f"{etiqueta} usa --audit-level=low y debe ser high"),
+            "--omit=dev": (con_npm_de_mermaid("audit ", "audit --omit=dev "), f"{etiqueta} excluye las dependencias de desarrollo"),
+            "--omit dev con espacio": (con_npm_de_mermaid("audit ", "audit --omit dev "), f"{etiqueta} excluye las dependencias de desarrollo"),
+            "--production": (con_npm_de_mermaid("audit ", "audit --production "), f"{etiqueta} excluye las dependencias de desarrollo"),
+            "--only=prod": (con_npm_de_mermaid("audit ", "audit --only=prod "), f"{etiqueta} excluye las dependencias de desarrollo"),
+            "|| true": (con_npm_de_mermaid("=high", "=high || true"), f"{etiqueta} enmascara su fallo"),
+            "|| exit 0": (con_npm_de_mermaid("=high", "=high || exit 0"), f"{etiqueta} enmascara su fallo"),
+            "|| :": (con_npm_de_mermaid("=high", "=high || :"), f"{etiqueta} enmascara su fallo"),
+            "continue-on-error": (
+                con_paso(PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID.replace(LINEA_NPM_AUDIT, "        continue-on-error: true\n" + LINEA_NPM_AUDIT)),
+                "continue-on-error",
+            ),
+        }
+        for descripcion, condicion in (
+            ("sin if", ""),
+            ("if: always()", "        if: always()\n"),
+            ("if: success()", "        if: ${{ success() }}\n"),
+            ("if comentado", "        # if: ${{ !cancelled() }}\n"),
+        ):
+            casos[descripcion] = (
+                con_paso(PASO_NPM_AUDIT_MERMAID, PASO_NPM_AUDIT_MERMAID.replace(GUARDA_DE_COMPUERTA, condicion)),
+                f"«{etiqueta}» no declara",
+            )
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_cada_npm_audit_se_exige_aunque_el_otro_este_bien(self):
+        """RNF-08 · CA-10 esc. 2 · F001 — el verde de un `npm audit` no cubre al otro: cada uno falla por su cuenta con el otro intacto."""
+        sin_frontend = con_paso(PASO_NPM_AUDIT, "")
+        sin_mermaid = con_paso(PASO_NPM_AUDIT_MERMAID, "")
+        # Sin el de `frontend`, el que queda se toma como «npm audit» y no cumple su directorio: el rojo viene de ahí.
+        exigir_rojo(
+            self,
+            comprobar_tc14,
+            sin_frontend,
+            "«npm audit» debe ejecutarse con working-directory: frontend",
+        )
+        exigir_rojo(self, comprobar_tc14, sin_mermaid, "falta «npm audit (mermaid)»")
+        exigir_rojo(
+            self,
+            comprobar_tc14,
+            con_paso(PASO_NPM_AUDIT + PASO_NPM_AUDIT_MERMAID, ""),
+            "falta «npm audit (mermaid)»",
+        )
 
     def test_tc14_mutantes_regla_comun_7_solo_pip_audit_de_dependencias_puede_terminar_en_or_true(self):
         """RNF-08 · CA-10 esc. 2 — la excepción de la regla común 7 es solo el `|| true` de `uv run pip-audit` en `dependencias`: cualquier otro deja el caso en rojo."""
         self.assertEqual(comprobar_regla_comun_7(extraer_trabajos(CI_B3)), [], "el `|| true` de pip-audit debe estar tolerado")
         casos = {
-            "|| true en npm audit": con_linea(LINEA_NPM_AUDIT, "=high", "=high || true"),
+            "|| true en npm audit": con_npm("=high", "=high || true"),
+            "|| true en npm audit del lock de mermaid-cli": con_npm_de_mermaid("=high", "=high || true"),
             "|| true en el script de severidad": con_linea(LINEA_SEVERIDAD, "pip-audit.json\"", 'pip-audit.json" || true'),
             "|| exit 0 en el script de severidad": con_linea(LINEA_SEVERIDAD, "pip-audit.json\"", 'pip-audit.json" || exit 0'),
             "|| true en uv export": con_linea(LINEA_UV_EXPORT, "req.txt\"", 'req.txt" || true'),
@@ -2975,13 +3113,14 @@ class PruebasDeMutantesDeLaFilaB3(unittest.TestCase):
         }
         exigir_rojo_en_todos(self, comprobar_regla_comun_7, casos, "||")
 
-    def test_tc14_mutantes_los_tres_pasos_de_comprobacion_llevan_if_no_cancelado(self):
-        """RNF-08 · CA-10 esc. 1 · regla común 6 — pip-audit, el script de severidad y `npm audit` sin `if: ${{ !cancelled() }}` exacto dejan el caso en rojo."""
+    def test_tc14_mutantes_los_cuatro_pasos_de_comprobacion_llevan_if_no_cancelado(self):
+        """RNF-08 · CA-10 esc. 1 · regla común 6 — pip-audit, el script de severidad y los dos `npm audit` sin `if: ${{ !cancelled() }}` exacto dejan el caso en rojo."""
         casos = {}
         for etiqueta, paso in (
             ("uv run pip-audit", PASO_PIP_AUDIT),
             ("python3 tools/severidad_pip_audit.py", PASO_SEVERIDAD),
             ("npm audit", PASO_NPM_AUDIT),
+            (NPM_AUDIT_DE_MERMAID, PASO_NPM_AUDIT_MERMAID),
         ):
             for descripcion, condicion in (
                 ("sin if", ""),
@@ -3082,8 +3221,18 @@ class DefinicionDeCIFilaB3(unittest.TestCase):
     """Fila B3 sobre el `ci.yml` real. Sin el trabajo `dependencias`, falla; no se salta."""
 
     def test_tc14_dependencias_exporta_audita_python_con_hashes_filtra_la_severidad_y_audita_npm(self):
-        """RNF-08 · CA-10 esc. 1 · TC-14 — `dependencias`: `uv export`, `pip-audit` con `--require-hashes`, el script de severidad tras pip-audit y `npm audit --audit-level=high` en `frontend/`."""
+        """RNF-08 · CA-10 esc. 1 · TC-14 — `dependencias`: `uv export`, `pip-audit` con `--require-hashes`, el script de severidad tras pip-audit y `npm audit --audit-level=high` en `frontend/` (y, después, en `.github/mermaid/`: véase la prueba siguiente)."""
         self.assertEqual(comprobar_tc14(_trabajos_de_ci(self)), [])
+
+    def test_tc14_dependencias_audita_tambien_el_lock_de_mermaid_cli_con_npm_audit_high(self):
+        """RNF-08 · CA-10 esc. 2 · F001 — el `ci.yml` real: el trabajo `dependencias` ejecuta `npm audit --audit-level=high` con
+        `working-directory: .github/mermaid`, después del de `frontend`, con `if: ${{ !cancelled() }}`, sin `|| true`, sin `--omit=dev`
+        y sin `continue-on-error`. Es una regresión: nace en verde con el paso `Auditar el lock de mermaid-cli` y deja de serlo si alguien lo quita."""
+        trabajos = _trabajos_de_ci(self)
+        self.assertTrue("dependencias" in trabajos, "el ci.yml no declara el trabajo `dependencias`")
+        problemas = comprobar_tc14(trabajos)
+        self.assertEqual([p for p in problemas if NPM_AUDIT_DE_MERMAID in p], [], "el lock de .github/mermaid no se audita en `dependencias`")
+        self.assertEqual(problemas, [])
 
     def test_tc14_dependencias_cumple_las_reglas_comunes_1_6_7_8_y_9(self):
         """RNF-08 · CA-10 esc. 1 — el trabajo nuevo existe y no rompe corredor y tiempo, ni las compuertas, ni la inyección de plantillas, ni `pipefail`."""

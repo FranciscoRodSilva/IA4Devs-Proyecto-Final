@@ -1,6 +1,7 @@
 # Actualizaciones automáticas de dependencias (RNF-08, TKT-009b).
-# Una entrada por ecosistema, cada una semanal: Python en /backend (lock de uv), npm en /frontend
-# (package-lock.json) y las acciones de GitHub de los workflows en /.
+# Una entrada por ecosistema y directorio, cada una semanal: uv en /backend (lock de uv), npm en /frontend
+# (package-lock.json), npm en /.github/mermaid (lock de mermaid-cli, que audita el trabajo `dependencias`)
+# y github-actions en / (las acciones de GitHub de los workflows).
 # Si GitHub rechaza el ecosistema "uv" en esta versión, se sustituye por "pip" en la misma entrada
 # (diseño de TKT-009): el directorio y el intervalo no cambian.
 version: 2
@@ -12,6 +13,11 @@ updates:
 
   - package-ecosystem: "npm"
     directory: "/frontend"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/.github/mermaid"
     schedule:
       interval: "weekly"
 
