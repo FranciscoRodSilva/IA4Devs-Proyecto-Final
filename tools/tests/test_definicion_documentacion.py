@@ -1,4 +1,4 @@
-"""Pruebas estáticas de la parte d del pipeline: el trabajo `documentacion` y `.github/workflows/enlaces.yml`.
+"""Pruebas de la parte d del pipeline: el trabajo `documentacion` y `.github/workflows/enlaces.yml`.
 
 TKT-009d · fila D5. Comprueban lo que el pipeline *declara*, no lo que hace al correr, con el mismo método que
 `test_definicion_ci.py` (de donde se importan los ayudantes): `tools/` no tiene dependencias y la biblioteca estándar
@@ -6,6 +6,11 @@ no trae un analizador de YAML, así que el texto se lee con expresiones regulare
 y cada caso busca dentro del bloque de su trabajo. Cada comprobación vive en una función `comprobar_*` que devuelve
 la lista de problemas, y las pruebas sobre texto sintético demuestran que se pone en rojo ante cada mutante y por la
 razón esperada (cada mutante exige un fragmento del mensaje, no solo que la lista no esté vacía).
+
+Además de leer el texto, los pasos de Vale y de mermaid-cli se **ejecutan** (F001): el `run:` real de `ci.yml` corre con `bash`
+sobre un árbol temporal, con un `uvx` y un `mmdc` de mentira, y se comprueba su código de salida y sus anotaciones. Hace falta
+un `bash` (en Windows, el de Git for Windows; si `bash` es el de WSL, define `CIMENTA_BASH`); sin él las pruebas fallan, no se
+saltan. Ver `localizar_bash` en `_ayudantes.py`.
 
 Qué cubren:
 
@@ -62,12 +67,19 @@ import re
 import shlex
 import sys
 import unittest
+from unittest import mock
 
 DIRECTORIO_DE_PRUEBAS = os.path.dirname(os.path.abspath(__file__))
 if DIRECTORIO_DE_PRUEBAS not in sys.path:
     sys.path.insert(0, DIRECTORIO_DE_PRUEBAS)
 
-from _ayudantes import exigir_rojo, exigir_rojo_en_todos, sustituir  # noqa: E402
+from _ayudantes import (  # noqa: E402
+    ejecutar_en_bash,
+    exigir_rojo,
+    exigir_rojo_en_todos,
+    localizar_bash,
+    sustituir,
+)
 from test_definicion_ci import (  # noqa: E402
     CI_B3,
     DIRECTORIO_DE_FLUJOS,
@@ -738,6 +750,17 @@ def comprobar_acciones_fijadas(texto: str, id_trabajo: str) -> list[str]:
     return problemas
 
 
+def _comprobar_checkout(
+    id_trabajo: str, lista: list[list[str]], i_checkout: int | None
+) -> list[str]:
+    """El trabajo tiene `actions/checkout` y este no persiste las credenciales (regla común 4)."""
+    if i_checkout is None:
+        return [f"'{id_trabajo}': falta actions/checkout"]
+    if not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
+        return [f"'{id_trabajo}': el checkout debe declarar `persist-credentials: false`"]
+    return []
+
+
 def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
     """CA-13 esc. 1 y CA-16 esc. 1 · TC-65. El trabajo `documentacion` ejecuta, en orden, `verificar_docs.py`,
     `markdownlint-cli2@0.24.0`, Vale (con la guarda de salida vacía), `lychee-action` y `mmdc`; cada paso posterior al checkout
@@ -749,10 +772,7 @@ def comprobar_tc65(trabajos: dict[str, list[str]]) -> list[str]:
     problemas = comprobar_regla_comun_1({DOC: bloque})
 
     i_checkout = _indice_de_uses(lista, "actions/checkout@")
-    if i_checkout is None:
-        problemas.append(f"'{DOC}': falta actions/checkout")
-    elif not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
-        problemas.append(f"'{DOC}': el checkout debe declarar `persist-credentials: false`")
+    problemas += _comprobar_checkout(DOC, lista, i_checkout)
     i_node = _indice_de_uses(lista, "actions/setup-node@")
     i_uv = _indice_de_uses(lista, "astral-sh/setup-uv@")
     i_lychee = _indice_de_uses(lista, "lycheeverse/lychee-action@")
@@ -869,6 +889,204 @@ def comprobar_tc65_texto(texto: str) -> list[str]:
     return problemas
 
 
+# ---------------------------------------------------------------------------------------------------------
+# Comportamiento: se ejecuta el `run:` real de un paso con bash (F001)
+#
+# Las comprobaciones de arriba leen el texto del paso y no pueden ver su flujo: `fallos=1` seguido de `fallos=0`,
+# un `exit 0` antes de la marca, un `continue` antes de mmdc, `while false` o un `codigo=0` tras el `cat` de Vale
+# dejan el texto "correcto" y el paso inútil. Aquí el `run:` se extrae de `ci.yml`, se ejecuta con `bash -eo pipefail`
+# (como `shell: bash` en GitHub) sobre un árbol temporal y con un `mmdc` y un `uvx` de mentira, y se comprueba qué
+# código de salida y qué anotaciones produce. Siguen vivas las comprobaciones estáticas de lo que el programa de
+# mentira no ve: `-p`, el alcance, la ruta del binario y las versiones.
+#
+# Límite conocido (F006), no exigido: si ningún Markdown del alcance tiene un bloque `mermaid`, el bucle no corre y
+# el paso termina en verde. Hoy es el comportamiento del diseño (no hay nada que validar) y las pruebas no lo fijan.
+# ---------------------------------------------------------------------------------------------------------
+
+PASO_DE_MERMAID = "Diagramas con mermaid-cli"
+PASO_DE_VALE = "Prosa con Vale"
+RUTA_DE_MMDC = ".github/mermaid/node_modules/.bin/mmdc"
+
+# mmdc de mentira: valida el archivo que recibe con `-i`; sale 1 si contiene `INVALID`, 2 si no recibe un archivo legible.
+MMDC_DE_MENTIRA = """#!/usr/bin/env bash
+entrada=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -i) entrada="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+if [ -z "$entrada" ] || [ ! -f "$entrada" ]; then
+  echo "mmdc de mentira: falta -i con un archivo legible" >&2
+  exit 2
+fi
+if grep -q INVALID "$entrada"; then
+  exit 1
+fi
+exit 0
+"""
+
+# uvx de mentira: imprime lo que dicte `CIMENTA_VALE_SALIDA` y sale con `CIMENTA_VALE_CODIGO`.
+UVX_DE_MENTIRA = """#!/usr/bin/env bash
+printf '%s' "$CIMENTA_VALE_SALIDA"
+exit "${CIMENTA_VALE_CODIGO:-0}"
+"""
+
+DIAGRAMA_VALIDO = "# Diagrama\n\n```mermaid\ngraph TD\n  A --> B\n```\n"
+DIAGRAMA_INVALIDO = "# Diagrama\n\n```mermaid\nINVALID\n```\n"
+ARBOL_BASE = {
+    "docs/leeme.md": "# Docs\n",
+    "sdd/leeme.md": "# SDD\n",
+    "README.md": "# Léeme\n",
+    "CLAUDE.md": "# Claude\n",
+    "tools/README.md": "# Tools\n",
+}
+ALERTA_DE_VALE = "docs/a.md:3:1:Vale.Terms:Usa 'cadena' en lugar de 'string'."
+
+
+def _run_del_paso(texto_ci: str, nombre: str) -> str | None:
+    """El `run:` del paso `nombre` del trabajo `documentacion` de `ci.yml`, o `None` si no existe."""
+    bloque = extraer_trabajos(texto_ci).get(DOC)
+    for paso in pasos(bloque) if bloque else []:
+        if valor_del_paso(paso, "name") == nombre and comando(paso):
+            return comando(paso)
+    return None
+
+
+def _desviaciones(
+    nombre: str,
+    resultado: tuple[int, str],
+    codigo: int,
+    presentes: tuple[str, ...],
+    ausentes: tuple[str, ...],
+) -> list[str]:
+    salida_del_paso, salida = resultado
+    problemas: list[str] = []
+    if salida_del_paso != codigo:
+        problemas.append(
+            f"escenario «{nombre}»: el paso salió con {salida_del_paso} y debía salir con {codigo}; salida: {salida[-400:]!r}"
+        )
+    problemas += [
+        f"escenario «{nombre}»: la salida no contiene {texto!r}: {salida[-400:]!r}"
+        for texto in presentes
+        if texto not in salida
+    ]
+    problemas += [
+        f"escenario «{nombre}»: la salida contiene {texto!r}"
+        for texto in ausentes
+        if texto in salida
+    ]
+    return problemas
+
+
+def _anotacion(archivo: str) -> str:
+    return f"::error file={archivo}::diagrama Mermaid inválido"
+
+
+# (nombre, archivos del escenario, código de salida esperado, anotaciones que deben salir, anotaciones que no)
+ESCENARIOS_DE_MERMAID: tuple[
+    tuple[str, dict[str, str], int, tuple[str, ...], tuple[str, ...]], ...
+] = (
+    (
+        "un diagrama inválido en docs",
+        {"docs/malo.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("docs/malo.md"),),
+        (),
+    ),
+    (
+        "solo diagramas válidos",
+        {"docs/bueno.md": DIAGRAMA_VALIDO, "README.md": DIAGRAMA_VALIDO},
+        0,
+        (),
+        ("::error",),
+    ),
+    (
+        "inválido en docs y válido después, en sdd",
+        {"docs/malo.md": DIAGRAMA_INVALIDO, "sdd/bueno.md": DIAGRAMA_VALIDO},
+        1,
+        (_anotacion("docs/malo.md"),),
+        (_anotacion("sdd/bueno.md"),),
+    ),
+    (
+        "válido en README y inválido en sdd",
+        {"README.md": DIAGRAMA_VALIDO, "sdd/malo.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("sdd/malo.md"),),
+        (_anotacion("README.md"),),
+    ),
+    (
+        "dos archivos inválidos, cada uno con su anotación",
+        {"docs/malo.md": DIAGRAMA_INVALIDO, "tools/README.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("docs/malo.md"), _anotacion("tools/README.md")),
+        (),
+    ),
+    (
+        "un Markdown sin bloque mermaid no se valida",
+        {"docs/texto.md": "# Texto\n\nINVALID, pero sin diagrama.\n"},
+        0,
+        (),
+        ("::error",),
+    ),
+)
+
+
+def comprobar_comportamiento_de_mermaid(texto_ci: str) -> list[str]:
+    """Ejecuta el `run:` real del paso de mermaid-cli con un `mmdc` de mentira y devuelve cada escenario que no se cumple."""
+    run = _run_del_paso(texto_ci, PASO_DE_MERMAID)
+    if run is None:
+        return [f"'{DOC}': no hay un paso «{PASO_DE_MERMAID}» con `run:` que ejecutar"]
+    problemas: list[str] = []
+    for nombre, archivos, codigo, presentes, ausentes in ESCENARIOS_DE_MERMAID:
+        resultado = ejecutar_en_bash(
+            run, archivos={**ARBOL_BASE, **archivos}, ejecutables={RUTA_DE_MMDC: MMDC_DE_MENTIRA}
+        )
+        problemas += _desviaciones(nombre, resultado, codigo, presentes, ausentes)
+    return problemas
+
+
+# (nombre, salida de Vale, código de Vale, código esperado del paso, la alerta debe verse en la salida)
+ESCENARIOS_DE_VALE: tuple[tuple[str, str, int, int, bool], ...] = (
+    (
+        "una alerta con código 0 (los avisos no cambian el código)",
+        ALERTA_DE_VALE + "\n",
+        0,
+        1,
+        True,
+    ),
+    ("sin salida y con código 0", "", 0, 0, False),
+    ("sin salida y con código 1 (error de Vale)", "", 1, 1, False),
+    ("una alerta con código 1", ALERTA_DE_VALE + "\n", 1, 1, True),
+)
+
+
+def comprobar_comportamiento_de_vale(texto_ci: str) -> list[str]:
+    """Ejecuta el `run:` real del paso de Vale con un `uvx` de mentira y devuelve cada escenario que no se cumple."""
+    run = _run_del_paso(texto_ci, PASO_DE_VALE)
+    if run is None:
+        return [f"'{DOC}': no hay un paso «{PASO_DE_VALE}» con `run:` que ejecutar"]
+    problemas: list[str] = []
+    for nombre, salida_de_vale, codigo_de_vale, codigo, se_ve in ESCENARIOS_DE_VALE:
+        resultado = ejecutar_en_bash(
+            run,
+            archivos=ARBOL_BASE,
+            en_path={"uvx": UVX_DE_MENTIRA},
+            entorno={
+                "CIMENTA_VALE_SALIDA": salida_de_vale,
+                "CIMENTA_VALE_CODIGO": str(codigo_de_vale),
+            },
+        )
+        problemas += _desviaciones(
+            nombre,
+            resultado,
+            codigo,
+            (ALERTA_DE_VALE,) if se_ve else (),
+            () if se_ve else (ALERTA_DE_VALE,),
+        )
+    return problemas
+
+
 def _columna(linea: str) -> int:
     return len(linea) - len(linea.lstrip(" "))
 
@@ -907,13 +1125,9 @@ def _concurrencia_sin_cancelar(texto: str) -> bool:
     return False
 
 
-def comprobar_tc64(texto: str) -> list[str]:
-    """CA-14 esc. 1 · TC-64. `enlaces.yml` se dispara con `schedule` y un único `cron` de un día por semana (`0 13 * * 1`) y con
-    `workflow_dispatch`; declara `permissions: contents: read` a nivel de flujo sin escritura alguna; no usa `pull_request_target`
-    ni `secrets.`; tiene un trabajo con checkout (`persist-credentials: false`) y `lychee-action` con la configuración del PR;
-    todas sus acciones van fijadas por SHA; corredor `ubuntu-24.04` y `timeout-minutes`."""
+def _comprobar_disparadores_de_enlaces(texto: str) -> list[str]:
+    """Cómo se dispara `enlaces.yml`: `schedule` con un único `cron` semanal, `workflow_dispatch`, `on:` exacto y `concurrency`."""
     problemas: list[str] = []
-    activo = sin_comentarios(texto)
     disparadores = _disparadores(texto)
     if not re.search(r"(?<![\w-])schedule\s*:", disparadores):
         problemas.append(
@@ -954,7 +1168,14 @@ def comprobar_tc64(texto: str) -> list[str]:
             "enlaces.yml: no declara `concurrency` con un `group` y `cancel-in-progress: false`; una corrida a mano que "
             "coincida con el cron cancelaría la otra, o se solaparían"
         )
+    return problemas
 
+
+def _comprobar_trabajos_de_enlaces(texto: str) -> list[str]:
+    """Qué hace `enlaces.yml` una vez disparado: permisos de solo lectura, sin secretos ni `pull_request_target`, y un trabajo con
+    checkout sin credenciales persistidas y `lychee-action` con la configuración del PR; todas las acciones fijadas por SHA."""
+    problemas: list[str] = []
+    activo = sin_comentarios(texto)
     permisos = _permisos_de_flujo(texto)
     if permisos is None:
         problemas.append("enlaces.yml: no declara `permissions:` a nivel de flujo")
@@ -985,23 +1206,23 @@ def comprobar_tc64(texto: str) -> list[str]:
             continue
         encontrado = True
         i_checkout = _indice_de_uses(lista, "actions/checkout@")
-        if i_checkout is None:
-            problemas.append(
-                f"'{id_trabajo}': falta actions/checkout; lychee no tendría los Markdown que revisar"
-            )
-        else:
-            if i_checkout > i_lychee:
-                problemas.append(f"'{id_trabajo}': actions/checkout va después de lychee-action")
-            if not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
-                problemas.append(
-                    f"'{id_trabajo}': el checkout debe declarar `persist-credentials: false`"
-                )
+        if i_checkout is not None and i_checkout > i_lychee:
+            problemas.append(f"'{id_trabajo}': actions/checkout va después de lychee-action")
+        problemas += _comprobar_checkout(id_trabajo, lista, i_checkout)
         problemas += _comprobar_paso_de_lychee(id_trabajo, lista[i_lychee])
     if not encontrado:
         problemas.append("enlaces.yml: ningún trabajo usa lycheeverse/lychee-action")
     for id_trabajo in trabajos:
         problemas += comprobar_acciones_fijadas(texto, id_trabajo)
     return problemas
+
+
+def comprobar_tc64(texto: str) -> list[str]:
+    """CA-14 esc. 1 · TC-64. `enlaces.yml` se dispara con `schedule` y un único `cron` de un día por semana (`0 13 * * 1`) y con
+    `workflow_dispatch`; declara `permissions: contents: read` a nivel de flujo sin escritura alguna; no usa `pull_request_target`
+    ni `secrets.`; tiene un trabajo con checkout (`persist-credentials: false`) y `lychee-action` con la configuración del PR;
+    todas sus acciones van fijadas por SHA; corredor `ubuntu-24.04` y `timeout-minutes`."""
+    return _comprobar_disparadores_de_enlaces(texto) + _comprobar_trabajos_de_enlaces(texto)
 
 
 def _configuracion_de_lychee(texto: str) -> tuple[str, tuple[str, ...], str, str] | None:
@@ -2857,6 +3078,125 @@ def _texto_de_archivo(caso: unittest.TestCase, ruta: str, motivo: str) -> str:
         return archivo.read()
 
 
+def _ci_real(caso: unittest.TestCase) -> str:
+    return _leer_flujos(caso)["ci.yml"]
+
+
+class PruebasDeMutantesDeFlujoDelTrabajoDocumentacion(unittest.TestCase):
+    """F001 — mutantes que dejan el texto del paso «correcto» pero cambian lo que hace. Solo los mata ejecutar el `run:`."""
+
+    def test_tc65_mutantes_de_flujo_del_paso_de_mermaid_se_detectan_al_ejecutarlo(self):
+        """CA-16 esc. 1 · TC-65 — diez mutantes de flujo (la marca de fallo se borra, el bucle no corre o la selección no encuentra
+        nada) dejan el paso en verde con un diagrama inválido; el escenario que los detecta es el del diagrama inválido."""
+        ci = _ci_real(self)
+        marca = "fallos=1"
+        sangria = "              "
+        casos = {
+            "fallos=1 seguido de fallos=0": sustituir(
+                ci, marca, marca + "\n" + sangria + "fallos=0"
+            ),
+            "exit 0 antes de fallos=1": sustituir(ci, marca, "exit 0\n" + sangria + marca),
+            "fallos=0 tras el done": sustituir(
+                ci, "tools/README.md)\n", "tools/README.md)\n          fallos=0\n"
+            ),
+            "fallos=0 justo antes de comprobar fallos": sustituir(
+                ci,
+                'if [ "$fallos" -ne 0 ]; then',
+                'fallos=0\n          if [ "$fallos" -ne 0 ]; then',
+            ),
+            "continue antes de mmdc": sustituir(
+                ci,
+                "if ! .github/mermaid/node_modules/.bin/mmdc",
+                "continue\n            if ! .github/mermaid/node_modules/.bin/mmdc",
+            ),
+            "while false": sustituir(ci, "while IFS= read -r archivo; do", "while false; do"),
+            "grep con otro patrón": sustituir(ci, "'```mermaid'", "'```nomermaid'"),
+            "grep sin -l, el bucle recibe líneas": sustituir(ci, "grep -rl '", "grep -rh '"),
+        }
+        # `else fallos=0` solo cae si un diagrama válido viene después de uno inválido.
+        casos["else fallos=0"] = (
+            sustituir(
+                ci,
+                marca + "\n            fi",
+                marca + "\n            else\n              fallos=0\n            fi",
+            ),
+            "inválido en docs y válido después, en sdd",
+        )
+        exigir_rojo_en_todos(
+            self,
+            comprobar_comportamiento_de_mermaid,
+            casos,
+            fragmento="escenario «un diagrama inválido en docs»",
+        )
+
+    def test_tc65_mutantes_de_flujo_del_paso_de_vale_se_detectan_al_ejecutarlo(self):
+        """CA-13 esc. 1 · TC-65 — un `codigo=0` o un `: > vale.txt` después del `cat` no cambian el texto de la guarda pero la anulan:
+        el paso sale en verde con una alerta (que no cambia el código de salida de Vale) o con un error de Vale sin salida."""
+        ci = _ci_real(self)
+        impresion = 'cat "$RUNNER_TEMP/vale.txt"'
+        exigir_rojo_en_todos(
+            self,
+            comprobar_comportamiento_de_vale,
+            {
+                "codigo=0 después del cat": (
+                    sustituir(ci, impresion, impresion + "\n          codigo=0"),
+                    "escenario «sin salida y con código 1",
+                ),
+                "vaciar vale.txt después del cat": (
+                    sustituir(ci, impresion, impresion + '\n          : > "$RUNNER_TEMP/vale.txt"'),
+                    "escenario «una alerta con código 0",
+                ),
+                "exit 0 al final": (
+                    sustituir(
+                        ci,
+                        '[ ! -s "$RUNNER_TEMP/vale.txt" ]',
+                        '[ ! -s "$RUNNER_TEMP/vale.txt" ]\n          exit 0',
+                    ),
+                    # Bajo `-e`, una alerta ya corta en la guarda; solo el error de Vale sin salida llega al `exit 0`.
+                    "escenario «sin salida y con código 1",
+                ),
+                "la guarda antes del cat": (
+                    sustituir(
+                        ci,
+                        impresion
+                        + '\n          [ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ]',
+                        '[ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ] || exit 1\n          '
+                        + impresion,
+                    ),
+                    "la salida no contiene",
+                ),
+            },
+        )
+
+    def test_tc65_mutantes_sin_paso_ejecutable_se_detectan(self):
+        """CA-16 esc. 1 · TC-65 — si el paso se renombra o se comenta no hay nada que ejecutar y la comprobación lo dice, en lugar de dar verde."""
+        ci = _ci_real(self)
+        exigir_rojo(
+            self,
+            comprobar_comportamiento_de_mermaid,
+            sustituir(ci, "name: Diagramas con mermaid-cli", "name: Diagramas"),
+            "no hay un paso «Diagramas con mermaid-cli»",
+        )
+        exigir_rojo(
+            self,
+            comprobar_comportamiento_de_vale,
+            sustituir(ci, "name: Prosa con Vale", "name: Prosa"),
+            "no hay un paso «Prosa con Vale»",
+        )
+
+    def test_tc65_sin_un_bash_utilizable_la_prueba_falla_con_un_mensaje_claro(self):
+        """CA-16 esc. 1 · TC-65 — si `CIMENTA_BASH` apunta a algo que no es un bash utilizable, `localizar_bash` lanza `AssertionError`
+        con el candidato y el motivo; no se salta ni se da por verde (el pipeline prohíbe `skipped=`)."""
+        inexistente = {"CIMENTA_BASH": os.path.join(RAIZ, "no-existe", "bash")}
+        with (
+            mock.patch.dict(os.environ, inexistente),
+            self.assertRaises(AssertionError) as capturado,
+        ):
+            localizar_bash.__wrapped__()
+        self.assertIn("No hay un bash utilizable", str(capturado.exception))
+        self.assertIn("no-existe", str(capturado.exception))
+
+
 class DefinicionDeCIFilaD5(unittest.TestCase):
     """Casos estáticos de la fila D5 sobre `.github/workflows/`. Sin los pasos o sin `enlaces.yml`, fallan; no se saltan."""
 
@@ -2864,6 +3204,19 @@ class DefinicionDeCIFilaD5(unittest.TestCase):
         """CA-13 esc. 1 y CA-16 esc. 1 · convenciones §10 · TC-65 — `documentacion`: verificar_docs, markdownlint-cli2@0.24.0, Vale 3.25.1.0
         con la guarda de salida vacía, lychee-action por SHA con `fail: true` y mmdc 12.0.0 por cada Markdown con un diagrama."""
         self.assertEqual(comprobar_tc65_texto(_leer_flujos(self)["ci.yml"]), [])
+
+    def test_tc65_el_paso_de_mermaid_ejecutado_rechaza_el_diagrama_invalido_y_acepta_el_valido(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 — se ejecuta el `run:` real con un `mmdc` de mentira: un diagrama inválido (en cualquier posición, aunque
+        vengan válidos después) da salida 1 y `::error file=<archivo>::diagrama Mermaid inválido` solo para él; solo válidos, salida 0.
+        Límite F006, no exigido: sin ningún Markdown con bloque `mermaid` el paso termina en verde."""
+        self.assertEqual(comprobar_comportamiento_de_mermaid(_ci_real(self)), [])
+
+    def test_tc65_el_paso_de_vale_ejecutado_falla_con_una_alerta_o_un_error_y_pasa_sin_ellos(self):
+        """CA-13 esc. 1 · TC-65 — se ejecuta el `run:` real con un `uvx` de mentira: una alerta con código 0 da salida 1 y se imprime;
+        un error de Vale (código 1) sin salida da salida 1; sin alerta y con código 0 da salida 0."""
+        self.assertEqual(comprobar_comportamiento_de_vale(_ci_real(self)), [])
 
     def test_tc65_documentacion_cumple_las_reglas_comunes_6_7_8_y_9(self):
         """CA-13 esc. 1 · convenciones §10 · TC-65 — los pasos nuevos no se desactivan, no interpolan `${{ }}` en `run:` ni usan tuberías sin `shell: bash`.

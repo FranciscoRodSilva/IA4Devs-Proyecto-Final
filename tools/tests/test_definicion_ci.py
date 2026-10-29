@@ -3076,9 +3076,20 @@ class PruebasDeMutantesDeLaFilaB3(unittest.TestCase):
         """RNF-08 · CA-10 esc. 2 · F001 — el verde de un `npm audit` no cubre al otro: cada uno falla por su cuenta con el otro intacto."""
         sin_frontend = con_paso(PASO_NPM_AUDIT, "")
         sin_mermaid = con_paso(PASO_NPM_AUDIT_MERMAID, "")
-        self.assertNotEqual(comprobar_tc14(extraer_trabajos(sin_frontend)), [])
-        self.assertNotEqual(comprobar_tc14(extraer_trabajos(sin_mermaid)), [])
-        self.assertNotEqual(comprobar_tc14(extraer_trabajos(con_paso(PASO_NPM_AUDIT + PASO_NPM_AUDIT_MERMAID, ""))), [])
+        # Sin el de `frontend`, el que queda se toma como «npm audit» y no cumple su directorio: el rojo viene de ahí.
+        exigir_rojo(
+            self,
+            comprobar_tc14,
+            sin_frontend,
+            "«npm audit» debe ejecutarse con working-directory: frontend",
+        )
+        exigir_rojo(self, comprobar_tc14, sin_mermaid, "falta «npm audit (mermaid)»")
+        exigir_rojo(
+            self,
+            comprobar_tc14,
+            con_paso(PASO_NPM_AUDIT + PASO_NPM_AUDIT_MERMAID, ""),
+            "falta «npm audit (mermaid)»",
+        )
 
     def test_tc14_mutantes_regla_comun_7_solo_pip_audit_de_dependencias_puede_terminar_en_or_true(self):
         """RNF-08 · CA-10 esc. 2 — la excepción de la regla común 7 es solo el `|| true` de `uv run pip-audit` en `dependencias`: cualquier otro deja el caso en rojo."""
@@ -3216,7 +3227,7 @@ class DefinicionDeCIFilaB3(unittest.TestCase):
     def test_tc14_dependencias_audita_tambien_el_lock_de_mermaid_cli_con_npm_audit_high(self):
         """RNF-08 · CA-10 esc. 2 · F001 — el `ci.yml` real: el trabajo `dependencias` ejecuta `npm audit --audit-level=high` con
         `working-directory: .github/mermaid`, después del de `frontend`, con `if: ${{ !cancelled() }}`, sin `|| true`, sin `--omit=dev`
-        y sin `continue-on-error`. Hoy falla: el lock de mermaid-cli no lo audita nadie."""
+        y sin `continue-on-error`. Es una regresión: nace en verde con el paso `Auditar el lock de mermaid-cli` y deja de serlo si alguien lo quita."""
         trabajos = _trabajos_de_ci(self)
         self.assertTrue("dependencias" in trabajos, "el ci.yml no declara el trabajo `dependencias`")
         problemas = comprobar_tc14(trabajos)
