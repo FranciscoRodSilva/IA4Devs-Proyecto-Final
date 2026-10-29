@@ -97,10 +97,12 @@
 **Datos.** Ninguno numérico. La respuesta de `GET /sesion` trae nombre y roles; la cookie de sesión **no es legible desde JavaScript** (`RNF-02`), así que la interfaz nunca la lee: pregunta al servidor quién es.
 
 **Acciones.**
+
 - *Iniciar sesión* envía correo y contraseña. Al aceptar, carga la sesión actual y entra al [armazón](#2-armazón-de-navegación-por-rol) en la primera sección que permitan sus roles.
 - El botón se deshabilita mientras la petición está en vuelo: Argon2 tarda a propósito (`RNF-03`) y un doble clic sería un doble intento.
 
 **Estados de rechazo.**
+
 - **Credenciales incorrectas (`401`, `CREDENCIALES_INVALIDAS`).** Un único mensaje para *"el correo no existe"* y *"la contraseña no coincide"*. Distinguirlos revelaría qué cuentas existen, que es lo que TKT-006 evita verificando un hash siempre. La contraseña se vacía; el correo se conserva.
 - **Demasiados intentos (`429`).** Tras `N` fallos (TKT-057) el servidor rechaza aunque la contraseña sea correcta. La respuesta es la misma por cuenta que por origen, para no revelar qué cuentas existen, y trae `reintentar_en_s`: el mensaje dice **cuánto falta**, no *"cuenta bloqueada"* a secas, porque el bloqueo caduca solo. El botón se rehabilita al vencer la cuenta atrás.
 - **Sin conexión.** No se inicia sesión sin servidor (regla 10 de `CLAUDE.md`, [ADR-015](adr/20260919-captura-diferida-sin-conexion.md)). El botón queda deshabilitado con la explicación; no hay modo "entrar y sincronizar después".
@@ -159,11 +161,13 @@
 | Bitácora de excepciones | — | Dirección General, Director de Proyectos |
 
 **Acciones.**
+
 - *Selector de obra*: fija la obra de contexto para todas las secciones; todo gasto lleva `obra_id` (regla 6 de `CLAUDE.md`). Lista solo obras `ACTIVA` y `PLANEACION`; las `SUSPENDIDA` y `CERRADA` aparecen bajo un filtro.
 - *Contador de autorizaciones*: número de solicitudes `PENDIENTE`. Se refresca al volver a la pestaña y tras cada resolución (invalidación de TanStack Query). **Desaparece cuando es cero**, no muestra `( 0 )` (HDU-003 esc. 1).
 - *Salir*: `POST /sesion/cierre` —la sesión se revoca, la fila no se borra— y vuelve al inicio.
 
 **Estados de rechazo.**
+
 - **Sección sin permiso (`403`).** Si alguien llega por URL a una sección que su rol no tiene, ve *"No tienes permiso para esta sección"* **sin ningún importe** (HDU-006 esc. 12). Ocultar la entrada del menú es cortesía; el control es el `403` del servidor ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)).
 - **Rol retirado durante la sesión.** La petición siguiente responde `403`; el armazón vuelve a pedir `GET /sesion` y redibuja el menú sin esa sección.
 - **Sin obras.** Si el usuario no tiene ninguna obra activa, el contenido muestra *"No hay obras activas"* y, solo para quien puede crearlas, la acción *Dar de alta una obra*.
@@ -261,6 +265,7 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Datos como cadena decimal.** Importe total de venta, importe por tipo de partida e importe de la explosión. Los conteos son enteros.
 
 **Acciones.**
+
 - *Seleccionar archivo* registra la importación en `RECIBIDO` con su `archivo` en `PENDIENTE` y sube los bytes **directamente** a la URL prefirmada que devuelve; el progreso de la fase 1 es el de esa subida. Después confirma tamaño y hash y, con el archivo ya `DISPONIBLE`, pide el análisis: la importación **no arranca antes** (HDU-001 esc. 24). El Excel no pasa por el API (regla 15 de `CLAUDE.md`, [ADR-016](adr/20261001-almacenamiento-de-objetos.md)).
 - El progreso del análisis se lee consultando `GET /importaciones/{id}`, que lo devuelve como **porcentaje** (`progreso`): la API no informa de hojas leídas ni por leer, y el boceto no las pinta. **No bloquea la pantalla** (esc. 4). **(asumido)** Consulta periódica cada pocos segundos; el intervalo lo fija TKT-018.
 - *Confirmar importación* crea la jerarquía, los análisis y la línea base en `BORRADOR` en una sola transacción (esc. 11). Si ya hay un borrador, el servidor responde `409` `REEMPLAZO_NO_CONFIRMADO` con la acción `CONFIRMAR_REEMPLAZO`, que es la que abre el diálogo de reemplazo; solo al aceptarlo se reenvía con `reemplazar_borrador` (esc. 13).
@@ -271,6 +276,7 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Estado vacío.** Obra sin ninguna importación: solo el selector de archivo, con el texto de qué se espera —un `.xlsx` con hoja de catálogo y hojas de análisis de precio unitario—.
 
 **Estados de rechazo.**
+
 - **`CON_ERRORES`** (esc. 6 a 9). Tabla 3c, navegable por hoja y fila. *Confirmar* **deshabilitado**, y aunque alguien enviara la petición, el servidor la rechaza: el botón deshabilitado es cortesía, no control.
 - **Insumo creado durante la importación** (esc. 10). No es un error: aparece en la previsualización marcado para revisión. No bloquea la confirmación.
 - **Formato declarado no admitido (`422`)** (esc. 21). Una extensión o un tipo declarado que no es `.xlsx` —también `.xls`— se rechaza **antes** de crear la importación y sin emitir URL de subida, junto al selector de archivo: *"Solo se admite .xlsx"*.
@@ -357,6 +363,7 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Datos como cadena decimal.** Venta, sugerido, tope capturado, tope vigente y tope nuevo. El campo de captura acepta texto y lo valida con Zod como decimal no negativo; **nunca se convierte a `Number`**.
 
 **Acciones.**
+
 - *Congelar línea base* exige motivo, copia conceptos y explosión, deja la línea base `CONGELADA` con fecha, usuario y motivo, y la obra `ACTIVA` (esc. 14). Tras congelar, la pantalla pasa a modo lectura (TKT-018).
 - *Guardar topes* envía un `PUT` por cada fila capturada o cambiada y registra el importe con autor y fecha (esc. 15). La primera captura no exige motivo. Los campos vienen **vacíos**, no rellenados con el sugerido: precargarlo convertiría la sugerencia en el valor por omisión, y el tope se captura, no se deriva (`PA-03`). Si una fila falla, las demás conservan su resultado y la fallida queda marcada **(asumido: comportamiento de la interfaz, no del API)**.
 - *Recapturar* abre el diálogo con motivo obligatorio y usa el mismo `PUT`. Al aceptar, el disponible del tipo de partida se recalcula de inmediato y la fila muestra el autor y la fecha nuevos (esc. 22).
@@ -364,6 +371,7 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Estado vacío.** Línea base en `BORRADOR`: la sección 4b no se muestra; en su lugar, *"Congela primero la línea base para capturar el presupuesto de control"*.
 
 **Estados de rechazo.**
+
 - **Congelar sin motivo (`422`).** Mensaje junto al campo; la línea base sigue en `BORRADOR`.
 - **Segunda línea base vigente (`409`, `RN-01`)** (esc. 19). Pantalla de bloqueo con el mensaje de que la sustitución exige una versión nueva que marque la anterior `SUPERSEDIDA`. En la fase 1 no hay versiones (`RN-18`, v1.1), así que no se ofrece acción.
 - **Intento de modificar la línea base congelada (`409`, `RN-01`)** (esc. 18). La interfaz no tiene ningún control que lo permita; si llega por el API, el rechazo viene del disparador y el contrato de error, y queda en la bitácora.
@@ -417,6 +425,7 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Datos como cadena decimal.** Tope, consumido y sus tres sumandos, disponible, cantidades presupuestada, consumida y disponible por insumo, costo unitario, importe de renglón e importe solicitado. El importe solicitado lo suma el cliente con `decimal.js` **solo para mostrarlo**; el que cuenta es el que calcula el servidor.
 
 **Acciones.**
+
 - *Tipo de partida*: al elegirlo se carga el disponible **del tipo de partida en el conjunto de la obra** —cuatro bolsas, no una por departamento— con el consumido desglosado en tres (esc. 1, esc. 13). No hay selector de nivel ni de área: no son nivel de control (`PA-01`).
 - *Solicitar*: cantidad por insumo; el costo unitario se muestra junto a la cantidad. La columna *Disponible* **orienta y no bloquea**: el cliente no marca excesos ni impide enviar, porque **el cliente nunca evalúa una regla** (regla 10 de `CLAUDE.md`). Que el tablero de 8 piezas quepa en 10 lo decide el servidor.
 - *Guardar borrador* crea o actualiza la requisición en `BORRADOR`: no consume presupuesto ni crea solicitud (esc. 2). *Eliminar borrador* solo existe en ese estado.
@@ -426,6 +435,7 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Estado vacío.** Sin tipo de partida elegido, la tabla no se muestra y el panel de disponible dice *"Elige un tipo de partida para ver su disponible"*, no un `$0.00`.
 
 **Estados de rechazo.**
+
 - **Obra sin línea base congelada o sin tope capturado (`409`, `CONFLICTO` `SIN_LINEA_BASE_CONGELADA` o `SIN_PRESUPUESTO_CONTROL`)** (HDU-002 esc. 7, HDU-001 esc. 16). No es una regla: no se viola `RN-03`, falta contra qué evaluarla. El panel de disponible no muestra cifras: muestra el mensaje del contrato, que **distingue los dos casos por su `codigo`**, y la acción que corresponda —`CONGELAR_LINEA_BASE` o `CAPTURAR_PRESUPUESTO_CONTROL`— **solo si llega en `acciones[]`**, que el servidor filtra por los roles de quien llama. Compras, que no congela ni captura topes, ve el mensaje sin botón.
 - **Cancelar una requisición ajena (`403`).** Solo la cancela su solicitante; el botón no aparece, y si alguien fuerza la petición, *"No tienes permiso"* y el intento queda en la bitácora con la acción `DENEGAR`.
 - **Sin tipo de partida (`422`, `RN-02`)** (esc. 6). En línea: *"No existe gasto sin centro de costos: elige el tipo de partida."* No se crea la requisición.
@@ -497,6 +507,7 @@ Es el componente reutilizable de TKT-008. Renderiza **cualquier** `409` a partir
 ```
 
 **Cómo se construye.**
+
 - **Cabecera**: según `tipo` —la `regla`, el `codigo` o el aviso de reintento—. **Cuerpo**: `mensaje` tal cual.
 - **Cifras**: cada clave de `detalle` con una etiqueta legible, en el orden de los esquemas del borrador OpenAPI. Por importe (`DetalleExcedePresupuesto`): `presupuestado`, `consumido` y su `consumido_desglose`, `disponible`, `solicitado`, `excedente`. Por volumen, la lista `insumos[]` con `cantidad_presupuestada`, `cantidad_consumida`, `cantidad_disponible`, `cantidad_solicitada` y `excedente`; un insumo con `presupuestado_en_partida: false` se rotula *"no presupuestado en esta partida"* (HDU-002 esc. 8). Por recepción (`DetalleExcedeOrdenado`), `renglones[]` con `cantidad_ordenada`, `cantidad_recibida`, `saldo_pendiente`, `cantidad_entrante` y `excedente`. Una clave desconocida se muestra con su nombre crudo en lugar de omitirse.
 - **Todas las cifras llegan como cadena decimal** y se formatean con `decimal.js`. El excedente se resalta; no se deduce restando en el cliente.
@@ -607,6 +618,7 @@ La columna *Acción* pinta el valor de `accion` tal cual llega, del enum cerrado
 **Datos como cadena decimal.** Solicitado, excedente, las cinco cifras del momento del bloqueo, cantidades, costos unitarios e importes de renglón, y los topes anterior y nuevo de una recaptura.
 
 **Acciones.**
+
 - *Abrir una solicitud* carga su detalle con las cifras **congeladas en el momento del bloqueo**, no las de hoy (esc. 3). La pantalla lo dice en texto para que nadie las compare con el disponible actual creyendo que es el mismo.
 - *Autorizar* y *Rechazar* envían la decisión con el motivo (esc. 4, esc. 5). Tras resolver, la solicitud sale de la bandeja, el contador baja y, si era la última, desaparece (esc. 1). La autorización deja la requisición en `AUTORIZADA`, lista para la [pantalla 8](#8-emisión-de-orden-de-compra); el rechazo la deja en `RECHAZADA`, sin salida a orden de compra.
 - No hay selección múltiple: no se autoriza en lote (non-goal de HDU-003).
@@ -615,6 +627,7 @@ La columna *Acción* pinta el valor de `accion` tal cual llega, del enum cerrado
 **Estado vacío.** Bandeja sin pendientes: *"No hay solicitudes pendientes"*. La entrada del menú pierde el contador.
 
 **Estados de rechazo.**
+
 - **Resolver sin motivo (`422`)** (esc. 6). *"El motivo es obligatorio también al autorizar"*, junto al campo. La solicitud sigue `PENDIENTE`. Los dos botones se deshabilitan mientras el motivo esté vacío, y el servidor lo rechaza igual si llega.
 - **Autorizar la propia solicitud (`403`, `AUTO_RESOLUCION`)** (esc. 8). Si el solicitante es el usuario en sesión, el detalle muestra *"Tú levantaste esta requisición: nadie resuelve sus propias solicitudes"* y los botones no aparecen. Es cortesía: el control está en `dominio/` y el intento forzado queda en la bitácora.
 - **Usuario sin rol de Dirección General (`403`, `ROL_INSUFICIENTE`)** (esc. 7). No ve la bandeja en el menú; si llega por URL, *"No tienes permiso"*, sin importes, y el intento queda en la bitácora con la acción `DENEGAR`, asentada en una transacción propia porque no hay cambio que acompañar.
@@ -664,6 +677,7 @@ La columna *Acción* pinta el valor de `accion` tal cual llega, del enum cerrado
 **Datos como cadena decimal.** Importe de la requisición, cantidades, costos unitarios, importes de renglón y total.
 
 **Acciones.**
+
 - *Requisición*: el selector solo lista requisiciones `EVALUADA` y `AUTORIZADA` sin convertir. Si es `AUTORIZADA`, muestra quién la autorizó y la solicitud que la habilitó, que la orden conserva como referencia (esc. 5).
 - *Proveedor*: solo activos; uno desactivado no aparece pero conserva su historial (HDU-004 esc. 12). El alta y la desactivación de proveedores usan el formulario de catálogo de TKT-008 (esc. 1 a 3) y no se dibujan aquí. No hay *baja* aparte: la única operación es `POST /proveedores/{id}/desactivacion`, que es una baja lógica (`activo = false`) y conserva órdenes e historial.
 - *Fecha comprometida*: obligatoria al emitir, una por orden, que se copia a cada renglón; el borrador OpenAPI admite además una fecha propia por renglón, que el boceto no dibuja. Es la fecha de la que parte la reprogramación de HDU-005 esc. 10.
@@ -674,6 +688,7 @@ La columna *Acción* pinta el valor de `accion` tal cual llega, del enum cerrado
 **Estado vacío.** Sin requisiciones convertibles: *"No hay requisiciones evaluadas o autorizadas pendientes de convertir en esta obra"*, con enlace a [nueva requisición](#5-disponible-y-captura-de-requisición).
 
 **Estados de rechazo.**
+
 - **Sin proveedor (`422`)** (esc. 8). Junto al selector; no se crea la orden.
 - **Requisición `BLOQUEADA` o `RECHAZADA` (`409`, `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION`)** (esc. 6). No aparecen en el selector; si se fuerza, pantalla de bloqueo con cabecera *No se puede completar*, **sin regla**: `RN-03` ya se aplicó al bloquear y este intento no se asienta como otra excepción. Si está bloqueada, trae la acción `VER_SOLICITUD_AUTORIZACION`; si fue rechazada, ninguna.
 - **Requisición ya `CONVERTIDA` (`409`, `ORDEN_YA_EMITIDA`)** (esc. 7). *"Esta requisición ya originó la orden OC-0137"* con enlace a ella. Una requisición origina como mucho una orden.
@@ -757,6 +772,7 @@ Se diseña para **pantalla de teléfono, de pie en obra** (TKT-008). Una columna
 **Datos como cadena decimal.** Ordenado, recibido acumulado, saldo pendiente y cantidad que llegó, por renglón. El importe ejercido no se muestra aquí: lo muestra el semáforo, al instante (esc. 14).
 
 **Acciones.**
+
 - *Elegir orden*: lista órdenes `ABIERTA` y `PARCIAL` de la obra con lo que devuelve el resumen de `GET /ordenes-compra` —folio, proveedor, estado, tipo de partida, importe y fecha de emisión—. La fecha comprometida vigente y **cuántas veces se ha reprogramado** son **por renglón** y salen del detalle de la orden (`GET /ordenes-compra/{orden_compra_id}`) o de `GET /obras/{obra_id}/saldos-pendientes`, no de la lista (esc. 13).
 - *Registrar entrada*: envía la remisión y las cantidades. El servidor deriva el estado de la orden —`PARCIAL` o `CERRADA`—; la interfaz **no lo asigna ni lo presupone** (esc. 1 a 3). Un renglón con saldo cero se muestra *completo* y sin campo de captura.
 - *Reprogramar faltante*: nueva fecha posterior a la vigente y motivo; la orden **permanece `PARCIAL`** y el presupuesto sigue comprometido (esc. 10). Lo puede hacer Almacén —y Compras desde su lado—, no el Residente de obra, que no ve el botón.
@@ -769,6 +785,7 @@ Se diseña para **pantalla de teléfono, de pie en obra** (TKT-008). Una columna
 **Estado vacío.** Obra sin órdenes por recibir: *"No hay órdenes abiertas ni parciales en esta obra."*
 
 **Estados de rechazo.**
+
 - **Sin folio de remisión (`422`, `RN-05`)** (esc. 4). Junto al campo: *"La entrada se valida contra la remisión del proveedor, no contra la orden de compra."* No se crea ningún movimiento.
 - **Cantidad mayor que el saldo (`409`, `RN-07`)** (esc. 5). Pantalla de bloqueo en formato de teléfono —una columna— con ordenado, recibido acumulado, saldo, entrante y excedente, y `SOLICITAR_AUTORIZACION`, que aquí **crea** la solicitud. La orden conserva su saldo; no se crea movimiento. La captura **se conserva** para reenviarla cuando la solicitud se autorice (variante *excedente autorizado*; `PA-16`, resuelta). El cliente **no** compara la cantidad con el saldo para impedir el envío: el saldo en pantalla orienta, no autoriza.
 - **Reenvío con la solicitud `PENDIENTE` o `RECHAZADA`, o con más excedente del autorizado (`409`, `RN-07`)** (esc. 22). Pantalla de bloqueo con las cifras, el excedente intentado, el autorizado y el estado de la solicitud. No se registra nada y la orden conserva su saldo; la captura sigue en el dispositivo.
@@ -862,6 +879,7 @@ Se diseña para **pantalla de teléfono, de pie en obra** (TKT-008). Una columna
 **Datos como cadena decimal.** Presupuestado, comprometido, ejercido y sus partes, desviación, disponible por tipo de partida, totales, cantidades e importes de cada movimiento. **El avance es un porcentaje que también viaja como cadena** y puede ser **nulo**; nulo no se pinta como `0 %`.
 
 **Cómo se lee.**
+
 - **Cuatro filas, una por tipo de partida, agregando toda la obra** —no una por departamento—, más la fila de **mano de obra de nómina**, marcada *no imputada a partida*, y la de totales (esc. 1, 5 y 13). La nómina entra en el total y **no** en ninguna desviación por partida.
 - **Ejercido** es **solo el real**: el mismo que entra en el consumido de `RN-03`. Suma materiales y destajo reales, y el desglose dice cuánto aporta cada fuente (esc. 4). Lo simulado **nunca** se suma en esa celda: va en su propia columna, **Simulado**, marcada `*` (`ejercido_simulado`, que solo existe con fuente `SIMULADA`). En la fase 1 el ejercido real de cada fila es solo de materiales.
 - **Desviación** = (ejercido + simulado) − presupuestado × avance (esc. 2, 3 y 16), y **desviación relativa** = desviación ÷ (presupuestado × avance). Si alguna entrada es simulada llega con `ilustrativa: true` y se rotula `~` (esc. 14).
@@ -872,10 +890,12 @@ Se diseña para **pantalla de teléfono, de pie en obra** (TKT-008). Una columna
 - **Fuentes**: el metadato de la respuesta —presupuestado, comprometido, materiales, destajo, nómina y avance físico, que cubre alcance y ejecutado—, pintado tal cual. La interfaz no decide qué es simulado: lo lee de la `fuente` que acompaña a cada cifra.
 
 **Acciones.**
+
 - *Abrir una fila* lleva al desglose (10b). Cada movimiento trae fecha, tipo, cantidad, unidad, importe, responsable y, si lo tiene —un `AJUSTE`—, su motivo, y enlaza a su entrada de almacén, y de ahí a la remisión y la orden (esc. 7). El enlace al renglón de nómina es de la fase 2. Las pestañas *Por nivel* y *Por área* reparten el presupuesto y el avance por ubicación, sin ser nivel de control (esc. 13).
 - La tabla se refresca al volver a la pantalla y tras cualquier entrada registrada en la sesión (invalidación de TanStack Query); no hay botón de recalcular porque no hay nada que recalcular: se calcula al consultar.
 
 **Estados de rechazo.**
+
 - **Obra sin línea base congelada (`409`, `CONFLICTO` `SIN_LINEA_BASE_CONGELADA`)** (esc. 8). Ninguna cifra ni ningún cero que pueda confundirse con un dato: solo el mensaje y, si llega en `acciones[]` —el servidor la filtra por rol—, `CONGELAR_LINEA_BASE`, que lleva a la pantalla 4.
 - **Usuario sin el rol (`403`)** (esc. 12). *"No tienes permiso para ver el semáforo"*, sin ningún importe en la respuesta ni en pantalla. En el MVP no hay permiso por obra: quien tiene el rol ve todas (non-goal de TKT-006).
 - **Fuente que no es `REAL`** (esc. 6). Si `cifra_parcial` es verdadero, aviso de cifra parcial que **nombra las fuentes que faltan o están simuladas**; la cifra nunca se presenta como costo real completo. Con fuentes `SIN_DATOS` es lo que verá producción hasta el sprint 8 —la nómina, hasta el 9—, porque allí el adaptador simulado no arranca y destajo, nómina y avance se declaran `SIN_DATOS`.

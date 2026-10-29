@@ -98,7 +98,7 @@ Las filas 3 y 7 de `design.md` están marcadas `⚠ Ajustado`, y la fila 11 se a
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_configuracion.py`
 
-```
+```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
 rootdir: D:\Documentos\LIDR\Proyecto Final\backend
@@ -158,33 +158,33 @@ Comprobaciones, con la salida real de cada una:
 
 1. `uv sync --locked` → código 0.
 
-```
+```text
 Resolved 91 packages in 1ms
 Audited 88 packages in 15ms
 EXIT=0
 ```
 
-2. `uv run python -c "import pwdlib, argon2, email_validator; print(argon2.DEFAULT_TIME_COST, argon2.DEFAULT_MEMORY_COST, argon2.DEFAULT_PARALLELISM)"` → código 0. Los parámetros por omisión de `argon2-cffi` son 3 iteraciones, 65536 KiB de memoria y 4 hilos, lo que corresponde al perfil recomendado por la biblioteca.
+1. `uv run python -c "import pwdlib, argon2, email_validator; print(argon2.DEFAULT_TIME_COST, argon2.DEFAULT_MEMORY_COST, argon2.DEFAULT_PARALLELISM)"` → código 0. Los parámetros por omisión de `argon2-cffi` son 3 iteraciones, 65536 KiB de memoria y 4 hilos, lo que corresponde al perfil recomendado por la biblioteca.
 
-```
+```text
 3 65536 4
 EXIT=0
 ```
 
    `email_validator` se importa sin problema, pero **no es dependencia declarada del proyecto**: llega de forma transitiva por `fastapi[standard-no-fastapi-cloud-cli]` (`uv tree --invert --package email-validator` → `email-validator v2.3.0` ← `fastapi v0.159.1` (extra `standard-no-fastapi-cloud-cli`) ← `cimenta`). No se añadió. Se deja al orquestador la decisión de declararla o no, como indica el diseño.
 
-3. `uv run --with pip-audit pip-audit` → sin CVE abiertos. `pip-audit` se ejecuta con `--with`, así que no entra en el bloqueo del proyecto.
+1. `uv run --with pip-audit pip-audit` → sin CVE abiertos. `pip-audit` se ejecuta con `--with`, así que no entra en el bloqueo del proyecto.
 
-```
+```text
 No known vulnerabilities found
 EXIT=0
 ```
 
-4. Verificaciones del pipeline:
+1. Verificaciones del pipeline:
 
 `PYTHONUTF8=1 uv run lint-imports`:
 
-```
+```text
 Analyzed 80 files, 49 dependencies.
 ...
 Contracts: 15 kept, 0 broken.
@@ -193,7 +193,7 @@ EXIT=0
 
 `PYTHONUTF8=1 uv run pytest tests/test_tkt006_configuracion.py`:
 
-```
+```text
 platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
 ...
 collected 1 item
@@ -206,21 +206,21 @@ EXIT=0
 
 `uv run mypy .`:
 
-```
+```text
 Success: no issues found in 127 source files
 EXIT=0
 ```
 
 `uv run ruff check .`:
 
-```
+```text
 All checks passed!
 EXIT=0
 ```
 
 `uv run ruff format --check .`:
 
-```
+```text
 127 files already formatted
 EXIT=0
 ```
@@ -241,7 +241,7 @@ Los símbolos del dominio (`normalizar_correo`, `evaluar_vigencia`, `EstadoSesio
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_dominio.py --tb=line` (salida abreviada: se omiten las líneas repetidas de `ModuleNotFoundError` y la lista de los 36 nombres, que coincide con la de «Casos» más abajo).
 
-```
+```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
 rootdir: D:\Documentos\LIDR\Proyecto Final\backend
@@ -330,7 +330,7 @@ Comandos desde `backend/` con `PYTHONUTF8=1`, con la salida real:
 
 `uv run pytest tests/test_tkt006_dominio.py` (sin Docker):
 
-```
+```text
 collected 37 items
 
 tests\test_tkt006_dominio.py .....................................       [100%]
@@ -357,7 +357,7 @@ Los símbolos de producción (`ConfiguracionIdentidad`, `ContrasenasArgon2`) se 
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_configuracion.py --tb=line` (salida abreviada: las 84 líneas de traza repiten el mismo error y se omiten; los 35 identificadores de TC-15 se condensan).
 
-```
+```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
 rootdir: D:\Documentos\LIDR\Proyecto Final\backend
@@ -429,7 +429,7 @@ Comprobaciones, desde `backend/` con `PYTHONUTF8=1`, con la salida real:
 
 1. `uv run pytest tests/test_tkt006_configuracion.py tests/test_tkt006_dominio.py` → verde.
 
-```
+```text
 collected 80 items
 
 tests\test_tkt006_configuracion.py ..................................... [ 46%]
@@ -441,21 +441,21 @@ tests\test_tkt006_dominio.py .....................................       [100%]
 
    Los 80 casos son los 43 de `test_tkt006_configuracion.py` (TC-13 a TC-18 con sus complementos) y los 37 de `test_tkt006_dominio.py` (TC-01 a TC-12). Ninguno nace en verde y ningún test se editó.
 
-2. `uv run mypy .`: en la primera pasada falló con el error de la decisión 2 (`Argon2Hasher ... expected "Type"`). Tras el `TypedDict`:
+1. `uv run mypy .`: en la primera pasada falló con el error de la decisión 2 (`Argon2Hasher ... expected "Type"`). Tras el `TypedDict`:
 
-```
+```text
 Success: no issues found in 135 source files
 ```
 
-3. `uv run ruff check .` → `All checks passed!`
+1. `uv run ruff check .` → `All checks passed!`
 
-4. `uv run ruff format --check .` → `135 files already formatted`
+2. `uv run ruff format --check .` → `135 files already formatted`
 
-5. `uv run python -m herramientas.verificar_float` → `verificar_float: archivos revisados: 18; hallazgos: 0` (código 0).
+3. `uv run python -m herramientas.verificar_float` → `verificar_float: archivos revisados: 18; hallazgos: 0` (código 0).
 
-6. `uv run lint-imports` → `Contracts: 15 kept, 0 broken.` (código 0).
+4. `uv run lint-imports` → `Contracts: 15 kept, 0 broken.` (código 0).
 
-7. Regresión: `uv run pytest tests/test_tkt007_dominio.py tests/test_servidor_arranque.py -q` → `62 passed in 5.81s`.
+5. Regresión: `uv run pytest tests/test_tkt007_dominio.py tests/test_servidor_arranque.py -q` → `62 passed in 5.81s`.
 
 **Refactor.** Ninguno más allá de la corrección de tipos de la decisión 2. El código sigue el diseño literal y `ruff format` no cambió nada. No se añadieron comentarios ni abstracciones que el diseño no pida.
 
@@ -484,7 +484,7 @@ Los símbolos de producción de los casos se importan con `import cimenta.identi
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_repositorio.py --tb=line` (salida abreviada: las 14 líneas de traza repiten el mismo error).
 
-```
+```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
 rootdir: D:\Documentos\LIDR\Proyecto Final\backend
@@ -564,7 +564,7 @@ Comprobaciones en `identidad` sin palabras prohibidas: `Grep` de `passlib|hashli
 
 **Salida real, desde `backend/`:**
 
-```
+```text
 $ PYTHONUTF8=1 uv run pytest tests/test_tkt006_repositorio.py -q
 ..............                                                           [100%]
 14 passed in 3.99s
@@ -572,13 +572,13 @@ $ PYTHONUTF8=1 uv run pytest tests/test_tkt006_repositorio.py -q
 
 Los catorce casos de TC-58 y TC-59 pasan. Antes del código fallaban con `ModuleNotFoundError: No module named 'cimenta.identidad.infraestructura.repositorio'`.
 
-```
+```text
 $ PYTHONUTF8=1 uv run pytest tests/test_tkt004_conftest.py tests/test_identidad_sin_create_all.py -q
 ..                                                                       [100%]
 2 passed in 0.03s
 ```
 
-```
+```text
 $ uv run ruff check .
 All checks passed!
 
@@ -592,7 +592,7 @@ $ uv run lint-imports
 Contracts: 15 kept, 0 broken.
 ```
 
-```
+```text
 $ uv run mypy .
 tests\conftest.py:494: error: Unexpected keyword argument "motor" for "crear_aplicacion"  [call-arg]
 tests\conftest.py:494: note: "crear_aplicacion" defined in "servidor.fabrica"
@@ -605,7 +605,7 @@ Los tres `call-arg` son el rojo previsto de la fila 7 (`crear_aplicacion` aún n
 
 **Suite completa**, con todas las *fixtures* ya presentes, desde `backend/`:
 
-```
+```text
 $ PYTHONUTF8=1 uv run pytest -q
 1 failed, 963 passed in 194.81s (0:03:14)
 FAILED tests/test_tkt005_regresion.py::test_tkt005_car2_calidad_estatica_sin_hallazgos[mypy]
@@ -629,7 +629,7 @@ Los símbolos de producción (`abrir_sesion`, `ContextoIdentidad`, `UsuarioAuten
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_inicio_sesion.py -k "aplicacion" --tb=line` (salida abreviada: se omiten las 25 líneas de traza con ruta absoluta, que repiten el mismo error, y se condensa la lista de los 25 nombres).
 
-```
+```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
 rootdir: D:\Documentos\LIDR\Proyecto Final\backend
@@ -667,7 +667,7 @@ FAILED tests/test_tkt006_inicio_sesion.py::test_tkt006_ca03_aplicacion_verifica_
 | `CA-2` | `test_tkt006_ca02_aplicacion_inicio_correcto_devuelve_al_usuario_autenticado` | 1 | Con el reloj adelantado 7 minutos: `UsuarioAutenticado` con `usuario_id`, `nombre`, `email`, `roles` (`frozenset`), `sesion_id` UUID versión 4, `expira_en` = ahora + 12 h y `expira_por_inactividad_en` = ahora + 30 min | `contexto` |
 | `CA-2` | `..._aplicacion_inicio_correcto_escribe_la_sesion` | 1 | Una sola fila en `sesion` con el id devuelto, `creada_en` = `ultima_actividad` = ahora, `expira_en`, `revocada_en` nulo, `origen_ip` y `agente_usuario` | `sesiones` |
 | `CA-2` | `..._aplicacion_inicio_correcto_asienta_el_intento_y_el_ultimo_acceso` | 1 | `intento_acceso` con `exitoso` verdadero, el usuario, el correo y la hora; `usuario.ultimo_acceso` pasa de nulo a ahora | `sesiones` |
-| `CA-2` | `..._aplicacion_correo_sin_distinguir_mayusculas` | 1 | «Ana@Cimenta.TEST» abre la sesión del mismo usuario; el intento conserva el correo tal como se escribió; el origen y el agente nulos se guardan nulos | `sesiones` |
+| `CA-2` | `..._aplicacion_correo_sin_distinguir_mayusculas` | 1 | «`<Ana@Cimenta.TEST>`» abre la sesión del mismo usuario; el intento conserva el correo tal como se escribió; el origen y el agente nulos se guardan nulos | `sesiones` |
 | `CA-8` | `test_tkt006_ca08_aplicacion_las_caducidades_salen_de_la_configuracion` | 1 | Con 90 y 10 minutos configurados, `expira_en` y la inactividad los respetan, en el resultado y en la fila | `sesiones` |
 | `CA-2` | `..._aplicacion_dos_inicios_abren_dos_sesiones_distintas` | 1 | Cada inicio genera su propio identificador: dos filas con ids distintos | `sesiones` |
 | `CA-R4` | `test_tkt006_car4_aplicacion_construir_contexto_no_pide_el_motor_hasta_usarlo` (sin Docker) | 1 | El proveedor de motor no se llama al construir; se llama una vez al usar la fábrica, y la misma fábrica se devuelve siempre (`functools.cache`) con el motor como `bind` | `contexto` |
@@ -734,14 +734,14 @@ Comandos desde `backend/` con `PYTHONUTF8=1`, con la salida real:
 
 `uv run pytest tests/test_tkt006_inicio_sesion.py -k "aplicacion"` (con Docker):
 
-```
+```text
 .........................                                                [100%]
 25 passed in 5.03s
 ```
 
 `uv run pytest tests/test_tkt006_configuracion.py tests/test_tkt006_dominio.py tests/test_tkt006_repositorio.py` (con Docker en el repositorio):
 
-```
+```text
 ......................                                                   [100%]
 94 passed in 4.63s
 ```
@@ -776,7 +776,7 @@ Se escribió `backend/tests/test_tkt006_sesion_vigente.py` (con Docker) con TC-4
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_sesion_vigente.py --tb=line` (salida abreviada: se omiten las 24 líneas de traza con ruta absoluta, que repiten el mismo error, y la cabecera de plataforma).
 
-```
+```text
 ============================= test session starts =============================
 collected 24 items
 
@@ -874,7 +874,7 @@ Comandos desde `backend/` con `PYTHONUTF8=1`, con la salida real:
 
 `uv run pytest tests/test_tkt006_sesion_vigente.py` (con Docker):
 
-```
+```text
 collected 24 items
 
 tests\test_tkt006_sesion_vigente.py ........................             [100%]
@@ -884,7 +884,7 @@ tests\test_tkt006_sesion_vigente.py ........................             [100%]
 
 `uv run pytest tests/test_tkt006_sesion_vigente.py -k "concurrencia"`, tres veces seguidas:
 
-```
+```text
 == concurrencia 1
 ====================== 3 passed, 21 deselected in 2.79s =======================
 == concurrencia 2
@@ -911,7 +911,7 @@ La tanda 1 escribe los casos HTTP de `csrf`, `inicio de sesión`, `sesión vigen
 
 **Comprobación previa de la fila** (pedida por el diseño, ejecutada por el orquestador y repetida al abrir esta tanda), desde `backend/`:
 
-```
+```text
 $ uv run python -c "from fastapi.dependencies.models import Dependant; f = Dependant.__dataclass_fields__; print('dependencies' in f, 'call' in f)"
 True True
 ```
@@ -933,7 +933,7 @@ Los nombres de los casos HTTP no contienen `aplicacion` ni `concurrencia`: `-k "
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_csrf.py tests/test_tkt006_cierre.py tests/test_tkt006_inicio_sesion.py tests/test_tkt006_sesion_vigente.py --tb=line -q` (salida abreviada: las 51 líneas `ERROR at setup` repiten el mismo error y se condensan).
 
-```
+```text
 ERROR at setup of test_tkt006_ca01_token_csrf_sin_sesion
 E   TypeError: crear_aplicacion() got an unexpected keyword argument 'motor'
 ...  (51 casos, todos con ese mismo error)
@@ -1022,7 +1022,7 @@ La tanda 2 escribe el test del enrutador y de la lista cerrada (TC-47 a TC-53), 
 
 **Salida real del rojo**, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_enrutador.py tests/test_servidor_arranque.py --tb=line -q -rf` (salida abreviada: las 16 trazas del enrutador repiten uno de dos errores y se condensan; los siete casos de `test_servidor_arranque.py` que no cambian y pasan no se listan).
 
-```
+```text
 E   ModuleNotFoundError: No module named 'cimenta.identidad.api.dependencias'
 tests\test_tkt006_enrutador.py:149: ModuleNotFoundError: ...   (3 casos)
 E   TypeError: crear_aplicacion() got an unexpected keyword argument 'entorno'
@@ -1250,7 +1250,7 @@ Comandos desde `backend/` con `PYTHONUTF8=1`, con la salida real:
 
 `uv run pytest tests/test_tkt006_*.py tests/test_servidor_arranque.py tests/test_contrato_error_http.py -q` (con Docker):
 
-```
+```text
 301 passed in 38.90s
 ```
 
@@ -1273,7 +1273,7 @@ La fila 8 escribe las pruebas de la restricción `ck_usuario_email_minusculas` (
 
 **Comprobación previa.** La cabeza de migraciones antes de la fila, desde `backend/`:
 
-```
+```text
 $ uv run --env-file ../.env alembic heads
 0003 (head)
 ```
@@ -1293,7 +1293,7 @@ TC-56 afirma, por cada correo, el `sqlstate` `23514`, `diag.constraint_name == "
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_esquema.py -p no:cacheprovider`, con Docker en marcha (`docker info` responde la versión 29.8.2). Extracto de la salida real:
 
-```
+```text
 E           Failed: DID NOT RAISE CheckViolation
 tests\test_tkt006_esquema.py:134: Failed
 E       AssertionError: Tras `upgrade head` debe existir ck_usuario_email_minusculas: falta la migración v0004 (TKT-006).
@@ -1324,7 +1324,7 @@ Comandos desde `backend/` con `PYTHONUTF8=1`, con la salida real:
 - `uv run --env-file ../.env alembic heads` → `0004 (head)`. Una sola cabeza.
 - `uv run pytest tests/test_tkt006_esquema.py tests/test_identidad_*.py tests/test_tkt007_esquema.py -q` (con Docker, tras el verde):
 
-```
+```text
 91 passed in 32.14s
 ```
 
@@ -1466,7 +1466,7 @@ Entrega B, fila 10: rol por ruta, asiento `DENEGAR` e interfaz publicada. Solo p
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run python -c "import inspect; from cimenta.auditoria import interfaz; print(inspect.signature(interfaz.asentar_denegacion)); print('asentar_denegacion' in interfaz.__all__)"`
 
-```
+```text
 (sesion_bd: sqlalchemy.orm.session.Session, *, usuario_id: uuid.UUID, ocurrido_en: datetime.datetime, motivo: str, datos: collections.abc.Mapping[str, object]) -> uuid.UUID
 True
 ```
@@ -1519,7 +1519,7 @@ Decisiones de las pruebas que el diseño no fija de forma literal:
 
 Comando, desde `backend/`: `PYTHONUTF8=1 uv run pytest tests/test_tkt006_permisos_rol.py tests/test_tkt006_enrutador.py -p no:cacheprovider --tb=line -q` (salida abreviada: se omiten las líneas repetidas de traza y los nombres de los 16 casos que pasan).
 
-```
+```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
 rootdir: D:\Documentos\LIDR\Proyecto Final\backend

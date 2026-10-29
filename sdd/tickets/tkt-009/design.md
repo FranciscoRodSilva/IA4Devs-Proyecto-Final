@@ -32,7 +32,7 @@ TKT-009c queda algo por encima del tope y no se parte más: el verificador y sus
 | `A-4` | El escaneo de secretos y la protección de empuje son **ajustes del repositorio**. Se verifican con `gh api` y con un empuje de ensayo que la persona dueña del repositorio hace con un token real activo y sin permisos, revocado después del empuje; la evidencia queda en `impl.md`. Si el repositorio es privado y no tiene *Secret Protection*, se escala: ver fila B5 | 2 · nativo |
 | `A-5` | Línea base desconocida: la fila D2 la **mide** antes de tocar nada. Si quedan **más de 120 hallazgos** que `--fix` no corrige, se detiene la parte d y se escala proponiendo separar la limpieza en su propio ticket | — |
 | `A-6` | La fase 2 empieza cuando `tools/historias_activas.txt` contiene la línea exacta `fase 2`. Sin ella, los escenarios de fase 2 no cuentan. Como las historias, la línea no sale del archivo: el verificador falla si la base del PR la tenía y el PR la quita | 4 · cambio mínimo sobre el archivo de ADR-012 |
-| `A-7` | Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título, la misma forma que ya usa ` · fase 2`: `**Escenario 14: Mano de obra y avance simulados, y rotulados como tales · fase 1 · retirado por TKT-069**`. El texto del escenario no cambia. Una nota en prosa, sin el segmento, no retira nada. Hoy no se retira ninguno: lo hará TKT-069 | 4 · extiende una convención existente |
+| `A-7` | Un escenario se retira con el segmento `· retirado por TKT-0NN` en su título, la misma forma que ya usa `· fase 2`: `**Escenario 14: Mano de obra y avance simulados, y rotulados como tales · fase 1 · retirado por TKT-069**`. El texto del escenario no cambia. Una nota en prosa, sin el segmento, no retira nada. Hoy no se retira ninguno: lo hará TKT-069 | 4 · extiende una convención existente |
 | `A-8` | El verificador busca en `backend/tests/` (`test_*.py`), `frontend/src/` y `frontend/scripts/` (`*.test.ts`, `*.test.tsx`) y `frontend/e2e/` (`*.spec.ts`), saltando `node_modules`. En pytest lee `def test_…`; en Vitest y Playwright, el título de `it(…)`, `test(…)` y `describe(…)`. El nombre de un test de historia en TypeScript sigue la forma de los de fundación: `"hdu002_esc04 · …"` | 5 |
 | `A-9` | **Python 3.14 en CI**, con el comando literal `uv sync --locked --python 3.14`; los `uv run` posteriores usan el `.venv` ya creado, incluido el `webServer` de Playwright. Node desde `engines` con `node-version-file: frontend/package.json`, que `actions/setup-node` lee (consultado con Context7). Sin matriz 3.13: se acepta que un fallo solo en 3.13 no se vea. `backend/.python-version` se descarta aquí: cambia el comportamiento local y TKT-001 lo dejó a una decisión propia | 3 · reuso del comando documentado |
 | `A-10` | No es de diseño. Se cierra en `/sdd-completar` | — |
@@ -61,10 +61,10 @@ TKT-009c queda algo por encima del tope y no se parte más: el verificador y sus
 | `.github/dependabot.yml` | 2 · nativo | Tres ecosistemas: `uv`, `npm`, `github-actions` |
 | Escaneo de secretos y protección de empuje | 2 · nativo | Ajuste del repositorio; `gitleaks` se descarta salvo que el ajuste no esté disponible |
 | Excepción de las credenciales de `.env.example` | 1 · YAGNI | Ningún archivo de excepción: los patrones de proveedor no reconocen `solo-desarrollo-*`. Si una alerta genérica las marcara, se descarta **esa alerta** como «usada en pruebas», citando este diseño; nunca `paths-ignore`, que excluiría el archivo entero |
-| `tools/verificar_escenarios.py` | 5 · objeto nuevo | Lo prevé ADR-012 y no existe herramienta. Copia los dos patrones de `verificar_docs.py` (`^## (HDU-\d{3}) · ` y `\*\*Escenario (\d+): `) en lugar de importarlo: allí están dentro de funciones con estado global |
+| `tools/verificar_escenarios.py` | 5 · objeto nuevo | Lo prevé ADR-012 y no existe herramienta. Copia los dos patrones de `verificar_docs.py` (`^## (HDU-\d{3}) ·` y `\*\*Escenario (\d+):`) en lugar de importarlo: allí están dentro de funciones con estado global |
 | `tools/historias_activas.txt` | 5 · objeto nuevo | Lo exige ADR-012. Arranca sin historias |
 | Marcador de fase 2 | 4 · cambio mínimo | Una línea en el mismo archivo, que se mantiene en el mismo momento que las historias |
-| Nota de retiro | 4 · cambio mínimo | Segmento del título, como ` · fase 2` |
+| Nota de retiro | 4 · cambio mínimo | Segmento del título, como `· fase 2` |
 | Comparación con la base del PR | 2 · nativo | `git show <sha base>:tools/historias_activas.txt`, con `fetch-depth: 0` |
 | `.markdownlint-cli2.jsonc`, `.vale.ini`, `.vale/styles/`, `lychee.toml` | 3 · reuso | Herramientas ya decididas en [convenciones §10](../../../docs/convenciones.md#10-validación-de-documentación-en-ci); solo se configuran |
 | Regla `Cimenta.Vocabulario` | 5 · pequeño | Ninguna regla de terceros conoce *tablaroca* |
@@ -291,15 +291,24 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 
 | # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
 |---|---|---|---|---|---|---|
-| D1 | Los seis archivos de configuración de la tabla de arriba. Rojo previo: en un directorio temporal, un `.md` con «tablaroka» no produce ningún aviso de `Vale` sin la configuración | TC-60, TC-61 | `ingeniero-devsecops` | `haiku` | Con la configuración: el `.md` con «tablaroka» da un aviso `Cimenta.Vocabulario` con su línea y código 0; un `.md` con los ocho términos del glosario, cero alertas | Pendiente |
-| D2 | **Medición de la línea base, sin editar.** Sobre el alcance: hallazgos de `markdownlint-cli2` por regla; los que quedan tras `--fix` en una copia desechable; alertas de `Vale` por regla; enlaces rotos de `lychee`. Tabla en `impl.md`. **Umbral:** si los hallazgos que `--fix` no corrige, más las alertas de `Vale`, más los enlaces rotos suman **más de 120**, la parte se detiene y se ejecuta `/sdd-escalar` proponiendo partir la limpieza en su propio ticket. Si `Vale.Repetition` marca celdas contiguas de tabla como repetición, se desactiva la regla en `.vale.ini` y se anota; ninguna otra regla se apaga para bajar el número | — | `ingeniero-devsecops` | `haiku` | Tabla de recuento en `impl.md` y decisión aplicada según el umbral | Pendiente |
-| D3 | Limpieza automática: `markdownlint-cli2 --fix` sobre el alcance, en un commit propio que no contiene otro cambio, después de fusionadas las partes a, c y b | TC-69 (parcial) | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con el mismo número de escenarios y de puntos; `git diff -U0 -- docs/04-historias-usuario.md` sin ninguna línea `**Escenario N:` cambiada (si aparece, se revierte a mano); `git diff --stat` en `impl.md` | Pendiente |
-| D4 | Limpieza manual de lo que queda, un commit por herramienta | TC-69 | `ingeniero-devsecops` | `haiku` | `markdownlint-cli2`, `vale --output=line` y `lychee` sobre el alcance, con cero hallazgos | Pendiente |
-| D5 | Pasos nuevos del trabajo `documentacion`, `.github/workflows/enlaces.yml` y sus casos en `test_definicion_ci.py` | TC-64, TC-65 | `ingeniero-devsecops` | `haiku` | TC-64 y TC-65 en verde; `zizmor` en 0 | Pendiente |
-| D6 | Ensayo en el pipeline de la parte d | TC-62, TC-63, TC-66, TC-67, TC-68 | `git-entrega` | `haiku` | Cada violación pone el trabajo en rojo citando archivo y línea; ronda de limpieza en verde | Pendiente |
-| D7 | Documentación, marcas y ADR de `Vale` en español | TC-70d | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 y el trabajo `documentacion` en verde | Pendiente |
+| D1 | Los seis archivos de configuración de la tabla de arriba. Rojo previo: en un directorio temporal, un `.md` con «`tablaroka`» no produce ningún aviso de `Vale` sin la configuración | TC-60, TC-61 | `ingeniero-devsecops` | `haiku` | Con la configuración: el `.md` con «`tablaroka`» da un aviso `Cimenta.Vocabulario` con su línea y código 0; un `.md` con los ocho términos del glosario, cero alertas | ✓ Hecho |
+| D2 | **Medición de la línea base, sin editar.** Sobre el alcance: hallazgos de `markdownlint-cli2` por regla; los que quedan tras `--fix` en una copia desechable; alertas de `Vale` por regla; enlaces rotos de `lychee`. Tabla en `impl.md`. **Umbral:** si los hallazgos que `--fix` no corrige, más las alertas de `Vale`, más los enlaces rotos suman **más de 120**, la parte se detiene y se ejecuta `/sdd-escalar` proponiendo partir la limpieza en su propio ticket. Si `Vale.Repetition` marca celdas contiguas de tabla como repetición, se desactiva la regla en `.vale.ini` y se anota; ninguna otra regla se apaga para bajar el número | — | `ingeniero-devsecops` | `haiku` | Tabla de recuento en `impl.md` y decisión aplicada según el umbral | ✓ Hecho |
+| D3 | Limpieza automática: `markdownlint-cli2 --fix` sobre el alcance, en un commit propio que no contiene otro cambio, después de fusionadas las partes a, c y b | TC-69 (parcial) | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con el mismo número de escenarios y de puntos; `git diff -U0 -- docs/04-historias-usuario.md` sin ninguna línea `**Escenario N:` cambiada (si aparece, se revierte a mano); `git diff --stat` en `impl.md` | ✓ Hecho |
+| D4 | Limpieza manual de lo que queda, un commit por herramienta | TC-69 | `ingeniero-devsecops` | `haiku` | `markdownlint-cli2`, `vale --output=line` y `lychee` sobre el alcance, con cero hallazgos | ✓ Hecho |
+| D5 | Pasos nuevos del trabajo `documentacion`, `.github/workflows/enlaces.yml` y sus casos en `test_definicion_documentacion.py` | TC-64, TC-65 | `ingeniero-devsecops` | `haiku` | TC-64 y TC-65 en verde; `zizmor` en 0 | ✓ Hecho |
+| D6 | Ensayo en el pipeline de la parte d | TC-62, TC-63, TC-66, TC-67, TC-68 | `git-entrega` | `haiku` | Cada violación pone el trabajo en rojo citando archivo y línea; ronda de limpieza en verde | ✓ Hecho |
+| D7 | Documentación, marcas y ADR de `Vale` en español | TC-70d | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 y el trabajo `documentacion` en verde | ✓ Hecho |
 
 **Cierre de cada parte:** el PR de la parte corre el pipeline completo en verde sobre su árbol, sin la rama de ensayo, y `impl.md` enlaza esa ejecución.
+
+**Ajustes registrados al ejecutar la parte d.** Lo construido difiere del diseño en los puntos siguientes, cada uno con su motivo:
+
+- **`include_fragments = "none"`, no `false`** (`lychee.toml`, fila D1). `lychee` 0.24.2 rechaza el booleano («wanted string or table»). `"none"` conserva la decisión del diseño: las anclas las comprueba `verificar_docs.py`.
+- **`mermaid-cli` con lockfile y `npm ci`** (pasos del trabajo `documentacion`, fila D5). La instalación es `npm ci` sobre `.github/mermaid/package-lock.json`, y no `npm install --no-save`. zizmor marca la instalación de paquetes fuera de un lockfile con la regla `adhoc-packages`, y así se comprobó. Las versiones quedan fijadas en `package.json` y en el lockfile.
+- **`concurrency` en `enlaces.yml`** (fila D5). El flujo lleva `concurrency` con el grupo `enlaces` y `cancel-in-progress: false`, para que el cron de los lunes y una lanzada manual no se solapen. El texto del diseño no lo menciona.
+- **Pruebas de la parte d en `test_definicion_documentacion.py`** (fila D5). Las pruebas de `documentacion` y de `enlaces.yml` viven en `tools/tests/test_definicion_documentacion.py`, no en `test_definicion_ci.py`: el archivo de las partes a y b ya pasa de 3100 líneas, y un archivo por tema es más legible (asumido).
+- **`lycheeVersion: v0.24.2` explícito** (trabajos `documentacion` y `enlaces.yml`, fila D5). La acción `lychee-action` no depende de su valor por omisión, que podría cambiar (regla común 3).
+- **`medium.com` excluido de `lychee`** (`lychee.toml`, fila D1; ajuste en D6). Medium responde `403` al corredor de GitHub y `200` a una persona, así que el enlace no está roto: el primer PR lo puso en rojo. El resto de enlaces externos sigue comprobándose.
 
 ## Ensayo de compuertas
 
@@ -318,13 +327,13 @@ Cada ronda es un commit en la rama de ensayo. Las violaciones de una ronda caen 
 | b | 1 | `lodash@4.17.20` en `devDependencies` | `dependencias` | `npm audit` con severidad `high` |
 | b | 2 | Solo un paquete de npm cuyo único aviso sea `moderate` (candidato: `stream-json@3.6.0`; `nanoid@3.1.30` tiene avisos altos; se confirma en la base de avisos de GitHub antes de empujar, y si ya no es solo `moderate` se elige otro que lo sea) | ninguno | El aviso aparece en el registro y el trabajo queda en verde |
 | c | 1 | `HDU-001` añadida a `tools/historias_activas.txt` | `herramientas` | 27 líneas `FALTA HDU-001 esc. N` |
-| d | 1 | Un enlace relativo roto, «tablaroka» en un documento, un diagrama con `A -> B` en un `flowchart` y un enlace a `https://cimenta-ensayo.invalid/` | `documentacion` | `verificar_docs.py` y `lychee` con el enlace y su archivo; `Cimenta.Vocabulario` con archivo y línea; `::error` con el archivo del diagrama |
+| d | 1 | Un enlace relativo roto, «`tablaroka`» en un documento, un diagrama con `A -> B` en un `flowchart` y un enlace a una página de GitHub que no existe (404) | `documentacion` | `verificar_docs.py` y `lychee` con el enlace y su archivo; `Cimenta.Vocabulario` con archivo y línea; `::error` con el archivo del diagrama |
 
 El cron de `enlaces.yml` no se puede lanzar antes de que el archivo llegue a la rama por omisión. Su disparo se comprueba leyendo la definición (TC-64) y su detección con la misma configuración en el trabajo del PR (TC-68). La primera ejecución manual con `gh workflow run enlaces.yml` tras la fusión se anota en `delta.md`.
 
 ## Plan de pruebas
 
-Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el texto de los workflows con expresiones regulares: `tools/` no tiene dependencias y no hay un analizador de YAML en la biblioteca estándar. De lo que mira `zizmor` solo se repiten los permisos y los disparadores (TC-21 y TC-22), porque `CA-12` los exige comprobables en la propia definición; el fijado por SHA y las credenciales persistidas quedan solo en `zizmor`.
+Los casos «estáticos» de las partes a, b y c viven en `tools/tests/test_definicion_ci.py`, y los de la parte d en `tools/tests/test_definicion_documentacion.py`. Leen el texto de los workflows con expresiones regulares: `tools/` no tiene dependencias y no hay un analizador de YAML en la biblioteca estándar. De lo que mira `zizmor` solo se repiten los permisos y los disparadores (TC-21 y TC-22), porque `CA-12` los exige comprobables en la propia definición; el fijado por SHA y las credenciales persistidas quedan solo en `zizmor`.
 
 | # | Caso | Tipo | Criterio que cubre | Escenario |
 |---|---|---|---|---|
@@ -381,15 +390,15 @@ Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el 
 | TC-56 | Sobre el árbol real: código 0, 162 pendientes | feliz | `CA-7` | esc. 1 |
 | TC-57 | El trabajo `herramientas` ejecuta el verificador y le pasa la base del PR por `env` | estático | `CA-6` | esc. 1 |
 | TC-58 | Ensayo: HDU-001 activa, `herramientas` en rojo con 27 `FALTA` | **rechazo** | `CA-6` | esc. 1 |
-| TC-60 | `Vale` local sobre «tablaroka»: aviso con línea y código 0 | feliz | `CA-13` | esc. 2 |
+| TC-60 | `Vale` local sobre «`tablaroka`»: aviso con línea y código 0 | feliz | `CA-13` | esc. 2 |
 | TC-61 | `Vale` sobre los ocho términos del glosario: cero alertas | **rechazo** (de falso error) | `CA-13` | esc. 4 |
-| TC-62 | Ensayo: «tablaroka», `documentacion` en rojo con archivo y línea | **rechazo** | `CA-13` | esc. 3 |
+| TC-62 | Ensayo: «`tablaroka`», `documentacion` en rojo con archivo y línea | **rechazo** | `CA-13` | esc. 3 |
 | TC-63 | Ensayo: enlace relativo roto, `documentacion` en rojo con archivo y línea | **rechazo** | `CA-13` | esc. 3 |
 | TC-64 | `enlaces.yml` tiene `schedule` con un cron de un día por semana y `workflow_dispatch` | estático | `CA-14` | esc. 1 |
 | TC-65 | `documentacion` ejecuta `verificar_docs.py`, `markdownlint-cli2`, `vale --output=line` con la guarda de salida vacía, `lychee` y `mmdc` | estático | `CA-13` esc. 1, `CA-16` esc. 1 | — |
 | TC-66 | Ensayo: diagrama con `A -> B`, `documentacion` en rojo con el archivo | **rechazo** | `CA-16` | esc. 2 |
 | TC-67 | Los diagramas reales pasan `mmdc` | feliz | `CA-16` | esc. 1 |
-| TC-68 | Ensayo: enlace externo a `.invalid`, `lychee` en rojo con el enlace y su archivo | **rechazo** | `CA-14` | esc. 2 |
+| TC-68 | Ensayo: enlace externo a una página de GitHub que da 404, `lychee` en rojo con el enlace y su archivo | **rechazo** | `CA-14` | esc. 2 |
 | TC-69 | El trabajo `documentacion` en verde sobre la rama del ticket: cero avisos y cero errores | regresión | `CA-13` | esc. 5 |
 | TC-70a | Parte a: `CLAUDE.md` líneas 20 a 22 (reglas 1, 2 y 3) y `conv-dominio-python` sin «desde TKT-009»; **`CLAUDE.md:78` conserva su «(desde TKT-009)»**, porque el verificador de escenarios aún no corre; `desde TKT-059` sigue presente; `verificar_docs.py` en 0 | regresión y **rechazo** | `CA-15` | esc. 1 y 2 |
 | TC-70b | Parte b: ninguna marca nueva que retirar; `docs/06-stack-tecnologico.md` §6.4 describe la política vigente; `verificar_docs.py` en 0 | regresión | `CA-15` | esc. 1 |
@@ -426,7 +435,7 @@ Resultado de `revisor-impacto`: pendiente; lo despacha `/sdd-disenar` antes del 
 | `ci.yml` | TKT-061 ocupa `contrato-api`; TKT-062 exige este pipeline en verde para fusionar; TKT-059 añade MinIO al trabajo `backend` | Que TKT-061 meta su prueba en otro sitio, o que TKT-062 se acople a él | TC-12 y TC-13 fijan el hueco y la independencia |
 | `tools/` (dos scripts y sus pruebas) | Quien ejecuta `python -m unittest discover -s tools/tests` | La suite de `tools/` hace llamadas de red | Las pruebas inyectan `consultar`; ninguna llama a OSV |
 | `tools/historias_activas.txt` | Cada planificación de sprint | Olvidar añadir una historia la deja sin exigir | Coste aceptado en ADR-012; la salida lista lo pendiente con su recuento |
-| Formato de títulos de escenario (`· retirado por`) | `verificar_docs.py`, TKT-069 | Que el segmento rompa el conteo | El patrón de `verificar_docs.py` solo lee `**Escenario N: `; TC-48 |
+| Formato de títulos de escenario (`· retirado por`) | `verificar_docs.py`, TKT-069 | Que el segmento rompa el conteo | El patrón de `verificar_docs.py` solo lee `**Escenario N:`; TC-48 |
 | Limpieza documental con `--fix` | Todo `docs/` y `sdd/`, incluidos artefactos archivados | Un diff enorme que esconda un cambio de contenido | Commit propio solo de formato (D3) y `verificar_docs.py` con los mismos conteos |
 | `convenciones.md` §10 y `conv-documentacion` (Vale sin estilo Microsoft) | Quien escribe documentación | Discrepancia entre lo documentado y lo configurado | Se actualizan en D7 con enlace al ADR |
 | Ajustes del repositorio | Toda persona que empuja | La protección de empuje rechaza un empuje legítimo | Se resuelve en el propio aviso de GitHub; nunca con exclusión de rutas |
@@ -442,13 +451,13 @@ Resultado de `revisor-impacto`: pendiente; lo despacha `/sdd-disenar` antes del 
 | `CLAUDE.md:14`, `README.md:30` y `llms.txt:27` | El total de decisiones: «23» sube en uno con cada ADR nuevo. Con el orden de fusión a → c → b → d, la parte c lo deja en 24, la b en 25 y la d en 26 | c, b, d |
 | `.gitignore` | `backend/.coverage`, `backend/cobertura.xml` y `backend/pytest.xml` (fila A1) | a |
 | `docs/05-tickets-trabajo.md`, ficha de TKT-009 | Solo si se aprueba partir: subsección de partición con las fichas TKT-009a a TKT-009d (fila A0) | a |
-| `docs/05-tickets-trabajo.md`, ficha de TKT-069 (~l.2017) | «salen del verificador con una nota en la historia (TKT-009)» pasa a «salen del verificador con el segmento ` · retirado por TKT-069` en su título» | c |
+| `docs/05-tickets-trabajo.md`, ficha de TKT-069 (~l.2017) | «salen del verificador con una nota en la historia (TKT-009)» pasa a «salen del verificador con el segmento `· retirado por TKT-069` en su título» | c |
 | `.claude/skills/conv-dominio-python/SKILL.md` | Líneas 8 y 13: «en el pipeline desde TKT-009» pasa a presente | a |
 | `.claude/skills/conv-docker/SKILL.md` | §3, último punto: el corredor de GitHub Actions trae Docker y la suite corre igual, en presente | a |
 | `docs/06-stack-tecnologico.md` | §10 «Integración continua»: los trabajos reales, la cobertura sin umbral y la desviación de MinIO hasta TKT-059. §6.4: la política de severidad y la excepción por alerta de las credenciales de desarrollo. §7.2: la forma `"hduXXX_escNN · …"` en TypeScript, la línea `fase 2` y la nota de retiro. §9: la fila del verificador pasa a «✅ En uso» y el párrafo de `mermaid-cli`, a presente | a, b, c, d |
 | `docs/arranque-local.md` | Sección nueva «Integración continua», corta: el pipeline corre los mismos comandos de este documento; cómo auditar en local (`pip-audit` y el script, `npm audit --audit-level=high`); cómo ejecutar `markdownlint-cli2`, `Vale` y `lychee` | a, b, d |
 | `docs/05-tickets-trabajo.md` | TKT-009: «y MinIO» con la desviación y su porqué; TKT-059: criterio nuevo «añade el servicio y las pruebas de MinIO al trabajo `backend` del pipeline» | a |
-| `docs/04-historias-usuario.md` | Las tres prosas de retiro: la del bloque «La captura sin conexión y la evidencia ya están descritas» (~l.68), la nota tras el esc. 15 de HDU-006 (~l.1256) y su Definition of Done (~l.1298). Las tres dicen que TKT-069 los retira añadiendo ` · retirado por TKT-069` a su título, la marca que lee el verificador. El texto y los títulos de los escenarios no cambian | c |
+| `docs/04-historias-usuario.md` | Las tres prosas de retiro: la del bloque «La captura sin conexión y la evidencia ya están descritas» (~l.68), la nota tras el esc. 15 de HDU-006 (~l.1256) y su Definition of Done (~l.1298). Las tres dicen que TKT-069 los retira añadiendo `· retirado por TKT-069` a su título, la marca que lee el verificador. El texto y los títulos de los escenarios no cambian | c |
 | `docs/convenciones.md` §10 (~l.320-336) | Fila «Prosa»: «`Vale` con estilo Microsoft» pasa a «`Vale` con el estilo del proyecto», con enlace al ADR (parte d). Fila «Diagramas»: `tools/extraer_mermaid.py` en local y `@mermaid-js/mermaid-cli` en CI (parte d). Fila «Escenarios sin test»: el verificador propio pasa a nombrar `tools/verificar_escenarios.py` con su enlace (parte c) | c, d |
 | `.claude/skills/conv-documentacion/SKILL.md` | §7 (l.65): la misma corrección de `Vale`. §8 (l.72): los diagramas se validan con `tools/extraer_mermaid.py` en local y con `mermaid-cli` en el pipeline | d |
 | `tools/README.md` | Secciones de `severidad_pip_audit.py` y `verificar_escenarios.py`; «Pendiente» desaparece; `extraer_mermaid.py` queda para local y CI usa `mermaid-cli`; las pruebas las corre el trabajo `herramientas` | a, b, c, d |

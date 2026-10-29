@@ -2,7 +2,7 @@
 
 Un directorio por ticket: `tkt-001/`, `tkt-002/`… en minúscula.
 
-```
+```text
 tkt-xxx/
 ├── _index.md    hub — estado, artefactos, log, decisiones. Se lee primero
 ├── spec.md      /sdd-definir

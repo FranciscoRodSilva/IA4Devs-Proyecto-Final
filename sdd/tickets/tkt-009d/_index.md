@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+EN REVISIÓN
 
 ## Ficha
 
@@ -28,7 +28,7 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas D1 a D7 | `/sdd-disenar` | Aprobado el 2026-10-28 |
-| Impl | impl.md | `/sdd-ejecutar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Filas D1 a D7 hechas; la limpieza se hizo en este ticket por decisión de la persona que aprueba |
 | Delta | delta.md | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -36,6 +36,10 @@ LISTO PARA EJECUTAR
 | Fecha | De | A | Comando | Motivo |
 |---|---|---|---|---|
 | 2026-10-28 | — | `LISTO PARA EJECUTAR` | partición de TKT-009 | Nace de la decisión del gate de diseño de TKT-009. Spec repartida: M10, M11, S1 y su parte de M12; `CA-13`, `CA-14`, `CA-16` y `CA-R4`. No se ejecuta hasta que TKT-009a esté `ARCHIVADO` o `LISTO PARA PR`. Última parte en fusionar, para que su limpieza se aplique sobre la documentación ya escrita por las otras |
+| 2026-10-29 | `LISTO PARA EJECUTAR` | `REQUIERE DECISIÓN` | `/sdd-ejecutar` | D1 hecha (seis archivos de configuración; `lychee.toml` con `include_fragments = "none"` por la versión 0.24.2). D2 mide la línea base: 183 hallazgos que `--fix` no corrige (162 de `markdownlint-cli2`, 20 de `Vale` y 1 de `lychee`) frente al umbral de 120 de `A-5`. Se detiene la parte d y se propone partir la limpieza, como manda el diseño. Decide la persona que aprueba |
+| 2026-10-29 | `REQUIERE DECISIÓN` | `LISTO PARA EJECUTAR` | usuario | La persona que aprueba responde «Seguir en 009d»: la limpieza de la línea base (183 hallazgos, por encima del umbral de 120 de `A-5`) se hace en este ticket, con D3 en un commit solo de formato y D4 en un commit por herramienta. Ninguna regla se apaga. Queda decidir antes de D4 cómo se escriben las cinco citas intencionales de «`tablaroka`» de `sdd/tickets/tkt-009/design.md` |
+| 2026-10-29 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | `/sdd-ejecutar` | Filas D1 a D5 y D7 hechas con su ciclo TDD donde hay pruebas: línea base limpia (`markdownlint-cli2` 0, `Vale` 0, `lychee` 0 errores), trabajo `documentacion` y `enlaces.yml` definidos, `zizmor` sin hallazgos, ADR de `Vale` y 26 decisiones. **Falta la fila D6, el ensayo en el pipeline, que ejecuta la persona usuaria** con la rama local `ensayo/tkt-009d-compuertas`; el ticket no pasa a `EN REVISIÓN` hasta tener esa evidencia |
+| 2026-10-29 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Fila D6 hecha por la persona usuaria: PR [#17](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/17) en verde (tras excluir `medium.com` de `lychee`) y PR de ensayo [#18](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/18): la ronda 1 pone en rojo cinco pasos en rojo (cuatro previstos y `markdownlint`, añadido en el ensayo) del trabajo `Documentación` y la limpieza lo deja en verde. Falta la auditoría de cierre de fase |
 
 ## Decisiones registradas
 

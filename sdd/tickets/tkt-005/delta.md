@@ -135,6 +135,7 @@ Por qué: cerca de la mitad de los escenarios de las nueve historias son rechazo
 Criterios cubiertos: `CA-1` a `CA-15` y `CA-R1` a `CA-R7` de `sdd/tickets/tkt-005/spec.md`. Suite completa con Docker: 692 pruebas en verde, 15 contratos de `import-linter`, `ruff`, `mypy` y `verificar_float` limpios. 25 mutantes de uno en uno con SHA-256 verificado, más siete de regresión: todos mueren. Decisiones del usuario aplicadas: el caso de uso lanza la excepción, los paquetes viven fuera de `cimenta/` y de `root_packages`, el borrador manda en los motivos de `PERMISO`, el servidor siempre genera el identificador de correlación y el `500` no lleva `tipo`.
 
 **Para quien aprueba, con atención:**
+
 - **Este PR toca `docs/api/openapi.yaml`.** Solo tres descripciones (general, `Accion` y `ErrorConcurrencia`) con la salvedad de que `REINTENTAR` de un `409` `CONCURRENCIA` no se filtra por rol. Ningún esquema, ruta, código ni ejemplo cambia. Es una decisión del usuario, registrada en `_index.md`, y consta como supuesto 14 de la especificación de la API.
 - El `500` sin `tipo`, el `recurso` del `404` de enrutado, la traducción de Pydantic a los siete códigos y que el servidor descarte el identificador del cliente son supuestos `(asumido)`.
 - Dos auditorías de seguridad y tres de arquitectura. La seguridad encontró que el registro volcaba el mensaje de las excepciones y que uvicorn volvía a imprimirlas; ya no.

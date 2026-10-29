@@ -83,7 +83,7 @@ Antes del diseño, los hechos técnicos que lo condicionan. Verificados contra l
 
 Cinco comandos de pipeline y dos de soporte, como se pidió. Cada uno con su gate: el estado no avanza solo.
 
-```
+```text
                  ┌──── /escalar ────┐   (desde cualquier fase)
                  │                  ▼
 /definir  →  /diseñar  →  /ejecutar  →  /revisar  →  /completar
@@ -307,7 +307,7 @@ Y cuatro agentes que **el encargo no pedía y el proyecto necesita**: `auditor-a
 
 El orquestador es el hilo principal ejecutando el comando. Cada comando declara qué agentes puede desplegar; fuera de esa lista, no.
 
-```
+```text
 /sdd-definir      analista-dominio ──► [spec.md] ──► abogado-del-diablo (skill)
                                                         │
                                                    GATE humano
@@ -395,7 +395,7 @@ Los cuatro primeros son la traducción directa de cuatro reglas del `CLAUDE.md` 
 
 ## 10 · Estructura de archivos
 
-```
+```text
 .claude/
 ├── agents/                      9 construidos de 21
 ├── skills/

@@ -348,18 +348,23 @@ Escenario: Rechazo — el motor rechaza una regla mal formada
 ### Criterios de regresión
 
 #### CA-R1 `[M]` · Invariantes 20 y 21 intactos
+
 El rol de aplicación sigue sin `UPDATE` ni `DELETE` sobre `intento_acceso`; el rol de lectura sigue sin ver `sesion` ni `usuario.password_hash`.
 
 #### CA-R2 `[M]` · Cadena de migraciones
+
 `v0001` y `v0002` se aplican y se revierten; las pruebas de TKT-003 siguen en verde.
 
 #### CA-R3 `[M]` · Fronteras
+
 `uv run lint-imports` en verde y cada contrato sigue fallando ante su violación, sin `ignore_imports`.
 
 #### CA-R4 `[M]` · Calidad y suite
+
 `ruff`, `mypy`, `verificar_float` y la suite de TKT-001 a TKT-005 en verde con Docker.
 
 #### CA-R5 `[M]` · Documentación
+
 `python tools/verificar_docs.py`, `python tools/extraer_mermaid.py` y los tests de `tools/` sin problemas.
 
 ## Definition of Ready — INVEST

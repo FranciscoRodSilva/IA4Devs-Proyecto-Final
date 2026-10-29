@@ -74,17 +74,17 @@ git push -u origin ensayo/tkt-009b-secreto
 
 El comando `read -r -s TOKEN` pide el token sin mostrarlo y no lo deja en el historial de la shell. Hay que pegar el token después de que aparezca la petición. En Windows, el clon queda en un directorio temporal de `mktemp`; se borra al final.
 
-4. **Resultado esperado.** Hay dos resultados válidos, y cualquiera de los dos cumple `CA-11` esc. 2:
+1. **Resultado esperado.** Hay dos resultados válidos, y cualquiera de los dos cumple `CA-11` esc. 2:
    * **Rechazo.** El `git push` falla con un mensaje de GitHub que dice que el empuje contiene un secreto, e indica el archivo y la línea. La redacción exacta del mensaje cambia con el tiempo; lo que importa es que la rama no llega al remoto.
    * **Aceptado con alerta.** La rama llega al remoto y GitHub abre una alerta de escaneo de secretos, que se ve en la pestaña `Security` del repositorio. En ese caso, se cierra la alerta indicando que el token está revocado (el motivo exacto se elige de la lista que ofrece la interfaz), y se borra la rama remota con `git push origin --delete ensayo/tkt-009b-secreto`.
-5. **Limpieza.** En cualquiera de los dos casos, se borra el clon:
+2. **Limpieza.** En cualquiera de los dos casos, se borra el clon:
 
 ```bash
 cd "$HOME"
 rm -rf "$CLON"
 ```
 
-6. **Evidencia.** En `impl.md` se anotan la fecha, los comandos, el resultado (rechazo o alerta) y, si lo hay, el enlace a la alerta. Del mensaje de error del `git push` se copia solo lo necesario, y **antes de pegarlo se revisa que no aparezca ningún fragmento del token**. El token no va nunca a `impl.md`, ni a un commit, ni al chat.
+1. **Evidencia.** En `impl.md` se anotan la fecha, los comandos, el resultado (rechazo o alerta) y, si lo hay, el enlace a la alerta. Del mensaje de error del `git push` se copia solo lo necesario, y **antes de pegarlo se revisa que no aparezca ningún fragmento del token**. El token no va nunca a `impl.md`, ni a un commit, ni al chat.
 
 ### 1.5 Si el plan no ofrece el escaneo
 

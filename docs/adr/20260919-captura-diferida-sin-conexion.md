@@ -23,10 +23,10 @@ A la vez, negar la captura en campo devuelve al cliente a apuntar en papel y tec
 
 ## Opciones consideradas
 
-* Captura diferida acotada: aplicación web instalable, caché de lectura persistida y cola local solo para los flujos que no consumen presupuesto
-* Aplicación nativa o híbrida (Capacitor, React Native) con base de datos local completa
-* Local-first con replicación y resolución automática de conflictos (CRDT, ElectricSQL)
-* Captura en papel y digitación posterior en oficina
+- Captura diferida acotada: aplicación web instalable, caché de lectura persistida y cola local solo para los flujos que no consumen presupuesto
+- Aplicación nativa o híbrida (Capacitor, React Native) con base de datos local completa
+- Local-first con replicación y resolución automática de conflictos (CRDT, ElectricSQL)
+- Captura en papel y digitación posterior en oficina
 
 ## Decisión
 
@@ -64,19 +64,19 @@ Esto preserva `RNF-01` intacto: el permiso se comprueba cuando se escribe en el 
 
 **Positivas**
 
-* El residente y el almacén capturan donde ocurren los hechos, que es donde el dato es fiable.
-* La garantía central del producto no se toca: `RN-03` sigue siendo una evaluación de servidor con bloqueo de fila, sin excepciones ni modos especiales.
-* La cola es una lista corta de formularios, no una réplica de la base de datos. No hay esquema que mantener en dos sitios.
+- El residente y el almacén capturan donde ocurren los hechos, que es donde el dato es fiable.
+- La garantía central del producto no se toca: `RN-03` sigue siendo una evaluación de servidor con bloqueo de fila, sin excepciones ni modos especiales.
+- La cola es una lista corta de formularios, no una réplica de la base de datos. No hay esquema que mantener en dos sitios.
 
 **Negativas o costes aceptados**
 
-* **El diseño para móvil deja de estar fuera de alcance.** Quien captura sin conexión lo hace de pie, con una mano, en un departamento en obra gris. El non-goal *"no optimiza para móvil"* de TKT-008 cae con esta decisión, y las pantallas de captura de avance y de recepción pasan a diseñarse para pantalla pequeña.
-* **Lo encolado vive solo en el dispositivo.** Si se pierde el teléfono antes de sincronizar, se pierden esas capturas. Se mitiga sincronizando en cuanto hay señal y avisando de la antigüedad de la cola, no se elimina.
-* `RNF-15` —semáforo en menos de dos segundos— no aplica a los datos servidos de caché, que responden de inmediato pero pueden ser viejos. La regla 7 es lo que impide que eso engañe.
-* El paquete tiene que seguir siendo pequeño. [ADR-011](20260918-frontend-react-spa.md) ya lo anticipaba como disparador de revisión; ahora es una restricción con motivo.
-* Hay un service worker que versionar y desplegar. Una versión antigua sirviendo código viejo es un modo de fallo nuevo, y se cierra invalidando la caché al detectar versión nueva del API.
+- **El diseño para móvil deja de estar fuera de alcance.** Quien captura sin conexión lo hace de pie, con una mano, en un departamento en obra gris. El non-goal *"no optimiza para móvil"* de TKT-008 cae con esta decisión, y las pantallas de captura de avance y de recepción pasan a diseñarse para pantalla pequeña.
+- **Lo encolado vive solo en el dispositivo.** Si se pierde el teléfono antes de sincronizar, se pierden esas capturas. Se mitiga sincronizando en cuanto hay señal y avisando de la antigüedad de la cola, no se elimina.
+- `RNF-15` —semáforo en menos de dos segundos— no aplica a los datos servidos de caché, que responden de inmediato pero pueden ser viejos. La regla 7 es lo que impide que eso engañe.
+- El paquete tiene que seguir siendo pequeño. [ADR-011](20260918-frontend-react-spa.md) ya lo anticipaba como disparador de revisión; ahora es una restricción con motivo.
+- Hay un service worker que versionar y desplegar. Una versión antigua sirviendo código viejo es un modo de fallo nuevo, y se cierra invalidando la caché al detectar versión nueva del API.
 
 **Cuándo revisar esta decisión**
 
-* Si apareciera la necesidad de **levantar requisiciones sin conexión**. No sería un cambio de frontend: obligaría a reabrir `RN-03` y a decidir qué significa un presupuesto que se puede sobregirar mientras nadie mira. Es una decisión de producto, no de arquitectura.
-* Si la obra llegara a tener conexión estable, todo esto se puede desactivar sin tocar el servidor: la cola queda vacía y la sincronización no tiene nada que subir.
+- Si apareciera la necesidad de **levantar requisiciones sin conexión**. No sería un cambio de frontend: obligaría a reabrir `RN-03` y a decidir qué significa un presupuesto que se puede sobregirar mientras nadie mira. Es una decisión de producto, no de arquitectura.
+- Si la obra llegara a tener conexión estable, todo esto se puede desactivar sin tocar el servidor: la cola queda vacía y la sincronización no tiene nada que subir.

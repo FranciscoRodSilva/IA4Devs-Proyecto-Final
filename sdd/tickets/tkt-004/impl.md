@@ -6,7 +6,7 @@
 
 El ticket se ejecutó en las dos entregas que fijó el gate del diseño (D-2), sobre una sola rama. La **entrega A** hizo las filas 1 a 4, la mutación de MT-1 a MT-15, MT-19 y MT-20, y la documentación con ADR-020. La **entrega B** hizo la fila 5 (lista blanca de `import-linter`, `root_packages` y contrato `tipos-base-puro`), MT-16 a MT-18 y los mutantes extra, y las filas «B» de la documentación con ADR-021. Con la B se cumple `CA-10` y el ticket pasa a `EN REVISIÓN`.
 
-Se creó el paquete `backend/tipos_base/`, fuera de `cimenta/`, con `Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje` sobre `Decimal`. Calculan con un contexto de `decimal` propio e independiente del del proceso: sumas, restas y productos son exactos, la división da un `Porcentaje` con 28 dígitos o falla con `ZeroDivisionError`, y solo `cuantizar()` redondea, con `ROUND_HALF_UP` `(asumido)`. `serializar()` produce la cadena de escala completa y rechaza lo que no se ha cuantizado. La regla 1 de `CLAUDE.md` deja de ser texto: `RUF032` marca `Decimal(0.1)` y el verificador `herramientas/verificar_float.py` marca `float` en las anotaciones de `dominio/` y de `tipos_base/`.
+Se creó el paquete `backend/tipos_base/`, fuera de `cimenta/`, con `Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje` sobre `Decimal`. Calculan con un contexto de `decimal` propio e independiente del proceso: sumas, restas y productos son exactos, la división da un `Porcentaje` con 28 dígitos o falla con `ZeroDivisionError`, y solo `cuantizar()` redondea, con `ROUND_HALF_UP` `(asumido)`. `serializar()` produce la cadena de escala completa y rechaza lo que no se ha cuantizado. La regla 1 de `CLAUDE.md` deja de ser texto: `RUF032` marca `Decimal(0.1)` y el verificador `herramientas/verificar_float.py` marca `float` en las anotaciones de `dominio/` y de `tipos_base/`.
 
 ## Ajustes respecto al design
 
@@ -81,7 +81,7 @@ Los nombres siguen `test_tkt004_caNN_…`, porque el ticket no tiene escenario H
 
 **Rojo.** El rojo válido es el `ModuleNotFoundError`; con un error de recolección pytest no ejecuta nada, y TC-13 solo corre con `--continue-on-collection-errors`.
 
-```
+```text
 collected 1 item / 1 error
 tests\test_tipos_base_construccion.py:14: in <module>
     from tipos_base import Cantidad, Dinero, Porcentaje, Rendimiento
@@ -91,7 +91,7 @@ E   ModuleNotFoundError: No module named 'tipos_base'
 
 **Verde.**
 
-```
+```text
 collected 29 items
 tests\test_tipos_base_construccion.py ............................       [ 96%]
 tests\test_tkt004_conftest.py .                                          [100%]
@@ -108,7 +108,7 @@ ruff check .: All checks passed!    lint-imports: Contracts: 14 kept, 0 broken.
 
 **Rojo.**
 
-```
+```text
 E   TypeError: unsupported operand type(s) for *: 'Cantidad' and 'Rendimiento'
 E   TypeError: unsupported operand type(s) for /: 'Cantidad' and 'Cantidad'
 E   ImportError: cannot import name 'sumar' from 'tipos_base'
@@ -119,7 +119,7 @@ El total literal del fixture, `3359291.85066580048515`, se recalculó con `fract
 
 **Verde.**
 
-```
+```text
 64 passed in 0.08s   (filas 1 y 2)
 TC-26: producto de los máximos de columna = 9999999999999899990000.0000000001, exacto, sin MemoryError
 ```
@@ -130,7 +130,7 @@ TC-26: producto de los máximos de columna = 9999999999999899990000.0000000001, 
 
 **Rojo.**
 
-```
+```text
       3 E   AttributeError: 'Cantidad' object has no attribute 'cuantizar'
      12 E   AttributeError: 'Dinero' object has no attribute 'cuantizar'
       5 E   AttributeError: 'Dinero' object has no attribute 'serializar'
@@ -139,7 +139,7 @@ TC-26: producto de los máximos de columna = 9999999999999899990000.0000000001, 
 
 **Verde.**
 
-```
+```text
 91 passed in 0.11s   (filas 1 a 3)
 ```
 
@@ -149,7 +149,7 @@ TC-26: producto de los máximos de columna = 9999999999999899990000.0000000001, 
 
 **Rojo.**
 
-```
+```text
 E   ModuleNotFoundError: No module named 'herramientas.verificar_float'      (x16)
 E   AssertionError: All checks passed!  /  assert (3, 'RUF032') in set()     (TC-78)
 E   AssertionError: Success: no issues found in 2 source files / assert 0 != 0   (TC-80, x2)
@@ -160,7 +160,7 @@ La prueba de que RUF032 no es *preview* en Ruff 0.17.1 la ejecutó el orquestado
 
 **Verde.**
 
-```
+```text
 21 passed in 1.60s
 verificar_float: archivos revisados: 12; hallazgos: 0     (código 0)
 ruff check . → All checks passed!    mypy . → Success: no issues found in 91 source files
@@ -174,7 +174,7 @@ lint-imports → Contracts: 14 kept, 0 broken.
 
 **Rojo.** Las pruebas de la copia del árbol parten de la lista negra de TKT-002:
 
-```
+```text
 $ uv run pytest tests/test_fronteras_dominio.py
 11 failed, 4 passed in 7.56s
 assert (14, 0) == (15, 0)                                  (TC-90, TC-98)
@@ -186,7 +186,7 @@ Nacen en verde TC-92 y los tres casos de TC-96, como preveía el diseño.
 
 **Verde.** El literal del diseño funcionó contra `import-linter` 2.15 y `grimp` 3.17 sin cambios de mecánica; es el único código que el diseño no pudo ejecutar, y quedó comprobado por el desarrollador y por el orquestador. Solo `ruff format` movió saltos de línea.
 
-```
+```text
 uv run lint-imports → Contracts: 15 kept, 0 broken.
 uv run pytest tests/test_fronteras_dominio.py → 15 passed in 7.55s
 ruff check . → All checks passed!   mypy . → Success: no issues found in 93 source files
@@ -208,7 +208,7 @@ ruff check . → All checks passed!   mypy . → Success: no issues found in 93 
 
 **Evidencia de ejecución al cerrar** (con Docker 29.8.2 respondiendo; al empezar el demonio no estaba en marcha, y las filas no lo necesitan):
 
-```
+```text
 uv run pytest -q
 215 passed in 48.75s
 ```
@@ -236,7 +236,6 @@ Son 154 pruebas de TKT-004 (136 de la entrega A y 18 de la B) más 61 de identid
 | MT-19 | sin `_viene_de_float` | TC-04 y TC-05c (5 casos) |
 | MT-20a, b | `autouse=True` en una fixture del `conftest.py` | TC-13; 124 errores de contenedor |
 | F003 | umbral 18→19, 18→20, sin la conjunción de double exacto (y 18→17) | TC-05d (4 casos); TC-05e (4 casos); TC-05f y TC-05 |
-
 
 ## Modelo por paso
 
@@ -354,7 +353,7 @@ Los textos de `design.md` que decían «ampliado por ADR-021» se corrigieron a 
 
 **Suite reejecutada por el revisor, con Docker 29.8.2:**
 
-```
+```text
 uv run pytest -q                       → 447 passed in 40.37s   (386 de TKT-004 y 61 de identidad)
 uv run ruff check .                    → All checks passed!
 uv run ruff format --check .           → 94 files already formatted

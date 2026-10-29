@@ -73,7 +73,7 @@ Ticket de fundación sin base de datos: no hay PostgreSQL, MinIO ni `pytest`. La
 
 **Rojo** — `tester-backend`, `python -m unittest discover -s tools/tests -v`. Los seis tests fallan por la razón esperada, no por importación ni sintaxis:
 
-```
+```text
 test_tkt001_ca7_arbol_correcto_sin_problemas ... ERROR
 test_tkt001_ca7_constante_bom_son_los_tres_bytes_de_utf8 ... ERROR
 test_tkt001_ca7_directorios_excluidos_no_se_revisan ... ERROR
@@ -88,7 +88,7 @@ FAILED (errors=6)
 
 **Verde** — `ingeniero-devsecops`: la constante `BOM` y `verificar_codificacion` (38 líneas añadidas, ninguna borrada):
 
-```
+```text
 Ran 6 tests in 0.033s
 OK
 ```
@@ -132,7 +132,7 @@ Tras los cuatro, el archivo quedó idéntico (`git diff --stat`: 38 inserciones,
 
 **Verde:** `backend/pyproject.toml`, `uv.lock` y `cimenta/__init__.py`. TC-13, los cuatro comandos con código 0:
 
-```
+```text
 Resolved 8 packages / Audited 7 packages
 1 file already formatted
 All checks passed!
@@ -149,7 +149,7 @@ Versiones fijadas en `uv.lock`: Ruff 0.17.1 y mypy 2.4.0. Sin `.python-version`.
 
 **Verde** (`ingeniero-devsecops`): con `[tool.ruff]`, `[tool.ruff.lint]` (`select` explícito), `[tool.mypy]` y el `override`:
 
-```
+```text
 cimenta\desechable_tkt001\dominio\regla.py:1: error: Function is missing a type annotation  [no-untyped-def]
 Found 1 error in 1 file                                            (TC-14, código 1)
 mypy no cita aplicacion/regla.py                                   (TC-15)
@@ -233,7 +233,7 @@ TC-26, copia A, cada comando del bloque de `CLAUDE.md`. Las marcas de `uv run py
 
 Reejecución de los dos comandos cuyas marcas cambiaron, el 2026-10-17, desde `backend/` (`fastapi dev` con `timeout 20`):
 
-```
+```text
 $ uv run pytest
 error: Failed to spawn: `pytest`
   Caused by: program not found                       (código 2)

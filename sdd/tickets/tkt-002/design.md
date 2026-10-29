@@ -22,7 +22,7 @@ El ticket se resuelve con paquetes vacíos y con la configuración nativa de `im
 | `importlinter/cli.py` | `lint-imports` inserta el directorio actual en `sys.path`; ofrece `--contract <id>` y `--no-cache` | No hace falta `[build-system]` si se ejecuta desde `backend/` |
 | `grimp/adaptors/caching.py` | La caché `.import_linter_cache/` se crea con su propio `.gitignore` que contiene `*` | No hace falta tocar el `.gitignore` del repositorio |
 
-3. **Las filas 1 a 3 confirman** lo que el experimento no probó: el contrato `protected`, el `layers` exhaustivo de un solo nivel y la validación de nombres. Si alguna de esas confirmaciones falla como se describe en «Riesgos», la fila se detiene y se aplica el plan alternativo escrito allí; si el plan alternativo tampoco basta, se escala.
+1. **Las filas 1 a 3 confirman** lo que el experimento no probó: el contrato `protected`, el `layers` exhaustivo de un solo nivel y la validación de nombres. Si alguna de esas confirmaciones falla como se describe en «Riesgos», la fila se detiene y se aplica el plan alternativo escrito allí; si el plan alternativo tampoco basta, se escala.
 
 ## Escalera de decisión
 

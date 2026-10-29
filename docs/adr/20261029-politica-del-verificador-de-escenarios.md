@@ -21,7 +21,7 @@ Hay tres restricciones que acotan la respuesta. La regla 14 de [`CLAUDE.md`](../
 
 * Un comentario HTML invisible junto al escenario
 * Un párrafo en prosa de formato fijo bajo el título del escenario
-* **Un segmento del título, ` · retirado por TKT-0NN`**
+* **Un segmento del título, `· retirado por TKT-0NN`**
 
 **Origen de las historias activas**
 
@@ -44,7 +44,7 @@ Se elige lo siguiente, en cinco puntos.
 
 **El marcador de fase 2 es la línea `fase 2` en `tools/historias_activas.txt`.** ADR-012 ya establece que ese archivo lo actualiza la planificación de cada sprint, en el mismo momento en que añade las historias. Declarar el inicio de la fase 2 en el mismo sitio mantiene un único punto de cambio. Empezar la fase 2 es entonces una línea que se revisa en un PR, y el verificador la compara con la base del PR para que no se quite sin que se vea.
 
-**El retiro es el segmento ` · retirado por TKT-0NN` en el título del escenario.** Es la misma forma que ya usa ` · fase 2`, así que el lector del documento ve el retiro y su ticket en el propio título. Un retiro en prosa no cuenta: el verificador solo mira los segmentos del título, y una mención de «retirado» en el cuerpo de la historia no retira nada. Un comentario HTML invisible no lo ve nadie al leer la historia, y el párrafo de formato fijo obligaría al verificador a buscar en el cuerpo, donde cualquier frase con la palabra «retirado» podría retirar un escenario.
+**El retiro es el segmento `· retirado por TKT-0NN` en el título del escenario.** Es la misma forma que ya usa `· fase 2`, así que el lector del documento ve el retiro y su ticket en el propio título. Un retiro en prosa no cuenta: el verificador solo mira los segmentos del título, y una mención de «retirado» en el cuerpo de la historia no retira nada. Un comentario HTML invisible no lo ve nadie al leer la historia, y el párrafo de formato fijo obligaría al verificador a buscar en el cuerpo, donde cualquier frase con la palabra «retirado» podría retirar un escenario.
 
 **Las historias activas se leen de `tools/historias_activas.txt`, y su versión de la base del PR se compara con la actual.** Inferirlas de los tests existentes no sirve, porque una historia activa que todavía no tiene ningún test no aparecería, y su ausencia es justo el caso que el verificador debe marcar como pendiente. Con la comparación, una historia o la línea `fase 2` que salen del archivo se reportan como `ERROR`, lo que cumple la regla de ADR-012 de que una historia no sale nunca. Si la base del PR no contiene el archivo, no hay comparación; eso sucede solo en el PR que lo crea.
 

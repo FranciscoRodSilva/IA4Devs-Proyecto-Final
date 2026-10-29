@@ -34,13 +34,13 @@ Una entrada por fila del orden de implementación de `design.md`, en el orden en
 
 **Rojo** — cada test de la fila falla, y por la razón esperada:
 
-```
+```text
 <salida real en rojo>
 ```
 
 **Verde** — los tests de la fila y la suite previa:
 
-```
+```text
 <salida real en verde>
 ```
 
@@ -50,7 +50,7 @@ Una entrada por fila del orden de implementación de `design.md`, en el orden en
 
 **Evidencia de ejecución al cerrar:** pegar la línea de resumen real de `pytest` / `vitest` / `playwright`, con `docker info` respondiendo. Sin evidencia, el resultado no cuenta.
 
-```
+```text
 <salida real>
 ```
 

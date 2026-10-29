@@ -270,7 +270,7 @@ Las funcionalidades F3.2 y F3.5 son **diseño desde cero**: el cliente pidió ex
 | Tipo de partida | Presupuestado | Comprometido | Ejercido | Avance físico | Desviación |
 |---|---|---|---|---|---|
 | MUROS | Tope de control capturado | OC emitidas sin recibir | Entradas + destajo | m² validados ÷ m² de alcance | Ejercido − (Presupuestado × Avance) |
-| PLAFONES Y CAJILLOS | … | … | … | … | … |
+| `PLAFONES Y CAJILLOS` | … | … | … | … | … |
 | **Mano de obra de nómina** | — | — | Imputada desde las jornadas | — | *no imputada a partida* |
 
 La columna que importa es la última. **Compara dinero gastado contra obra realmente construida**, no contra el calendario. Un tipo de partida al 40 % de avance con el 70 % del presupuesto ejercido está en rojo aunque falten meses de plazo — y hoy eso es invisible hasta el cierre.
@@ -319,7 +319,7 @@ Esta capacidad no añade control de costo: **añade la prueba de lo que las dem�
 El cuestionario describe siete dominios de negocio completos. Implementarlos todos es construir un ERP, y no cabe en un proyecto final ni entrega valor incremental. El criterio de recorte es uno solo:
 
 > **Entra en el MVP el recorrido más corto que demuestre las dos promesas del producto —*saber* e *impedir*— con datos reales. Lo que completa la cifra entra después, en una segunda fase con fecha.**
-
+>
 > **Revisión del 2026-10-15.** Hasta la Entrega 1 el criterio era *"todo lo necesario para cerrar el ciclo de valor"*, y el MVP resultante incluía compras, almacén, destajo, la nómina completa con créditos y pagos agrupados, el tablero y el expediente documental. La revisión de LIDR lo señaló: el sexto sprint iba sobrecargado y el trabajo sin conexión no estaba estimado. El ciclo de §5.2 sigue siendo el objetivo del producto. Lo que cambia es que ahora se construye en dos fases, y la primera es un **hilo vertical** que se puede demostrar entero.
 
 ### Fase 1 · MVP — el hilo vertical
@@ -432,11 +432,11 @@ Estas son las reglas duras del negocio. Son la fuente de la que se derivan los c
 > **Una requisición reserva presupuesto desde que se evalúa**, no desde que se emite la orden. Es lo que hace que de dos requisiciones simultáneas que juntas no caben, solo pase una. La reserva se libera al cancelar la requisición, **nunca por caducidad**: una requisición evaluada y olvidada retiene presupuesto hasta que alguien la cancele, y por eso Compras dispone de la consulta de requisiciones evaluadas sin convertir. Es una decisión consciente y su disparador de revisión está en §10.
 >
 > **El tope es una sola bolsa por tipo de partida**, compartida entre el material y la mano de obra de destajo. Una partida cuyo destajo se ha comido el presupuesto bloquea también sus compras de material: el control es sobre el costo de la partida, no sobre cada concepto de costo por separado. La nómina no entra, porque no llega a partida (PA-10).
-
+>
 > **RN-07 · El excedente autorizado es ejercido, y puede dejar la partida en negativo.** Lo que entra de más es material recibido: entra en el `ejercido` y, por tanto, en el `consumido` de `RN-03`. La entrada **no evalúa `RN-03`** —el presupuesto se evaluó al levantar la requisición, y quien decide el excedente es Dirección General al autorizarlo—, así que el disponible de la partida puede quedar negativo. No se oculta ni se bloquea a posteriori: lo hace visible el semáforo, y la siguiente requisición de esa partida se bloqueará por `RN-03`.
-
+>
 > **RN-20** se implementa en v1.1: depende del control de cobranza, que está fuera del MVP. Se documenta aquí porque condiciona el diseño del bloqueo de compras y no debe descubrirse más tarde.
-
+>
 > **RN-22 no salió del cuestionario.** El cliente declaró que el pago está mezclado —*"hay a quien se le paga por destajo y a quienes se les paga por precio fijo (es decir nómina)"*— pero no dijo qué ocurre si ambas vías se cruzan. La regla apareció al analizar la relación entre las historias de destajo y de nómina: sin ella, la misma semana de trabajo puede pagarse y contabilizarse dos veces, y el costo real del tablero queda inflado sin que nadie lo detecte.
 >
 > **Confirmada por el cliente el 2026-09-18** (PA-09): las dos modalidades son excluyentes. La regla **bloquea**, no advierte.
@@ -503,7 +503,7 @@ Se declaran **aquí** y no en el documento de stack por la misma razón que las 
 | **RNF-19** | Los archivos tienen **respaldo y retención propios**, independientes de los de la base de datos, y la bitácora conserva el **hash** de lo adjuntado, de modo que *"qué evidencia se adjuntó"* sea comprobable y no solo referenciable | El respaldo de `RNF-10` cubre la base. Si los archivos viven fuera y nadie los respalda, una restauración deja la bitácora apuntando a evidencia que ya no existe — y una bitácora que apunta a un identificador cuyo contenido nadie puede demostrar que no cambió es un índice, no una bitácora |
 
 > **`RNF-19` nace de `C8` y de [ADR-016](adr/20261001-almacenamiento-de-objetos.md).** Antes del 2026-10-01 los archivos eran dos y ocasionales; con la evidencia de avance pasan a ser el volumen dominante del sistema, y lo que no se declara no se respalda.
-
+>
 > **Ninguno de estos requisitos es exigente por sí mismo.** Son diecinueve líneas que describen la higiene mínima de una aplicación interna con seis roles que autorizan dinero. Están escritos porque lo que no se declara no se implementa, y porque el resto de esta especificación pone el listón lo bastante alto como para que improvisar aquí desentone.
 
 ---

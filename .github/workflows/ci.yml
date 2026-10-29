@@ -203,7 +203,7 @@ jobs:
         run: uvx zizmor@1.31.1 --offline .github/workflows
 
   documentacion:
-    name: Documentación · verificador propio
+    name: Documentación · verificador propio, markdownlint, Vale, lychee y mermaid-cli
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -213,6 +213,51 @@ jobs:
       - name: Verificar la documentación
         if: ${{ !cancelled() }}
         run: python3 tools/verificar_docs.py
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: ${{ !cancelled() }}
+        with:
+          node-version-file: frontend/package.json
+      - name: Markdown con markdownlint-cli2
+        if: ${{ !cancelled() }}
+        run: npx --yes markdownlint-cli2@0.24.0 "docs/**/*.md" "sdd/**/*.md" README.md CLAUDE.md tools/README.md
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        if: ${{ !cancelled() }}
+      - name: Prosa con Vale
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          codigo=0
+          uvx --from vale==3.25.1.0 vale --output=line docs sdd README.md CLAUDE.md tools/README.md > "$RUNNER_TEMP/vale.txt" || codigo=$?
+          cat "$RUNNER_TEMP/vale.txt"
+          [ "$codigo" -eq 0 ] && [ ! -s "$RUNNER_TEMP/vale.txt" ]
+      - name: Enlaces con lychee
+        if: ${{ !cancelled() }}
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --config lychee.toml --no-progress 'docs/**/*.md' 'sdd/**/*.md' README.md CLAUDE.md tools/README.md
+          lycheeVersion: v0.24.2
+          fail: true
+      - name: Instalar mermaid-cli
+        if: ${{ !cancelled() }}
+        working-directory: .github/mermaid
+        run: npm ci
+      - name: Diagramas con mermaid-cli
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          fallos=0
+          n=0
+          mkdir -p "$RUNNER_TEMP/mermaid"
+          while IFS= read -r archivo; do
+            n=$((n + 1))
+            if ! .github/mermaid/node_modules/.bin/mmdc -p .github/puppeteer-config.json -i "$archivo" -o "$RUNNER_TEMP/mermaid/$n.md"; then
+              echo "::error file=$archivo::diagrama Mermaid inválido"
+              fallos=1
+            fi
+          done < <(grep -rl '```mermaid' docs sdd README.md CLAUDE.md tools/README.md)
+          if [ "$fallos" -ne 0 ]; then
+            exit 1
+          fi
 
   dependencias:
     name: Dependencias · auditoría de vulnerabilidades

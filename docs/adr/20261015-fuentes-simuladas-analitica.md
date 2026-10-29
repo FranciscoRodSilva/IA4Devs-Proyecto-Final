@@ -17,9 +17,9 @@ Si el semáforo de la fase 1 se queda solo con materiales, es honesto pero no se
 
 ## Opciones consideradas
 
-* Puerto de lectura en `analitica` con un adaptador simulado, marcado y excluido del `consumido`
-* Crear ya las tablas de `avance` y `personal` y sembrarlas con datos ficticios
-* Semáforo solo de materiales, con la mano de obra y el avance como *"sin datos"*
+- Puerto de lectura en `analitica` con un adaptador simulado, marcado y excluido del `consumido`
+- Crear ya las tablas de `avance` y `personal` y sembrarlas con datos ficticios
+- Semáforo solo de materiales, con la mano de obra y el avance como *"sin datos"*
 
 ## Decisión
 
@@ -55,17 +55,17 @@ Cinco reglas lo acotan, y juntas impiden que lo simulado se lea como real:
 
 **Positivas**
 
-* El hilo vertical se demuestra completo, con las cinco columnas del semáforo, sin construir la fase 2, y en producción no muestra nada ficticio.
-* La sustitución en el sprint 8 es un cambio de adaptador: la consulta, el endpoint y la pantalla ya existen y ya están probados.
-* El puerto obliga a separar dos cosas que estaban mezcladas en la consulta: qué fuentes existen y cómo se agregan. Es la misma separación que necesita el metadato de fuentes.
+- El hilo vertical se demuestra completo, con las cinco columnas del semáforo, sin construir la fase 2, y en producción no muestra nada ficticio.
+- La sustitución en el sprint 8 es un cambio de adaptador: la consulta, el endpoint y la pantalla ya existen y ya están probados.
+- El puerto obliga a separar dos cosas que estaban mezcladas en la consulta: qué fuentes existen y cómo se agregan. Es la misma separación que necesita el metadato de fuentes.
 
 **Negativas o costes aceptados**
 
-* **El semáforo de la fase 1 muestra cifras que no son de la obra.** Se mitiga marcándolas, no se elimina. Quien vea una captura de pantalla sin la marca puede malinterpretarla.
-* Hay un archivo semilla que mantener, coherente con la línea base de demostración: el alcance simulado tiene que corresponder a áreas que existen en el catálogo importado.
-* La prueba de rendimiento de `RNF-15` en la fase 1 mide la consulta con una fuente simulada. Hay que repetirla al sustituirla.
+- **El semáforo de la fase 1 muestra cifras que no son de la obra.** Se mitiga marcándolas, no se elimina. Quien vea una captura de pantalla sin la marca puede malinterpretarla.
+- Hay un archivo semilla que mantener, coherente con la línea base de demostración: el alcance simulado tiene que corresponder a áreas que existen en el catálogo importado.
+- La prueba de rendimiento de `RNF-15` en la fase 1 mide la consulta con una fuente simulada. Hay que repetirla al sustituirla.
 
 **Cuándo revisar esta decisión**
 
-* En el sprint 8, con TKT-069: el adaptador simulado se elimina, no se conserva como opción. Si sobreviviera, sería configuración muerta con capacidad de mentir.
-* Si alguien propone usar el adaptador simulado para estimar o proyectar costo real. No es una fuente de datos: es una maqueta con la forma de una.
+- En el sprint 8, con TKT-069: el adaptador simulado se elimina, no se conserva como opción. Si sobreviviera, sería configuración muerta con capacidad de mentir.
+- Si alguien propone usar el adaptador simulado para estimar o proyectar costo real. No es una fuente de datos: es una maqueta con la forma de una.

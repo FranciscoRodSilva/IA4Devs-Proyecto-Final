@@ -246,7 +246,7 @@ Los motores de reglas centralizados son atractivos sobre el papel y se convierte
 
 Cada módulo tiene la misma estructura interna de cuatro capas. La dependencia apunta **siempre hacia dentro**: la infraestructura conoce al dominio, el dominio no conoce a nadie.
 
-```
+```text
 compras/
 ├── api/              Rutas HTTP, serialización, códigos de estado
 ├── aplicacion/       Casos de uso. Orquesta, abre transacciones, no decide reglas
@@ -354,7 +354,7 @@ Los importes viajan como **cadena**, no como número JSON, para que no pasen por
 | Rendimientos | `DECIMAL(18,6)` | `0.673400`, `0.017000` |
 | Porcentajes | `DECIMAL(9,6)` | `0.050000`, `0.160000` |
 
-**Tipos.** `Dinero` —importes y precios unitarios—, `Cantidad`, `Rendimiento` y `Porcentaje` viven en `backend/tipos_base/`, fuera de `cimenta/` para que cualquier capa de cualquier módulo los importe sin ser un módulo más del grafo de §5. Calculan con un contexto de `decimal` propio, independiente del del proceso: sumas, restas y productos son exactos, y una división da un `Porcentaje` con 28 dígitos significativos o falla con `ZeroDivisionError`, nunca devuelve cero. Solo existen `Cantidad × Rendimiento → Cantidad`, `Dinero × Cantidad → Dinero` y `Dinero × Porcentaje → Dinero`, en los dos órdenes, y `Cantidad ÷ Cantidad` y `Dinero ÷ Dinero → Porcentaje`; lo demás es `TypeError`. Los usan la explosión de insumos (TKT-016), `RN-03` (TKT-020), `RN-06` y `RN-07` (TKT-034), el semáforo (TKT-039) y las retenciones (TKT-012).
+**Tipos.** `Dinero` —importes y precios unitarios—, `Cantidad`, `Rendimiento` y `Porcentaje` viven en `backend/tipos_base/`, fuera de `cimenta/` para que cualquier capa de cualquier módulo los importe sin ser un módulo más del grafo de §5. Calculan con un contexto de `decimal` propio, independiente del proceso: sumas, restas y productos son exactos, y una división da un `Porcentaje` con 28 dígitos significativos o falla con `ZeroDivisionError`, nunca devuelve cero. Solo existen `Cantidad × Rendimiento → Cantidad`, `Dinero × Cantidad → Dinero` y `Dinero × Porcentaje → Dinero`, en los dos órdenes, y `Cantidad ÷ Cantidad` y `Dinero ÷ Dinero → Porcentaje`; lo demás es `TypeError`. Los usan la explosión de insumos (TKT-016), `RN-03` (TKT-020), `RN-06` y `RN-07` (TKT-034), el semáforo (TKT-039) y las retenciones (TKT-012).
 
 **Regla de redondeo:** se calcula con la precisión completa y se redondea **solo al presentar**, nunca en cálculos intermedios. El redondeo intermedio en una explosión de 27 insumos sobre 4,900 conceptos acumula una desviación perfectamente visible.
 

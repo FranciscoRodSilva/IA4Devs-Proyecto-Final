@@ -47,7 +47,7 @@ El anti-patrón que este proyecto evita explícitamente: un único `README.md` d
 
 ## 3. Estructura del repositorio
 
-```
+```text
 IA4Devs-Proyecto-Final/
 ├── .claude/                        Agentes, skills, hooks y comandos del pipeline SDD
 ├── .editorconfig                   Codificación y finales de línea por tipo de archivo
@@ -103,7 +103,7 @@ La especificación es el artefacto del que se deriva todo lo demás. Nada se imp
 
 ### La pirámide
 
-```
+```text
 PRD              Visión, alcance MVP, métricas de éxito
  └── EPIC        Bloque grande de capacidad. Una hipótesis de producto
       └── HISTORIA DE USUARIO   Comportamiento observable. INVEST. Cabe en un sprint
@@ -211,6 +211,7 @@ Archivos, modelos y endpoints relevantes
 Una única DoD para todo es un anti-patrón: demasiado genérica para guiar y demasiado específica para lo que no encaja.
 
 **Funcionalidad nueva**
+
 - [ ] Cubre todos los escenarios Gherkin, incluidos los de rechazo
 - [ ] Al menos un test por escenario
 - [ ] La cobertura del módulo no baja
@@ -220,24 +221,28 @@ Una única DoD para todo es un anti-patrón: demasiado genérica para guiar y de
 - [ ] Revisión de al menos un humano, no solo de agentes
 
 **Corrección de error**
+
 - [ ] Test que reproduce el fallo, commiteado **antes** del arreglo
 - [ ] Arreglo mínimo y enfocado, sin refactors no relacionados
 - [ ] El test pasa
 - [ ] Análisis breve en el ticket: por qué se introdujo y si CI podría haberlo detectado
 
 **Refactor**
+
 - [ ] La cobertura no baja
 - [ ] Comportamiento observable inalterado: mismos contratos, mismos endpoints
 - [ ] El PR explica la motivación arquitectónica
 - [ ] No mezclado con cambios funcionales
 
 **Documentación**
+
 - [ ] Revisado por un humano, no solo por IA
 - [ ] Los fragmentos de código son ejecutables
 - [ ] Sin enlaces rotos
 - [ ] Versionado en el repo
 
 **Spike / investigación**
+
 - [ ] Hallazgos, alternativas y recomendación documentados
 - [ ] ADR creado si la investigación cierra una decisión
 - [ ] Decisión explícita: continuar, pivotar o cancelar
@@ -320,12 +325,12 @@ Si el código sin tests es deuda técnica, la documentación sin validación es 
 | Capa | Herramienta | Qué detecta |
 |---|---|---|
 | **Sintaxis Markdown** | `markdownlint-cli2` | Encabezados inconsistentes, listas mal indentadas, enlaces vacíos |
-| **Prosa** | `Vale` con estilo Microsoft | Voz pasiva, términos vagos, inconsistencia terminológica |
+| **Prosa** | `Vale` con el [estilo del proyecto](adr/20261029-vale-para-prosa-en-espanol.md) | Términos del glosario escritos con una variante errónea, y palabras repetidas |
 | **Enlaces** | `lychee` | URLs muertas, anclas inexistentes |
 | **Cobertura de docstrings** | `interrogate` | Funciones públicas sin documentar |
 | **Fronteras entre módulos** | `import-linter` | Un módulo que importa el dominio o la infraestructura de otro |
 | **Consistencia de la documentación** | [`tools/verificar_docs.py`](../tools/README.md) | Enlaces y anclas rotos, identificadores inexistentes, conteos descuadrados |
-| **Diagramas** | [`tools/extraer_mermaid.py`](../tools/README.md) | Un diagrama Mermaid con sintaxis inválida |
+| **Diagramas** | En local, [`tools/extraer_mermaid.py`](../tools/README.md); en CI, `@mermaid-js/mermaid-cli` | Un diagrama Mermaid con sintaxis inválida |
 | **Escenarios sin test** | [`tools/verificar_escenarios.py`](../tools/verificar_escenarios.py) | Un escenario de la especificación que ningún test cubre |
 
 Dos ajustes de criterio:

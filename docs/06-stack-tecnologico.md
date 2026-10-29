@@ -173,7 +173,7 @@ El riesgo que se evita es el clásico y no lo detecta ningún linter: una llamad
 
 Esta es la ambigüedad que más problemas causa en una arquitectura por capas, así que conviene fijarla:
 
-```
+```text
 dominio/
   valores.py      Dinero, Cantidad, Rendimiento, Porcentaje     ← decimal puro
   reglas.py       evaluar_disponibilidad(...) -> Resultado      ← funciones puras
@@ -324,9 +324,9 @@ openpyxl parsea un ZIP que viene de fuera. En modo `read_only` el consumo es aco
 
 **Política de severidad vigente** ([ADR del 2026-10-29](adr/20261029-severidad-en-la-auditoria-de-dependencias.md)):
 
-* **Python.** `pip-audit` informa cada vulnerabilidad del lock del backend, y `tools/severidad_pip_audit.py` toma la severidad del aviso de GitHub (`GHSA`) desde OSV. Un hallazgo puede tener varios `GHSA` (su `id` y sus alias): el filtro consulta cada uno una vez y se queda con la peor severidad, y se detiene en el primero que sea `HIGH` o `CRITICAL`. Fallan `HIGH` y `CRITICAL`. `MODERATE` y `LOW` se informan y no fallan. Una vulnerabilidad cuya severidad no se puede leer, porque no tiene `GHSA` o OSV no informa severidad, aparece como `DESCONOCIDA` y **falla**: el fallo es cerrado. Si el informe no se lee o la consulta a OSV falla (red, HTTP, JSON mal formado o respuesta de más de 1.000.000 de bytes), el script termina con código 2 y el trabajo queda en rojo.
-* **Frontend.** `npm audit --audit-level=high`. Falla con `high` y `critical`, e informa `moderate` y `low` sin fallar. Incluye las dependencias de desarrollo, porque `--omit=dev` se descartó: las herramientas corren en CI junto al código.
-* **Excepciones.** Una vulnerabilidad de Python se acepta solo con `--ignore-vuln <ID>` en el paso de `pip-audit` del trabajo `dependencias`, con un comentario que nombre quién la decidió, su motivo y la fecha de revisión. No hay ninguna al arrancar. Para npm no hay lista de excepciones: un aviso alto se corrige actualizando o se escala por escrito; no se ignora con una bandera.
+- **Python.** `pip-audit` informa cada vulnerabilidad del lock del backend, y `tools/severidad_pip_audit.py` toma la severidad del aviso de GitHub (`GHSA`) desde OSV. Un hallazgo puede tener varios `GHSA` (su `id` y sus alias): el filtro consulta cada uno una vez y se queda con la peor severidad, y se detiene en el primero que sea `HIGH` o `CRITICAL`. Fallan `HIGH` y `CRITICAL`. `MODERATE` y `LOW` se informan y no fallan. Una vulnerabilidad cuya severidad no se puede leer, porque no tiene `GHSA` o OSV no informa severidad, aparece como `DESCONOCIDA` y **falla**: el fallo es cerrado. Si el informe no se lee o la consulta a OSV falla (red, HTTP, JSON mal formado o respuesta de más de 1.000.000 de bytes), el script termina con código 2 y el trabajo queda en rojo.
+- **Frontend.** `npm audit --audit-level=high`. Falla con `high` y `critical`, e informa `moderate` y `low` sin fallar. Incluye las dependencias de desarrollo, porque `--omit=dev` se descartó: las herramientas corren en CI junto al código.
+- **Excepciones.** Una vulnerabilidad de Python se acepta solo con `--ignore-vuln <ID>` en el paso de `pip-audit` del trabajo `dependencias`, con un comentario que nombre quién la decidió, su motivo y la fecha de revisión. No hay ninguna al arrancar. Para npm no hay lista de excepciones: un aviso alto se corrige actualizando o se escala por escrito; no se ignora con una bandera.
 
 **Credenciales de desarrollo de `.env.example`.** Las contraseñas `solo-desarrollo-*` del archivo y la del usuario de prueba de TKT-008b no tienen excepción en el escaneo de secretos: no hay archivo de exclusión ni `paths-ignore`, porque una exclusión por ruta dejaría sin escanear cualquier otro secreto que alguien pegara en ese archivo. Si una alerta genérica marcara alguno de esos valores, se descarta **esa alerta concreta** como «usada en pruebas», citando esta nota. La nota es la documentación de la excepción. El criterio [CA-11](../sdd/tickets/tkt-009/spec.md) pedía una excepción declarada; esta forma es una reinterpretación `(asumido)`, que se señaló en el gate del diseño.
 
@@ -406,7 +406,7 @@ Un script recorre `docs/04-historias-usuario.md`, extrae cada `HDU-XXX esc. N` y
 
 Resuelve además el problema que la regla de aceptación plantea: *"una historia se acepta solo si todos sus escenarios pasan en verde"* deja de ser una intención y pasa a ser comprobable.
 
-El script es `tools/verificar_escenarios.py` y corre en el trabajo `herramientas` del pipeline. Un escenario cuenta desde que su historia figura en `tools/historias_activas.txt`, y los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`. Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título; una nota en prosa no lo retira. En TypeScript, el nombre de un test de historia sigue la misma forma que en Python, `"hdu002_esc04 · …"`, en el primer argumento de `it`, `test` o `describe`. Un test comentado al inicio de una línea, con `//` o dentro de un bloque `/* … */` que empiece la línea, no cuenta. Un comentario que sigue a código en la misma línea no se descarta (límite de A-8). La política completa está en [ADR del 2026-10-29](adr/20261029-politica-del-verificador-de-escenarios.md).
+El script es `tools/verificar_escenarios.py` y corre en el trabajo `herramientas` del pipeline. Un escenario cuenta desde que su historia figura en `tools/historias_activas.txt`, y los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`. Un escenario se retira con el segmento `· retirado por TKT-0NN` en su título; una nota en prosa no lo retira. En TypeScript, el nombre de un test de historia sigue la misma forma que en Python, `"hdu002_esc04 · …"`, en el primer argumento de `it`, `test` o `describe`. Un test comentado al inicio de una línea, con `//` o dentro de un bloque `/* … */` que empiece la línea, no cuenta. Un comentario que sigue a código en la misma línea no se descarta (límite de A-8). La política completa está en [ADR del 2026-10-29](adr/20261029-politica-del-verificador-de-escenarios.md).
 
 ### 7.3. Frontend
 
@@ -446,9 +446,9 @@ Cierra la equivalencia que [`convenciones.md` §10](convenciones.md#10-validaci�
 | **API** | adonis-autoswagger + Scalar | **OpenAPI nativo de FastAPI + Scalar** |
 | **Código** | TSDoc + TypeDoc | **Docstrings estilo Google + mkdocstrings sobre MkDocs Material** |
 | **Cobertura de docs** | `typedoc --validation.notDocumented` | **interrogate**, con umbral por módulo |
-| **Markdown** | markdownlint-cli2 | markdownlint-cli2 |
-| **Prosa** | Vale | Vale |
-| **Enlaces** | lychee | lychee |
+| **Markdown** | markdownlint-cli2 | markdownlint-cli2 0.24.0, en el trabajo `documentacion` |
+| **Prosa** | Vale | Vale 3.25.1, con el [estilo del proyecto](adr/20261029-vale-para-prosa-en-espanol.md) |
+| **Enlaces** | lychee | lychee 0.24.2, en el trabajo `documentacion` y en un cron semanal |
 
 **Scalar se conserva** porque es independiente del lenguaje: consume la especificación OpenAPI que FastAPI genera. La recomendación del material sigue siendo válida sin adaptación.
 
@@ -464,7 +464,9 @@ Comprobaciones que no existen como herramienta de terceros. Viven en [`tools/`](
 | `tools/extraer_mermaid.py` | Diagramas con sintaxis inválida, que en GitHub se renderizan como bloque de error | ✅ En uso |
 | Escenarios sin test | El verificador de §7.2, que sostiene la regla de aceptación | ✅ En uso |
 
-`verificar_docs.py` corre en el trabajo `documentacion` del pipeline, y el de escenarios en el trabajo `herramientas`. El de Mermaid se sustituirá en el pipeline por `@mermaid-js/mermaid-cli`, que hace lo mismo sin navegador.
+`verificar_docs.py` corre en el trabajo `documentacion` del pipeline, y el de escenarios en el trabajo `herramientas`. En el pipeline, los diagramas los valida `@mermaid-js/mermaid-cli` 12.0.0, que hace lo mismo sin navegador: está fijado con su lockfile en `.github/mermaid/` e instalado con `npm ci`. `tools/extraer_mermaid.py` queda para verificar en local.
+
+**Herramientas de terceros de la documentación.** markdownlint-cli2, Vale, lychee y mermaid-cli van fijadas por versión. En el pipeline, cualquier hallazgo falla su paso; en local solo informan. El detalle de lo que comprueba cada una está en [`tools/README.md`](../tools/README.md).
 
 ---
 
@@ -487,14 +489,16 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 - **`humo`**: el recorrido de Playwright con PostgreSQL levantado por Compose, la base migrada y las contraseñas de los roles fijadas. Si falla, sube el informe HTML.
 - **`herramientas`**: las pruebas de `tools/` con `unittest`. Una guarda falla el paso si alguna prueba se salta.
 - **`workflows`**: `zizmor` sobre `.github/workflows`, para auditar los propios flujos.
-- **`documentacion`**: `verificar_docs.py`.
+- **`documentacion`**: `verificar_docs.py`; `markdownlint-cli2` 0.24.0 sobre `docs/`, `sdd/` y los README; Vale 3.25.1 con el alcance, cuya salida se guarda y falla si hay cualquier alerta, incluidas las de aviso; `lychee` 0.24.2 con `fail: true`; y `@mermaid-js/mermaid-cli` 12.0.0 sobre cada diagrama. Todos los pasos llevan `if: ${{ !cancelled() }}`: un fallo no oculta los siguientes, así que un PR ve de una vez todas sus alertas documentales.
 - **`dependencias`**: `pip-audit` sobre el lock del backend, con el filtro de severidad de `tools/severidad_pip_audit.py`, y `npm audit --audit-level=high` sobre el del frontend. La política está en [§6.4](#64-dependencias).
+
+**Detector semanal de enlaces.** `.github/workflows/enlaces.yml` es un flujo aparte. Corre el mismo `lychee`, con la misma configuración, cada lunes a las 13:00 UTC y también a mano. Tiene `concurrency` con `cancel-in-progress: false`: una corrida espera a la anterior y no se solapa con ella.
 
 Dos reglas de higiene rigen el archivo. Cada acción se fija por SHA completo, con su versión en un comentario, porque una etiqueta se mueve y un SHA no. Y el intérprete de Python es el 3.14, con el mismo `uv sync --locked --python 3.14` que documenta [`arranque-local.md`](arranque-local.md), porque sin fijarlo `uv` elige el más nuevo y puede compilar mal `pyyaml`. Ningún paso lleva `continue-on-error`: una compuerta que no falla está desactivada.
 
 **Desviación respecto a TKT-009.** El trabajo `backend` no levanta MinIO. Su servicio y sus pruebas contra un almacén real llegan con TKT-059, que los añade a ese trabajo, porque antes no existe el adaptador de almacén que los usaría.
 
-Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias corre en el trabajo `dependencias`, y la calidad documental completa llega con la parte d de TKT-009. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
+Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias corre en el trabajo `dependencias`, y la calidad documental completa corre en el trabajo `documentacion`. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
 
 Dos trabajos más, que son los que meten la IA en el pipeline sin darle la última palabra:
 

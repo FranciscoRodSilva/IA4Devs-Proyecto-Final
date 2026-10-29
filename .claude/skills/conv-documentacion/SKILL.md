@@ -62,19 +62,20 @@ Se escribe uno cuando alguien que llegara hoy se preguntaría *«¿por qué lo h
 
 ## 7 · Prosa
 
-- Se valida con `markdownlint-cli2`, `Vale` con estilo Microsoft y `lychee`.
-- Voz activa, actor nombrado. Nada de «el sistema valida»: `evaluar_disponibilidad` devuelve `BLOQUEADA`.
-- El vocabulario del dominio —*tablaroca*, *destajo*, *perfacinta*, *antepecho*, *cajillo*, *plafón*, *redimix*— está declarado en el vocabulario aceptado de Vale, tomado del [glosario](../../../docs/glosario.md). No se traduce ni se sustituye por sinónimos.
+- Se valida con `markdownlint-cli2`, `Vale` con el estilo del proyecto y `lychee`. El estilo Microsoft no se usa: es de inglés y marcaría casi cada frase en español ([ADR del 2026-10-29](../../../docs/adr/20261029-vale-para-prosa-en-espanol.md)).
+- Voz activa, actor nombrado. Nada de «el sistema valida»: `evaluar_disponibilidad` devuelve `BLOQUEADA`. Ninguna herramienta lo marca: lo revisa quien revisa el PR.
+- El vocabulario del dominio —*tablaroca*, *destajo*, *perfacinta*, *antepecho*, *cajillo*, *plafón*, *redimix*— está declarado en el vocabulario `Cimenta` de Vale (`.vale/styles/config/vocabularies/Cimenta/accept.txt`), tomado del [glosario](../../../docs/glosario.md). Sus variantes erradas las marca `Cimenta.Vocabulario`. No se traduce ni se sustituye por sinónimos.
+- Una forma errónea que se cita como ejemplo, como «`tablaroka`», va en código en línea: Vale no revisa el contenido del código.
 - **`caveman` nunca comprime documentación.** Esto es el entregable y lo lee una persona.
 
 ## 8 · Diagramas
 
-Mermaid por defecto, dentro del Markdown. Se validan con `tools/extraer_mermaid.py` — un diagrama con error de sintaxis no se ve como un diagrama roto en GitHub, se ve como un bloque de error en medio del documento.
+Mermaid por defecto, dentro del Markdown. En local se validan con `tools/extraer_mermaid.py`, una página HTML con el parser de Mermaid 11 que necesita navegador. En el pipeline los valida `@mermaid-js/mermaid-cli` 12.0.0, instalado con `npm ci` desde `.github/mermaid/`. Un diagrama con error de sintaxis no se ve como un diagrama roto en GitHub, se ve como un bloque de error en medio del documento.
 
 ## 9 · Docstrings
 
 - Cada regla lleva su identificador: `"""Implementa RN-03. Sin efectos secundarios."""`
-- `interrogate` vigila que las funciones públicas estén documentadas.
+- `interrogate` está previsto en el [stack §9](../../../docs/06-stack-tecnologico.md#9-documentación), pero todavía no corre en el pipeline.
 - El docstring dice **qué garantiza y qué asume**, no repite la firma.
 
 ## 10 · Al auditar documentación de un cambio
