@@ -1421,5 +1421,141 @@ class TestMutantesDeLaCodificacion(PruebaBase):
         self.assertEqual("«→Í»\n", salida.getvalue())
 
 
+# ---------------------------------------------------------------------------------------------------------
+# Ciclo 2 de corrección · huecos de prueba (el código ya es correcto: nacen en verde, cada uno mata un mutante)
+# ---------------------------------------------------------------------------------------------------------
+
+
+class TestF007DesconocidaPesaMasQueModerate(PruebaBase):
+    """F007 · `DESCONOCIDA` es peor que `MODERATE` en `ORDEN_DE_GRAVEDAD`, sin importar el orden de los GHSA."""
+
+    def _linea_de_django(self, ghsa_primero: str, ghsa_segundo: str, respuestas: dict) -> None:
+        ruta = self.escribir_informe(
+            informe_con(
+                dependencia(
+                    "django", "3.2", [vulnerabilidad("PYSEC-1", [ghsa_primero, ghsa_segundo])]
+                )
+            )
+        )
+
+        codigo, lineas, _, osv = self.ejecutar_main_sin_traza([ruta], OsvFalso(respuestas))
+
+        self.assertEqual(1, codigo)
+        propias = self.lineas_de(lineas, "django")
+        self.assertEqual(1, len(propias), lineas)
+        self.assertTrue(propias[0].startswith("DESCONOCIDA"), propias[0])
+        self.assertTrue(propias[0].endswith(SUFIJO_QUE_FALLA), propias[0])
+        self.assertEqual([ghsa_primero, ghsa_segundo], osv.consultas)
+
+    def test_f007_moderate_y_despues_un_ghsa_sin_severidad_termina_en_1_como_desconocida(
+        self,
+    ) -> None:
+        """RNF-08 · CA-10 esc. 2 — [MODERATE, sin severidad]: la severidad ausente no se pierde tras el MODERATE."""
+        self._linea_de_django(
+            GHSA_MEDIA,
+            GHSA_ALTA,
+            {GHSA_MEDIA: respuesta_osv("MODERATE"), GHSA_ALTA: respuesta_osv(None)},
+        )
+
+    def test_f007_un_ghsa_sin_severidad_y_despues_moderate_termina_en_1_como_desconocida(
+        self,
+    ) -> None:
+        """RNF-08 · CA-10 esc. 2 — [sin severidad, MODERATE]: el MODERATE posterior no rebaja la severidad ausente."""
+        self._linea_de_django(
+            GHSA_ALTA,
+            GHSA_MEDIA,
+            {GHSA_ALTA: respuesta_osv(None), GHSA_MEDIA: respuesta_osv("MODERATE")},
+        )
+
+
+class TestF008SeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
+    """F008 · `Hallazgo.aviso` es el GHSA que decidió la severidad: el primero en un empate, y solo se corta en HIGH o CRITICAL."""
+
+    def test_f008_empate_de_dos_ghsa_low_conserva_el_primero_como_aviso_y_consulta_los_dos(
+        self,
+    ) -> None:
+        """RNF-08 · CA-10 — [LOW, LOW]: gana el primero (`<`, no `<=`); LOW no corta, así que se consulta también el segundo."""
+        modulo = self.sev()
+        osv = OsvFalso({GHSA_BAJA: respuesta_osv("LOW"), GHSA_OTRO: respuesta_osv("LOW")})
+
+        hallazgos = modulo.clasificar(
+            [dependencia("django", "3.2", [vulnerabilidad("PYSEC-1", [GHSA_BAJA, GHSA_OTRO])])], osv
+        )
+
+        self.assertEqual(1, len(hallazgos))
+        self.assertEqual(GHSA_BAJA, hallazgos[0].aviso)
+        self.assertEqual("LOW", hallazgos[0].severidad)
+        self.assertEqual([GHSA_BAJA, GHSA_OTRO], osv.consultas)
+
+    def test_f008_ghsa_sin_severidad_y_despues_high_no_corta_y_el_aviso_es_el_segundo(self) -> None:
+        """RNF-08 · CA-10 — [sin severidad, HIGH]: DESCONOCIDA no corta la consulta; gana el HIGH y su GHSA es el aviso."""
+        modulo = self.sev()
+        osv = OsvFalso({GHSA_BAJA: respuesta_osv(None), GHSA_ALTA: respuesta_osv("HIGH")})
+
+        hallazgos = modulo.clasificar(
+            [dependencia("django", "3.2", [vulnerabilidad("PYSEC-1", [GHSA_BAJA, GHSA_ALTA])])], osv
+        )
+
+        self.assertEqual(1, len(hallazgos))
+        self.assertEqual("HIGH", hallazgos[0].severidad)
+        self.assertEqual(GHSA_ALTA, hallazgos[0].aviso)
+        self.assertEqual([GHSA_BAJA, GHSA_ALTA], osv.consultas)
+
+
+class TestObservacionesDelAuditorCiclo2(PruebaBase):
+    """Observaciones baratas del auditor: reconocimiento del prefijo GHSA y borde exacto del tope de lectura."""
+
+    def test_obs1_un_ghsa_en_minusculas_no_se_reconoce_no_se_consulta_y_es_desconocida(
+        self,
+    ) -> None:
+        """RNF-08 · CA-10 — `ghsa-abcd-efgh-ijkl` no es un GHSA (el prefijo distingue mayúsculas): sin consulta, DESCONOCIDA, exit 1."""
+        minuscula = "ghsa-abcd-efgh-ijkl"
+        casos = {
+            "como alias": vulnerabilidad("PYSEC-1", [minuscula]),
+            "como id": vulnerabilidad(minuscula, []),
+        }
+        for descripcion, caso in casos.items():
+            with self.subTest(caso=descripcion):
+                ruta = self.escribir_informe(informe_con(dependencia("django", "3.2", [caso])))
+                osv = OsvFalso(por_omision=respuesta_osv("LOW"))
+
+                codigo, lineas, _, osv = self.ejecutar_main_sin_traza([ruta], osv)
+
+                self.assertEqual(1, codigo)
+                self.assertEqual([], osv.consultas)
+                propias = self.lineas_de(lineas, "django")
+                self.assertEqual(1, len(propias), lineas)
+                self.assertTrue(propias[0].startswith("DESCONOCIDA"), propias[0])
+
+    def test_obs2_respuesta_de_un_millon_y_un_bytes_con_json_valido_al_inicio_se_rechaza(
+        self,
+    ) -> None:
+        """RNF-08 · CA-10 — JSON válido seguido de espacios hasta 1.000.001 bytes: el primer millón se parsearía, pero el exceso se detecta."""
+        modulo = self.sev()
+        valido = b'{"database_specific": {"severity": "HIGH"}}'
+        cuerpo = valido + b" " * (TestF004TopeDeLecturaDeLaRespuestaDeOsv.TOPE + 1 - len(valido))
+        self.assertEqual(TestF004TopeDeLecturaDeLaRespuestaDeOsv.TOPE + 1, len(cuerpo))
+
+        with (
+            mock.patch("urllib.request.urlopen", return_value=RespuestaHttpConLimite(cuerpo)),
+            self.assertRaisesRegex(ValueError, "supera"),
+        ):
+            modulo.consultar_osv(GHSA_ALTA)
+
+    def test_obs4_un_id_con_el_texto_ghsa_pegado_sin_guion_no_es_un_ghsa(self) -> None:
+        """RNF-08 · CA-10 — `GHSAabcd` no lleva el guion del prefijo `GHSA-`: no se consulta y el hallazgo es DESCONOCIDA."""
+        modulo = self.sev()
+        osv = OsvFalso(por_omision=respuesta_osv("LOW"))
+
+        hallazgos = modulo.clasificar(
+            [dependencia("django", "3.2", [vulnerabilidad("GHSAabcd", [])])], osv
+        )
+
+        self.assertEqual(1, len(hallazgos))
+        self.assertIsNone(hallazgos[0].aviso)
+        self.assertEqual("DESCONOCIDA", hallazgos[0].severidad)
+        self.assertEqual([], osv.consultas)
+
+
 if __name__ == "__main__":
     unittest.main()
