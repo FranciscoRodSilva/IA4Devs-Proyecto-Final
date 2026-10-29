@@ -50,6 +50,14 @@ import subprocess
 import sys
 import unittest
 
+DIRECTORIO_DE_PRUEBAS = os.path.dirname(os.path.abspath(__file__))
+if DIRECTORIO_DE_PRUEBAS not in sys.path:
+    sys.path.insert(0, DIRECTORIO_DE_PRUEBAS)
+
+from _ayudantes import _sangria, sustituir  # noqa: E402  (la ruta se ajusta arriba)
+from _ayudantes import exigir_rojo as _exigir_rojo  # noqa: E402
+from _ayudantes import exigir_rojo_en_todos as _exigir_rojo_en_todos  # noqa: E402
+
 RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DIRECTORIO_DE_FLUJOS = os.path.join(RAIZ, ".github", "workflows")
 CI = os.path.join(DIRECTORIO_DE_FLUJOS, "ci.yml")
@@ -63,10 +71,6 @@ TIEMPO_POR_OMISION = 15
 # ---------------------------------------------------------------------------------------------------------
 # Lectura del texto: comentarios, bloques de trabajo, pasos y claves
 # ---------------------------------------------------------------------------------------------------------
-
-
-def _sangria(linea: str) -> int:
-    return len(linea) - len(linea.lstrip(" "))
 
 
 def _quitar_comentario(linea: str) -> str:
@@ -630,39 +634,9 @@ def mover(texto: str, origen: str, destino: str, paso: str, despues_de: str) -> 
     return mutar(sin_paso, destino, despues_de, despues_de + paso)
 
 
-def sustituir(texto: str, viejo: str, nuevo: str) -> str:
-    """Mutante sobre el texto entero (fuera de un bloque de trabajo): cambia `viejo` por `nuevo` exactamente una vez, o falla."""
-    if texto.count(viejo) != 1:
-        raise AssertionError(f"el mutante no es aplicable: {viejo!r} aparece {texto.count(viejo)} veces en el texto")
-    mutante = texto.replace(viejo, nuevo)
-    if mutante == texto:
-        raise AssertionError(f"el mutante no cambia nada: {viejo!r} y {nuevo!r} son iguales")
-    return mutante
-
-
-def exigir_rojo(caso: unittest.TestCase, comprobacion, texto: str, fragmento: str | None = None) -> list[str]:
-    """El mutante `texto` debe poner `comprobacion` en rojo y, si se da `fragmento`, por la razón esperada: algún problema lo menciona."""
-    problemas = comprobacion(extraer_trabajos(texto))
-    caso.assertNotEqual(problemas, [], "el mutante debía poner la comprobación en rojo y pasó en verde")
-    if fragmento is not None:
-        caso.assertTrue(
-            any(fragmento in problema for problema in problemas),
-            f"el rojo no es por la razón esperada: ningún problema menciona {fragmento!r}: {problemas}",
-        )
-    return problemas
-
-
-def exigir_rojo_en_todos(
-    caso: unittest.TestCase, comprobacion, casos: dict, fragmento: str | None = None, fragmentos: dict[str, str] | None = None
-) -> None:
-    """Corre `exigir_rojo` por cada mutante de `casos`. El fragmento esperado sale, por orden, de `fragmentos[descripcion]`,
-    del `(texto, fragmento)` del propio caso o del `fragmento` común. `fragmentos` no puede nombrar un mutante que no existe."""
-    fragmentos = fragmentos or {}
-    caso.assertEqual(set(fragmentos) - set(casos), set(), "fragmentos para mutantes que no existen")
-    for descripcion, valor in casos.items():
-        texto, propio = valor if isinstance(valor, tuple) else (valor, fragmento)
-        with caso.subTest(mutante=descripcion):
-            exigir_rojo(caso, comprobacion, texto, fragmentos.get(descripcion, propio))
+# Los ayudantes de mutantes viven en `_ayudantes.py`. Aquí la comprobación recibe los trabajos del texto, no el texto.
+exigir_rojo = functools.partial(_exigir_rojo, preparar=extraer_trabajos)
+exigir_rojo_en_todos = functools.partial(_exigir_rojo_en_todos, preparar=extraer_trabajos)
 
 
 PASO_MYPY = "      - run: uv run mypy .\n"

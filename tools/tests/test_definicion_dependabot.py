@@ -39,7 +39,8 @@ DIRECTORIO_DE_PRUEBAS = os.path.dirname(os.path.abspath(__file__))
 if DIRECTORIO_DE_PRUEBAS not in sys.path:
     sys.path.insert(0, DIRECTORIO_DE_PRUEBAS)
 
-from test_definicion_ci import sin_comentarios  # noqa: E402  (la ruta se ajusta arriba)
+from _ayudantes import _sangria, exigir_rojo, exigir_rojo_en_todos, sustituir  # noqa: E402  (la ruta se ajusta arriba)
+from test_definicion_ci import sin_comentarios  # noqa: E402
 
 RAIZ = os.path.dirname(os.path.dirname(DIRECTORIO_DE_PRUEBAS))
 DIRECTORIO_GITHUB = os.path.join(RAIZ, ".github")
@@ -61,10 +62,6 @@ INTERVALO = "weekly"
 # ---------------------------------------------------------------------------------------------------------
 # Lectura de dependabot.yml
 # ---------------------------------------------------------------------------------------------------------
-
-
-def _sangria(linea: str) -> int:
-    return len(linea) - len(linea.lstrip(" "))
 
 
 def _desquillar(valor: str) -> str:
@@ -266,6 +263,11 @@ def comprobar_tc18(archivos: dict[str, str]) -> list[str]:
     )
 
 
+# Credenciales sintéticas de las pruebas: se arman por concatenación para que ningún escáner de secretos
+# las vea enteras en este archivo.
+CLAVE_AWS_SINTETICA = "AKIA" + "ABCDEFGHIJKLMNOP"
+TOKEN_GITHUB_SINTETICO = "ghp_" + "abcdefghijklmnopqrstuvwxyz0123456789"
+
 # Valores con forma de credencial real, vengan en la clave que vengan.
 FORMAS_DE_CREDENCIAL = (
     r"AKIA[0-9A-Z]{16}",
@@ -372,36 +374,8 @@ CABECERA = "# Actualizaciones semanales de dependencias.\nversion: 2\nupdates:\n
 DEPENDABOT_VALIDO = CABECERA + ENTRADA_UV + ENTRADA_NPM + ENTRADA_ACTIONS
 
 
-def sustituir(texto: str, viejo: str, nuevo: str) -> str:
-    """Cambia `viejo` por `nuevo` exactamente una vez, o falla: un mutante que no cambia nada daría un verde engañoso."""
-    if texto.count(viejo) != 1:
-        raise AssertionError(
-            f"el mutante no es aplicable: {viejo!r} aparece {texto.count(viejo)} veces"
-        )
-    return texto.replace(viejo, nuevo)
-
-
 def comentada(entrada: str) -> str:
     return "".join("  # " + linea.strip() + "\n" for linea in entrada.splitlines() if linea.strip())
-
-
-def exigir_rojo(caso: unittest.TestCase, comprobacion, entrada, fragmento: str) -> list[str]:
-    """El mutante debe poner `comprobacion` en rojo y por la razón esperada: algún problema contiene `fragmento`."""
-    problemas = comprobacion(entrada)
-    caso.assertNotEqual(
-        problemas, [], "el mutante debía poner la comprobación en rojo y pasó en verde"
-    )
-    caso.assertTrue(
-        any(fragmento in problema for problema in problemas),
-        f"el rojo no es por la razón esperada: ningún problema menciona {fragmento!r}: {problemas}",
-    )
-    return problemas
-
-
-def exigir_rojo_en_todos(caso: unittest.TestCase, comprobacion, casos: dict[str, tuple]) -> None:
-    for descripcion, (entrada, fragmento) in casos.items():
-        with caso.subTest(mutante=descripcion):
-            exigir_rojo(caso, comprobacion, entrada, fragmento)
 
 
 class PruebasDeMutantesDeTC15(unittest.TestCase):
@@ -916,11 +890,11 @@ class PruebasDeMutantesDeEnvExample(unittest.TestCase):
         """RNF-07 · CA-11 esc. 3 · TC-18 — rechazo: la forma de una credencial de proveedor falla aunque la clave no parezca sensible."""
         casos = {
             "clave de acceso de AWS": (
-                ENV_VALIDO + "CIMENTA_S3_ACCESO=AKIAABCDEFGHIJKLMNOP\n",
+                ENV_VALIDO + "CIMENTA_S3_ACCESO=" + CLAVE_AWS_SINTETICA + "\n",
                 "forma de credencial real",
             ),
             "token de GitHub": (
-                ENV_VALIDO + "CIMENTA_OTRO=ghp_abcdefghijklmnopqrstuvwxyz0123456789\n",
+                ENV_VALIDO + "CIMENTA_OTRO=" + TOKEN_GITHUB_SINTETICO + "\n",
                 "forma de credencial real",
             ),
             "clave privada": (
@@ -928,9 +902,7 @@ class PruebasDeMutantesDeEnvExample(unittest.TestCase):
                 "forma de credencial real",
             ),
             "credencial de prueba con forma de token": (
-                sustituir(
-                    ENV_VALIDO, "Cimenta-Prueba-2026", "ghp_abcdefghijklmnopqrstuvwxyz0123456789"
-                ),
+                sustituir(ENV_VALIDO, "Cimenta-Prueba-2026", TOKEN_GITHUB_SINTETICO),
                 "CIMENTA_PRUEBA_CONTRASENA: el valor tiene forma de credencial real",
             ),
         }
