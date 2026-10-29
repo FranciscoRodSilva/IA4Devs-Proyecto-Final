@@ -388,26 +388,3 @@ No es una revisión genérica de estilo, que ya hacen Ruff y ESLint. Es una list
 Varios puntos los cubre también, en todo o en parte, una comprobación automática: el 1, el 2, la mitad del 3 que es un `dominio/` con importaciones prohibidas, y el 6, con el linter, `import-linter` y las pruebas de permisos de la base; la mitad del 5 que es un escenario sin test, con el verificador de [ADR-012](adr/20260918-trazabilidad-escenario-test.md); la mitad del 9 que es lo simulado en el `consumido`, con el test de HDU-006 esc. 15 y el arranque que rechaza el adaptador simulado en producción; y el 11, con la prueba de contrato de TKT-061. Si la revisión de la IA y esa comprobación discrepan, manda la comprobación. Para la IA queda lo que exige leer intención: los puntos 4, 7, 8 y 10, y las otras mitades del 3, del 5 y del 9 —una regla escondida en un controlador, un test de rechazo que no afirma el rechazo, un ticket que adelanta la fase 2—.
 
 > **Por qué la IA revisa y no aprueba.** Un agente que escribe el código y otro que lo aprueba forman un circuito sin nadie dentro. La revisión automática existe para que la persona que aprueba llegue al PR con los once puntos ya mirados y dedique su atención al significado, que es lo único que la IA no puede validar.
-
-## Ensayo de compuertas (no fusionar)
-
-Esta sección existe solo en el PR de ensayo de TKT-009d y se revierte en la segunda ronda.
-
-Un enlace relativo roto: [documento que no existe](no-existe-ensayo.md).
-
-Un enlace externo roto: [página que no existe](https://github.com/FranciscoRodSilva/enlace-roto-cimenta-ensayo-009d).
-
-Una errata del vocabulario del glosario: la obra usa tablaroka en los muros.
-
-Un bloque de código sin idioma:
-
-```
-sin idioma
-```
-
-Un diagrama de Mermaid con sintaxis inválida:
-
-```mermaid
-flowchart TD
-  A -> B
-```
