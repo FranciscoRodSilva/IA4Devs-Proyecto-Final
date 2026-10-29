@@ -248,4 +248,4 @@ Detectados de paso. **No se implementan aquí.**
 - [x] `ruff`, `mypy`, `lint-imports` limpios (en el trabajo `backend` y `fronteras`)
 - [x] Rama correcta y sin secretos en el diff
 
-**Pendiente de comprobar tras el último commit:** el pipeline completo no se volvió a ejecutar sobre `199f37f`; el siguiente empuje del PR #2 lo hará. Quedan además dos acciones locales tuyas: restaurar `frontend/node_modules` (`npm ci`, tras cerrar el proceso que lo bloquea) y las contraseñas de roles de tu base de desarrollo, que `contrasenas_roles` reescribió con los valores de tu `.env`.
+**Pipeline tras el último cambio de pruebas:** el pipeline completo se volvió a ejecutar sobre `15b08ff`, que incluye el commit `199f37f`, y los ocho trabajos terminaron en verde (`actions/runs/40793874972`). Quedan dos acciones locales tuyas: restaurar `frontend/node_modules` (`npm ci`, tras cerrar el proceso que lo bloquea) y las contraseñas de roles de tu base de desarrollo, que `contrasenas_roles` reescribió con los valores de tu `.env`.
