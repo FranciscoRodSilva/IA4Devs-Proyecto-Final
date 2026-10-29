@@ -34,7 +34,7 @@ Se elige el **estilo propio mínimo** porque:
 
 **Navegador en el corredor.** `mmdc` necesita Chromium, y `.github/puppeteer-config.json` pasa `--no-sandbox` al lanzarlo en el corredor efímero de GitHub Actions. El corredor solo renderiza documentación del propio repositorio. Se acepta como coste `(asumido)`: la causa, que el sandbox de Chromium necesita espacios de nombres de usuario que el corredor no concede, no se ha comprobado en el corredor.
 
-**lychee.** `include_fragments = "none"` en lugar de `false`. La versión 0.24.2 rechaza el booleano («wanted string or table»), y comprobado. El valor `"none"` conserva la decisión del diseño: las anclas las comprueba `tools/verificar_docs.py` con el algoritmo de GitHub.
+**lychee.** `include_fragments = "none"` en lugar de `false`. La versión 0.24.2 rechaza el booleano («wanted string or table»), y comprobado. El valor `"none"` conserva la decisión del diseño: las anclas las comprueba `tools/verificar_docs.py` con el algoritmo de GitHub. `lychee.toml` excluye `^https://medium\.com/`: Medium responde `403` al corredor de GitHub y `200` a una persona, así que su bloqueo a las IP de los corredores no es un enlace roto. El resto de enlaces externos sigue comprobándose.
 
 **Medición de la línea base.** Antes de editar, sobre 119 archivos del alcance: 586 hallazgos de `markdownlint-cli2`, de los que 162 no corrige `--fix` (MD040, MD028, MD025 y MD001); 20 alertas de Vale (10 de `Vale.Terms`, 5 de `Vale.Repetition` y 5 de `Cimenta.Vocabulario`); y 1 enlace roto de lychee. Lo que `--fix` no corrige, más Vale y lychee, suma 183, por encima del umbral de 120 de `A-5`. La persona que aprueba decidió seguir en TKT-009d en lugar de separar la limpieza en otro ticket.
 

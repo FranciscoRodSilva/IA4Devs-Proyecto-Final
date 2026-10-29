@@ -51,6 +51,8 @@ El pipeline las corre en el trabajo `herramientas`, con `unittest` y sin `-v`, y
 
 `test_definicion_ci.py` comprueba la definición de `.github/workflows/ci.yml`: que cada compuerta esté en su trabajo, en el orden que exige el criterio, con sus comandos, permisos y disparadores. Lee el texto del flujo con expresiones regulares, porque la biblioteca estándar no trae analizador de YAML. El fijado de las acciones por SHA no lo comprueba este archivo: lo revisa `zizmor`, que sí analiza los flujos. Se ejecuta desde la raíz con `python -m unittest tools.tests.test_definicion_ci -v`.
 
+`test_definicion_documentacion.py` comprueba los pasos de documentación del trabajo `documentacion` de ese mismo flujo y el detector semanal `.github/workflows/enlaces.yml`: el orden de los pasos, la versión fijada de cada herramienta, las guardas y que `lychee` use la misma configuración en ambos flujos. Se ejecuta desde la raíz con `python -m unittest tools.tests.test_definicion_documentacion -v`.
+
 ## `extraer_mermaid.py`
 
 ```bash

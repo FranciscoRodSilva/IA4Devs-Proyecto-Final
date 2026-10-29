@@ -295,7 +295,7 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 | D2 | **Medición de la línea base, sin editar.** Sobre el alcance: hallazgos de `markdownlint-cli2` por regla; los que quedan tras `--fix` en una copia desechable; alertas de `Vale` por regla; enlaces rotos de `lychee`. Tabla en `impl.md`. **Umbral:** si los hallazgos que `--fix` no corrige, más las alertas de `Vale`, más los enlaces rotos suman **más de 120**, la parte se detiene y se ejecuta `/sdd-escalar` proponiendo partir la limpieza en su propio ticket. Si `Vale.Repetition` marca celdas contiguas de tabla como repetición, se desactiva la regla en `.vale.ini` y se anota; ninguna otra regla se apaga para bajar el número | — | `ingeniero-devsecops` | `haiku` | Tabla de recuento en `impl.md` y decisión aplicada según el umbral | ✓ Hecho |
 | D3 | Limpieza automática: `markdownlint-cli2 --fix` sobre el alcance, en un commit propio que no contiene otro cambio, después de fusionadas las partes a, c y b | TC-69 (parcial) | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con el mismo número de escenarios y de puntos; `git diff -U0 -- docs/04-historias-usuario.md` sin ninguna línea `**Escenario N:` cambiada (si aparece, se revierte a mano); `git diff --stat` en `impl.md` | ✓ Hecho |
 | D4 | Limpieza manual de lo que queda, un commit por herramienta | TC-69 | `ingeniero-devsecops` | `haiku` | `markdownlint-cli2`, `vale --output=line` y `lychee` sobre el alcance, con cero hallazgos | ✓ Hecho |
-| D5 | Pasos nuevos del trabajo `documentacion`, `.github/workflows/enlaces.yml` y sus casos en `test_definicion_ci.py` | TC-64, TC-65 | `ingeniero-devsecops` | `haiku` | TC-64 y TC-65 en verde; `zizmor` en 0 | ✓ Hecho |
+| D5 | Pasos nuevos del trabajo `documentacion`, `.github/workflows/enlaces.yml` y sus casos en `test_definicion_documentacion.py` | TC-64, TC-65 | `ingeniero-devsecops` | `haiku` | TC-64 y TC-65 en verde; `zizmor` en 0 | ✓ Hecho |
 | D6 | Ensayo en el pipeline de la parte d | TC-62, TC-63, TC-66, TC-67, TC-68 | `git-entrega` | `haiku` | Cada violación pone el trabajo en rojo citando archivo y línea; ronda de limpieza en verde | ✓ Hecho |
 | D7 | Documentación, marcas y ADR de `Vale` en español | TC-70d | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 y el trabajo `documentacion` en verde | ✓ Hecho |
 
@@ -306,6 +306,9 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 - **`include_fragments = "none"`, no `false`** (`lychee.toml`, fila D1). `lychee` 0.24.2 rechaza el booleano («wanted string or table»). `"none"` conserva la decisión del diseño: las anclas las comprueba `verificar_docs.py`.
 - **`mermaid-cli` con lockfile y `npm ci`** (pasos del trabajo `documentacion`, fila D5). La instalación es `npm ci` sobre `.github/mermaid/package-lock.json`, y no `npm install --no-save`. zizmor marca la instalación de paquetes fuera de un lockfile con la regla `adhoc-packages`, y así se comprobó. Las versiones quedan fijadas en `package.json` y en el lockfile.
 - **`concurrency` en `enlaces.yml`** (fila D5). El flujo lleva `concurrency` con el grupo `enlaces` y `cancel-in-progress: false`, para que el cron de los lunes y una lanzada manual no se solapen. El texto del diseño no lo menciona.
+- **Pruebas de la parte d en `test_definicion_documentacion.py`** (fila D5). Las pruebas de `documentacion` y de `enlaces.yml` viven en `tools/tests/test_definicion_documentacion.py`, no en `test_definicion_ci.py`: el archivo de las partes a y b ya pasa de 3100 líneas, y un archivo por tema es más legible (asumido).
+- **`lycheeVersion: v0.24.2` explícito** (trabajos `documentacion` y `enlaces.yml`, fila D5). La acción `lychee-action` no depende de su valor por omisión, que podría cambiar (regla común 3).
+- **`medium.com` excluido de `lychee`** (`lychee.toml`, fila D1; ajuste en D6). Medium responde `403` al corredor de GitHub y `200` a una persona, así que el enlace no está roto: el primer PR lo puso en rojo. El resto de enlaces externos sigue comprobándose.
 
 ## Ensayo de compuertas
 
@@ -330,7 +333,7 @@ El cron de `enlaces.yml` no se puede lanzar antes de que el archivo llegue a la 
 
 ## Plan de pruebas
 
-Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el texto de los workflows con expresiones regulares: `tools/` no tiene dependencias y no hay un analizador de YAML en la biblioteca estándar. De lo que mira `zizmor` solo se repiten los permisos y los disparadores (TC-21 y TC-22), porque `CA-12` los exige comprobables en la propia definición; el fijado por SHA y las credenciales persistidas quedan solo en `zizmor`.
+Los casos «estáticos» de las partes a, b y c viven en `tools/tests/test_definicion_ci.py`, y los de la parte d en `tools/tests/test_definicion_documentacion.py`. Leen el texto de los workflows con expresiones regulares: `tools/` no tiene dependencias y no hay un analizador de YAML en la biblioteca estándar. De lo que mira `zizmor` solo se repiten los permisos y los disparadores (TC-21 y TC-22), porque `CA-12` los exige comprobables en la propia definición; el fijado por SHA y las credenciales persistidas quedan solo en `zizmor`.
 
 | # | Caso | Tipo | Criterio que cubre | Escenario |
 |---|---|---|---|---|
