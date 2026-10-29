@@ -357,17 +357,17 @@ Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `
 - [x] Suite en verde, con la salida pegada arriba (backend `1138 passed`; 295 pruebas de `tools/` tras los tres ciclos de la revisión)
 - [x] ≥1 test de rechazo por regla implicada
 - [x] Mutación en las rutas críticas del filtro y de la comprobación `comprobar_tc14`
-- [ ] Todas las auditorías `APROBADO`: **no**. Seguridad quedó en `APROBADO` en su reauditoría del ciclo 1. Código, arquitectura y documentación quedaron en `REQUIERE CAMBIOS` en la reauditoría del ciclo 3 (código y arquitectura con Menores; documentación con un Mayor, la marca `(asumido)` y la pregunta abierta sobre el corte). Los textos literales que pidieron se aplicaron después, con la suite y `verificar_docs.py` en verde, **sin una reauditoría formal**, porque los tres ciclos de corrección ya estaban agotados
-- [x] Sin hallazgo crítico pendiente. El Mayor documental de la reauditoría 3 se corrigió con su texto literal, pero queda como decisión de la persona que aprueba (`A-12`)
+- [ ] Todas las auditorías `APROBADO`: **no, con excepción aceptada** (ver el veredicto). Seguridad quedó en `APROBADO` en su reauditoría del ciclo 1. Código, arquitectura y documentación quedaron en `REQUIERE CAMBIOS` en la reauditoría del ciclo 3 (código y arquitectura con Menores; documentación con un Mayor, la marca `(asumido)` y la pregunta abierta sobre el corte). Los textos literales que pidieron se aplicaron después, con la suite y `verificar_docs.py` en verde, **sin una reauditoría formal**, porque los tres ciclos de corrección ya estaban agotados
+- [x] Sin hallazgo crítico pendiente. El Mayor documental de la reauditoría 3 se corrigió con su texto literal y `A-12` quedó aceptada por la persona que aprueba
 - [x] Documentación afectada actualizada en este mismo cambio
 - [x] `lint-imports` en `15 kept, 0 broken`; `ruff` y `mypy --strict` limpios sobre los archivos nuevos de `tools/`; el backend corrió `ruff`, `mypy`, `lint-imports` y `verificar_float` en verde
 - [x] Rama correcta y sin secretos en el diff
 
 ## Veredicto de la revisión (2026-10-29)
 
-**`REQUIERE DECISIÓN`.** El trabajo está completo: los criterios `[M]` están cumplidos con evidencia, la suite pasa y no hay hallazgos críticos. No se emite `LISTO PARA PR` por dos motivos que no le corresponden a un agente:
+**`LISTO PARA PR`, con una excepción aceptada.** Los criterios `[M]` están cumplidos con evidencia, la suite pasa (backend 1138, `tools/` 295) y no queda ningún hallazgo crítico ni mayor sin atender. La revisión se cerró primero en `REQUIERE DECISIÓN` por dos asuntos que no le corresponden a un agente, y la persona que aprueba los resolvió el mismo día:
 
-1. **Decisión de diseño `A-12`.** El filtro corta en el primer `GHSA` `HIGH` o `CRITICAL` de un hallazgo. El código de salida es siempre el correcto; solo cambia la etiqueta (`ALTA` en lugar de `CRÍTICA`). Lo introdujo el corrector para conciliar dos pruebas y cambia el diseño aprobado, así que debe confirmarlo quien aprueba. Lo mismo vale para la extensión de `A-3` a `DESCONOCIDA` y a los fallos de red.
-2. **Excepción de cierre.** Tres auditores terminaron en `REQUIERE CAMBIOS` con los ciclos agotados y sus textos literales se aplicaron sin una reauditoría. Es la misma excepción que se aceptó en TKT-009a y TKT-009c, y la persona dueña debe aceptarla.
+1. **Decisión de diseño `A-12`: aceptada.** El filtro corta en el primer `GHSA` `HIGH` o `CRITICAL` de un hallazgo. El código de salida es siempre el correcto; solo cambia la etiqueta (`ALTA` en lugar de `CRÍTICA`). Lo mismo vale para la extensión de `A-3` a `DESCONOCIDA` y a los fallos de red. La respuesta de la persona que aprueba fue: «Sí, acepto».
+2. **Excepción de cierre: aceptada.** Código, arquitectura y documentación terminaron en `REQUIERE CAMBIOS` en la reauditoría del ciclo 3, con los tres ciclos de corrección agotados, y sus textos literales se aplicaron sin una reauditoría formal. Seguridad quedó en `APROBADO`. Es la misma excepción que se aceptó en TKT-009a y TKT-009c.
 
 **Tareas de la persona dueña, fuera del código:** borrar la rama remota `ensayo/tkt-009b-secreto` (commit `0c3a99e`, sin token) y confirmar que el token del segundo intento de B5 está revocado. Antes del PR, empujar los commits locales de la rama del ticket y rebasarla sobre `Produccion` cuando 009a y 009c se fusionen.

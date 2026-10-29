@@ -144,7 +144,7 @@ class Hallazgo:
     paquete: str
     version: str
     identificador: str            # el `id` de pip-audit
-    aviso: str | None             # el GHSA-… que fija la severidad: el peor de los consultados, con corte en el primer HIGH o CRITICAL (asumido, a confirmar por quien aprueba); None si no hay ninguno
+    aviso: str | None             # el GHSA-… que fija la severidad: el peor de los consultados, con corte en el primer HIGH o CRITICAL (asumido; confirmado por quien aprueba el 2026-10-29, `A-12`); None si no hay ninguno
     severidad: str                # LOW · MODERATE · HIGH · CRITICAL · DESCONOCIDA
 
 def leer_informe(texto: str) -> list[dict]: ...   # acepta {"dependencies": [...]} y la lista antigua
