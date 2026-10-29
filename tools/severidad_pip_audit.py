@@ -5,7 +5,10 @@
 JSON, toma la severidad del aviso de GitHub (`GHSA-…`) consultando OSV en `database_specific.severity`, y falla
 ante `HIGH`, `CRITICAL` o severidad desconocida. `LOW` y `MODERATE` se informan y no fallan.
 
-Sin severidad o sin `GHSA` no hay nada que consultar: el hallazgo es `DESCONOCIDA` y falla (fallo cerrado).
+Un hallazgo puede tener varios `GHSA` (el `id` y sus alias). Se consulta cada `GHSA` distinto una sola vez y gana
+el peor (`CRITICAL` > `HIGH` > `DESCONOCIDA` > `MODERATE` > `LOW`): basta un `GHSA` que falle para que falle el
+hallazgo (al primero `HIGH` o `CRITICAL` se deja de consultar). Una consulta sin severidad válida es `DESCONOCIDA`. Sin ningún `GHSA` no hay nada que consultar: el
+hallazgo es `DESCONOCIDA` y falla (fallo cerrado).
 
 Uso, desde la raíz del repositorio:
     python tools/severidad_pip_audit.py <ruta del informe JSON de pip-audit>
@@ -17,6 +20,7 @@ falla. No existe `--ignore-vuln`: las excepciones se declaran en el paso de `pip
 from __future__ import annotations
 
 import argparse
+import http.client
 import io
 import json
 import sys
@@ -25,6 +29,7 @@ import urllib.request
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 # Severidades de OSV (la del aviso de GitHub) que fallan el pipeline (RNF-08). `DESCONOCIDA` falla aparte.
 SEVERIDADES_QUE_FALLAN = frozenset({"HIGH", "CRITICAL"})
@@ -42,13 +47,16 @@ ETIQUETAS = {
 }
 SUFIJO_QUE_FALLA = "→ falla el pipeline (RNF-08)"
 PREFIJO_GHSA = "GHSA-"
+# Del peor al mejor: la posición decide qué severidad gana entre varios GHSA de un mismo hallazgo.
+ORDEN_DE_GRAVEDAD = ("CRITICAL", "HIGH", DESCONOCIDA, "MODERATE", "LOW")
+TOPE_RESPUESTA_OSV = 1_000_000  # bytes
 
 
 @dataclass(frozen=True)
 class Hallazgo:
     """Una vulnerabilidad de `pip-audit` con su severidad (RNF-08).
 
-    `aviso` es el primer `GHSA-…` entre el id y los alias, o `None` si no existe. `alias` son los alias del aviso de
+    `aviso` es el `GHSA-…` que decidió la severidad (el de la peor), o `None` si el hallazgo no tiene ninguno. `alias` son los alias del aviso de
     `pip-audit` tal como llegan; no entra en la igualdad, que solo mira lo que decide el filtro.
     """
 
@@ -60,13 +68,13 @@ class Hallazgo:
     alias: tuple[str, ...] = field(default=(), compare=False)
 
 
-def leer_informe(texto: str) -> list[dict]:
+def leer_informe(texto: str) -> list[dict[str, Any]]:
     """Devuelve la lista de dependencias del informe de `pip-audit` (RNF-08).
 
     Acepta el objeto `{"dependencies": [...]}` de la versión actual y la lista sin envoltorio de las antiguas.
     Cualquier otra forma es `ValueError`: un informe que no se entiende no pasa en verde.
     """
-    datos = json.loads(texto)
+    datos: object = json.loads(texto)
     if isinstance(datos, dict):
         datos = datos.get("dependencies")
     if not isinstance(datos, list) or not all(
@@ -88,27 +96,37 @@ def leer_informe(texto: str) -> list[dict]:
                 vulnerabilidad.get("id"), str
             ):
                 raise ValueError("una vulnerabilidad no declara su «id»")
-            if not isinstance(vulnerabilidad.get("aliases", []), list):
+            aliases = vulnerabilidad.get("aliases", [])
+            if not isinstance(aliases, list):
                 raise ValueError("«aliases» no es una lista")
+            if not all(isinstance(valor, str) for valor in aliases):
+                raise ValueError("«aliases» no es una lista de cadenas")
     return datos
 
 
-def consultar_osv(identificador: str) -> dict:
-    """Pide a OSV el aviso `identificador` y devuelve su respuesta (RNF-08).
+def consultar_osv(identificador: str) -> object:
+    """Pide a OSV el aviso `identificador` y devuelve su respuesta ya decodificada (RNF-08).
 
-    No captura los errores de red ni de formato: `main` los convierte en código 2, para que un fallo de consulta
-    nunca se confunda con un informe limpio.
+    Lee a lo sumo `TOPE_RESPUESTA_OSV` bytes: una respuesta mayor es `ValueError`. No captura los demás errores de
+    red ni de formato: `main` los convierte en código 2, para que un fallo de consulta nunca se confunda con un
+    informe limpio.
     """
     url = URL_OSV.format(urllib.parse.quote(identificador, safe=""))
     with urllib.request.urlopen(url, timeout=TIEMPO_LIMITE_OSV) as respuesta:
-        return json.loads(respuesta.read().decode("utf-8"))
+        cuerpo: bytes = respuesta.read(TOPE_RESPUESTA_OSV + 1)
+    if len(cuerpo) > TOPE_RESPUESTA_OSV:
+        raise ValueError(f"la respuesta de OSV supera {TOPE_RESPUESTA_OSV} bytes")
+    datos: object = json.loads(cuerpo.decode("utf-8"))
+    return datos
 
 
-def _aviso_ghsa(identificador: str, alias: tuple[str, ...]) -> str | None:
-    """El primer `GHSA-…` entre el id y los alias, o `None` (RNF-08, supuesto A-3)."""
-    if identificador.startswith(PREFIJO_GHSA):
-        return identificador
-    return next((valor for valor in alias if valor.startswith(PREFIJO_GHSA)), None)
+def _avisos_ghsa(identificador: str, alias: tuple[str, ...]) -> list[str]:
+    """Todos los `GHSA-…` distintos entre el id y los alias, en ese orden y sin duplicados (RNF-08, supuesto A-3)."""
+    avisos: list[str] = []
+    for valor in (identificador, *alias):
+        if valor.startswith(PREFIJO_GHSA) and valor not in avisos:
+            avisos.append(valor)
+    return avisos
 
 
 def _severidad_de(respuesta: object) -> str:
@@ -122,8 +140,29 @@ def _severidad_de(respuesta: object) -> str:
     return DESCONOCIDA
 
 
-def clasificar(dependencias: list[dict], consultar: Callable[[str], dict]) -> list[Hallazgo]:
-    """Un `Hallazgo` por vulnerabilidad, con la severidad de OSV para su aviso GHSA (RNF-08).
+def _peor(avisos: list[str], consultar: Callable[[str], object]) -> tuple[str | None, str]:
+    """Consulta cada GHSA una vez y devuelve el que tiene la peor severidad, con esa severidad (RNF-08).
+
+    Ante un empate gana el primero. En cuanto un GHSA da `HIGH` o `CRITICAL` el hallazgo ya falla y no se consultan
+    los siguientes. Sin GHSA devuelve `(None, DESCONOCIDA)` sin consultar.
+    """
+    peor_aviso: str | None = None
+    peor_severidad = DESCONOCIDA
+    peor_rango = len(ORDEN_DE_GRAVEDAD)
+    for aviso in avisos:
+        severidad = _severidad_de(consultar(aviso))
+        rango = ORDEN_DE_GRAVEDAD.index(severidad)
+        if rango < peor_rango:
+            peor_aviso, peor_severidad, peor_rango = aviso, severidad, rango
+        if peor_severidad in SEVERIDADES_QUE_FALLAN:
+            break  # el hallazgo ya falla: consultar más GHSA no cambia el resultado
+    return peor_aviso, peor_severidad
+
+
+def clasificar(
+    dependencias: list[dict[str, Any]], consultar: Callable[[str], object]
+) -> list[Hallazgo]:
+    """Un `Hallazgo` por vulnerabilidad, con la peor severidad de OSV entre todos sus avisos GHSA (RNF-08).
 
     Sin GHSA no se consulta nada y la severidad es `DESCONOCIDA`. `consultar` se inyecta para que las pruebas no
     toquen la red.
@@ -133,8 +172,7 @@ def clasificar(dependencias: list[dict], consultar: Callable[[str], dict]) -> li
         for vulnerabilidad in dependencia.get("vulns", []):
             identificador = vulnerabilidad["id"]
             alias = tuple(vulnerabilidad.get("aliases", []))
-            aviso = _aviso_ghsa(identificador, alias)
-            severidad = DESCONOCIDA if aviso is None else _severidad_de(consultar(aviso))
+            aviso, severidad = _peor(_avisos_ghsa(identificador, alias), consultar)
             hallazgos.append(
                 Hallazgo(
                     dependencia["name"],
@@ -185,13 +223,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         dependencias = leer_informe(argumentos.informe.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, RecursionError) as error:
         print(f"no se puede leer el informe de pip-audit: {error}", file=sys.stderr)
         return 2
 
     try:
         hallazgos = clasificar(dependencias, consultar_osv)
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, RecursionError, http.client.HTTPException) as error:
         print(f"falla la consulta a OSV: {error}", file=sys.stderr)
         return 2
 
