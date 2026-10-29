@@ -84,3 +84,39 @@ La última línea resume los recuentos: escenarios, exigidos, cubiertos, faltan,
 **Cómo se actualiza `tools/historias_activas.txt`.** La planificación de cada sprint añade una línea `HDU-NNN` por cada historia que entra en él, y añade la línea `fase 2` cuando empieza la fase 2. Las líneas que empiezan por `#` son comentarios. Ninguna línea sale del archivo: si una historia sale, el verificador da `ERROR` contra la base del PR. Un escenario retirado se marca con su segmento en el título del documento de historias, nunca quitando la historia de la lista.
 
 **Pruebas.** `python -m unittest discover -s tools/tests -v` las ejecuta junto con el resto de `tools/`, y el trabajo `herramientas` las corre con esa misma orden. Los casos de `tools/tests/test_verificar_escenarios.py` construyen documentos de ejemplo en un directorio temporal; el de «árbol real» lee el repositorio.
+
+## `severidad_pip_audit.py`
+
+```bash
+python tools/severidad_pip_audit.py <ruta del informe JSON de pip-audit>
+```
+
+No es un verificador de documentación: es la compuerta de severidad del trabajo `dependencias` del pipeline (RNF-08), y vive en `tools/` porque usa solo la biblioteca estándar, como el resto. `pip-audit` encuentra vulnerabilidades en el lock del backend, pero su informe no trae la severidad. El script toma el primer identificador `GHSA-…` del aviso, consulta OSV en `https://api.osv.dev/v1/vulns/<GHSA>` con un tiempo límite de 15 segundos y lee `database_specific.severity`. Un hallazgo sin `GHSA` no se consulta y queda como `DESCONOCIDA`.
+
+El informe se produce con `pip-audit -f json -o <archivo>`, y el script acepta tanto el objeto `{"dependencies": […]}` de la versión actual como la lista sin envoltorio de las antiguas. Cualquier otra forma es un error de lectura.
+
+**Etiquetas.** Una línea por hallazgo, con su etiqueta, el paquete, la versión, el aviso y los alias entre paréntesis. Así se ve en el registro del pipeline:
+
+```text
+ALTA  django 3.2  GHSA-xxxx-xxxx-xxxx (CVE-2021-0001, PYSEC-2021-1) → falla el pipeline (RNF-08)
+MEDIA  nanoid 3.1.30  GHSA-xxxx-xxxx-xxxx
+DESCONOCIDA  paquete 1.0.0  PYSEC-2099-1 → falla el pipeline (RNF-08)
+```
+
+Las etiquetas son `BAJA` (`LOW`), `MEDIA` (`MODERATE`), `ALTA` (`HIGH`), `CRÍTICA` (`CRITICAL`) y `DESCONOCIDA`. La línea lleva el sufijo `→ falla el pipeline (RNF-08)` solo cuando el hallazgo falla. Al final imprime `Hallazgos: <n> · que fallan el pipeline: <m>`; si el informe no tiene vulnerabilidades, imprime `Sin vulnerabilidades en el informe de pip-audit.`
+
+**Códigos de salida.**
+
+| Código | Cuándo |
+|---|---|
+| `0` | Ningún hallazgo falla. Los `BAJA` y `MEDIA` se informan |
+| `1` | Algún hallazgo es `ALTA`, `CRÍTICA` o `DESCONOCIDA` |
+| `2` | El informe no existe, no se puede leer o no tiene la forma esperada, o la consulta a OSV falla. El error va por la salida de error |
+
+El código `2` existe para que un fallo de `pip-audit` o de la red no pase en verde.
+
+No hay opción `--ignore-vuln` en el script. Una excepción se declara en el paso de `pip-audit` del workflow, con un comentario que nombre quién la decidió, su motivo y la fecha de revisión; el script nunca la ve, porque `pip-audit` ya no la reporta.
+
+**Pruebas sin red.** `python -m unittest tools.tests.test_severidad_pip_audit -v` tiene treinta casos. La consulta a OSV se inyecta en `clasificar` y en `main`, y `urllib.request.urlopen` se sustituye en todas las pruebas por una función que falla si alguna la llama. Ninguna prueba toca OSV. El trabajo `herramientas` las corre con el resto de `tools/`, y la guarda de `skipped=` las incluye.
+
+Sobre el árbol real, el paso de `pip-audit` seguido de este script termina en 0. Cómo reproducirlo en local está en [`arranque-local.md`](../docs/arranque-local.md#auditar-las-dependencias-en-local).

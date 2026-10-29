@@ -27,7 +27,7 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 24 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 25 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`tools/`](tools/README.md) | Verificadores de la documentación y del pipeline: enlaces, anclas, identificadores, conteos, diagramas y escenarios sin test |

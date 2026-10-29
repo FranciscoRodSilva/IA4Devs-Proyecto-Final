@@ -381,6 +381,8 @@ Que otro ticket dependa de TKT-009 significa que depende de los cuatro. TKT-061 
 - [ ] `.github/dependabot.yml` para `uv`, `npm` y `github-actions`
 - [ ] Escaneo de secretos y protección de empuje activos, comprobados con `gh api` y un empuje de ensayo con un token revocado
 
+La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-10-29](adr/20261029-severidad-en-la-auditoria-de-dependencias.md).
+
 ##### TKT-009d · Calidad de documentación
 
 **Qué hace.** Configura `markdownlint-cli2`, `Vale` con el vocabulario del glosario, `lychee` y `mermaid-cli` en el pipeline, y el detector de enlaces en un cron semanal. Limpia la línea base de avisos, que nunca se había ejecutado: aviso en local y error en CI.
