@@ -1,7 +1,7 @@
 exclude_path = ["node_modules", ".venv", "Doc de contexto"]
 exclude_loopback = true
 exclude_all_private = true
-include_fragments = false
+include_fragments = "none"
 max_retries = 3
 timeout = 20
 accept = ["200..=206", "429"]
