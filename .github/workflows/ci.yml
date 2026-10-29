@@ -297,3 +297,7 @@ jobs:
         if: ${{ !cancelled() }}
         working-directory: frontend
         run: npm audit --audit-level=high
+      - name: Auditar el lock de mermaid-cli
+        if: ${{ !cancelled() }}
+        working-directory: .github/mermaid
+        run: npm audit --audit-level=high
