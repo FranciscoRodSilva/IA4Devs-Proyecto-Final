@@ -6,7 +6,7 @@
 
 Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#parte-b--cadena-de-suministro). `pip-audit` entra en el grupo `dev`. El filtro `tools/severidad_pip_audit.py` toma la severidad del aviso de GitHub en OSV y falla ante `HIGH`, `CRITICAL` o severidad desconocida. El trabajo `dependencias` de `ci.yml` encadena `uv export`, `pip-audit`, el filtro y `npm audit --audit-level=high`. Dependabot cubre `uv`, `npm` y `github-actions` cada semana. El ADR de severidad, la política de `docs/06` §6.4 y la guía de auditoría local cierran la documentación.
 
-**Quedan pendientes dos filas que no puede ejecutar un agente.** La fila B5 son los ajustes del repositorio (escaneo de secretos y protección de empuje), que ejecuta la persona dueña. La fila B6 es el ensayo en el pipeline, que exige una rama de ensayo y un PR en borrador que abre la persona usuaria a mano. La guía [ajustes-repositorio.md](ajustes-repositorio.md) deja redactados los comandos y las rondas. Por eso los escenarios `CA-10` esc. 2 y 3 en el pipeline, `CA-11` esc. 2 y `CA-R3` esc. 2 no tienen todavía evidencia, y este ticket **no puede pasar a `LISTO PARA PR`** hasta que la tengan.
+**La fila B5 la ejecutó la persona dueña el 2026-10-29** (ver «Fila B5» abajo). **Queda pendiente la fila B6**, el ensayo en el pipeline, que exige una rama de ensayo y un PR en borrador que abre la persona usuaria a mano. La guía [ajustes-repositorio.md](ajustes-repositorio.md) deja redactados los comandos y las rondas. Por eso los escenarios `CA-10` esc. 2 y 3 en el pipeline no tienen todavía evidencia, y este ticket **no puede pasar a `LISTO PARA PR`** hasta que la tengan.
 
 ## Ajustes respecto al design
 
@@ -52,7 +52,7 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 | TC-15 | `test_tc15_*` (1, más 8 de mutantes) | estático | `CA-11` esc. 1 | FALLA | PASA |
 | TC-18 | `test_tc18_*` (4, más mutantes) | **rechazo** (estático) | `CA-11` esc. 3, `CA-R3` | Nace en verde, ver abajo | PASA |
 | TC-R2a | `git diff` de `pyproject.toml` | regresión | `CA-R2` | `pip-audit --version` falla | `15 kept, 0 broken` |
-| TC-16, TC-17 | Manuales | **rechazo** | `CA-11` esc. 2, `CA-R3` esc. 2 | — | **Pendientes (B5)** |
+| TC-16, TC-17 | Manuales | **rechazo** | `CA-11` esc. 2, `CA-R3` esc. 2 | Empuje con un token revocado: aceptado, sin alerta | PASAN con un token activo sin permisos: `GH013` (B5) |
 | TC-11a, TC-11b | Ensayo en el pipeline | **rechazo** | `CA-10` esc. 2 y 3 | — | **Pendientes (B6)** |
 
 **Los casos de TC-18 sobre el repositorio real nacen en verde, y se investigó.** El invariante ya se cumple: `.github/` solo tiene `workflows/ci.yml`, sin exclusiones ni `secrets.`. Para que no sean vacuos, el lector exige que `ci.yml` exista y sus mutantes sintéticos (`paths-ignore` con `.env.example`, un `secret_scanning.yml`, `secrets.X`) sí los ponen en rojo.
@@ -127,6 +127,39 @@ Además, 12 pruebas sobre texto sintético (control, formas válidas y mutantes:
 
 `python tools/verificar_docs.py` → `✓ Sin problemas.` con 25 ADR y 159 archivos revisados de codificación. Los comandos de `docs/arranque-local.md` se ejecutaron tal cual: `Sin vulnerabilidades en el informe de pip-audit.`, código 0.
 
+#### Fila B5 · ajustes del repositorio (los ejecutó la persona dueña)
+
+**Estado antes** (`gh api repos/FranciscoRodSilva/IA4Devs-Proyecto-Final --jq '{visibility, security_and_analysis}'`): repositorio `public`, `secret_scanning` y `secret_scanning_push_protection` ya en `enabled`, `dependabot_security_updates` en `disabled`.
+
+**Ajustes aplicados:** `PUT .../vulnerability-alerts` y `PUT .../automated-security-fixes`, ambos sin salida (204). El `PATCH` de la guía no se ejecutó porque los dos ajustes de secretos ya estaban activos.
+
+**Estado después:**
+
+```
+dependabot_security_updates          enabled
+secret_scanning                      enabled
+secret_scanning_push_protection      enabled
+secret_scanning_non_provider_patterns disabled
+secret_scanning_validity_checks      disabled
+visibility                           public
+```
+
+**Empuje de ensayo, intento 1 (token revocado antes de pegarlo): sin bloqueo y sin alerta.** El empuje de `ensayo/tkt-009b-secreto` fue aceptado, y `GET .../secret-scanning/alerts` devolvió una lista vacía tanto justo después como unos minutos más tarde. No se conoce el prefijo del token usado, así que la causa no está establecida: puede que la protección ignore un token ya revocado, o que lo pegado no tuviera forma de token de GitHub. **Consecuencia para la guía:** pedir "revocado antes" no sirve como ensayo.
+
+**Empuje de ensayo, intento 2 (token personal clásico activo y sin permisos): rechazado.** Extracto del registro, sin el token ni la URL de desbloqueo:
+
+```
+remote: error: GH013: Repository rule violations found for refs/heads/ensayo/tkt-009b-secreto2.
+remote: - GITHUB PUSH PROTECTION
+remote:     - Push cannot contain secrets
+remote:       —— GitHub Personal Access Token ——
+remote:          - commit: a2a01501c0982c2cd87a14451c58705b73ebfb72
+remote:            path: ensayo-secreto.txt:2
+ ! [remote rejected] ensayo/tkt-009b-secreto2 -> ensayo/tkt-009b-secreto2 (push declined due to repository rule violations)
+```
+
+Se pidió y se aprobó el cambio de orden: el token se creó activo y sin permisos, y se revoca justo después del empuje. Como el empuje se rechazó, el secreto no llegó a quedar en GitHub en el intento 2. En el intento 1 sí llegó la rama `ensayo/tkt-009b-secreto` con un token revocado; se borra al terminar el ensayo.
+
 ## Modelo por paso
 
 | Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
@@ -151,13 +184,13 @@ Ningún paso subió de modelo. B5 la ejecuta la persona dueña y B6 queda para `
 | `CA-10` esc. 1 | `[M]` | Cumplido | TC-35 y TC-14; la cadena real da código 0 |
 | `CA-10` esc. 2 y 3 | `[M]` | **Parcial** | TC-30 a TC-34 en verde; falta el ensayo en el pipeline (B6, TC-11a y TC-11b) |
 | `CA-11` esc. 1 y 3 | `[M]` | Cumplido | TC-15 y TC-18 |
-| `CA-11` esc. 2 | `[M]` | **Pendiente** | Ajustes del repositorio y empuje de ensayo (B5, TC-16 y TC-17) |
+| `CA-11` esc. 2 | `[M]` | Cumplido | Consulta de `gh api` con los dos ajustes en `enabled`; empuje de ensayo rechazado con `GH013` (B5, TC-16 y TC-17) |
 | `CA-R2` | `[M]` | Cumplido | El diff de `pyproject.toml` es una línea del grupo `dev`; `15 kept, 0 broken` |
-| `CA-R3` | `[M]` | Parcial | Esc. 1 cumplido por TC-18 y TC-22; esc. 2 pendiente de B5 |
+| `CA-R3` | `[M]` | Cumplido | Esc. 1 por TC-18 y TC-22; esc. 2 por el empuje rechazado de B5 |
 | `CA-R4` | `[M]` | Cumplido | La suite de `tools/` pasa de 178 a 247 pruebas sin quitar ninguna ni añadir `skip` |
 | `CA-15` su parte | `[M]` | Cumplido | `docs/06` §6.4 y los textos de la auditoría; TC-70b sin marcas que retirar |
 
-Un Must incumplido **no se aprueba**: los tres criterios en pendiente o parcial bloquean el paso a `LISTO PARA PR`.
+Un Must incumplido **no se aprueba**: `CA-10` esc. 2 y 3 sigue parcial hasta el ensayo de B6, y bloquea el paso a `LISTO PARA PR`.
 
 ## Auditorías
 
@@ -197,7 +230,7 @@ Observaciones del auditor que no bloquean: `_aviso_ghsa` solo consulta el primer
 
 ## Verificación final
 
-- [ ] Todos los criterios `[M]` cumplidos con evidencia: **faltan `CA-10` esc. 2 y 3 en el pipeline, `CA-11` esc. 2 y `CA-R3` esc. 2 (B5 y B6)**
+- [ ] Todos los criterios `[M]` cumplidos con evidencia: **faltan `CA-10` esc. 2 y 3 en el pipeline (B6)**
 - [x] Ciclo TDD completo en cada fila ejecutable por un agente: rojo antes de verde, ningún test editado por un desarrollador
 - [x] Suite en verde, con la salida pegada arriba (247 pruebas de `tools/`)
 - [x] ≥1 test de rechazo por regla implicada

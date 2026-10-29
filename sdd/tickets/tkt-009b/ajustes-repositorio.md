@@ -55,9 +55,9 @@ Se repite la consulta de la sección 1.1. Para cerrar la fila B5, la segunda con
 
 La prueba demuestra que la protección de empuje rechaza un secreto real, o que lo deja registrado si el empuje pasa. El token se usa solo como texto. El empuje lo hace la persona dueña con sus credenciales habituales, así que el token no necesita ningún permiso.
 
-1. **Crear el token.** En la cuenta de la persona dueña, crear un token de acceso personal de grano fino **sin ningún permiso** y con la caducidad más corta que ofrezca la página. Su texto empieza por `github_pat_`.
-2. **Revocarlo de inmediato.** Antes de usarlo, eliminarlo o revocarlo desde la página de tokens de la cuenta. Así el texto del token no sirve para nada aunque se filtre.
-3. **Preparar el clon desechable.** La prueba se hace en un clon aparte, para que el secreto nunca toque el repositorio de trabajo. Desde Git Bash:
+1. **Crear el token.** En la cuenta de la persona dueña, crear un token de acceso personal clásico **sin ningún permiso** y con la caducidad más corta que ofrezca la página.
+2. **No revocarlo antes del empuje; revocarlo justo después.** El 2026-10-29 se comprobó que un token ya revocado no activó la protección de empuje ni dejó alerta (ver `impl.md`, fila B5). Con un token activo y sin permisos, el empuje se rechazó con `GH013`. Por eso el token se revoca inmediatamente después del empuje, haya sido rechazado o no. Si el empuje se rechaza, el secreto nunca llega a GitHub.
+3. **Preparar el clon desechable.** La prueba se hace en un clon aparte, para que el secreto nunca toque el repositorio de trabajo. El bloque está escrito para Git Bash. En PowerShell se usa `Read-Host -AsSecureString` en lugar de `read -r -s`, y el clon parte de la rama por omisión, porque la rama del ticket puede no existir todavía en el remoto. Desde Git Bash:
 
 ```bash
 CLON="$(mktemp -d)"

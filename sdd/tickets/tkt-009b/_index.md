@@ -28,7 +28,7 @@ EN REVISIÓN
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas B1 a B7 | `/sdd-disenar` | Aprobado el 2026-10-28 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-28; B5 y B6 pendientes de la persona dueña |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-28; B5 hecha el 2026-10-29, B6 pendiente de la persona dueña |
 | Delta | delta.md | `/sdd-completar` | Pendiente |
 
 ## Log de estados
