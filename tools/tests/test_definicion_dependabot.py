@@ -2,9 +2,10 @@
 
 TKT-009b · fila B4. Comprueban lo que el repositorio *declara*, no lo que GitHub hace al correr:
 
-* TC-15 (`CA-11` esc. 1): `dependabot.yml` existe, es de la versión 2 y declara exactamente tres entradas
+* TC-15 (`CA-11` esc. 1): `dependabot.yml` existe, es de la versión 2 y declara exactamente cuatro entradas
   semanales: `uv` (o `pip`, la sustitución que el diseño permite si GitHub rechaza `uv`) en `/backend`,
-  `npm` en `/frontend` y `github-actions` en `/`.
+  `npm` en `/frontend`, `npm` en `/.github/mermaid` (el lock de mermaid-cli, que audita el trabajo `dependencias`,
+  RNF-08) y `github-actions` en `/`.
 * TC-18 (`CA-11` esc. 3 y `CA-R3`), rechazo estático: el diseño **no crea ninguna excepción** para las contraseñas
   de desarrollo de `.env.example` (segunda interpretación señalada en el gate). Por eso no existe
   `.github/secret_scanning.yml`, ningún `paths-ignore` ni otra lista de exclusión de `.github/` cita `.env.example`
@@ -54,6 +55,7 @@ RUTA_CI = ".github/workflows/ci.yml"
 ENTRADAS_ESPERADAS = (
     ("uv", ("uv", "pip"), "/backend"),
     ("npm", ("npm",), "/frontend"),
+    ("npm de mermaid", ("npm",), "/.github/mermaid"),
     ("github-actions", ("github-actions",), "/"),
 )
 INTERVALO = "weekly"
@@ -131,14 +133,19 @@ def intervalo_de_entrada(entrada: list[str]) -> str | None:
 
 
 def comprobar_tc15(texto: str) -> list[str]:
-    """`CA-11` esc. 1 · TC-15. Versión 2 y exactamente tres entradas semanales: uv|pip en /backend, npm en /frontend, github-actions en /."""
+    """`CA-11` esc. 1 · TC-15. Versión 2 y exactamente cuatro entradas semanales: uv|pip en /backend, npm en /frontend,
+    npm en /.github/mermaid (el lock de mermaid-cli) y github-actions en /.
+
+    Hay dos entradas `npm`, así que cada una se asigna por su directorio: primero la entrada con el directorio exacto
+    de cada esperada y, con lo que sobre, la primera del mismo ecosistema (para decir que su directorio es otro). Lo que
+    aún sobra es una entrada repetida."""
     problemas: list[str] = []
     if not re.search(r"^version:[ \t]*2[ \t]*$", sin_comentarios(texto), re.MULTILINE):
         problemas.append("dependabot.yml debe declarar `version: 2` en la raíz")
     entradas = entradas_de_updates(texto)
     if len(entradas) != len(ENTRADAS_ESPERADAS):
         problemas.append(
-            f"debe declarar exactamente tres entradas en `updates:` y declara {len(entradas)}"
+            f"debe declarar exactamente cuatro entradas en `updates:` y declara {len(entradas)}"
         )
     admitidos = {
         ecosistema for _, ecosistemas, _ in ENTRADAS_ESPERADAS for ecosistema in ecosistemas
@@ -147,24 +154,42 @@ def comprobar_tc15(texto: str) -> list[str]:
         ecosistema = escalar_de_entrada(entrada, "package-ecosystem")
         if ecosistema not in admitidos:
             problemas.append(f"ecosistema no previsto en `updates:`: {ecosistema!r}")
+
+    pendientes = [e for e in entradas if escalar_de_entrada(e, "package-ecosystem") in admitidos]
+    asignadas: dict[str, list[str]] = {}
+    for exigir_directorio in (True, False):
+        for etiqueta, ecosistemas, directorio in ENTRADAS_ESPERADAS:
+            if etiqueta in asignadas:
+                continue
+            for entrada in pendientes:
+                if escalar_de_entrada(entrada, "package-ecosystem") not in ecosistemas:
+                    continue
+                if exigir_directorio and escalar_de_entrada(entrada, "directory") != directorio:
+                    continue
+                asignadas[etiqueta] = entrada
+                pendientes.remove(entrada)
+                break
     for etiqueta, ecosistemas, directorio in ENTRADAS_ESPERADAS:
-        propias = [e for e in entradas if escalar_de_entrada(e, "package-ecosystem") in ecosistemas]
-        if not propias:
+        if etiqueta not in asignadas:
             problemas.append(
                 f"falta la entrada de {etiqueta} ({' o '.join(ecosistemas)}) en `updates:`; una entrada comentada no cuenta"
             )
             continue
-        if len(propias) > 1:
-            problemas.append(f"hay más de una entrada de {etiqueta}; debe haber exactamente una")
-        for entrada in propias:
-            real = escalar_de_entrada(entrada, "directory")
-            if real != directorio:
-                problemas.append(f"{etiqueta}: directory debe ser {directorio!r} y es {real!r}")
-            intervalo = intervalo_de_entrada(entrada)
-            if intervalo != INTERVALO:
-                problemas.append(
-                    f"{etiqueta}: schedule.interval debe ser {INTERVALO!r} y es {intervalo!r}"
-                )
+        entrada = asignadas[etiqueta]
+        real = escalar_de_entrada(entrada, "directory")
+        if real != directorio:
+            problemas.append(f"{etiqueta}: directory debe ser {directorio!r} y es {real!r}")
+        intervalo = intervalo_de_entrada(entrada)
+        if intervalo != INTERVALO:
+            problemas.append(
+                f"{etiqueta}: schedule.interval debe ser {INTERVALO!r} y es {intervalo!r}"
+            )
+    for sobrante in pendientes:
+        ecosistema = escalar_de_entrada(sobrante, "package-ecosystem")
+        directorio = escalar_de_entrada(sobrante, "directory")
+        candidatas = [(et, d) for et, ecos, d in ENTRADAS_ESPERADAS if ecosistema in ecos]
+        etiqueta = next((et for et, d in candidatas if d == directorio), candidatas[0][0])
+        problemas.append(f"hay más de una entrada de {etiqueta}; debe haber exactamente una")
     return problemas
 
 
@@ -364,6 +389,13 @@ ENTRADA_NPM = """\
     schedule:
       interval: "weekly"
 """
+ENTRADA_MERMAID = """\
+  # npm: el lock de mermaid-cli, que audita el trabajo `dependencias`
+  - package-ecosystem: "npm"
+    directory: "/.github/mermaid"
+    schedule:
+      interval: "weekly"
+"""
 ENTRADA_ACTIONS = """\
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -371,7 +403,7 @@ ENTRADA_ACTIONS = """\
       interval: "weekly"
 """
 CABECERA = "# Actualizaciones semanales de dependencias.\nversion: 2\nupdates:\n"
-DEPENDABOT_VALIDO = CABECERA + ENTRADA_UV + ENTRADA_NPM + ENTRADA_ACTIONS
+DEPENDABOT_VALIDO = CABECERA + ENTRADA_UV + ENTRADA_NPM + ENTRADA_MERMAID + ENTRADA_ACTIONS
 
 
 def comentada(entrada: str) -> str:
@@ -393,7 +425,16 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
             ),
             "comillas simples": DEPENDABOT_VALIDO.replace('"', "'"),
             "sin comillas": DEPENDABOT_VALIDO.replace('"', ""),
-            "otro orden de entradas": CABECERA + ENTRADA_ACTIONS + ENTRADA_NPM + ENTRADA_UV,
+            "otro orden de entradas": CABECERA
+            + ENTRADA_ACTIONS
+            + ENTRADA_MERMAID
+            + ENTRADA_NPM
+            + ENTRADA_UV,
+            "la de mermaid antes que la de frontend": CABECERA
+            + ENTRADA_UV
+            + ENTRADA_MERMAID
+            + ENTRADA_NPM
+            + ENTRADA_ACTIONS,
             "schedule antes de directory": sustituir(
                 DEPENDABOT_VALIDO,
                 '    directory: "/frontend"\n    schedule:\n      interval: "weekly"\n',
@@ -403,6 +444,11 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
                 DEPENDABOT_VALIDO,
                 '    directory: "/frontend"\n',
                 '    directory: "/frontend"\n    open-pull-requests-limit: 5\n    labels:\n      - "dependencias"\n',
+            ),
+            "opciones de más en la entrada de mermaid": sustituir(
+                DEPENDABOT_VALIDO,
+                '    directory: "/.github/mermaid"\n',
+                '    directory: "/.github/mermaid"\n    open-pull-requests-limit: 3\n',
             ),
             "comentarios al final de línea": sustituir(
                 DEPENDABOT_VALIDO,
@@ -420,20 +466,41 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
                 self.assertEqual(comprobar_tc15(texto), [])
 
     def test_tc15_mutantes_falta_un_ecosistema(self):
-        """RNF-08 · CA-11 esc. 1 · TC-15 — rechazo: sin la entrada de cualquiera de los tres ecosistemas, el caso falla y nombra cuál falta."""
+        """RNF-08 · CA-11 esc. 1 · TC-15 — rechazo: sin cualquiera de las cuatro entradas, en especial la de mermaid, el caso falla y nombra cuál falta."""
         casos = {
             "sin uv ni pip": (DEPENDABOT_VALIDO.replace(ENTRADA_UV, ""), "falta la entrada de uv"),
-            "sin npm": (DEPENDABOT_VALIDO.replace(ENTRADA_NPM, ""), "falta la entrada de npm"),
+            "sin npm de frontend": (
+                DEPENDABOT_VALIDO.replace(ENTRADA_NPM, ""),
+                "falta la entrada de npm (npm)",
+            ),
+            "sin npm de mermaid": (
+                DEPENDABOT_VALIDO.replace(ENTRADA_MERMAID, ""),
+                "falta la entrada de npm de mermaid",
+            ),
+            "solo uv y github-actions": (
+                DEPENDABOT_VALIDO.replace(ENTRADA_NPM, "").replace(ENTRADA_MERMAID, ""),
+                "falta la entrada de npm de mermaid",
+            ),
             "sin github-actions": (
                 DEPENDABOT_VALIDO.replace(ENTRADA_ACTIONS, ""),
                 "falta la entrada de github-actions",
             ),
             "sin updates": (CABECERA, "falta la entrada de uv"),
-            "ecosistema de otro lenguaje en lugar de npm": (
+            "ecosistema de otro lenguaje en lugar de npm de frontend": (
                 sustituir(
-                    DEPENDABOT_VALIDO, 'package-ecosystem: "npm"', 'package-ecosystem: "bundler"'
+                    DEPENDABOT_VALIDO,
+                    '"npm"\n    directory: "/frontend"',
+                    '"bundler"\n    directory: "/frontend"',
                 ),
-                "falta la entrada de npm",
+                "falta la entrada de npm (npm)",
+            ),
+            "ecosistema de otro lenguaje en lugar de npm de mermaid": (
+                sustituir(
+                    DEPENDABOT_VALIDO,
+                    '"npm"\n    directory: "/.github/mermaid"',
+                    '"bundler"\n    directory: "/.github/mermaid"',
+                ),
+                "falta la entrada de npm de mermaid",
             ),
             "docker en lugar de github-actions": (
                 sustituir(
@@ -455,7 +522,11 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
             ),
             "npm comentada": (
                 DEPENDABOT_VALIDO.replace(ENTRADA_NPM, comentada(ENTRADA_NPM)),
-                "falta la entrada de npm",
+                "falta la entrada de npm (npm)",
+            ),
+            "npm de mermaid comentada": (
+                DEPENDABOT_VALIDO.replace(ENTRADA_MERMAID, comentada(ENTRADA_MERMAID)),
+                "falta la entrada de npm de mermaid",
             ),
             "github-actions comentada": (
                 DEPENDABOT_VALIDO.replace(ENTRADA_ACTIONS, comentada(ENTRADA_ACTIONS)),
@@ -495,6 +566,38 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
                 sustituir(DEPENDABOT_VALIDO, 'directory: "/"', 'directory: "/.github/workflows"'),
                 "github-actions: directory debe ser '/'",
             ),
+            "mermaid repetida con /frontend": (
+                sustituir(
+                    DEPENDABOT_VALIDO, 'directory: "/.github/mermaid"', 'directory: "/frontend"'
+                ),
+                "npm de mermaid: directory debe ser '/.github/mermaid' y es '/frontend'",
+            ),
+            "mermaid en /.github": (
+                sustituir(
+                    DEPENDABOT_VALIDO, 'directory: "/.github/mermaid"', 'directory: "/.github"'
+                ),
+                "npm de mermaid: directory debe ser '/.github/mermaid' y es '/.github'",
+            ),
+            "mermaid sin barra inicial": (
+                sustituir(
+                    DEPENDABOT_VALIDO,
+                    'directory: "/.github/mermaid"',
+                    'directory: ".github/mermaid"',
+                ),
+                "npm de mermaid: directory debe ser '/.github/mermaid' y es '.github/mermaid'",
+            ),
+            "mermaid en el directorio del workflow": (
+                sustituir(
+                    DEPENDABOT_VALIDO,
+                    'directory: "/.github/mermaid"',
+                    'directory: "/.github/workflows"',
+                ),
+                "npm de mermaid: directory debe ser '/.github/mermaid' y es '/.github/workflows'",
+            ),
+            "mermaid sin directory": (
+                sustituir(DEPENDABOT_VALIDO, '    directory: "/.github/mermaid"\n', ""),
+                "npm de mermaid: directory debe ser '/.github/mermaid' y es None",
+            ),
             "directory con subdirectorio": (
                 sustituir(
                     DEPENDABOT_VALIDO, 'directory: "/frontend"', 'directory: "/frontend/src"'
@@ -519,7 +622,9 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
         casos = {
             "uv diaria": (
                 sustituir(
-                    DEPENDABOT_VALIDO.replace(ENTRADA_NPM, "").replace(ENTRADA_ACTIONS, ""),
+                    DEPENDABOT_VALIDO.replace(ENTRADA_NPM, "")
+                    .replace(ENTRADA_MERMAID, "")
+                    .replace(ENTRADA_ACTIONS, ""),
                     'interval: "weekly"',
                     'interval: "daily"',
                 ),
@@ -528,6 +633,25 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
             "npm mensual": (
                 DEPENDABOT_VALIDO.replace(ENTRADA_NPM, ENTRADA_NPM.replace("weekly", "monthly")),
                 "npm: schedule.interval debe ser 'weekly' y es 'monthly'",
+            ),
+            "npm de mermaid mensual": (
+                DEPENDABOT_VALIDO.replace(
+                    ENTRADA_MERMAID, ENTRADA_MERMAID.replace("weekly", "monthly")
+                ),
+                "npm de mermaid: schedule.interval debe ser 'weekly' y es 'monthly'",
+            ),
+            "npm de mermaid diaria": (
+                DEPENDABOT_VALIDO.replace(
+                    ENTRADA_MERMAID, ENTRADA_MERMAID.replace("weekly", "daily")
+                ),
+                "npm de mermaid: schedule.interval debe ser 'weekly' y es 'daily'",
+            ),
+            "npm de mermaid sin schedule": (
+                DEPENDABOT_VALIDO.replace(
+                    ENTRADA_MERMAID,
+                    '  - package-ecosystem: "npm"\n    directory: "/.github/mermaid"\n',
+                ),
+                "npm de mermaid: schedule.interval debe ser 'weekly' y es None",
             ),
             "github-actions diaria": (
                 DEPENDABOT_VALIDO.replace(
@@ -559,7 +683,7 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
         exigir_rojo_en_todos(self, comprobar_tc15, casos)
 
     def test_tc15_mutantes_version_y_numero_de_entradas(self):
-        """RNF-08 · CA-11 esc. 1 · TC-15 — rechazo: versión distinta de 2 o ausente, una cuarta entrada y una entrada repetida."""
+        """RNF-08 · CA-11 esc. 1 · TC-15 — rechazo: versión distinta de 2 o ausente, una quinta entrada y una entrada repetida con el mismo directorio."""
         casos = {
             "version 1": (sustituir(DEPENDABOT_VALIDO, "version: 2", "version: 1"), "`version: 2`"),
             "version entre comillas": (
@@ -567,12 +691,28 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
                 "`version: 2`",
             ),
             "sin version": (sustituir(DEPENDABOT_VALIDO, "version: 2\n", ""), "`version: 2`"),
-            "una cuarta entrada": (
+            "una quinta entrada": (
                 DEPENDABOT_VALIDO
                 + '  - package-ecosystem: "docker"\n    directory: "/"\n    schedule:\n      interval: "weekly"\n',
-                "exactamente tres entradas",
+                "exactamente cuatro entradas",
             ),
-            "npm repetida": (DEPENDABOT_VALIDO + ENTRADA_NPM, "más de una entrada de npm"),
+            "una quinta entrada npm en otro directorio": (
+                DEPENDABOT_VALIDO
+                + '  - package-ecosystem: "npm"\n    directory: "/frontend/src"\n    schedule:\n      interval: "weekly"\n',
+                "exactamente cuatro entradas",
+            ),
+            "solo tres entradas (la antigua tríada)": (
+                DEPENDABOT_VALIDO.replace(ENTRADA_MERMAID, ""),
+                "exactamente cuatro entradas",
+            ),
+            "npm de frontend repetida con el mismo directorio": (
+                DEPENDABOT_VALIDO + ENTRADA_NPM,
+                "más de una entrada de npm;",
+            ),
+            "npm de mermaid repetida con el mismo directorio": (
+                DEPENDABOT_VALIDO + ENTRADA_MERMAID,
+                "más de una entrada de npm de mermaid",
+            ),
             "uv y pip a la vez": (
                 DEPENDABOT_VALIDO + ENTRADA_UV.replace('"uv"', '"pip"'),
                 "más de una entrada de uv",
@@ -585,14 +725,16 @@ class PruebasDeMutantesDeTC15(unittest.TestCase):
         for texto in ("", "version: 2\n", "version: 2\nupdates:\n"):
             with self.subTest(texto=texto):
                 problemas = comprobar_tc15(texto)
-                self.assertTrue(any("exactamente tres entradas" in p for p in problemas), problemas)
+                self.assertTrue(
+                    any("exactamente cuatro entradas" in p for p in problemas), problemas
+                )
 
 
 class DefinicionDeDependabot(unittest.TestCase):
     """Fila B4 sobre `.github/dependabot.yml`. Sin el archivo, falla; no se salta."""
 
-    def test_tc15_dependabot_declara_uv_npm_y_github_actions_semanales(self):
-        """RNF-08 · CA-11 esc. 1 · TC-15 — versión 2 y tres entradas semanales: uv (o pip) en /backend, npm en /frontend y github-actions en /."""
+    def test_tc15_dependabot_declara_uv_npm_dos_veces_y_github_actions_semanales(self):
+        """RNF-08 · CA-11 esc. 1 · TC-15 — versión 2 y cuatro entradas semanales: uv (o pip) en /backend, npm en /frontend, npm en /.github/mermaid y github-actions en /."""
         self.assertEqual(comprobar_tc15(_leer_dependabot(self)), [])
 
 
