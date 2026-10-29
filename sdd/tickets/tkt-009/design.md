@@ -284,7 +284,7 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 | C2 | `recolectar_tests` y `clasificar` | TC-40, TC-41, TC-42, TC-43, TC-50, TC-51, TC-52 | `ingeniero-devsecops` | `haiku` | Los casos de la fila en verde | ✓ Hecho |
 | C3 | `main` con `--raiz` y `--activas-base`, y la salida con sus etiquetas | TC-53, TC-54 y el resto | `ingeniero-devsecops` | `haiku` | Toda la clase en verde; `python tools/verificar_escenarios.py` sobre el árbol real, con `tools/historias_activas.txt` aún inexistente, termina en 2 | ✓ Hecho |
 | C4 | `tools/historias_activas.txt` real, paso del verificador en el trabajo `herramientas` y su caso en `test_definicion_ci.py` | TC-56, TC-57 | `ingeniero-devsecops` | `haiku` | Sobre el árbol real termina en 0 con «pendientes 162», «exigidos 0» y los tests de fundación contados; TC-57 en verde | ✓ Hecho |
-| C5 | Ensayo en el pipeline de la parte c | TC-58 | `git-entrega` | `haiku` | Con `HDU-001` añadida a la lista en la rama de ensayo, el trabajo `herramientas` termina en rojo y lista sus 27 escenarios como `FALTA` | Pendiente |
+| C5 | Ensayo en el pipeline de la parte c | TC-58 | `git-entrega` | `haiku` | Con `HDU-001` añadida a la lista en la rama de ensayo, el trabajo `herramientas` termina en rojo y lista sus 27 escenarios como `FALTA` | ⚠ Ajustado |
 | C6 | Documentación, la marca de `CLAUDE.md:78`, las prosas de retiro de HDU-006 y TKT-069 y ADR (ver «Documentación afectada») | TC-70c | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con 162 escenarios y el mismo conteo de HDU-006; búsqueda de TC-70c sin coincidencias | ✓ Hecho |
 
 ### Parte d · Calidad documental
