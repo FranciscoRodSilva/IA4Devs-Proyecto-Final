@@ -1447,7 +1447,10 @@ class TestMutantesDeLaCodificacion(PruebaBase):
 class TestDesconocidaPesaMasQueModerate(PruebaBase):
     """F007 · `DESCONOCIDA` es peor que `MODERATE` en `ORDEN_DE_GRAVEDAD`, sin importar el orden de los GHSA."""
 
-    def _linea_de_django(self, ghsa_primero: str, ghsa_segundo: str, respuestas: dict) -> None:
+    def _linea_de_django(
+        self, ghsa_primero: str, ghsa_segundo: str, respuestas: dict, ghsa_esperado: str
+    ) -> None:
+        """`ghsa_esperado` es el GHSA sin severidad: el que decide y el que debe aparecer en la línea."""
         ruta = self.escribir_informe(
             informe_con(
                 dependencia(
@@ -1463,6 +1466,8 @@ class TestDesconocidaPesaMasQueModerate(PruebaBase):
         self.assertEqual(1, len(propias), lineas)
         self.assertTrue(propias[0].startswith("DESCONOCIDA"), propias[0])
         self.assertTrue(propias[0].endswith(SUFIJO_QUE_FALLA), propias[0])
+        # La línea nombra los dos GHSA (el segundo entre paréntesis, como alias): solo la cabeza dice cuál decidió.
+        self.assertIn(f"django 3.2  {ghsa_esperado}", propias[0])
         self.assertEqual([ghsa_primero, ghsa_segundo], osv.consultas)
 
     def test_ca10_esc02_moderate_y_despues_un_ghsa_sin_severidad_termina_en_1_como_desconocida(
@@ -1473,6 +1478,7 @@ class TestDesconocidaPesaMasQueModerate(PruebaBase):
             GHSA_MEDIA,
             GHSA_ALTA,
             {GHSA_MEDIA: respuesta_osv("MODERATE"), GHSA_ALTA: respuesta_osv(None)},
+            ghsa_esperado=GHSA_ALTA,
         )
 
     def test_ca10_esc02_un_ghsa_sin_severidad_y_despues_moderate_termina_en_1_como_desconocida(
@@ -1483,6 +1489,7 @@ class TestDesconocidaPesaMasQueModerate(PruebaBase):
             GHSA_ALTA,
             GHSA_MEDIA,
             {GHSA_ALTA: respuesta_osv(None), GHSA_MEDIA: respuesta_osv("MODERATE")},
+            ghsa_esperado=GHSA_ALTA,
         )
 
 
@@ -1520,6 +1527,22 @@ class TestSeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
         self.assertEqual("HIGH", hallazgos[0].severidad)
         self.assertEqual(GHSA_ALTA, hallazgos[0].aviso)
         self.assertEqual([GHSA_BAJA, GHSA_ALTA], osv.consultas)
+
+    def test_ca10_esc02_empate_de_dos_ghsa_sin_severidad_conserva_el_primero_como_aviso(
+        self,
+    ) -> None:
+        """RNF-08 · CA-10 esc. 2 — [sin severidad, sin severidad]: DESCONOCIDA empata consigo misma y gana el primer GHSA."""
+        modulo = self.sev()
+        osv = OsvFalso({GHSA_BAJA: respuesta_osv(None), GHSA_OTRO: respuesta_osv(None)})
+
+        hallazgos = modulo.clasificar(
+            [dependencia("django", "3.2", [vulnerabilidad("PYSEC-1", [GHSA_BAJA, GHSA_OTRO])])], osv
+        )
+
+        self.assertEqual(1, len(hallazgos))
+        self.assertEqual(modulo.DESCONOCIDA, hallazgos[0].severidad)
+        self.assertEqual(GHSA_BAJA, hallazgos[0].aviso)
+        self.assertEqual([GHSA_BAJA, GHSA_OTRO], osv.consultas)
 
 
 class TestBordesDelPrefijoGhsaYDelTopeDeLectura(PruebaBase):
