@@ -28,7 +28,7 @@ EN REVISIÓN
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas D1 a D7 | `/sdd-disenar` | Aprobado el 2026-10-28 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | D1 y D2 hechas; detenida en D2 por el umbral de `A-5` |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Filas D1 a D7 hechas; la limpieza se hizo en este ticket por decisión de la persona que aprueba |
 | Delta | delta.md | `/sdd-completar` | Pendiente |
 
 ## Log de estados
