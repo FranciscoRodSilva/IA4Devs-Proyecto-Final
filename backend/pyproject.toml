@@ -16,6 +16,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "django==3.2",
     "import-linter>=2.15",
     "jsonschema>=4.26.0",
     "mypy>=2.4.0",
