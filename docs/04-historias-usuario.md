@@ -65,7 +65,7 @@ En la columna `Fase`, **1+2** significa que la historia se entrega en la fase 1 
 
 > **La captura sin conexión y la evidencia ya están descritas.** Los veinte escenarios que el [bloque pendiente del backlog](05-tickets-trabajo.md) enumeraba —nacidos de `RNF-18` con [ADR-015](adr/20260919-captura-diferida-sin-conexion.md), y de `C8` con `RNF-19` y [ADR-016](adr/20261001-almacenamiento-de-objetos.md)— están escritos al final de cada historia, sin renumerar los existentes:
 >
-> - **Fase 1:** HDU-001 esc. 24 a 26, el Excel que entra como `archivo` y sus dos rechazos; HDU-006 esc. 14 y 15, las fuentes simuladas de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md), con vigencia de fase 1: se retiran del verificador cuando TKT-069 retira el adaptador simulado.
+> - **Fase 1:** HDU-001 esc. 24 a 26, el Excel que entra como `archivo` y sus dos rechazos; HDU-006 esc. 14 y 15, las fuentes simuladas de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md), con vigencia de fase 1: TKT-069 los retira al retirar el adaptador simulado, añadiendo el segmento ` · retirado por TKT-069` a su título, que es la marca que lee el verificador.
 > - **Fase 2:** HDU-002 esc. 14, la requisición sin conexión; HDU-005 esc. 15 a 20, la recepción diferida y la remisión adjunta; HDU-008 esc. 18 a 25, la medición diferida y su evidencia.
 >
 > El escenario 25 de HDU-008 —validar un avance que todavía no tiene fotos— está escrito sobre el supuesto de `PA-14` y marcado **(asumido)**: si el cliente respondiera *"sin foto no se valida"*, el escenario se invierte y nace una regla de negocio que hoy no existe.
@@ -1253,7 +1253,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 
 > **Si este escenario falla, lo simulado bloquea compras reales con dinero que no existe.** Es la primera regla de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) y la razón por la que el consumido —[modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo)— no lee nunca del adaptador.
 
-> **Los escenarios 14 y 15 tienen vigencia de fase 1.** Existen mientras existe el adaptador simulado. Cuando TKT-069 lo retira entero, en el sprint 8, salen del verificador de escenarios sin reescribir su texto, y TKT-069 cubre con su propio test que **ninguna fuente sale `SIMULADA`**. No se convierten en escenarios de fase 2: lo que comprueban deja de poder ocurrir.
+> **Los escenarios 14 y 15 tienen vigencia de fase 1.** Existen mientras existe el adaptador simulado. Cuando TKT-069 lo retira entero, en el sprint 8, añade a sus títulos el segmento ` · retirado por TKT-069`, que es la marca que lee el verificador de escenarios; el texto no se reescribe, y TKT-069 cubre con su propio test que **ninguna fuente sale `SIMULADA`**. No se convierten en escenarios de fase 2: lo que comprueban deja de poder ocurrir.
 
 **Escenario 16: Partida desviada por debajo del umbral · fase 1**
 - **Dado que** la obra tiene un `umbral_alerta_pct` del 15 %
@@ -1295,7 +1295,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 
 - [ ] Cubre los 16 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
 - [ ] Los 16 son de fase 1. Los escenarios 4, 5, 9 y 10, que dependen de destajo, nómina o avance, se verifican en la fase 1 a través del puerto de fuentes y **se repiten contra el adaptador real al cerrar la fase 2**, sin cambiar su texto. La parte de nómina del escenario 7 es de fase 2
-- [ ] Los escenarios 14 y 15 tienen **vigencia de fase 1**: al retirar el adaptador simulado con TKT-069 salen del verificador, y TKT-069 los sustituye por su test de que ninguna fuente sale `SIMULADA`
+- [ ] Los escenarios 14 y 15 tienen **vigencia de fase 1**: al retirar el adaptador simulado, TKT-069 añade a sus títulos el segmento ` · retirado por TKT-069`, con el que salen del verificador, y los sustituye por su test de que ninguna fuente sale `SIMULADA`
 - [ ] Al menos un test por escenario
 - [ ] Un test verifica que la aplicación **no arranca** con el adaptador simulado activo si `entorno = produccion`
 - [ ] Un test verifica que el disponible del semáforo y el de la evaluación de `RN-03` coinciden al céntimo con el adaptador simulado activo y con importes simulados distintos de cero (esc. 15)

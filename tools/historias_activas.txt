@@ -1,0 +1,3 @@
+# Historias con ticket en curso, una por línea.
+# La actualiza la planificación de cada sprint.
+# Ninguna historia sale nunca de esta lista (ADR-012).

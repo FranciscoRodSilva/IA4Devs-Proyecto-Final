@@ -68,7 +68,7 @@ LISTO PARA EJECUTAR · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
 
 ## Tickets futuros sugeridos
 
-- **Un `it.skip` que nombra un escenario cuenta como cobertura**: el verificador debería excluir los tests saltados (objeción 8 del diseño).
+- **Un `it("hdu…")` dentro de un `describe.skip` cuenta como cobertura; `it.skip(...)` no**: el verificador debería excluir los bloques saltados (objeción 8 del diseño).
 
 - **Deuda de `import-linter`:** segunda puerta `cimenta/<m>/__init__.py`, contratos para `tests/`, `servidor/` y `contrato_error`, y un verificador de que arquitectura §5 y los contratos dicen el mismo grafo.
 - **`interrogate`** (cobertura de docstrings), previsto en convenciones y stack.
