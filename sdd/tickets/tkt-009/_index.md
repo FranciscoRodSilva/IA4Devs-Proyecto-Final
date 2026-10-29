@@ -4,9 +4,9 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
+ARCHIVADO · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
 
-> **Ticket paraguas.** No se ejecuta como un solo ticket: por la decisión del gate de diseño se parte en cuatro hermanos, registrados en `docs/05-tickets-trabajo.md` y con la spec repartida. Se cierra cuando se cierran los cuatro. El orden de fusión es fijo: **a → c → b → d**.
+> **Ticket paraguas.** No se ejecuta como un solo ticket: por la decisión del gate de diseño se parte en cuatro hermanos, registrados en `docs/05-tickets-trabajo.md` y con la spec repartida. Se cerró al archivarse los cuatro. El orden de fusión es fijo: **a → c → b → d**.
 >
 > | Parte | Hub | Depende de |
 > |---|---|---|
@@ -39,8 +39,8 @@ LISTO PARA EJECUTAR · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-10-28 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Aprobado el 2026-10-28 |
-| Impl | impl.md | `/sdd-ejecutar` | Pendiente |
-| Delta | delta.md | `/sdd-completar` | Pendiente |
+| Impl | — | `/sdd-ejecutar` | No aplica: lo ejecutaron los cuatro hermanos, cada uno con su `impl.md` |
+| Delta | — | `/sdd-completar` | No aplica: lo escribió cada hermano en su `delta.md` |
 
 ## Log de estados
 
@@ -50,6 +50,7 @@ LISTO PARA EJECUTAR · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
 | 2026-10-28 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño de `arquitecto-tecnico` (opus): 29 filas en cuatro partes y unas 1,230 líneas a mano, tres veces el tope de ~400, por lo que propone partir. `revisor-impacto` (sonnet) devolvió `DISEÑO INCOMPLETO` con tres hallazgos Mayores y nueve Menores, sin frontera cruzada; el arquitecto corrigió los doce. La pasada adversarial del orquestador añadió dos objeciones, ya aplicadas. Tres ADR nuevos previstos. Espera decisiones del gate |
 | 2026-10-28 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | aprobación humana | El usuario aprobó el diseño con todas las recomendaciones: partición en cuatro tickets hermanos con orden de fusión a → c → b → d, las dos interpretaciones señaladas en el gate (`CA-11` esc. 3 y `CA-13` esc. 1) y `Vale` sin estilo Microsoft. Falta registrar los hermanos y repartir la spec antes de ejecutar |
 | 2026-10-28 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | partición | Los cuatro tickets quedan registrados en `docs/05-tickets-trabajo.md`, como subsecciones de TKT-009, y cada uno tiene su `_index.md` y su `spec.md`, que reparten Must, criterios y filas del diseño sin redactar criterios nuevos. TKT-009 queda como paraguas |
+| 2026-10-29 | `LISTO PARA EJECUTAR` | `ARCHIVADO` | `/sdd-completar` | Cierre del paraguas: TKT-009a, TKT-009b, TKT-009c y TKT-009d están `ARCHIVADO` y fusionados en `Produccion` en el orden a → c → b → d. El paraguas no tiene impl ni delta propios |
 
 ## Decisiones registradas
 
@@ -75,4 +76,3 @@ LISTO PARA EJECUTAR · partido en TKT-009a, TKT-009b, TKT-009c y TKT-009d
 - **Fijar la imagen de Compose por *digest*** y marcar como lentos TC-51 y TC-52.
 - **Política de versiones de `eslint` y `@eslint/js`.**
 - **Anotar en TKT-059** que añade el servicio y los tests de MinIO al trabajo de backend.
-- **Cerrar el paraguas TKT-008**, hoy «EN CURSO» con sus tres partes archivadas.

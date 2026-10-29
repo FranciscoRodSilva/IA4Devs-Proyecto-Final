@@ -4,11 +4,11 @@
 
 ## Estado
 
-EN CURSO · partido en TKT-008a, TKT-008b y TKT-008c
+ARCHIVADO · partido en TKT-008a, TKT-008b y TKT-008c
 
 El estado vive en los tres hermanos: cada uno lleva el suyo en su `_index.md`.
 
-> **Ticket paraguas.** No se ejecuta como un solo ticket: por D-1 se parte en tres hermanos, registrados en `docs/05-tickets-trabajo.md` y con la spec repartida. Se cierra cuando se cierran los tres.
+> **Ticket paraguas.** No se ejecuta como un solo ticket: por D-1 se parte en tres hermanos, registrados en `docs/05-tickets-trabajo.md` y con la spec repartida. Se cerró al archivarse los tres.
 >
 > | Parte | Hub | Depende de |
 > |---|---|---|
@@ -40,8 +40,8 @@ El estado vive en los tres hermanos: cada uno lleva el suyo en su `_index.md`.
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-10-26 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Aprobado el 2026-10-26 |
-| Impl | impl.md | `/sdd-ejecutar` | Pendiente |
-| Delta | delta.md | `/sdd-completar` | Pendiente |
+| Impl | — | `/sdd-ejecutar` | No aplica: lo ejecutaron los tres hermanos, cada uno con su `impl.md` |
+| Delta | — | `/sdd-completar` | No aplica: lo escribió cada hermano en su `delta.md` |
 
 ## Log de estados
 
@@ -51,6 +51,7 @@ El estado vive en los tres hermanos: cada uno lleva el suyo en su `_index.md`.
 | 2026-10-26 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño de `arquitecto-tecnico` (opus) con 16 filas, unas 4,600 líneas escritas a mano —muy por encima del tope de ~400—, 92 casos de prueba más los de regresión y 32 mutantes; sin ADR. `revisor-impacto` (sonnet) devolvió `DISEÑO INCOMPLETO` con tres hallazgos Mayores y cinco Menores, sin frontera cruzada; la pasada adversarial del orquestador añadió dos objeciones (usuarios del humo y tamaño). El arquitecto corrigió los diez en el mismo diseño. La fila 16 toca `tools/`, `docs/05-tickets-trabajo.md` y `docs/06-stack-tecnologico.md`, fuera de los módulos de la spec: se aprueba en el gate. Espera decisiones D-1 a D-11, con D-1 proponiendo partir el ticket |
 | 2026-10-26 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | aprobación humana | El usuario aprobó el diseño con todas las recomendaciones, D-1 a D-11, y aceptó que la fila 16 toque `tools/`, `docs/05-tickets-trabajo.md` y `docs/06-stack-tecnologico.md`. Por D-1 se ejecuta como tres tickets hermanos, TKT-008a, TKT-008b y TKT-008c; falta registrarlos y repartir la spec antes de ejecutar |
 | 2026-10-26 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | partición | Los tres tickets quedan registrados en `docs/05-tickets-trabajo.md`, como subsecciones de TKT-008, y cada uno tiene su `_index.md` y su `spec.md`, que reparten Must, criterios, filas del diseño y mutantes sin redactar criterios nuevos. TKT-008 queda como paraguas |
+| 2026-10-29 | `LISTO PARA EJECUTAR` | `ARCHIVADO` | `/sdd-completar` | Cierre del paraguas: TKT-008a, TKT-008b y TKT-008c están `ARCHIVADO`, cada uno con su delta. El paraguas no tiene impl ni delta propios |
 
 ## Decisiones registradas
 
