@@ -185,6 +185,7 @@ Por qué: sin este ticket la aplicación no sabe quién le habla, no se puede pr
 Criterios cubiertos: los 15 `[M]` (`CA-1` a `CA-15`), los dos `[S]` (`CA-16` y `CA-17`) y los siete de regresión (`CA-R1` a `CA-R7`) de `sdd/tickets/tkt-006/spec.md`. Suite completa con Docker: 1138 pruebas en verde, sin `PYTHONUTF8`; 15 contratos de `import-linter`, `ruff`, `mypy` y `verificar_float` limpios; una sola cabeza de Alembic (`0004`); `pip-audit` limpio. 16 mutantes en la entrega A y 14 distintos en la B; el único superviviente, el `MT-10` literal, se cubrió con un test nuevo. Auditoría de seguridad `APROBADO` con tres Menores opcionales; auditoría de arquitectura con tres ciclos de corrección y una pasada independiente en `/sdd-revisar` que encontró y corrigió, con el rojo primero, un `500` por un hash que no es Argon2.
 
 **Para quien aprueba, con atención:**
+
 - **Este PR reescribe un test de TKT-005.** TC-75 ya no afirma que construir la aplicación no carga SQLAlchemy, porque montar `identidad` lo carga. Ahora afirma que el camino del error no toca la base. Es la decisión D-2 del diseño.
 - **Añade dependencias y una migración.** `pwdlib[argon2]` y `email-validator` (esta última por decisión del usuario del 2026-10-22: `test_environment=True`, para aceptar `ana@cimenta.test`), con sus cinco paquetes transitivos en `uv.lock`, y la migración `0004`.
 - **No toca `docs/api/openapi.yaml`**: las cuatro operaciones ya estaban en el borrador.

@@ -21,7 +21,7 @@ El delta no repite la implementación: declara **qué cambió en el sistema** re
 |---|---|---|
 | Regla de aceptación | `CLAUDE.md:78` | «Un verificador en CI falla … (desde TKT-009)» → sin la marca: el verificador ya corre en `herramientas` |
 | Recuento de decisiones | `CLAUDE.md`, `README.md`, `llms.txt` | 23 → 24 ADR |
-| Prosas de retiro | `docs/04-historias-usuario.md` (tres) | «una nota en la historia» → TKT-069 añade ` · retirado por TKT-069` al título del escenario. Los escenarios y sus títulos no cambian: siguen siendo 162 |
+| Prosas de retiro | `docs/04-historias-usuario.md` (tres) | «una nota en la historia» → TKT-069 añade `· retirado por TKT-069` al título del escenario. Los escenarios y sus títulos no cambian: siguen siendo 162 |
 | Fichas de tickets | `docs/05-tickets-trabajo.md` (TKT-009, TKT-060 y TKT-069) | «nota en la historia» → el segmento del título |
 | Stack | `docs/06-stack-tecnologico.md` §7.2 y §9 | Verificador pendiente → «En uso»; §7.2 describe la forma `"hduXXX_escNN · …"` en TypeScript, la línea `fase 2`, el retiro por segmento y que un test comentado no cuenta |
 | Convenciones y arranque | `docs/convenciones.md` §10, `docs/arranque-local.md`, `tools/README.md` | La fila de escenarios sin test y la reproducción local nombran el verificador; desaparece la sección «Pendiente» |
@@ -49,7 +49,7 @@ El delta no repite la implementación: declara **qué cambió en el sistema** re
 |---|---|---|
 | Endpoint, DTO, tipo generado o esquema | Ninguno | No |
 | Forma del nombre de un test de historia | `test_hduNNN_escNN_…` en Python y `"hduNNN_escNN · …"` en TypeScript | No: hoy no existe ningún test de historia |
-| Título de escenario | Se admite el segmento ` · retirado por TKT-0NN`, además del ya existente ` · fase 2` | No: `verificar_docs.py` solo lee `**Escenario N:` y sigue contando 162 |
+| Título de escenario | Se admite el segmento `· retirado por TKT-0NN`, además del ya existente `· fase 2` | No: `verificar_docs.py` solo lee `**Escenario N:` y sigue contando 162 |
 
 ## Decisiones (ADR)
 
@@ -100,7 +100,7 @@ Fricción del **proceso**, no del producto.
 | `ruff` no corre sobre `tools/` en el pipeline | Fuera del alcance | Ticket de calidad de `tools/`, con el de TKT-009a |
 | El ADR aceptado `docs/adr/20261015-fuentes-simuladas-analitica.md:34` conserva «con una nota en la historia» | Un ADR aceptado lo decide la persona dueña | Nota fechada de actualización en ese ADR |
 | El criterio CA-7 de la spec común de TKT-009 sigue hablando de «nota» de retiro (~l.195-201) | Lo supera A-7 y el ADR | Reescribir el Gherkin cuando se cierre el paraguas TKT-009 |
-| El test de una historia con la marca ` · fase 1` en una historia de columna `2` no gana sobre la columna | `CLAUDE.md` dice que la marca «declara» la fase; el diseño dice lo contrario. Hoy no ocurre en el documento real | Decidir qué gana si aparece el caso |
+| El test de una historia con la marca `· fase 1` en una historia de columna `2` no gana sobre la columna | `CLAUDE.md` dice que la marca «declara» la fase; el diseño dice lo contrario. Hoy no ocurre en el documento real | Decidir qué gana si aparece el caso |
 
 ## Pull request
 
@@ -109,7 +109,7 @@ Fricción del **proceso**, no del producto.
 **Base:** `tkt-009a-pipeline-pruebas` mientras el PR #2 de TKT-009a no esté fusionado; después, `Produccion`. El PR real de 009c es el #6.
 **Cuerpo:**
 
-> **Qué.** Añade `tools/verificar_escenarios.py`, que hace cumplir ADR-012: un escenario que cuenta y no tiene un test que lo nombre falla el pipeline. Un escenario cuenta desde que su historia está en `tools/historias_activas.txt`; los de fase 2 cuando ese archivo contiene la línea `fase 2`; y uno retirado con el segmento ` · retirado por TKT-0NN` en su título deja de contar. El trabajo `herramientas` de `ci.yml` lo ejecuta con la base del PR, y falla si una historia o la línea `fase 2` salen de la lista. Incluye el ADR de la política, 91 pruebas con documentos de ejemplo y el árbol real, y retira las marcas «desde TKT-009» del verificador.
+> **Qué.** Añade `tools/verificar_escenarios.py`, que hace cumplir ADR-012: un escenario que cuenta y no tiene un test que lo nombre falla el pipeline. Un escenario cuenta desde que su historia está en `tools/historias_activas.txt`; los de fase 2 cuando ese archivo contiene la línea `fase 2`; y uno retirado con el segmento `· retirado por TKT-0NN` en su título deja de contar. El trabajo `herramientas` de `ci.yml` lo ejecuta con la base del PR, y falla si una historia o la línea `fase 2` salen de la lista. Incluye el ADR de la política, 91 pruebas con documentos de ejemplo y el árbol real, y retira las marcas «desde TKT-009» del verificador.
 >
 > **Por qué.** `CLAUDE.md` promete que un verificador en CI falla si un escenario se queda sin test, y hasta ahora no existía. Es la segunda de cuatro partes de TKT-009 (a → c → b → d).
 >

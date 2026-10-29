@@ -101,7 +101,7 @@ En `tools/verificar_docs.py`:
 |---|---|
 | `BOM: bytes = b"\xef\xbb\xbf"` | Constante del módulo |
 | `def verificar_codificacion(raiz: str) -> int` | Recorre `raiz` con `os.walk`, podando los directorios de `EXCLUIR` igual que `documentos()`. Lee **solo los tres primeros bytes** en modo binario. Un archivo cuyo nombre termina en `.md` o es `llms.txt` y empieza por `BOM` añade a `problemas` el texto `Codificación · {rel} empieza con BOM; los documentos se guardan en UTF-8 sin BOM`. Un archivo terminado en `.ps1` que no empieza por `BOM` añade `Codificación · {rel} no empieza con BOM; los scripts .ps1 se guardan en UTF-8 con BOM`. La extensión se compara en minúsculas. `rel` es `os.path.relpath(ruta, raiz)`, como en el resto del verificador. Devuelve el número de archivos revisados. Docstring: qué garantiza y por qué, con la referencia al aprendizaje del 2026-10-01 |
-| `main()` | Llama a `verificar_codificacion(raiz)` después de `verificar_identificadores` e imprime la línea `  codificación       {n:>5}` con el mismo formato que las demás |
+| `main()` | Llama a `verificar_codificacion(raiz)` después de `verificar_identificadores` e imprime la línea `codificación       {n:>5}` con el mismo formato que las demás |
 
 `EXCLUIR` ya contiene `node_modules` y `.venv`. Es imprescindible: en Windows, `npm` crea en `node_modules/.bin/` *shims* `.ps1` sin BOM que harían fallar la comprobación.
 

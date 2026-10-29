@@ -56,7 +56,6 @@ ARCHIVADO
 
 Todo lo que salió del alcance está en «Deuda que queda abierta» de [`delta.md`](delta.md), con su ticket sugerido. Resumen:
 
-
 - **Origen de los roles que exige cada acción** (`PA-T2`): un lugar único del que un caso de uso lea qué rol puede ejecutar cada `clave` de acción, por ejemplo derivado de `x-roles` del borrador. Hasta entonces, cada caso de uso lo declara al lanzar.
 - **Noveno `tipo` o cuerpo oficial del `500`** (`PA-T5`): corregir el borrador y API §3 para que el error no controlado tenga forma declarada.
 - **`405` y otros errores de enrutado** (`Method Not Allowed`) con su `tipo`.

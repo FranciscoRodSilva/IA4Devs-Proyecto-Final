@@ -352,16 +352,16 @@ Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `
 
 ## Verificación final
 
-- [x] Todos los criterios `[M]` cumplidos con evidencia
-- [x] Ciclo TDD completo en cada fila ejecutable por un agente: rojo antes de verde, ningún test editado por un desarrollador
-- [x] Suite en verde, con la salida pegada arriba (backend `1138 passed`; 295 pruebas de `tools/` tras los tres ciclos de la revisión)
-- [x] ≥1 test de rechazo por regla implicada
-- [x] Mutación en las rutas críticas del filtro y de la comprobación `comprobar_tc14`
-- [ ] Todas las auditorías `APROBADO`: **no, con excepción aceptada** (ver el veredicto). Seguridad quedó en `APROBADO` en su reauditoría del ciclo 1. Código, arquitectura y documentación quedaron en `REQUIERE CAMBIOS` en la reauditoría del ciclo 3 (código y arquitectura con Menores; documentación con un Mayor, la marca `(asumido)` y la pregunta abierta sobre el corte). Los textos literales que pidieron se aplicaron después, con la suite y `verificar_docs.py` en verde, **sin una reauditoría formal**, porque los tres ciclos de corrección ya estaban agotados
-- [x] Sin hallazgo crítico pendiente. El Mayor documental de la reauditoría 3 se corrigió con su texto literal y `A-12` quedó aceptada por la persona que aprueba
-- [x] Documentación afectada actualizada en este mismo cambio
-- [x] `lint-imports` en `15 kept, 0 broken`; `ruff` y `mypy --strict` limpios sobre los archivos nuevos de `tools/`; el backend corrió `ruff`, `mypy`, `lint-imports` y `verificar_float` en verde
-- [x] Rama correcta y sin secretos en el diff
+* [x] Todos los criterios `[M]` cumplidos con evidencia
+* [x] Ciclo TDD completo en cada fila ejecutable por un agente: rojo antes de verde, ningún test editado por un desarrollador
+* [x] Suite en verde, con la salida pegada arriba (backend `1138 passed`; 295 pruebas de `tools/` tras los tres ciclos de la revisión)
+* [x] ≥1 test de rechazo por regla implicada
+* [x] Mutación en las rutas críticas del filtro y de la comprobación `comprobar_tc14`
+* [ ] Todas las auditorías `APROBADO`: **no, con excepción aceptada** (ver el veredicto). Seguridad quedó en `APROBADO` en su reauditoría del ciclo 1. Código, arquitectura y documentación quedaron en `REQUIERE CAMBIOS` en la reauditoría del ciclo 3 (código y arquitectura con Menores; documentación con un Mayor, la marca `(asumido)` y la pregunta abierta sobre el corte). Los textos literales que pidieron se aplicaron después, con la suite y `verificar_docs.py` en verde, **sin una reauditoría formal**, porque los tres ciclos de corrección ya estaban agotados
+* [x] Sin hallazgo crítico pendiente. El Mayor documental de la reauditoría 3 se corrigió con su texto literal y `A-12` quedó aceptada por la persona que aprueba
+* [x] Documentación afectada actualizada en este mismo cambio
+* [x] `lint-imports` en `15 kept, 0 broken`; `ruff` y `mypy --strict` limpios sobre los archivos nuevos de `tools/`; el backend corrió `ruff`, `mypy`, `lint-imports` y `verificar_float` en verde
+* [x] Rama correcta y sin secretos en el diff
 
 ## Veredicto de la revisión (2026-10-29)
 

@@ -65,7 +65,7 @@ En la columna `Fase`, **1+2** significa que la historia se entrega en la fase 1 
 
 > **La captura sin conexión y la evidencia ya están descritas.** Los veinte escenarios que el [bloque pendiente del backlog](05-tickets-trabajo.md) enumeraba —nacidos de `RNF-18` con [ADR-015](adr/20260919-captura-diferida-sin-conexion.md), y de `C8` con `RNF-19` y [ADR-016](adr/20261001-almacenamiento-de-objetos.md)— están escritos al final de cada historia, sin renumerar los existentes:
 >
-> - **Fase 1:** HDU-001 esc. 24 a 26, el Excel que entra como `archivo` y sus dos rechazos; HDU-006 esc. 14 y 15, las fuentes simuladas de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md), con vigencia de fase 1: TKT-069 los retira al retirar el adaptador simulado, añadiendo el segmento ` · retirado por TKT-069` a su título, que es la marca que lee el verificador.
+> - **Fase 1:** HDU-001 esc. 24 a 26, el Excel que entra como `archivo` y sus dos rechazos; HDU-006 esc. 14 y 15, las fuentes simuladas de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md), con vigencia de fase 1: TKT-069 los retira al retirar el adaptador simulado, añadiendo el segmento `· retirado por TKT-069` a su título, que es la marca que lee el verificador.
 > - **Fase 2:** HDU-002 esc. 14, la requisición sin conexión; HDU-005 esc. 15 a 20, la recepción diferida y la remisión adjunta; HDU-008 esc. 18 a 25, la medición diferida y su evidencia.
 >
 > El escenario 25 de HDU-008 —validar un avance que todavía no tiene fotos— está escrito sobre el supuesto de `PA-14` y marcado **(asumido)**: si el cliente respondiera *"sin foto no se valida"*, el escenario se invierte y nace una regla de negocio que hoy no existe.
@@ -208,12 +208,14 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 ### Criterios de aceptación
 
 **Escenario 1: Apertura del formulario de obra**
+
 - **Dado que** el usuario quiere registrar una obra nueva
 - **Cuando** hace clic en el botón de +
 - **Entonces** se abre el formulario de alta de obra
 - **Y** el cursor se posiciona sobre el campo de código de obra.
 
 **Escenario 2: Alta de obra con sus parámetros**
+
 - **Dado que** el usuario está en el formulario de alta
 - **Cuando** captura código, nombre, domicilio, tipo de contrato, porcentaje de retención de destajo, porcentaje de fondo de garantía y si el IVA es acreditable en esa obra, y guarda
 - **Entonces** la obra queda registrada en estado "PLANEACION"
@@ -222,6 +224,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** la obra aparece disponible para importar su presupuesto.
 
 **Escenario 3: Código de obra duplicado**
+
 - **Dado que** ya existe una obra con el código "AP-058-25"
 - **Cuando** el usuario intenta dar de alta otra con el mismo código
 - **Entonces** el sistema lo rechaza indicando el conflicto
@@ -229,12 +232,14 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** no se crea ningún registro.
 
 **Escenario 4: Carga del archivo de presupuesto**
+
 - **Dado que** existe una obra sin línea base
 - **Cuando** el usuario selecciona el archivo Excel del catálogo de conceptos y confirma la carga
 - **Entonces** el sistema registra la importación en estado "ANALIZANDO"
 - **Y** muestra el progreso de lectura sin bloquear la pantalla.
 
 **Escenario 5: Previsualización antes de confirmar**
+
 - **Dado que** el análisis del archivo terminó sin errores bloqueantes
 - **Cuando** el sistema pasa la importación a estado "VALIDADO"
 - **Entonces** muestra la jerarquía leída con el número de niveles, áreas, partidas y conceptos
@@ -242,6 +247,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** ningún dato se ha escrito todavía en el modelo real.
 
 **Escenario 6: Archivo con celdas de fórmula rota**
+
 - **Dado que** el archivo contiene celdas con `#REF!` en las columnas de precio unitario e importe
 - **Cuando** el sistema analiza el archivo
 - **Entonces** la importación pasa a estado "CON_ERRORES"
@@ -250,6 +256,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** las filas válidas se conservan en la zona de preparación para no repetir el análisis completo.
 
 **Escenario 7: Concepto sin análisis de precio unitario**
+
 - **Dado que** el catálogo incluye un concepto cuyo código no tiene hoja de análisis de precio unitario asociada
 - **Cuando** el sistema analiza el archivo
 - **Entonces** registra un error de tipo "SIN_APU" indicando el código del concepto
@@ -257,24 +264,28 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** el mensaje explica que sin análisis de precio unitario no se puede calcular la explosión de insumos de ese concepto.
 
 **Escenario 8: Unidad de medida desconocida**
+
 - **Dado que** una fila del catálogo trae una unidad que no está en el catálogo de unidades del sistema
 - **Cuando** el sistema analiza esa fila
 - **Entonces** registra un error de tipo "UNIDAD_DESCONOCIDA" con el valor original encontrado
 - **Y** la importación no se puede confirmar.
 
 **Escenario 9: Código de concepto duplicado dentro de la misma obra**
+
 - **Dado que** el archivo repite el mismo código de concepto con descripciones distintas dentro de la misma obra
 - **Cuando** el sistema analiza el archivo
 - **Entonces** registra un error de tipo "DUPLICADO" señalando las filas en conflicto
 - **Y** la importación no se puede confirmar.
 
 **Escenario 10: Insumo del análisis que no existe en el catálogo**
+
 - **Dado que** un análisis de precio unitario referencia un insumo que no está dado de alta
 - **Cuando** el sistema analiza el archivo
 - **Entonces** da de alta el insumo con la descripción y la unidad leídas del archivo
 - **Y** lo marca como "creado durante importación" para que el usuario lo revise en la previsualización.
 
 **Escenario 11: Confirmación de la importación**
+
 - **Dado que** la importación está en estado "VALIDADO"
 - **Cuando** el usuario confirma
 - **Entonces** el sistema crea la jerarquía completa de niveles, áreas, partidas y conceptos en una sola transacción
@@ -283,6 +294,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** la línea base resultante queda en estado "BORRADOR".
 
 **Escenario 12: Fallo a mitad de la confirmación**
+
 - **Dado que** la confirmación está en curso y ocurre un error al escribir el registro 3,000 de 4,900
 - **Cuando** la transacción se interrumpe
 - **Entonces** ningún dato de esa importación queda persistido en el modelo real
@@ -290,6 +302,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** el sistema informa del fallo sin dejar la obra en estado intermedio.
 
 **Escenario 13: Reimportación sobre una línea base en borrador**
+
 - **Dado que** la obra ya tiene una línea base en estado "BORRADOR" procedente de una importación anterior
 - **Cuando** el usuario confirma una importación nueva para esa misma obra
 - **Entonces** el sistema advierte de que va a reemplazar la línea base en borrador
@@ -297,6 +310,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** la importación descartada queda registrada en la bitácora.
 
 **Escenario 14: Congelado de la línea base**
+
 - **Dado que** existe una línea base en estado "BORRADOR"
 - **Cuando** el Director de Proyectos la congela indicando el motivo
 - **Entonces** el sistema copia todos los conceptos con su cantidad, precio unitario e importe a la línea base
@@ -306,6 +320,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** el asiento correspondiente aparece en la bitácora.
 
 **Escenario 15: Captura del presupuesto de control**
+
 - **Dado que** la línea base está congelada
 - **Cuando** Dirección General abre la captura del presupuesto de control
 - **Entonces** ve una fila por tipo de partida con el importe de venta y un **importe sugerido** calculado quitando utilidad e indirectos
@@ -314,6 +329,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** es ese importe, y no el sugerido, el que la regla "RN-03" usa para evaluar requisiciones.
 
 **Escenario 16: Requisición contra una obra sin presupuesto de control capturado**
+
 - **Dado que** la línea base está congelada pero Dirección no ha capturado el presupuesto de control
 - **Cuando** alguien intenta levantar una requisición contra esa obra
 - **Entonces** el sistema la rechaza con código 409 y el contrato de error `CONFLICTO` con código `SIN_PRESUPUESTO_CONTROL`, sin regla: no se viola `RN-03`, falta el valor contra el que se evalúa
@@ -322,6 +338,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** el rechazo **no** se asienta en la bitácora como `RN-03`.
 
 **Escenario 17: Importe de control mayor que el de venta**
+
 - **Dado que** el usuario captura un importe tope superior al importe de venta de ese tipo de partida
 - **Cuando** guarda
 - **Entonces** el sistema lo advierte porque implicaría vender por debajo del costo tope
@@ -329,6 +346,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** si se confirma, el motivo queda en la bitácora.
 
 **Escenario 18: Intento de modificar una línea base congelada**
+
 - **Dado que** existe una línea base en estado "CONGELADA"
 - **Cuando** cualquier operación intenta modificar o eliminar uno de sus conceptos o filas de explosión
 - **Entonces** la base de datos rechaza la operación
@@ -336,12 +354,14 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** el intento queda registrado en la bitácora.
 
 **Escenario 19: Intento de congelar una segunda línea base vigente**
+
 - **Dado que** la obra ya tiene una línea base en estado "CONGELADA"
 - **Cuando** el usuario intenta congelar otra línea base en "BORRADOR" para la misma obra
 - **Entonces** el sistema rechaza la operación indicando la regla "RN-01"
 - **Y** el mensaje explica que para sustituirla hay que crear una versión nueva que marque la anterior como "SUPERSEDIDA".
 
 **Escenario 20: Intento de eliminar una obra con línea base congelada**
+
 - **Dado que** una obra tiene línea base congelada y movimientos asociados
 - **Cuando** el usuario intenta eliminarla
 - **Entonces** el sistema lo rechaza
@@ -349,6 +369,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** ningún dato histórico se pierde.
 
 **Escenario 21: Archivo de formato no admitido**
+
 - **Dado que** el usuario selecciona un archivo cuyo formato declarado —extensión o tipo— no es `.xlsx`, por ejemplo un `.xls`, un `.csv` o un PDF
 - **Cuando** intenta cargarlo
 - **Entonces** el sistema rechaza la carga con código 422 al crear, antes de crear el registro de importación y el `archivo`
@@ -358,6 +379,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 > Una hoja `.xlsx` válida **sin ninguna fila de concepto** no es un 422: su formato declarado era correcto y solo se sabe que está vacía al leerla. La cubre el escenario 27.
 
 **Escenario 22: Recaptura de un presupuesto de control ya capturado**
+
 - **Dado que** el presupuesto de control de "MUROS" se capturó en $450,000 y ya hay requisiciones evaluadas contra él
 - **Cuando** Dirección General lo recaptura en $500,000 escribiendo el motivo del cambio
 - **Entonces** el importe tope queda en $500,000 con el autor y la fecha del cambio en la propia fila
@@ -366,6 +388,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** la recaptura aparece en la consulta de excepciones del escenario 11 de HDU-003, junto a las autorizaciones, porque subir un tope es una vía alternativa a autorizar una excepción.
 
 **Escenario 23: Recaptura sin autoridad o sin motivo**
+
 - **Dado que** el usuario no tiene el rol "DIRECCION_GENERAL", o lo tiene pero no escribe el motivo del cambio
 - **Cuando** intenta recapturar el importe tope
 - **Entonces** el sistema lo rechaza con código 403 en el primer caso y 422 en el segundo
@@ -375,6 +398,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 > El tope de control es el único importe del sistema que se puede cambiar después de que una regla haya bloqueado algo contra él. Por eso la recaptura se asienta con la **misma regla `RN-03`** que el bloqueo: un mes con muchas subidas de tope tiene que ser tan visible como uno con muchas autorizaciones de excepción.
 
 **Escenario 24: El Excel entra como archivo y la importación espera a que esté disponible · fase 1**
+
 - **Dado que** existe una obra sin línea base y el usuario selecciona el Excel de su catálogo de conceptos
 - **Cuando** confirma la carga
 - **Entonces** el sistema da de alta un `archivo` en estado "PENDIENTE", ligado a la obra con `referencia_tipo` "IMPORTACION", con el nombre original, el tamaño y el hash SHA-256 declarados
@@ -385,6 +409,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** si se intenta arrancar el análisis con el archivo todavía en "PENDIENTE", el sistema lo rechaza con código 409 indicando que el archivo no está disponible, y la importación no cambia de estado.
 
 **Escenario 25: Objeto cuyo hash o tamaño no coincide con lo declarado · fase 1**
+
 - **Dado que** el archivo del Excel está en "PENDIENTE" con un tamaño y un hash declarados
 - **Y** el objeto que llegó al almacén tiene otro tamaño u otro hash, porque la subida se cortó o el contenido no es el que se declaró
 - **Cuando** se confirma la subida
@@ -394,6 +419,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Y** el mensaje indica que hay que volver a cargar el archivo.
 
 **Escenario 26: Archivo que dice ser Excel y no lo es por sus bytes · fase 1**
+
 - **Dado que** el usuario carga un ejecutable renombrado como `catalogo.xlsx`, o un ZIP cualquiera con esa extensión que no contiene `[Content_Types].xml` con la parte de libro de Excel
 - **Cuando** se confirma la subida
 - **Entonces** el sistema determina el tipo leyendo los bytes y la estructura del ZIP, **nunca** por la extensión ni por el `Content-Type` que declaró el navegador
@@ -404,6 +430,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 > **El escenario 26 no repite el 21.** El 21 cubre el archivo que **declara** un formato no admitido; el 26, el que dice ser `.xlsx` y sus bytes lo desmienten; el 27, el que lo es de verdad pero no trae conceptos. Un `.xlsx` es un ZIP indistinguible de cualquier otro por sus primeros bytes, y darlo por bueno por su extensión es el camino por el que un archivo construido a propósito llegaría a `openpyxl` ([ADR-016](adr/20261001-almacenamiento-de-objetos.md), regla 3).
 
 **Escenario 27: Hoja de cálculo sin filas de concepto · fase 1**
+
 - **Dado que** el usuario carga un `.xlsx` que lo es por sus bytes, pero cuya hoja de catálogo no tiene ninguna fila de concepto —solo encabezados, o vacía—
 - **Cuando** el sistema lo analiza
 - **Entonces** la importación pasa a estado "CON_ERRORES"
@@ -471,6 +498,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 ### Criterios de aceptación
 
 **Escenario 1: Consulta del disponible antes de capturar**
+
 - **Dado que** el usuario va a levantar una requisición
 - **Cuando** selecciona la obra y el tipo de partida —"MUROS", "PLAFONES Y CAJILLOS", "ENCHAPES" o "GENERALES"—
 - **Entonces** el sistema muestra el importe tope capturado, el consumido y el disponible de ese tipo de partida **en el conjunto de la obra**
@@ -478,6 +506,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el disponible no se calcula por ubicación: son cuatro bolsas por obra, no una por departamento.
 
 **Escenario 2: Captura en borrador sin evaluar**
+
 - **Dado que** el usuario está capturando una requisición con varios renglones
 - **Cuando** la guarda sin enviarla
 - **Entonces** queda en estado "BORRADOR"
@@ -485,6 +514,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** puede modificarla o eliminarla libremente.
 
 **Escenario 3: Requisición dentro del presupuesto**
+
 - **Dado que** la partida "MUROS" tiene $12,000 disponibles y cantidad suficiente de cada insumo solicitado
 - **Cuando** el usuario envía una requisición por $9,000
 - **Entonces** la requisición queda en estado "EVALUADA"
@@ -492,6 +522,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el asiento correspondiente aparece en la bitácora.
 
 **Escenario 4: Requisición que excede el importe presupuestado**
+
 - **Dado que** la partida "MUROS" tiene $12,000 disponibles
 - **Cuando** el usuario envía una requisición por $15,000 contra esa partida
 - **Entonces** la requisición queda persistida en estado "BLOQUEADA"
@@ -501,6 +532,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** las acciones disponibles incluyen "VER_SOLICITUD_AUTORIZACION", que lleva a la solicitud **ya creada**: no hay que pedirla, porque el bloqueo la crea en la misma transacción.
 
 **Escenario 5: Requisición que excede el volumen aunque el importe quepa**
+
 - **Dado que** la partida tiene $12,000 disponibles
 - **Y** la explosión de esa partida presupuesta 100 tableros de yeso, de los que ya se consumieron 90
 - **Cuando** el usuario envía una requisición por 25 tableros con importe total de $3,600
@@ -508,6 +540,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el contrato de error señala el insumo concreto, la cantidad presupuestada, la consumida y el excedente de 15 piezas.
 
 **Escenario 6: Requisición sin tipo de partida**
+
 - **Dado que** el usuario intenta enviar una requisición sin especificar el tipo de partida
 - **Cuando** el sistema recibe la petición
 - **Entonces** la rechaza con código 422 indicando la regla "RN-02"
@@ -515,6 +548,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** no se crea ningún registro de requisición.
 
 **Escenario 7: Requisición contra una obra sin línea base congelada o sin presupuesto de control**
+
 - **Dado que** la obra tiene su línea base todavía en estado "BORRADOR", o la tiene congelada pero sin presupuesto de control capturado
 - **Cuando** el usuario intenta enviar una requisición contra ella
 - **Entonces** el sistema la rechaza con código 409 y el contrato de error `CONFLICTO`, sin regla: no se viola `RN-03`, falta el valor contra el que se evalúa
@@ -523,12 +557,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** no se crea la requisición ni ninguna solicitud de autorización, y el rechazo **no** se asienta como `RN-03`.
 
 **Escenario 8: Insumo ajeno a la explosión de la partida**
+
 - **Dado que** el usuario solicita un insumo que no aparece en la explosión de esa partida
 - **Cuando** el sistema evalúa la requisición
 - **Entonces** la requisición queda en estado "BLOQUEADA"
 - **Y** el contrato de error indica que el insumo no está presupuestado en esa partida, con disponible cero.
 
 **Escenario 9: Dos requisiciones concurrentes contra la misma partida**
+
 - **Dado que** la partida tiene $12,000 disponibles
 - **Y** dos usuarios de Compras envían simultáneamente una requisición de $8,000 cada una
 - **Cuando** ambas peticiones llegan al sistema al mismo tiempo
@@ -537,12 +573,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el disponible final refleja únicamente la requisición aceptada.
 
 **Escenario 10: Cantidad o importe no positivo**
+
 - **Dado que** el usuario captura un renglón con cantidad cero o negativa
 - **Cuando** intenta enviar la requisición
 - **Entonces** el sistema la rechaza con código 422 señalando el renglón inválido
 - **Y** no se crea ningún registro.
 
 **Escenario 11: Cancelación de una requisición**
+
 - **Dado que** existe una requisición en estado "EVALUADA", "BLOQUEADA" o "AUTORIZADA" que todavía no se convirtió en orden de compra
 - **Cuando** el solicitante la cancela indicando el motivo
 - **Entonces** pasa a estado "CANCELADA" con el motivo registrado
@@ -553,6 +591,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** si quien intenta cancelarla no es el solicitante, el sistema lo rechaza con código 403, la requisición conserva su estado y su reserva, y el intento queda en la bitácora con la acción "DENEGAR".
 
 **Escenario 12: Intento de modificar una requisición ya evaluada**
+
 - **Dado que** una requisición está en estado "EVALUADA", "BLOQUEADA", "AUTORIZADA" o "CONVERTIDA"
 - **Cuando** el usuario intenta modificar sus renglones
 - **Entonces** el sistema lo rechaza con código 409
@@ -560,6 +599,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** las cifras evaluadas permanecen intactas.
 
 **Escenario 13: Requisiciones evaluadas que retienen presupuesto**
+
 - **Dado que** existen requisiciones en estado "EVALUADA" que nunca se convirtieron en orden de compra
 - **Cuando** el usuario consulta el disponible de esa partida
 - **Entonces** el consumido se muestra desglosado en tres: requisiciones vivas, saldo de órdenes pendientes de recibir y gasto ya ejercido
@@ -569,6 +609,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 > Una requisición evaluada reserva presupuesto y **no caduca sola**. Sin esta consulta, el disponible de una partida se estrecha sin gasto real detrás y nadie sabe por qué. Es el contrapeso de la decisión registrada en el [PRD §10](01-descripcion-producto.md#10-supuestos-y-preguntas-abiertas).
 
 **Escenario 14: Intento de levantar una requisición sin conexión · fase 2**
+
 - **Dado que** el usuario de Compras tiene la aplicación abierta en un dispositivo que perdió la conexión con el servidor
 - **Cuando** intenta enviar una requisición
 - **Entonces** el cliente la rechaza de forma explícita, indicando que la requisición exige conexión porque solo el servidor puede evaluarla contra el presupuesto (`RN-03`)
@@ -636,12 +677,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 ### Criterios de aceptación
 
 **Escenario 1: Aviso de solicitudes pendientes**
+
 - **Dado que** existen solicitudes de autorización sin resolver
 - **Cuando** el usuario con rol "DIRECCION_GENERAL" entra al sistema
 - **Entonces** la navegación muestra el número de solicitudes pendientes
 - **Y** el contador desaparece cuando no queda ninguna.
 
 **Escenario 2: Bandeja de solicitudes pendientes**
+
 - **Dado que** el usuario tiene el rol "DIRECCION_GENERAL"
 - **Cuando** abre la bandeja de autorizaciones
 - **Entonces** ve la lista de solicitudes en estado "PENDIENTE" ordenadas de más antigua a más reciente
@@ -649,6 +692,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** las solicitudes ya resueltas no aparecen en la bandeja.
 
 **Escenario 3: Detalle de una solicitud**
+
 - **Dado que** el usuario abre una solicitud pendiente
 - **Cuando** se carga el detalle
 - **Entonces** ve las cifras tal como estaban en el momento del bloqueo, no recalculadas
@@ -656,6 +700,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** ve la regla de negocio que provocó el bloqueo.
 
 **Escenario 4: Autorización con motivo**
+
 - **Dado que** el usuario está viendo una solicitud pendiente
 - **Cuando** la autoriza escribiendo el motivo
 - **Entonces** la solicitud pasa a estado "AUTORIZADA" con usuario y fecha de resolución
@@ -663,6 +708,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** la bitácora registra la acción con el motivo y la regla "RN-03".
 
 **Escenario 5: Rechazo con motivo**
+
 - **Dado que** el usuario está viendo una solicitud pendiente
 - **Cuando** la rechaza escribiendo el motivo
 - **Entonces** la solicitud pasa a estado "RECHAZADA"
@@ -670,6 +716,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** la bitácora registra la acción con el motivo.
 
 **Escenario 6: Intento de resolver sin motivo**
+
 - **Dado que** el usuario intenta autorizar o rechazar sin escribir motivo
 - **Cuando** envía la resolución
 - **Entonces** el sistema la rechaza con código 422
@@ -677,6 +724,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** la solicitud permanece en estado "PENDIENTE".
 
 **Escenario 7: Usuario sin autoridad**
+
 - **Dado que** el usuario tiene rol "COMPRAS" o "ALMACEN" pero no "DIRECCION_GENERAL"
 - **Cuando** intenta resolver una solicitud
 - **Entonces** el sistema responde con código 403
@@ -684,6 +732,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el intento queda registrado en la bitácora con la acción "DENEGAR".
 
 **Escenario 8: Intento de autorizar la propia solicitud**
+
 - **Dado que** el usuario que levantó la requisición tiene también el rol "DIRECCION_GENERAL"
 - **Cuando** intenta autorizar su propia solicitud
 - **Entonces** el sistema lo rechaza con código 403 indicando que nadie resuelve sus propias solicitudes
@@ -691,6 +740,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el intento queda registrado en la bitácora con la acción "DENEGAR".
 
 **Escenario 9: Intento de resolver una solicitud ya resuelta**
+
 - **Dado que** una solicitud está en estado "AUTORIZADA"
 - **Cuando** un usuario intenta volver a resolverla
 - **Entonces** el sistema responde con código 409 indicando que ya fue resuelta
@@ -698,12 +748,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el estado y el motivo originales no se modifican.
 
 **Escenario 10: Solicitud cuya requisición fue cancelada**
+
 - **Dado que** el solicitante canceló la requisición mientras la solicitud seguía pendiente
 - **Cuando** Dirección General abre la bandeja
 - **Entonces** esa solicitud aparece marcada como "sin efecto" y no admite resolución
 - **Y** el motivo de la cancelación es visible.
 
 **Escenario 11: Consulta de la bitácora de excepciones**
+
 - **Dado que** se han resuelto varias solicitudes durante el mes
 - **Cuando** el usuario consulta la bitácora filtrando por la regla "RN-03"
 - **Entonces** obtiene todas las autorizaciones y rechazos del periodo con actor, momento, motivo y obra
@@ -758,12 +810,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 ### Criterios de aceptación
 
 **Escenario 1: Apertura del formulario de proveedor**
+
 - **Dado que** el usuario quiere registrar un proveedor nuevo
 - **Cuando** hace clic en el botón de +
 - **Entonces** se abre el formulario de alta de proveedor
 - **Y** el cursor se posiciona sobre el campo de nombre.
 
 **Escenario 2: Alta de proveedor**
+
 - **Dado que** el usuario está en el formulario de alta
 - **Cuando** captura nombre, RFC, tope de consignación, día de corte y día de pago, y guarda
 - **Entonces** el proveedor queda registrado y activo
@@ -771,12 +825,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** aparece disponible en el selector de proveedores.
 
 **Escenario 3: RFC duplicado**
+
 - **Dado que** ya existe un proveedor con ese RFC
 - **Cuando** el usuario intenta dar de alta otro con el mismo
 - **Entonces** el sistema lo rechaza mostrando el proveedor existente
 - **Y** no se crea ningún registro.
 
 **Escenario 4: Emisión de orden de compra desde requisición evaluada**
+
 - **Dado que** existe una requisición en estado "EVALUADA"
 - **Cuando** el usuario selecciona el proveedor y emite la orden de compra
 - **Entonces** se crea la orden con sus renglones copiados de la requisición, en estado "ABIERTA"
@@ -785,12 +841,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el folio de la orden es único y consecutivo.
 
 **Escenario 5: Emisión desde requisición autorizada por excepción**
+
 - **Dado que** existe una requisición en estado "AUTORIZADA" tras una excepción resuelta por Dirección General
 - **Cuando** el usuario emite la orden de compra
 - **Entonces** se crea normalmente
 - **Y** la orden conserva la referencia a la solicitud de autorización que la habilitó.
 
 **Escenario 6: Intento de emitir orden desde requisición bloqueada o rechazada**
+
 - **Dado que** una requisición está en estado "BLOQUEADA" o "RECHAZADA"
 - **Cuando** el usuario intenta emitir una orden de compra a partir de ella
 - **Entonces** el sistema lo rechaza con código 409 y el contrato de error `CONFLICTO` con código `ESTADO_NO_PERMITE_OPERACION`, indicando el estado actual
@@ -799,18 +857,21 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** no se crea ninguna orden.
 
 **Escenario 7: Intento de emitir dos órdenes de la misma requisición**
+
 - **Dado que** una requisición ya está en estado "CONVERTIDA"
 - **Cuando** el usuario intenta emitir otra orden a partir de ella
 - **Entonces** el sistema lo rechaza con código 409
 - **Y** muestra el folio de la orden existente.
 
 **Escenario 8: Orden sin proveedor**
+
 - **Dado que** el usuario intenta emitir una orden sin seleccionar proveedor
 - **Cuando** envía la operación
 - **Entonces** el sistema la rechaza con código 422
 - **Y** no se crea ninguna orden.
 
 **Escenario 9: Cancelación de una orden sin recepciones**
+
 - **Dado que** existe una orden en estado "ABIERTA" sin ninguna entrada registrada
 - **Cuando** el usuario la cancela indicando el motivo
 - **Entonces** la orden pasa a estado "CANCELADA"
@@ -821,6 +882,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 > Volver siempre a "EVALUADA" perdería la autorización de Dirección General y obligaría a pedirla otra vez para un gasto que ya aprobó.
 
 **Escenario 10: Intento de cancelar una orden con recepciones**
+
 - **Dado que** una orden tiene al menos una entrada de almacén registrada
 - **Cuando** el usuario intenta cancelarla
 - **Entonces** el sistema lo rechaza con código 409
@@ -828,6 +890,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** ofrece esa acción alternativa.
 
 **Escenario 11: Consulta de lo pedido a un proveedor por obra**
+
 - **Dado que** a un proveedor se le pidieron 100 tableros para la obra 1 y 50 para la obra 2
 - **Cuando** el usuario consulta ese proveedor
 - **Entonces** ve el desglose por obra con cantidad e importe de cada insumo solicitado
@@ -835,6 +898,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** puede filtrar por rango de fechas y por estado de la orden.
 
 **Escenario 12: Baja de un proveedor con órdenes abiertas**
+
 - **Dado que** un proveedor tiene órdenes en estado "ABIERTA" o "PARCIAL"
 - **Cuando** el usuario intenta darlo de baja
 - **Entonces** el sistema lo rechaza listando las órdenes pendientes
@@ -888,6 +952,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 ### Criterios de aceptación
 
 **Escenario 1: Entrada completa**
+
 - **Dado que** existe una orden de compra abierta por 100 tableros
 - **Cuando** el usuario registra una entrada de 100 tableros indicando el folio de remisión
 - **Entonces** la entrada queda registrada con su folio de remisión y fecha
@@ -896,6 +961,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el saldo pendiente de la orden queda en cero.
 
 **Escenario 2: Entrada parcial**
+
 - **Dado que** existe una orden de compra abierta por 100 bultos
 - **Cuando** el usuario registra una entrada de 50 bultos con su folio de remisión
 - **Entonces** la orden de compra pasa a estado "PARCIAL"
@@ -903,6 +969,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el movimiento de inventario registra únicamente las 50 unidades recibidas.
 
 **Escenario 3: Segunda entrega que completa la orden**
+
 - **Dado que** una orden está en estado "PARCIAL" con 50 bultos pendientes
 - **Cuando** se registra una segunda entrada por los 50 restantes con otro folio de remisión
 - **Entonces** la orden pasa a estado "CERRADA"
@@ -910,6 +977,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el inventario acumula los 100 bultos en dos movimientos separados.
 
 **Escenario 4: Entrada sin folio de remisión**
+
 - **Dado que** el usuario intenta registrar una entrada sin capturar el folio de la remisión
 - **Cuando** envía el formulario
 - **Entonces** el sistema la rechaza con código 422 indicando la regla "RN-05"
@@ -917,6 +985,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** no se crea ningún movimiento de inventario.
 
 **Escenario 5: Entrada que excede lo ordenado**
+
 - **Dado que** una orden tiene 50 bultos pendientes de recibir
 - **Cuando** el usuario intenta registrar una entrada de 70 bultos
 - **Entonces** el sistema la rechaza con código 409 indicando la regla "RN-07"
@@ -929,18 +998,21 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 > **Qué pasa al autorizar el excedente lo respondió el cliente: `PA-16`, resuelta el 2026-10-17.** *"Se debe sumar a la recepción y marcar que hay un excedente."* El rechazo no crea la solicitud por sí solo: la crea "SOLICITAR_AUTORIZACION", y el servidor **recalcula** las cifras contra la orden y guarda en ella el renglón y la cantidad excedente solicitada. Autorizarla **no registra la entrada**: la habilita. Almacén la reenvía citando la solicitud, y el excedente se suma a la recepción marcado como tal (escenario 21). Reenviarla sin autorización, o con más excedente del autorizado, se rechaza (escenario 22).
 
 **Escenario 6: Entrada contra una orden cerrada o cancelada**
+
 - **Dado que** una orden está en estado "CERRADA" o "CANCELADA"
 - **Cuando** el usuario intenta registrar una entrada contra ella
 - **Entonces** el sistema la rechaza con código 409 indicando el estado actual de la orden
 - **Y** no se crea ningún movimiento de inventario.
 
 **Escenario 7: Folio de remisión duplicado del mismo proveedor**
+
 - **Dado que** ya existe una entrada registrada con el folio de remisión "R-4521" de ese proveedor
 - **Cuando** el usuario intenta registrar otra entrada con el mismo folio y proveedor
 - **Entonces** el sistema la rechaza con código 409 advirtiendo del duplicado
 - **Y** muestra la entrada previa para que el usuario verifique si es un reingreso por error.
 
 **Escenario 8: Corrección de una entrada capturada por error**
+
 - **Dado que** una orden por 100 bultos está en estado "PARCIAL" porque se registró una entrada de 70 bultos, cuando en realidad llegaron 50
 - **Cuando** el usuario corrige la entrada indicando la **cantidad correcta**, 50 bultos, y el motivo
 - **Entonces** el sistema calcula la diferencia y genera un movimiento de tipo "AJUSTE" por −20 unidades con su motivo: el usuario manda la cantidad absoluta, nunca el ajuste
@@ -952,12 +1024,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 > **Sobre una orden ya "CERRADA" no se corrige: `PA-17`, resuelta el 2026-10-17.** La corrección a la baja la reabriría, y el cliente respondió que no. El rechazo es el escenario 23. En una orden "PARCIAL" o "ABIERTA", como la de este escenario, la corrección funciona normal.
 
 **Escenario 9: Intento de corregir sin motivo**
+
 - **Dado que** el usuario intenta registrar una corrección sin escribir el motivo
 - **Cuando** envía la operación
 - **Entonces** el sistema la rechaza con código 422
 - **Y** no se genera ningún movimiento de ajuste.
 
 **Escenario 10: Reprogramación del faltante**
+
 - **Dado que** una orden lleva semanas en estado "PARCIAL" y el proveedor aún no entrega el resto
 - **Cuando** el usuario reprograma el faltante indicando una nueva fecha comprometida y el motivo
 - **Entonces** el renglón queda con la fecha nueva y la orden **permanece en estado "PARCIAL"**
@@ -966,12 +1040,14 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** la bitácora registra la acción.
 
 **Escenario 11: Intento de reprogramar sin motivo o con fecha anterior a la vigente**
+
 - **Dado que** el usuario intenta reprogramar sin escribir el motivo, o con una fecha anterior a la ya comprometida
 - **Cuando** envía la operación
 - **Entonces** el sistema la rechaza con código 422 señalando el campo inválido
 - **Y** la fecha comprometida vigente no se modifica.
 
 **Escenario 12: Intento de cerrar una orden con saldo pendiente**
+
 - **Dado que** una orden está en estado "PARCIAL" con saldo por recibir
 - **Cuando** alguien intenta cerrarla
 - **Entonces** el sistema lo rechaza con código 409 indicando la regla "RN-06"
@@ -979,6 +1055,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** las acciones disponibles incluyen "REPROGRAMAR".
 
 **Escenario 13: Consulta de saldos pendientes por obra**
+
 - **Dado que** una obra tiene varias órdenes en estado "PARCIAL"
 - **Cuando** el usuario consulta los pendientes de recibir de esa obra
 - **Entonces** ve por orden y por insumo la cantidad ordenada, la recibida y el saldo
@@ -988,11 +1065,13 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 > El contador de reprogramaciones es el dato que hoy no existe y que responde a *"¿cuántas veces nos ha aplazado este proveedor?"*. Con un cierre manual, esa información se perdería al cerrar.
 
 **Escenario 14: El costo ejercido se refleja de inmediato**
+
 - **Dado que** se registró una entrada por $18,000 imputada al tipo de partida "MUROS" de una obra
 - **Cuando** se consulta el ejercido de ese tipo de partida
 - **Entonces** el importe de la entrada aparece reflejado sin proceso por lotes ni espera.
 
 **Escenario 15: Captura de una entrada sin señal · fase 2**
+
 - **Dado que** el almacenista está en obra sin conexión, con la orden abierta por 100 bultos en la caché de la aplicación
 - **Cuando** registra una entrada de 50 bultos con su folio de remisión
 - **Entonces** la entrada queda en la cola local en estado "pendiente", con un identificador generado por el dispositivo, su autor y su hora de captura
@@ -1001,6 +1080,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** la pantalla indica que hay capturas pendientes de sincronizar y desde cuándo.
 
 **Escenario 16: Sincronización al recuperar la señal, sin duplicar · fase 2**
+
 - **Dado que** la entrada del escenario 15 está en la cola
 - **Cuando** el dispositivo recupera la conexión con una sesión válida
 - **Entonces** la cola sube en orden de captura y la entrada entra por **el mismo caso de uso** que una registrada en línea, con las mismas validaciones y la misma bitácora
@@ -1009,6 +1089,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** si la conexión se corta tras el envío y el dispositivo reenvía el mismo identificador con la misma carga, el servidor responde 200 con la **representación actual** de la entrada **sin** crear otra entrada ni otro movimiento: sigue habiendo uno solo de 50 bultos.
 
 **Escenario 17: Entrada encolada que al subir excede lo ordenado · fase 2**
+
 - **Dado que** la cola contiene, en este orden, una entrada de 70 bultos y otra posterior contra la misma orden
 - **Y** en el servidor la orden tiene 50 bultos pendientes, aunque la caché del dispositivo mostrara más
 - **Cuando** se sincroniza
@@ -1019,6 +1100,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** el sistema no resuelve el conflicto solo: el almacenista decide si corrige, descarta o escala.
 
 **Escenario 18: Saldo pendiente leído de caché · fase 2**
+
 - **Dado que** el almacenista está sin conexión
 - **Cuando** consulta el saldo pendiente de una orden
 - **Entonces** ve el saldo de la última sincronización con la fecha y la hora en que se obtuvo
@@ -1026,6 +1108,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** ese saldo **orienta y no autoriza**: una entrada capturada por debajo de él no queda aceptada por eso, y se evalúa contra el saldo real al sincronizar, como en el escenario 17.
 
 **Escenario 19: Remisión del proveedor adjunta a la entrada · fase 2**
+
 - **Dado que** existe una entrada ya registrada en el servidor, capturada en línea o ya sincronizada
 - **Cuando** el almacenista adjunta la foto o el PDF de la remisión del proveedor
 - **Entonces** el sistema da de alta un `archivo` en "PENDIENTE" con `referencia_tipo` "ENTRADA_ALMACEN" y la obra de la entrada, y emite una URL prefirmada de subida
@@ -1035,6 +1118,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** si la entrada se capturó sin conexión, la remisión **no** viajó en la cola: se adjunta después, contra la entrada ya sincronizada.
 
 **Escenario 20: Ejecutable renombrado como remisión · fase 2**
+
 - **Dado que** alguien adjunta a una entrada un archivo `remision.pdf` cuyos bytes son los de un ejecutable
 - **Cuando** se confirma la subida
 - **Entonces** el sistema determina el tipo leyendo los bytes, **nunca** por la extensión ni por el `Content-Type` que declaró el navegador
@@ -1044,6 +1128,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** un `.svg` presentado como imagen se rechaza igual: no es una imagen, es un documento capaz de ejecutar código.
 
 **Escenario 21: Entrada con el excedente autorizado · fase 1**
+
 - **Dado que** la orden del escenario 5 tiene 100 bultos ordenados, 50 recibidos y 50 pendientes
 - **Y** Dirección General **autorizó** con motivo la solicitud `EXCEDE_ORDENADO` de ese renglón por un excedente de 20 bultos
 - **Cuando** el usuario de Almacén reenvía la entrada de 70 bultos con su folio de remisión, citando la solicitud autorizada en el renglón
@@ -1056,6 +1141,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** la bitácora registra la entrada citando la solicitud y la regla "RN-07".
 
 **Escenario 22: Reenvío sin autorización vigente o con más excedente del autorizado · fase 1**
+
 - **Dado que** la orden tiene 50 bultos pendientes y existe una solicitud `EXCEDE_ORDENADO` de ese renglón
 - **Cuando** el usuario reenvía la entrada citando la solicitud mientras está "PENDIENTE" o después de "RECHAZADA", o con la solicitud autorizada por 20 bultos intenta registrar 75, un excedente de 25
 - **Entonces** el sistema la rechaza con código 409 indicando la regla "RN-07"
@@ -1064,6 +1150,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Y** si la solicitud citada es de otro renglón o ya la consumió otra entrada, el rechazo es 409 con el contrato de error `CONFLICTO` y código `SOLICITUD_NO_APLICABLE`, también sin registrar nada.
 
 **Escenario 23: Corrección de una entrada de una orden cerrada · fase 1**
+
 - **Dado que** una orden por 100 bultos está en estado "CERRADA" porque se registraron entradas por los 100
 - **Cuando** el usuario intenta corregir una de esas entradas a una cantidad menor, indicando el motivo
 - **Entonces** el sistema la rechaza con código 409 y el contrato de error `CONFLICTO` con código `ESTADO_NO_PERMITE_OPERACION`, indicando que la orden está "CERRADA"
@@ -1137,6 +1224,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 ### Criterios de aceptación
 
 **Escenario 1: Semáforo de una obra con línea base congelada**
+
 - **Dado que** la obra tiene una línea base congelada
 - **Cuando** el usuario abre el semáforo de esa obra
 - **Entonces** ve una fila por partida con las columnas presupuestado, comprometido, ejercido, avance físico y desviación
@@ -1144,6 +1232,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** la consulta responde en menos de 2 segundos.
 
 **Escenario 2: Partida dentro de lo esperado**
+
 - **Dado que** la obra tiene un `umbral_alerta_pct` del 15 %
 - **Y** una partida presupuestada en $100,000 tiene 40 % de avance físico validado y $38,000 ejercidos
 - **Cuando** se calcula su desviación
@@ -1152,6 +1241,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** no genera alerta.
 
 **Escenario 3: Partida desviada**
+
 - **Dado que** la obra tiene un `umbral_alerta_pct` del 15 %
 - **Y** una partida presupuestada en $100,000 tiene 40 % de avance físico validado y $70,000 ejercidos
 - **Cuando** se calcula su desviación
@@ -1160,6 +1250,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** genera alerta (escenario 11).
 
 **Escenario 4: El ejercido por partida suma materiales y destajo**
+
 - **Dado que** el tipo de partida "MUROS" tiene $10,000 de entradas de almacén y $8,000 de pagos de destajo de etapas asignadas a esa partida
 - **Cuando** se calcula su ejercido
 - **Entonces** el importe es de $18,000
@@ -1167,6 +1258,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** el destajo llega a la partida a través del tipo de partida de su etapa, no por reparto.
 
 **Escenario 5: La nómina aparece a nivel de obra, no por partida**
+
 - **Dado que** la obra tiene $22,000 de nómina imputada en la semana
 - **Cuando** se muestra el semáforo
 - **Entonces** ese importe aparece en una fila propia al nivel de la obra, marcada como no imputada a partida
@@ -1175,6 +1267,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** el total de la obra es la suma de los ejercidos por partida más la fila de nómina, es decir $40,000 en el ejemplo anterior.
 
 **Escenario 6: Aviso de cifra parcial**
+
 - **Dado que** la obra no tiene todavía ninguna nómina ni pago de destajo registrado
 - **Cuando** el usuario abre el semáforo
 - **Entonces** el ejercido se muestra con un aviso de que solo incluye materiales
@@ -1183,6 +1276,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** el aviso sale siempre que **alguna** fuente del metadato no sea `REAL`, tanto si es `SIN_DATOS` como si es `SIMULADA`.
 
 **Escenario 7: Desglose hasta el movimiento**
+
 - **Dado que** el usuario ve una partida con desviación
 - **Cuando** abre su desglose
 - **Entonces** ve los movimientos individuales que componen el ejercido con fecha, tipo, cantidad, unidad, importe, documento de origen, responsable y, si lo tiene, motivo
@@ -1190,6 +1284,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** desde la fase 2, también hasta el renglón de nómina: en la fase 1 la nómina no existe y no hay renglón al que navegar.
 
 **Escenario 8: Obra sin línea base congelada**
+
 - **Dado que** la obra tiene su línea base en estado "BORRADOR"
 - **Cuando** el usuario intenta abrir el semáforo
 - **Entonces** el sistema responde con código 409 y el contrato de error `CONFLICTO` con código `SIN_LINEA_BASE_CONGELADA`, indicando que no hay presupuesto congelado contra el que comparar
@@ -1197,6 +1292,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** no muestra cifras parciales ni ceros que puedan confundirse con datos reales.
 
 **Escenario 9: Partida sin avance físico registrado**
+
 - **Dado que** una partida tiene gasto ejercido pero ningún avance validado
 - **Cuando** se calcula su desviación
 - **Entonces** el avance se muestra como "sin avance medido", no como 0 %: el valor es nulo, no cero (modelo de datos §15)
@@ -1204,12 +1300,14 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** la partida se marca como "sin avance medido" para distinguirla de una partida sana.
 
 **Escenario 10: Solo se cuenta el avance validado**
+
 - **Dado que** una partida tiene avance capturado por el residente pero aún no validado por el Director de Proyectos
 - **Cuando** se calcula el porcentaje de avance físico
 - **Entonces** ese avance no se incluye
 - **Y** el porcentaje refleja únicamente mediciones en estado "VALIDADO".
 
 **Escenario 11: Alerta por umbral de consumo**
+
 - **Dado que** la obra tiene configurado en su `umbral_alerta_pct` un umbral de alerta del 15 % de desviación
 - **Cuando** una partida supera ese umbral
 - **Entonces** aparece marcada como alerta en el semáforo
@@ -1219,12 +1317,14 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** una partida cuya desviación es **ilustrativa** —calculada con alguna entrada simulada— **no** genera alerta aunque supere el umbral, ni aparece en el resumen de alertas.
 
 **Escenario 12: Usuario sin el rol**
+
 - **Dado que** el usuario no tiene ninguno de los roles que consultan el semáforo —en el MVP no hay permiso por obra: quien tiene el rol ve todas—
 - **Cuando** intenta abrir su semáforo
 - **Entonces** el sistema responde con código 403
 - **Y** no se filtra ningún importe en la respuesta.
 
 **Escenario 13: Cuatro filas por obra, no quinientas**
+
 - **Dado que** la obra tiene 14 niveles y 143 departamentos
 - **Cuando** el usuario abre el semáforo
 - **Entonces** ve una fila por tipo de partida —"MUROS", "PLAFONES Y CAJILLOS", "ENCHAPES", "GENERALES"— agregando toda la obra
@@ -1232,6 +1332,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** el desglose por ubicación —por nivel y por área— sigue disponible al abrir una partida, pero no es el nivel de control.
 
 **Escenario 14: Mano de obra y avance simulados, y rotulados como tales · fase 1**
+
 - **Dado que** la aplicación corre en un entorno de `local`, `pruebas` o `demostracion` con el adaptador simulado de fuentes de mano de obra y avance activo
 - **Cuando** el usuario abre el semáforo de una obra con línea base congelada
 - **Entonces** el metadato de fuentes declara presupuestado, comprometido y materiales como `REAL`, y el destajo, la nómina y el avance físico —alcance y ejecutado— como `SIMULADA`
@@ -1242,6 +1343,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** el aviso del escenario 6 sigue presente: lo simulado no cuenta como fuente real, y la cifra no se presenta como costo real completo.
 
 **Escenario 15: Un importe simulado nunca entra en el disponible · fase 1**
+
 - **Dado que** el tipo de partida "MUROS" tiene un tope de control de $100,000 y $80,000 de consumido real entre requisiciones vivas, comprometido y ejercido de materiales
 - **Y** el adaptador simulado aporta $30,000 de destajo simulado a "MUROS"
 - **Cuando** el usuario de Compras envía una requisición por $15,000 contra "MUROS"
@@ -1253,9 +1355,10 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 
 > **Si este escenario falla, lo simulado bloquea compras reales con dinero que no existe.** Es la primera regla de [ADR-017](adr/20261015-fuentes-simuladas-analitica.md) y la razón por la que el consumido —[modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo)— no lee nunca del adaptador.
 
-> **Los escenarios 14 y 15 tienen vigencia de fase 1.** Existen mientras existe el adaptador simulado. Cuando TKT-069 lo retira entero, en el sprint 8, añade a sus títulos el segmento ` · retirado por TKT-069`, que es la marca que lee el verificador de escenarios; el texto no se reescribe, y TKT-069 cubre con su propio test que **ninguna fuente sale `SIMULADA`**. No se convierten en escenarios de fase 2: lo que comprueban deja de poder ocurrir.
+> **Los escenarios 14 y 15 tienen vigencia de fase 1.** Existen mientras existe el adaptador simulado. Cuando TKT-069 lo retira entero, en el sprint 8, añade a sus títulos el segmento `· retirado por TKT-069`, que es la marca que lee el verificador de escenarios; el texto no se reescribe, y TKT-069 cubre con su propio test que **ninguna fuente sale `SIMULADA`**. No se convierten en escenarios de fase 2: lo que comprueban deja de poder ocurrir.
 
 **Escenario 16: Partida desviada por debajo del umbral · fase 1**
+
 - **Dado que** la obra tiene un `umbral_alerta_pct` del 15 %
 - **Y** una partida presupuestada en $100,000 tiene 40 % de avance físico validado y $44,000 ejercidos
 - **Cuando** se calcula su desviación
@@ -1295,7 +1398,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 
 - [ ] Cubre los 16 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
 - [ ] Los 16 son de fase 1. Los escenarios 4, 5, 9 y 10, que dependen de destajo, nómina o avance, se verifican en la fase 1 a través del puerto de fuentes y **se repiten contra el adaptador real al cerrar la fase 2**, sin cambiar su texto. La parte de nómina del escenario 7 es de fase 2
-- [ ] Los escenarios 14 y 15 tienen **vigencia de fase 1**: al retirar el adaptador simulado, TKT-069 añade a sus títulos el segmento ` · retirado por TKT-069`, con el que salen del verificador, y los sustituye por su test de que ninguna fuente sale `SIMULADA`
+- [ ] Los escenarios 14 y 15 tienen **vigencia de fase 1**: al retirar el adaptador simulado, TKT-069 añade a sus títulos el segmento `· retirado por TKT-069`, con el que salen del verificador, y los sustituye por su test de que ninguna fuente sale `SIMULADA`
 - [ ] Al menos un test por escenario
 - [ ] Un test verifica que la aplicación **no arranca** con el adaptador simulado activo si `entorno = produccion`
 - [ ] Un test verifica que el disponible del semáforo y el de la evaluación de `RN-03` coinciden al céntimo con el adaptador simulado activo y con importes simulados distintos de cero (esc. 15)
@@ -1330,48 +1433,56 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 ### Criterios de aceptación
 
 **Escenario 1: Apertura del formulario de empleado**
+
 - **Dado que** el usuario quiere dar de alta personal nuevo
 - **Cuando** hace clic en el botón de +
 - **Entonces** se abre el formulario para capturar los datos del nuevo empleado
 - **Y** el cursor se posiciona sobre el primer campo a capturar.
 
 **Escenario 2: Selección de rol de oficio**
+
 - **Dado que** el usuario quiere asignar un rol de oficio
 - **Cuando** hace clic en el desplegable de roles
 - **Entonces** se abre el listado de los roles activos capturados previamente en el catálogo de roles
 - **Y** al seleccionar uno queda asignado al empleado.
 
 **Escenario 3: Alta de empleado**
+
 - **Dado que** el usuario capturó nombre, rol de oficio, salario semanal, tarifa de hora extra y si tiene cuenta bancaria
 - **Cuando** guarda el formulario
 - **Entonces** el empleado queda registrado y activo
 - **Y** aparece disponible para asignarse a una cuadrilla.
 
 **Escenario 4: Alta sin rol de oficio**
+
 - **Dado que** el usuario intenta guardar un empleado sin seleccionar rol de oficio
 - **Cuando** envía el formulario
 - **Entonces** el sistema lo rechaza con código 422 señalando el campo
 - **Y** no se crea ningún registro.
 
 **Escenario 5: Salario no positivo**
+
 - **Dado que** el usuario captura un salario semanal de cero o negativo
 - **Cuando** envía el formulario
 - **Entonces** el sistema lo rechaza con código 422
 - **Y** no se crea ningún registro.
 
 **Escenario 6: Alta de cuadrilla y designación de encargado**
+
 - **Dado que** el usuario da de alta una cuadrilla para una obra
 - **Cuando** le asigna nombre y designa a un empleado como encargado
 - **Entonces** la cuadrilla queda registrada y asociada a esa obra
 - **Y** el encargado aparece como receptor posible de pagos agrupados.
 
 **Escenario 7: Asignación de empleado a cuadrilla**
+
 - **Dado que** existe una cuadrilla activa
 - **Cuando** el usuario asigna un empleado indicando la fecha de inicio
 - **Entonces** el empleado queda vinculado a esa cuadrilla desde esa fecha
 - **Y** un empleado no puede estar en dos cuadrillas en la misma fecha.
 
 **Escenario 8: Cambio de cuadrilla conservando historial**
+
 - **Dado que** un empleado pertenece a una cuadrilla desde hace semanas
 - **Cuando** el usuario lo mueve a otra cuadrilla
 - **Entonces** la asignación anterior se cierra con su fecha de fin
@@ -1379,18 +1490,21 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** las nóminas ya calculadas siguen mostrando la cuadrilla que correspondía en su momento.
 
 **Escenario 9: Alta de crédito activo**
+
 - **Dado que** un empleado tiene un crédito de Infonavit o un préstamo de la empresa
 - **Cuando** el usuario lo registra con monto total y descuento semanal
 - **Entonces** el crédito queda en estado "ACTIVO" con saldo igual al monto total
 - **Y** queda disponible para que la nómina lo descuente.
 
 **Escenario 10: Crédito con descuento mayor que el monto total**
+
 - **Dado que** el usuario intenta registrar un crédito cuyo descuento semanal supera el monto total
 - **Cuando** guarda
 - **Entonces** el sistema lo rechaza con código 422
 - **Y** el mensaje explica que el descuento no puede exceder la deuda.
 
 **Escenario 11: Suspensión de un crédito**
+
 - **Dado que** un crédito está en estado "ACTIVO"
 - **Cuando** el usuario lo suspende indicando el motivo
 - **Entonces** pasa a estado "SUSPENDIDO" y deja de descontarse en las nóminas siguientes
@@ -1398,6 +1512,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** puede reactivarse.
 
 **Escenario 12: Baja de empleado con nóminas históricas**
+
 - **Dado que** un empleado tiene nóminas calculadas en semanas anteriores
 - **Cuando** el usuario intenta eliminarlo
 - **Entonces** el sistema lo rechaza
@@ -1405,6 +1520,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** un empleado dado de baja no aparece en la nómina de semanas posteriores pero conserva todo su historial.
 
 **Escenario 13: Baja de empleado con crédito activo**
+
 - **Dado que** un empleado con crédito activo y saldo pendiente va a darse de baja
 - **Cuando** el usuario confirma la baja
 - **Entonces** el sistema advierte del saldo pendiente y su importe
@@ -1412,6 +1528,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** la decisión y su motivo quedan en la bitácora.
 
 **Escenario 14: Baja de cuadrilla con empleados asignados**
+
 - **Dado que** una cuadrilla tiene empleados activos asignados
 - **Cuando** el usuario intenta darla de baja
 - **Entonces** el sistema lo rechaza listando los empleados asignados
@@ -1465,6 +1582,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 ### Criterios de aceptación
 
 **Escenario 1: Configuración de etapas de destajo por tipo de partida**
+
 - **Dado que** una obra va a trabajarse por destajo
 - **Cuando** el usuario da de alta una etapa indicando su clave —"METAL", "TAPADO" o "PASTA"—, el **tipo de partida** al que pertenece y sus precios de venta y de destajo por m²
 - **Entonces** queda registrada por obra y tipo de partida, no de forma global
@@ -1473,12 +1591,14 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** es esa asignación la que permite que el costo de destajo llegue a la partida en el semáforo.
 
 **Escenario 2: Etapa sin tipo de partida**
+
 - **Dado que** el usuario intenta dar de alta una etapa sin asignarle tipo de partida
 - **Cuando** guarda
 - **Entonces** el sistema lo rechaza con código 422
 - **Y** el mensaje explica que sin tipo de partida el costo de esa etapa no podría imputarse en el tablero.
 
 **Escenario 3: Captura de avance por el residente**
+
 - **Dado que** el residente midió el avance de una cuadrilla en un departamento
 - **Cuando** selecciona el área, la etapa y la cuadrilla, y captura **únicamente** los m² reales medidos
 - **Entonces** el sistema muestra en solo lectura los m² de contrato de esa área y etapa, tomados del alcance precargado
@@ -1486,6 +1606,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** todavía no genera ningún pago.
 
 **Escenario 4: Validación por el Director de Proyectos**
+
 - **Dado que** existe un avance en estado "CAPTURADO"
 - **Cuando** el Director de Proyectos lo valida
 - **Entonces** el avance pasa a estado "VALIDADO" con su validador y fecha
@@ -1493,6 +1614,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** empieza a contar en el porcentaje de avance físico del semáforo.
 
 **Escenario 5: Rechazo de una medición**
+
 - **Dado que** el Director de Proyectos detecta un error en la medición
 - **Cuando** la rechaza escribiendo el motivo
 - **Entonces** el avance pasa a estado "RECHAZADO" con el motivo registrado
@@ -1500,6 +1622,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** el historial conserva la medición rechazada y su motivo.
 
 **Escenario 6: Intento de pagar avance no validado**
+
 - **Dado que** existe un avance en estado "CAPTURADO" o "RECHAZADO"
 - **Cuando** se intenta generar un pago de destajo que lo incluya
 - **Entonces** el sistema lo rechaza con código 409 indicando la regla "RN-10"
@@ -1507,12 +1630,14 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** no se crea ningún pago.
 
 **Escenario 7: El residente intenta validar su propia medición**
+
 - **Dado que** el residente tiene también el rol "DIRECTOR_PROYECTOS"
 - **Cuando** intenta validar una medición que él mismo capturó
 - **Entonces** el sistema lo rechaza con código 403
 - **Y** la medición permanece en estado "CAPTURADO".
 
 **Escenario 8: Metros reales mayores que los de contrato**
+
 - **Dado que** un departamento se presupuestó a 81.87 m² y el residente mide 83.82 m² reales
 - **Cuando** captura el avance
 - **Entonces** el sistema lo acepta sin bloquearlo
@@ -1520,18 +1645,21 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** esa desviación se agrega al reporte por obra, nivel y cuadrilla.
 
 **Escenario 9: Avance sobre área sin etapa de destajo definida**
+
 - **Dado que** la obra no tiene precios de destajo configurados para la etapa seleccionada
 - **Cuando** el residente intenta capturar avance de esa etapa
 - **Entonces** el sistema lo rechaza con código 409
 - **Y** el mensaje indica que hay que configurar antes el precio de venta y el precio de destajo de esa etapa.
 
 **Escenario 10: Avance de una cuadrilla ajena a la obra**
+
 - **Dado que** el residente selecciona una cuadrilla que no está asignada a esa obra
 - **Cuando** intenta capturar el avance
 - **Entonces** el sistema lo rechaza con código 422
 - **Y** el selector solo ofrece cuadrillas activas de la obra en curso.
 
 **Escenario 11: Cálculo del pago con retención**
+
 - **Dado que** una cuadrilla acumula 81.87 m² **reales validados** de la etapa "METAL" a $80/m² de destajo
 - **Y** la obra tiene configurada una retención del 15 % y un fondo de garantía del 5 %
 - **Cuando** se genera el pago de la semana
@@ -1545,6 +1673,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 > **Se paga sobre los m² reales y el fondo de garantía se retiene desde la fase 2: `PA-21`, resuelta el 2026-10-17.** *"Sí, para ambas preguntas."* La base del pago es `m2_real`, no `m2_contrato`, y el 5 % se retiene en cada pago, igual que el 15 %. Que el fondo se calcule sobre el **bruto** es un supuesto sin bloqueo de [PRD §10](01-descripcion-producto.md#supuestos-asumidos-sin-bloqueo). Lo que sigue en la v1.1 es la **liberación** del fondo (`RN-12`): hasta entonces, lo retenido se acumula y se consulta, pero no se devuelve.
 
 **Escenario 12: Avance duplicado para la misma área, etapa y semana**
+
 - **Dado que** ya existe un avance capturado para esa combinación de área, etapa, cuadrilla y semana —la semana de destajo va de jueves a miércoles y se identifica por su **jueves de corte**, el jueves siguiente a la fecha de medición (`PA-19`, resuelta): una medición del jueves 20 de agosto y otra del miércoles 26 son de la semana con corte el jueves 27—
 - **Cuando** se intenta capturar otro
 - **Entonces** el sistema lo rechaza con código 409, identificando el avance existente con su autor y sus m²
@@ -1552,12 +1681,14 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** la acción que ofrece es **pedir al Director de Proyectos el rechazo del existente**: una medición capturada no se edita, y solo una rechazada vuelve a "CAPTURADO" corregida por el residente (escenario 5).
 
 **Escenario 13: El costo de destajo llega al semáforo**
+
 - **Dado que** se generó un pago de destajo de una cuadrilla en una obra
 - **Cuando** se consulta el ejercido de esa obra
 - **Entonces** el importe del destajo aparece incluido
 - **Y** es distinguible de las entradas de almacén y de la nómina en el desglose.
 
 **Escenario 14: Cuadrilla que ya cobró nómina esa semana**
+
 - **Dado que** la cuadrilla "MARIO" tiene nómina calculada para la semana del 27 de agosto
 - **Cuando** se intenta generar un pago de destajo para esa misma cuadrilla y semana
 - **Entonces** el sistema lo rechaza con código 409 indicando la regla "RN-22"
@@ -1568,6 +1699,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 > Sin este escenario, el mismo trabajo se contabilizaría dos veces en el "Ejercido" del semáforo y la desviación mentiría al alza.
 
 **Escenario 15: Precarga del alcance de destajo**
+
 - **Dado que** la obra tiene su línea base congelada y se dan de alta las etapas de un tipo de partida
 - **Cuando** el usuario confirma la configuración
 - **Entonces** el sistema precarga, por cada área y cada etapa, los m² de contrato sumando los conceptos medibles en "M2" de las partidas de ese tipo en esa área
@@ -1576,6 +1708,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** los conceptos medidos en "ML" o "PZA" quedan fuera del alcance, y el sistema informa de cuántos son para que nadie los dé por medidos.
 
 **Escenario 16: Corrección del alcance por el Director de Proyectos**
+
 - **Dado que** el alcance precargado de un área y etapa no coincide con lo realmente contratado
 - **Cuando** el Director de Proyectos lo corrige indicando el motivo
 - **Entonces** el alcance queda con el valor nuevo, su autor, su fecha y su motivo
@@ -1584,6 +1717,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** la bitácora registra el cambio.
 
 **Escenario 17: El residente intenta cambiar los m² de contrato**
+
 - **Dado que** el residente está capturando una medición
 - **Cuando** intenta modificar los m² de contrato que el sistema le muestra
 - **Entonces** el sistema lo rechaza con código 403
@@ -1593,6 +1727,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 > **Quien mide no fija el número contra el que se le mide.** La desviación de volumen —los +1.95 m² del departamento 212 que motivan F4.7— solo significa algo si los m² de contrato vienen del contrato. Si los teclea el residente, la desviación mide lo que él decida que mida.
 
 **Escenario 18: Captura de avance sin señal · fase 2**
+
 - **Dado que** el residente abrió la aplicación con conexión antes de subir al nivel, y la caché tiene el alcance, las etapas y las cuadrillas activas de la obra
 - **Cuando** ya sin señal selecciona el área, la etapa y la cuadrilla, y captura los m² reales medidos
 - **Entonces** ve en solo lectura los m² de contrato del alcance en caché, con la fecha y la hora de ese dato
@@ -1602,6 +1737,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** los m² de contrato de la fila los copia el servidor del alcance vigente, como en el escenario 3: el valor en caché solo orienta.
 
 **Escenario 19: Dos dispositivos capturan la misma medición · fase 2**
+
 - **Dado que** dos residentes, sin señal y en dispositivos distintos, capturan avance para la misma área, etapa, cuadrilla y semana
 - **Cuando** los dos dispositivos sincronizan
 - **Entonces** la primera medición que llega queda en "CAPTURADO"
@@ -1611,6 +1747,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** nadie fusiona las dos mediciones: decide una persona.
 
 **Escenario 20: La cola no sube porque al usuario se le retiró el rol · fase 2**
+
 - **Dado que** el residente capturó tres mediciones sin señal
 - **Y** mientras estaba en obra se le retiró el rol "RESIDENTE"
 - **Cuando** recupera la conexión y la cola intenta sincronizar
@@ -1620,6 +1757,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** lo mismo ocurre si la sesión caducó: sin una sesión válida en el momento de sincronizar, la cola no entra.
 
 **Escenario 21: Fotos adjuntas a una medición desde el teléfono · fase 2**
+
 - **Dado que** existe una medición registrada en el servidor
 - **Cuando** el residente toma tres fotos con el teléfono y las adjunta a esa medición
 - **Entonces** el cliente las comprime y las normaliza a JPEG antes de subirlas
@@ -1629,6 +1767,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** aparecen en el expediente de la obra con quién las adjuntó y cuándo (`F8.1`, `F8.5`).
 
 **Escenario 22: El avance sincroniza sin esperar a sus fotos · fase 2**
+
 - **Dado que** el residente capturó sin señal una medición y tomó cuatro fotos de ella
 - **Cuando** el dispositivo recupera una conexión débil
 - **Entonces** la medición sincroniza y queda "CAPTURADO" sin esperar a las fotos
@@ -1636,6 +1775,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** una foto que tarda o falla en subir **no** retrasa ni bloquea la sincronización de la medición ni de las capturas que vienen detrás en la cola.
 
 **Escenario 23: Video que excede el límite de tamaño · fase 2**
+
 - **Dado que** el límite asumido para un video es de 50 MB (`PA-15`)
 - **Cuando** el residente intenta adjuntar a una medición un video de 120 MB
 - **Entonces** el sistema rechaza el alta con código 422 indicando el límite y el tamaño del archivo
@@ -1644,6 +1784,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** la medición no cambia.
 
 **Escenario 24: Anulación de un adjunto equivocado · fase 2**
+
 - **Dado que** el residente adjuntó por error a la medición del departamento 212 una foto del 214
 - **Cuando** la anula indicando el motivo
 - **Entonces** el archivo pasa a "ANULADO" con su autor, su fecha y su motivo
@@ -1653,6 +1794,7 @@ Los escenarios 15 a 18 no añaden reglas: aplican `RNF-18` con las reglas de [AD
 - **Y** si intenta anularla **sin** motivo, el sistema lo rechaza con código 422, el archivo sigue en "DISPONIBLE" y no se registra ninguna anulación.
 
 **Escenario 25: Validación de un avance que todavía no tiene fotos · fase 2 · (asumido, `PA-14`)**
+
 - **Dado que** una medición está en "CAPTURADO" y todavía no tiene ninguna foto adjunta, porque no han subido
 - **Cuando** el Director de Proyectos la valida
 - **Entonces** pasa a "VALIDADO" igual que en el escenario 4, y cuenta en el avance físico
@@ -1725,6 +1867,7 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 ### Criterios de aceptación
 
 **Escenario 1: Apertura de la semana de viernes a jueves**
+
 - **Dado que** empieza un nuevo periodo de nómina
 - **Cuando** el usuario abre la semana indicando su fecha de corte
 - **Entonces** el sistema exige que la fecha de corte sea **jueves** y fija el inicio en el **viernes anterior**
@@ -1732,6 +1875,7 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** la semana es de la empresa, no de una obra: un mismo periodo cubre a todo el personal aunque trabaje en obras distintas.
 
 **Escenario 2: Fecha de corte que no es jueves**
+
 - **Dado que** el usuario intenta abrir una semana con fecha de corte en martes
 - **Cuando** guarda
 - **Entonces** el sistema lo rechaza con código 422 indicando la regla "RN-23"
@@ -1739,12 +1883,14 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** no se crea la semana.
 
 **Escenario 3: Captura de la jornada diaria**
+
 - **Dado que** la semana está abierta
 - **Cuando** el usuario registra que un empleado trabajó un día determinado, indicando **en qué obra** y sus horas extra
 - **Entonces** la jornada queda registrada con empleado, fecha, obra, cuadrilla y horas extra
 - **Y** el sistema acepta fracciones de día para medias jornadas.
 
 **Escenario 4: Dos jornadas del mismo empleado el mismo día**
+
 - **Dado que** ya existe una jornada de ese empleado para esa fecha
 - **Cuando** se intenta registrar otra
 - **Entonces** la base de datos la rechaza por la restricción de unicidad
@@ -1752,12 +1898,14 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** el reparto de costo entre obras nunca puede sumar más del 100 % de la jornada.
 
 **Escenario 5: Jornada sin obra**
+
 - **Dado que** el usuario intenta registrar una jornada sin indicar la obra
 - **Cuando** guarda
 - **Entonces** el sistema la rechaza con código 422 indicando la regla "RN-02"
 - **Y** el mensaje explica que sin obra el costo de ese día no podría imputarse a nadie.
 
 **Escenario 6: Cálculo de la nómina de la semana**
+
 - **Dado que** la semana tiene jornadas capturadas de viernes a jueves
 - **Cuando** el usuario calcula la nómina
 - **Entonces** los días trabajados de cada empleado se **derivan de sus jornadas**, no se capturan aparte
@@ -1767,6 +1915,7 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** el total neto de la semana es la suma de los netos individuales.
 
 **Escenario 7: Empleado que trabajó en dos obras la misma semana**
+
 - **Dado que** un empleado con salario semanal de $7,000 trabajó tres días en "Union Square" y dos en "ENITI"
 - **Cuando** se calcula la nómina
 - **Entonces** su renglón de nómina es uno solo, con cinco días trabajados
@@ -1775,6 +1924,7 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** el reparto es un dato derivado de las jornadas, no una estimación capturada a mano.
 
 **Escenario 8: Empleado con crédito Infonavit activo**
+
 - **Dado que** un empleado tiene un crédito Infonavit activo con saldo de $6,200 y descuento semanal de $620
 - **Cuando** se calcula su nómina
 - **Entonces** se aplica un descuento de $620
@@ -1782,6 +1932,7 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** el descuento registra el saldo posterior para trazabilidad.
 
 **Escenario 9: Crédito que se liquida**
+
 - **Dado que** un empleado tiene un crédito con saldo de $400 y descuento semanal de $620
 - **Cuando** se calcula su nómina
 - **Entonces** el descuento aplicado es de $400, no de $620
@@ -1790,6 +1941,7 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** en la semana siguiente ese crédito ya no genera descuento.
 
 **Escenario 10: Empleado con dos créditos activos**
+
 - **Dado que** un empleado tiene un crédito de Infonavit y un préstamo de la empresa, ambos activos
 - **Cuando** se calcula su nómina
 - **Entonces** se aplican los dos descuentos por separado
@@ -1797,18 +1949,21 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** si la suma de descuentos supera el bruto del empleado, el sistema lo advierte y no deja el neto en negativo: aplica los descuentos **por antigüedad del adeudo** —primero lo que se debe desde más semanas atrás—, sin prioridad por tipo de crédito, hasta donde alcance el bruto (`PA-22`, resuelta).
 
 **Escenario 11: Intento de descontar más que el saldo**
+
 - **Dado que** una operación intenta registrar un descuento superior al saldo del crédito
 - **Cuando** se persiste
 - **Entonces** la base de datos rechaza la operación por la restricción de saldo no negativo
 - **Y** la nómina no queda parcialmente calculada.
 
 **Escenario 12: Días trabajados fuera de rango**
+
 - **Dado que** el usuario captura más días trabajados de los que tiene la semana laboral
 - **Cuando** intenta guardar
 - **Entonces** el sistema lo rechaza con código 422 señalando el renglón
 - **Y** el mensaje indica el máximo admitido, 6 días: el mismo parámetro de semana laboral que sirve de divisor (`PA-22`, resuelta).
 
 **Escenario 13: Pago agrupado a un líder de cuadrilla**
+
 - **Dado que** tres trabajadores sin cuenta bancaria tienen netos de $3,000, $4,000 y $4,000
 - **Cuando** se registra un depósito de $11,000 al líder de su cuadrilla
 - **Entonces** el pago queda registrado con el líder como receptor
@@ -1816,24 +1971,28 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** consultando por cualquiera de los tres se puede ver quién recibió su pago.
 
 **Escenario 14: Desglose que no cuadra con el depósito**
+
 - **Dado que** se intenta registrar un depósito de $11,000 con un desglose que suma $10,500
 - **Cuando** se confirma el pago
 - **Entonces** el sistema lo rechaza indicando la diferencia de $500
 - **Y** no se persiste ni el pago ni su desglose.
 
 **Escenario 15: Empleado sin forma de cobro al cerrar la semana**
+
 - **Dado que** un empleado marcado como sin cuenta bancaria no aparece en el desglose de ningún pago
 - **Cuando** se intenta cerrar la nómina de la semana
 - **Entonces** el sistema lo advierte listando a los empleados sin forma de cobro asignada
 - **Y** no permite cerrar la semana hasta resolverlo.
 
 **Escenario 16: Intento de recalcular una nómina ya pagada**
+
 - **Dado que** la nómina de la semana está en estado "PAGADA", que marca un usuario con el rol "ADMINISTRACION" (`PA-22`, resuelta)
 - **Cuando** un usuario intenta recalcularla o modificar sus renglones
 - **Entonces** el sistema lo rechaza con código 409
 - **Y** el mensaje indica que una nómina pagada no se modifica y que las correcciones van en la semana siguiente.
 
 **Escenario 17: El salario se congela en el renglón**
+
 - **Dado que** se calculó la nómina de una semana con un salario de $7,000
 - **Y** posteriormente el salario del empleado sube a $7,500
 - **Cuando** se consulta la nómina de aquella semana
@@ -1841,12 +2000,14 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** el cambio de salario solo afecta a las semanas posteriores.
 
 **Escenario 18: El costo de nómina llega al semáforo**
+
 - **Dado que** se cerró la nómina de una cuadrilla que trabajó en una obra
 - **Cuando** se consulta el ejercido de esa obra
 - **Entonces** el costo de nómina aparece incluido
 - **Y** es distinguible de las entradas de almacén y de los pagos de destajo en el desglose.
 
 **Escenario 19: Cuadrilla que ya cobró destajo esa semana**
+
 - **Dado que** la cuadrilla "MARIO" tiene un pago de destajo generado para la semana de destajo de jueves 20 a miércoles 26 de agosto, con corte el jueves 27, el mismo corte que la semana de nómina de viernes 21 a jueves 27 (`PA-19`, resuelta)
 - **Cuando** se calcula la nómina de esa misma semana
 - **Entonces** el cálculo responde con éxito para el resto de la semana y devuelve, por cada cuadrilla excluida, el rechazo con el contrato de error de la regla "RN-22"; si la única cuadrilla de la semana es "MARIO", o se pide calcular solo para ella, la respuesta es `409` con ese mismo contrato
@@ -1856,6 +2017,7 @@ Los escenarios 18 a 20 aplican `RNF-18` con las reglas de [ADR-015](adr/20260919
 - **Y** el rechazo es **por cuadrilla**: la nómina del resto de la semana se calcula, y los integrantes de "MARIO" quedan fuera del cálculo hasta resolverlo: el conflicto bloquea solo a la cuadrilla (`PA-20`, resuelta).
 
 **Escenario 20: Empleado que cambió de cuadrilla a mitad de semana**
+
 - **Dado que** un empleado pasó de una cuadrilla de destajo a una de nómina durante la semana
 - **Cuando** se calcula la nómina
 - **Entonces** el sistema lo advierte señalando las dos asignaciones y sus fechas

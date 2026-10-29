@@ -164,7 +164,7 @@ Audited 88 packages in 15ms
 EXIT=0
 ```
 
-2. `uv run python -c "import pwdlib, argon2, email_validator; print(argon2.DEFAULT_TIME_COST, argon2.DEFAULT_MEMORY_COST, argon2.DEFAULT_PARALLELISM)"` → código 0. Los parámetros por omisión de `argon2-cffi` son 3 iteraciones, 65536 KiB de memoria y 4 hilos, lo que corresponde al perfil recomendado por la biblioteca.
+1. `uv run python -c "import pwdlib, argon2, email_validator; print(argon2.DEFAULT_TIME_COST, argon2.DEFAULT_MEMORY_COST, argon2.DEFAULT_PARALLELISM)"` → código 0. Los parámetros por omisión de `argon2-cffi` son 3 iteraciones, 65536 KiB de memoria y 4 hilos, lo que corresponde al perfil recomendado por la biblioteca.
 
 ```
 3 65536 4
@@ -173,14 +173,14 @@ EXIT=0
 
    `email_validator` se importa sin problema, pero **no es dependencia declarada del proyecto**: llega de forma transitiva por `fastapi[standard-no-fastapi-cloud-cli]` (`uv tree --invert --package email-validator` → `email-validator v2.3.0` ← `fastapi v0.159.1` (extra `standard-no-fastapi-cloud-cli`) ← `cimenta`). No se añadió. Se deja al orquestador la decisión de declararla o no, como indica el diseño.
 
-3. `uv run --with pip-audit pip-audit` → sin CVE abiertos. `pip-audit` se ejecuta con `--with`, así que no entra en el bloqueo del proyecto.
+1. `uv run --with pip-audit pip-audit` → sin CVE abiertos. `pip-audit` se ejecuta con `--with`, así que no entra en el bloqueo del proyecto.
 
 ```
 No known vulnerabilities found
 EXIT=0
 ```
 
-4. Verificaciones del pipeline:
+1. Verificaciones del pipeline:
 
 `PYTHONUTF8=1 uv run lint-imports`:
 
@@ -441,21 +441,21 @@ tests\test_tkt006_dominio.py .....................................       [100%]
 
    Los 80 casos son los 43 de `test_tkt006_configuracion.py` (TC-13 a TC-18 con sus complementos) y los 37 de `test_tkt006_dominio.py` (TC-01 a TC-12). Ninguno nace en verde y ningún test se editó.
 
-2. `uv run mypy .`: en la primera pasada falló con el error de la decisión 2 (`Argon2Hasher ... expected "Type"`). Tras el `TypedDict`:
+1. `uv run mypy .`: en la primera pasada falló con el error de la decisión 2 (`Argon2Hasher ... expected "Type"`). Tras el `TypedDict`:
 
 ```
 Success: no issues found in 135 source files
 ```
 
-3. `uv run ruff check .` → `All checks passed!`
+1. `uv run ruff check .` → `All checks passed!`
 
-4. `uv run ruff format --check .` → `135 files already formatted`
+2. `uv run ruff format --check .` → `135 files already formatted`
 
-5. `uv run python -m herramientas.verificar_float` → `verificar_float: archivos revisados: 18; hallazgos: 0` (código 0).
+3. `uv run python -m herramientas.verificar_float` → `verificar_float: archivos revisados: 18; hallazgos: 0` (código 0).
 
-6. `uv run lint-imports` → `Contracts: 15 kept, 0 broken.` (código 0).
+4. `uv run lint-imports` → `Contracts: 15 kept, 0 broken.` (código 0).
 
-7. Regresión: `uv run pytest tests/test_tkt007_dominio.py tests/test_servidor_arranque.py -q` → `62 passed in 5.81s`.
+5. Regresión: `uv run pytest tests/test_tkt007_dominio.py tests/test_servidor_arranque.py -q` → `62 passed in 5.81s`.
 
 **Refactor.** Ninguno más allá de la corrección de tipos de la decisión 2. El código sigue el diseño literal y `ruff format` no cambió nada. No se añadieron comentarios ni abstracciones que el diseño no pida.
 
@@ -667,7 +667,7 @@ FAILED tests/test_tkt006_inicio_sesion.py::test_tkt006_ca03_aplicacion_verifica_
 | `CA-2` | `test_tkt006_ca02_aplicacion_inicio_correcto_devuelve_al_usuario_autenticado` | 1 | Con el reloj adelantado 7 minutos: `UsuarioAutenticado` con `usuario_id`, `nombre`, `email`, `roles` (`frozenset`), `sesion_id` UUID versión 4, `expira_en` = ahora + 12 h y `expira_por_inactividad_en` = ahora + 30 min | `contexto` |
 | `CA-2` | `..._aplicacion_inicio_correcto_escribe_la_sesion` | 1 | Una sola fila en `sesion` con el id devuelto, `creada_en` = `ultima_actividad` = ahora, `expira_en`, `revocada_en` nulo, `origen_ip` y `agente_usuario` | `sesiones` |
 | `CA-2` | `..._aplicacion_inicio_correcto_asienta_el_intento_y_el_ultimo_acceso` | 1 | `intento_acceso` con `exitoso` verdadero, el usuario, el correo y la hora; `usuario.ultimo_acceso` pasa de nulo a ahora | `sesiones` |
-| `CA-2` | `..._aplicacion_correo_sin_distinguir_mayusculas` | 1 | «Ana@Cimenta.TEST» abre la sesión del mismo usuario; el intento conserva el correo tal como se escribió; el origen y el agente nulos se guardan nulos | `sesiones` |
+| `CA-2` | `..._aplicacion_correo_sin_distinguir_mayusculas` | 1 | «<Ana@Cimenta.TEST>» abre la sesión del mismo usuario; el intento conserva el correo tal como se escribió; el origen y el agente nulos se guardan nulos | `sesiones` |
 | `CA-8` | `test_tkt006_ca08_aplicacion_las_caducidades_salen_de_la_configuracion` | 1 | Con 90 y 10 minutos configurados, `expira_en` y la inactividad los respetan, en el resultado y en la fila | `sesiones` |
 | `CA-2` | `..._aplicacion_dos_inicios_abren_dos_sesiones_distintas` | 1 | Cada inicio genera su propio identificador: dos filas con ids distintos | `sesiones` |
 | `CA-R4` | `test_tkt006_car4_aplicacion_construir_contexto_no_pide_el_motor_hasta_usarlo` (sin Docker) | 1 | El proveedor de motor no se llama al construir; se llama una vez al usar la fábrica, y la misma fábrica se devuelve siempre (`functools.cache`) con el motor como `bind` | `contexto` |

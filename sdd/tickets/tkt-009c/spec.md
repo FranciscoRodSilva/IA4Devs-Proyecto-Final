@@ -6,7 +6,7 @@
 
 TKT-009 se partió en cuatro tickets hermanos al aprobarse su diseño, el 2026-10-28. Esta spec no redacta criterios nuevos: reparte los de la [spec común](../tkt-009/spec.md) y fija cuáles cierra este ticket. El texto Gherkin de cada criterio está en la spec común y es el que se prueba.
 
-TKT-009c convierte en compuerta la regla de aceptación de [ADR-012](../../../docs/adr/20260918-trazabilidad-escenario-test.md): un escenario que cuenta y no tiene un test que lo nombre falla el pipeline. Un escenario cuenta desde que su historia está en `tools/historias_activas.txt`; los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`; y uno retirado con el segmento ` · retirado por TKT-0NN` en su título deja de contar. Hoy no hay ningún test con la forma `test_hdu00X_escNN_…` ni un solo escenario retirado, así que el verificador se prueba con documentos de ejemplo y no contra el repositorio real.
+TKT-009c convierte en compuerta la regla de aceptación de [ADR-012](../../../docs/adr/20260918-trazabilidad-escenario-test.md): un escenario que cuenta y no tiene un test que lo nombre falla el pipeline. Un escenario cuenta desde que su historia está en `tools/historias_activas.txt`; los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`; y uno retirado con el segmento `· retirado por TKT-0NN` en su título deja de contar. Hoy no hay ningún test con la forma `test_hdu00X_escNN_…` ni un solo escenario retirado, así que el verificador se prueba con documentos de ejemplo y no contra el repositorio real.
 
 ## Historia de usuario
 

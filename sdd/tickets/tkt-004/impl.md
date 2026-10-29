@@ -237,7 +237,6 @@ Son 154 pruebas de TKT-004 (136 de la entrega A y 18 de la B) más 61 de identid
 | MT-20a, b | `autouse=True` en una fixture del `conftest.py` | TC-13; 124 errores de contenedor |
 | F003 | umbral 18→19, 18→20, sin la conjunción de double exacto (y 18→17) | TC-05d (4 casos); TC-05e (4 casos); TC-05f y TC-05 |
 
-
 ## Modelo por paso
 
 | Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |

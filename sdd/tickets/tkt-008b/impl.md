@@ -693,8 +693,8 @@ Línea de resumen: `Ran 8 tests` · `OK`. El rojo era `FAILED (failures=1)`; el 
 Comprobaciones de la documentación, desde la raíz, con código de salida 0:
 
 ```text
-$ python tools/verificar_docs.py      → código 0 · «✓ Sin problemas.»
-$ python tools/extraer_mermaid.py     → código 0
+python tools/verificar_docs.py      → código 0 · «✓ Sin problemas.»
+python tools/extraer_mermaid.py     → código 0
 ```
 
 Prueba de la exclusión: con `frontend/test-results/x.md` creado a mano, con un enlace Markdown roto que apunta a `no-existe.md`, `python tools/verificar_docs.py` devuelve código 0 y no nombra el archivo. Después se borró `frontend/test-results/x.md`. La exclusión hace lo que debe: el volcado de Playwright no llega al verificador.

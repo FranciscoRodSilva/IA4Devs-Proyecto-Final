@@ -82,6 +82,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Crea la estructura del repositorio con backend y frontend separados, configura el gestor de dependencias de Python, el formateador y el linter, y escribe el `CLAUDE.md` del proyecto.
 
 **Criterios técnicos**
+
 - [ ] Estructura `backend/` y `frontend/` con sus respectivos gestores de dependencias
 - [ ] Formateador y linter configurados: las **herramientas** las fija el [stack §8](06-stack-tecnologico.md#8-calidad-y-herramientas) —Ruff, mypy estricto sobre `dominio/`, ESLint, TypeScript strict—; las **versiones** las elige este ticket, tomando la última estable de cada una y fijándola en el archivo de bloqueo. El stack decide con qué se trabaja, no con qué número de parche
 - [ ] `.gitignore`, `.editorconfig` y archivo de variables de entorno de ejemplo
@@ -101,6 +102,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Monta el esqueleto del backend con los diez módulos y las cuatro capas de cada uno, y añade la verificación automática de que ningún módulo cruza la frontera de otro.
 
 **Criterios técnicos**
+
 - [ ] Un paquete por módulo, diez en total: `identidad`, `auditoria`, `archivos`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`
 - [ ] `archivos` no importa a ningún otro módulo de negocio y ninguno importa su `dominio/` ni su `infraestructura/`: el contrato lo declara expresamente ([arquitectura §7.7](02-arquitectura.md#77-archivos-y-evidencia))
 - [ ] `avance` y `personal` existen como paquetes vacíos desde el primer día aunque su contenido sea de la fase 2: el grafo de dependencias se declara entero una sola vez, no se reabre al llegar la fase
@@ -125,6 +127,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Levanta PostgreSQL para desarrollo, configura el sistema de migraciones, crea el esquema inicial de identidad y establece los tres roles de base de datos con sus permisos.
 
 **Criterios técnicos**
+
 - [ ] PostgreSQL disponible en local mediante contenedor, con datos persistentes entre arranques
 - [ ] Sistema de migraciones configurado, con migración inicial aplicable y reversible
 - [ ] Tablas `usuario`, `rol`, `usuario_rol`, `sesion` e `intento_acceso` según [modelo de datos §10](03-modelo-datos.md#10-identidad-y-auditoría)
@@ -154,6 +157,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Define los objetos de valor compartidos —`Dinero`, `Cantidad`, `Rendimiento`, `Porcentaje`— con decimal exacto, y prohíbe la coma flotante en todo el sistema.
 
 **Criterios técnicos**
+
 - [ ] Tipos implementados sobre decimal de precisión fija, nunca flotante
 - [ ] Precisiones según [modelo de datos §2](03-modelo-datos.md#2-convenciones)
 - [ ] Las operaciones conservan la precisión completa; el redondeo es una operación explícita y separada
@@ -175,6 +179,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Implementa el tipo de excepción de regla de negocio y el manejador global que lo traduce al contrato de error estructurado.
 
 **Criterios técnicos**
+
 - [ ] Excepción de aplicación —la lanza el caso de uso a partir del resultado de la función de regla, que sigue pura— que transporta identificador de regla, mensaje, detalle y acciones
 - [ ] Manejador global que la serializa según [arquitectura §7.3](02-arquitectura.md#73-contrato-de-error-de-regla-de-negocio)
 - [ ] **Los siete `tipo` del borrador [`openapi.yaml`](api/openapi.yaml), más el `404`**: `REGLA_NEGOCIO` (`409`, con `regla`), `VALIDACION` (`422`), `PERMISO` (`403`), `CONFLICTO` (`409`, con `codigo`), `CONCURRENCIA` (`409`, con cabecera `Retry-After` y la acción `REINTENTAR`), `SESION` (`401`), `LIMITE_INTENTOS` (`429`) y `NO_ENCONTRADO` (`404`). El cliente distingue los `409` por `tipo`, nunca por el texto
@@ -203,6 +208,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Implementa inicio de sesión, sesión autenticada y comprobación de permisos por rol, incluida la prohibición de auto-autorización.
 
 **Criterios técnicos**
+
 - [ ] Inicio y cierre de sesión con contraseña derivada con `pwdlib[argon2]` — Argon2id, parámetros en configuración (`RNF-03`)
 - [ ] **El inicio de sesión verifica un hash siempre**, exista el usuario o no, comparando contra un hash de descarte cuando el correo no está: de otro modo el tiempo de respuesta revela qué cuentas existen
 - [ ] Sesión con estado en la tabla `sesion` ([ADR-014](adr/20260919-sesion-con-estado.md)); la cookie lleva un identificador opaco, `HttpOnly`, `Secure`, `SameSite=Lax` (`RNF-01`, `RNF-02`)
@@ -230,6 +236,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Crea la tabla `bitacora`, el servicio para escribir en ella dentro de la transacción en curso, y los permisos que la hacen inmutable.
 
 **Criterios técnicos**
+
 - [ ] Tabla `bitacora` según [modelo de datos §10](03-modelo-datos.md#10-identidad-y-auditoría). `bitacora.obra_id` es un identificador lógico **sin clave foránea**: `auditoria` es transversal y no depende de `presupuesto` ([modelo de datos §2](03-modelo-datos.md#2-convenciones))
 - [ ] El enum `accion` completo, el mismo del modelo §10 y de `AccionBitacora` en el borrador: `CREAR`, `ACTUALIZAR`, `EVALUAR`, `BLOQUEAR`, `AUTORIZAR`, `RECHAZAR`, `CANCELAR`, `EMITIR`, `AJUSTAR`, `REPROGRAMAR`, `CONGELAR`, `RECAPTURAR`, `DESCARTAR`, `CONFIRMAR`, `ANULAR`, `SUSPENDER`, `REACTIVAR`, `CERRAR`, `DESACTIVAR`, `LIBERAR`, `VALIDAR`, `DENEGAR`
 - [ ] El asiento se escribe en **la misma transacción** que el cambio: si la bitácora falla, el cambio se deshace
@@ -254,6 +261,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 **Qué hace.** Monta la aplicación React con navegación, inicio de sesión, el cliente de API que entiende el contrato de error y los componentes reutilizables que todas las historias van a necesitar.
 
 **Criterios técnicos**
+
 - [ ] Aplicación de página única con enrutado y estructura de carpetas por módulo de negocio
 - [ ] Pantalla de inicio de sesión funcional contra TKT-006
 - [ ] Navegación que muestra solo las secciones permitidas por los roles del usuario
@@ -325,11 +333,12 @@ Que otro ticket dependa de TKT-008 significa que depende de los tres. Un consumi
 **Qué hace.** Configura CI con tests, verificación de fronteras entre módulos, trazabilidad escenario ↔ test y calidad de documentación, y deja el sitio donde se enganchan la prueba de contrato de TKT-061 y la revisión de TKT-062.
 
 **Criterios técnicos**
+
 - [ ] Trabajo de tests de backend contra PostgreSQL real, con testcontainers y reporte de cobertura. **MinIO no entra en este ticket**: su servicio y sus pruebas llegan con TKT-059, que los añade a ese mismo trabajo. Antes de TKT-059 no existe el adaptador de almacén que usaría MinIO, así que levantarlo aquí no comprobaría nada
 - [ ] Trabajo de frontend: `npm ci`, `npm run lint`, `npm run typecheck`, `npm test` y **`npm run tipos:verificar`**, este último con **`uv` y Node en el mismo trabajo** y `uv sync --locked --python 3.14` hecho en `backend/`, con el intérprete fijado como en [`arranque-local.md`](arranque-local.md) (TKT-008, `PA-T10`)
 - [ ] Trabajo del humo de Playwright, `npm run e2e`, con Docker, la base migrada, las contraseñas de los roles fijadas y un `.env` construido desde `.env.example` (TKT-008)
 - [ ] Trabajo de verificación de fronteras entre módulos (TKT-002), que falla el pipeline si se cruzan
-- [ ] **Verificador de escenarios sin test** ([ADR-012](adr/20260918-trazabilidad-escenario-test.md), [stack §7.2](06-stack-tecnologico.md#72-trazabilidad-escenario--test)): recorre [`04-historias-usuario.md`](04-historias-usuario.md), extrae cada `HDU-00X esc. N` y falla si un escenario **que cuenta** no tiene un test que lo nombre con la convención `test_hdu00X_escNN_…`. **Un escenario cuenta desde que su historia tiene un ticket en curso**: el verificador lee `tools/historias_activas.txt` —una historia por línea, que se actualiza al arrancar cada sprint—, y los marcados **fase 2** cuentan además solo cuando la fase 2 empieza. Los que todavía no cuentan se informan como pendientes y no fallan el pipeline. Un escenario retirado con el segmento ` · retirado por TKT-0NN` en su título —HDU-006 esc. 14 y 15, al retirar el adaptador simulado con TKT-069— deja de contar. Los tickets de **fundación** sin historia propia nombran sus tests por criterio, `tkt0NN_caNN_escNN_…` en pytest y `"tkt0NN_caNN_escNN · …"` en Vitest y Playwright (`PA-T4` de TKT-008): el verificador los admite y no los cuenta como huérfanos
+- [ ] **Verificador de escenarios sin test** ([ADR-012](adr/20260918-trazabilidad-escenario-test.md), [stack §7.2](06-stack-tecnologico.md#72-trazabilidad-escenario--test)): recorre [`04-historias-usuario.md`](04-historias-usuario.md), extrae cada `HDU-00X esc. N` y falla si un escenario **que cuenta** no tiene un test que lo nombre con la convención `test_hdu00X_escNN_…`. **Un escenario cuenta desde que su historia tiene un ticket en curso**: el verificador lee `tools/historias_activas.txt` —una historia por línea, que se actualiza al arrancar cada sprint—, y los marcados **fase 2** cuentan además solo cuando la fase 2 empieza. Los que todavía no cuentan se informan como pendientes y no fallan el pipeline. Un escenario retirado con el segmento `· retirado por TKT-0NN` en su título —HDU-006 esc. 14 y 15, al retirar el adaptador simulado con TKT-069— deja de contar. Los tickets de **fundación** sin historia propia nombran sus tests por criterio, `tkt0NN_caNN_escNN_…` en pytest y `"tkt0NN_caNN_escNN · …"` en Vitest y Playwright (`PA-T4` de TKT-008): el verificador los admite y no los cuenta como huérfanos
 - [ ] Trabajo **reservado** para la prueba de contrato de TKT-061: aquí se declara el paso y su posición —después de los tests de backend, antes de la generación de tipos—; el contenido lo pone TKT-061
 - [ ] La revisión automatizada de TKT-062 es un flujo de trabajo **aparte** que comenta y nunca bloquea: este pipeline no depende de ella ni la espera
 - [ ] **Auditoría de dependencias**: `pip-audit` y `npm audit`, que fallan el pipeline ante severidad alta (`RNF-08`)
@@ -367,7 +376,7 @@ Que otro ticket dependa de TKT-009 significa que depende de los cuatro. TKT-061 
 
 ##### TKT-009c · Verificador de escenarios sin test
 
-**Qué hace.** Escribe `tools/verificar_escenarios.py` y `tools/historias_activas.txt` y engancha el verificador al pipeline. Falla ante un escenario que cuenta y no tiene test, informa los pendientes, admite los nombres de los tickets de fundación y deja de exigir los escenarios retirados con el segmento ` · retirado por TKT-0NN` en su título.
+**Qué hace.** Escribe `tools/verificar_escenarios.py` y `tools/historias_activas.txt` y engancha el verificador al pipeline. Falla ante un escenario que cuenta y no tiene test, informa los pendientes, admite los nombres de los tickets de fundación y deja de exigir los escenarios retirados con el segmento `· retirado por TKT-0NN` en su título.
 
 - [ ] Un escenario activo sin test falla el pipeline y se nombra; uno todavía no activo se informa como pendiente
 - [ ] Los escenarios de fase 2 no cuentan hasta que `historias_activas.txt` contiene la línea `fase 2`, y una historia no sale nunca del archivo
@@ -402,6 +411,7 @@ La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-
 **Qué hace.** Añade un flujo de GitHub Actions con `anthropics/claude-code-action` que revisa cada pull request contra `CLAUDE.md`, las reglas no negociables y el ticket enlazado, y **comenta**. No aprueba ni fusiona: la aprobación sigue siendo de una persona. Añade además la etiqueta de origen obligatoria sobre la que se mide la velocidad.
 
 **Criterios técnicos**
+
 - [ ] Flujo propio, separado del pipeline de TKT-009, que se dispara al abrir un PR, al empujar a él y al sacarlo de borrador; los borradores no se revisan
 - [ ] El token del flujo tiene permiso de **lectura** sobre el contenido y de **escritura solo sobre comentarios del PR**: sin escritura sobre el contenido no puede empujar commits, y sin permiso de revisión no puede aprobar aunque lo intente
 - [ ] La rama `Produccion` exige **al menos una aprobación humana** y el pipeline de TKT-009 en verde. La revisión automatizada **no** es una comprobación requerida: si falla o tarda, el PR no se bloquea
@@ -433,6 +443,7 @@ La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-
 > **Va en el sprint 2 y no en el 1 porque las tablas que siembra no existen antes.** `empresa`, `tipo_partida` e `insumo` las crea TKT-011, que es del módulo `presupuesto`. Sembrar en el sprint 1 solo podría cargar usuarios y roles de acceso; los catálogos del cliente fallarían por tabla inexistente. El `rol_oficio` se siembra más tarde todavía, en TKT-042, junto a la tabla que lo contiene.
 
 **Criterios técnicos**
+
 - [ ] La fila única de `empresa` —Constructora Celsius—, **antes que nada**: `obra.empresa_id` es obligatoria y sin ella el alta de obra de TKT-012 falla por clave foránea
 - [ ] Un usuario por cada uno de los seis roles
 - [ ] Catálogo de `tipo_partida`: `MUROS`, `PLAFONES_Y_CAJILLOS`, `ENCHAPES`, `GENERALES`
@@ -454,6 +465,7 @@ La política de severidad de `pip-audit` y su motivo están en el [ADR del 2026-
 **Qué hace.** Implementa el **camino mínimo** del módulo `archivos` que HDU-001 necesita para que el Excel de la línea base no pase por el API: alta de la fila en `PENDIENTE` con una URL prefirmada de subida, confirmación que verifica tamaño y hash contra el objeto almacenado, tipo leído de los bytes, URL prefirmada de lectura de vida corta y barrido de los `PENDIENTE` caducados ([ADR-016](adr/20261001-almacenamiento-de-objetos.md), `RNF-06`, `RNF-19`). Galería, anulación, evidencia de campo y expediente de obra son de la fase 2.
 
 **Criterios técnicos**
+
 - [ ] Tabla `archivo` según [modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos), con los invariantes 23, 24, 25 y 26 declarados en la migración y un test por cada uno que intenta violarlo **con el rol de aplicación**. `archivo.obra_id` es un identificador lógico **sin clave foránea**: `archivos` no depende de `presupuesto` ([modelo de datos §2](03-modelo-datos.md#2-convenciones))
 - [ ] `referencia_tipo` nace con sus seis valores aunque la fase 1 solo use `IMPORTACION`: ampliar el `ENUM` en la fase 2 sería una migración evitable sobre una tabla que para entonces ya tiene datos
 - [ ] Los tres índices del modelo: `(obra_id, estado, creado_en DESC)`, `(referencia_tipo, referencia_id)` y el parcial `(creado_en) WHERE estado = 'PENDIENTE'`
@@ -491,6 +503,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-003, TKT-059 |
 
 **Criterios técnicos**
+
 - [ ] Tablas `empresa`, `obra`, `nivel`, `area`, `tipo_partida`, `partida`, `concepto`, `insumo`, `precio_insumo`, `apu`, `apu_insumo`, `apu_cargo`
 - [ ] `obra.empresa_id` es clave foránea **obligatoria** ([ADR-008](adr/20260918-despliegue-single-tenant.md)), aunque el despliegue sea de un solo inquilino y nadie filtre por ella
 - [ ] Tablas `linea_base`, `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`
@@ -523,6 +536,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 **Qué hace.** CRUD de obras con sus parámetros de negocio, incluida la baja protegida.
 
 **Criterios técnicos**
+
 - [ ] Alta con código, nombre, domicilio, tipo de contrato, porcentaje de retención de destajo (15 %), porcentaje de fondo de garantía (5 %), indicador de IVA acreditable y umbral de alerta del semáforo (`umbral_alerta_pct`, opcional; F7.3). `ObraNueva` y `ObraCambios` del borrador lo incluyen, y cambiarlo se asienta en la bitácora
 - [ ] Los dos porcentajes son **conceptos distintos** y se guardan en la obra: ninguna constante en el código (**PA-02**)
 - [ ] El indicador de IVA acreditable se guarda por obra porque varía entre ellas (**PA-05**, `RN-25`)
@@ -542,6 +556,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-011 |
 
 **Criterios técnicos**
+
 - [ ] Reconstruye la jerarquía obra › nivel › área › partida › concepto a partir de la indentación y de las filas sin código
 - [ ] Reconoce las unidades `M2`, `ML`, `PZA` y sus variantes de mayúsculas
 - [ ] Deposita el resultado en la zona de preparación sin tocar el modelo real
@@ -559,6 +574,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-013 |
 
 **Criterios técnicos**
+
 - [ ] Lee cada hoja de análisis: bloque de material, bloque de mano de obra, cargos porcentuales y cargos indirectos
 - [ ] Asocia cada análisis con su concepto
 - [ ] Extrae por insumo: unidad, costo unitario, rendimiento y cargo
@@ -578,6 +594,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-014 |
 
 **Criterios técnicos**
+
 - [ ] Detecta y clasifica: `REF_ROTA`, `UNIDAD_DESCONOCIDA`, `SIN_APU`, `RENDIMIENTO_AUSENTE`, `DUPLICADO` y `SIN_CONCEPTOS`
 - [ ] Una hoja sin ninguna fila de concepto deja la importación `CON_ERRORES` con un error `SIN_CONCEPTOS`, y no se puede confirmar. Test `test_hdu001_esc27_…` en verde
 - [ ] Cada error registra hoja, fila, columna, tipo, mensaje y valor original
@@ -602,6 +619,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-014 |
 
 **Criterios técnicos**
+
 - [ ] Para cada **tipo de partida** e insumo, suma `cantidad_concepto × rendimiento` sobre todos los conceptos de ese tipo en **toda la obra** (**PA-01**)
 - [ ] Conserva el `rendimiento_congelado` de cada insumo como referencia inmutable (`RN-24`)
 - [ ] Calcula el importe de venta y un **importe sugerido** de control quitando utilidad e indirectos, marcado explícitamente como sugerencia
@@ -620,6 +638,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-015, TKT-016, TKT-007 |
 
 **Criterios técnicos**
+
 - [ ] La confirmación materializa toda la jerarquía en **una sola transacción**: o entra todo, o no entra nada
 - [ ] Un test provoca un fallo a mitad de escritura y verifica que no queda ningún dato persistido
 - [ ] Reimportar sobre una línea base en borrador exige confirmación explícita y registra el descarte en la bitácora
@@ -648,6 +667,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-017, TKT-012, TKT-059 |
 
 **Criterios técnicos**
+
 - [ ] **Dueño del caso de uso de importación y de todas sus rutas**: `POST` y `GET /api/v1/obras/{obra_id}/importaciones`, `GET /api/v1/importaciones/{importacion_id}` y sus `/analisis`, `/errores`, `/confirmacion` y `/descarte`. El análisis lo hacen TKT-013 a TKT-015; la confirmación invoca la materialización de TKT-017
 - [ ] El caso de uso que crea la importación en estado `RECIBIDO` registra en **la misma transacción**, por la interfaz publicada de TKT-059, el `archivo` `PENDIENTE` que la referencia: así el documento existe antes que el adjunto, que es lo único que ADR-016 exige (HDU-001 esc. 24)
 - [ ] **Solo `.xlsx`.** Un formato declarado distinto —`.xls` incluido— responde `422` al crear la importación y no emite URL de subida (HDU-001 esc. 21); una hoja que llega sin conceptos no es un error de forma, sino una importación `CON_ERRORES` con `SIN_CONCEPTOS` (esc. 27, TKT-015)
@@ -680,6 +700,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 | **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-011 |
 
 **Criterios técnicos**
+
 - [ ] Tablas `requisicion`, `requisicion_renglon`, `solicitud_autorizacion`, `orden_compra`, `orden_compra_renglon` y `folio_consecutivo`, que guarda el último folio de cada serie —`REQUISICION` y `ORDEN_COMPRA`, global por serie— para numerar sin huecos dentro de la transacción que crea el documento (TKT-021, TKT-030)
 - [ ] `requisicion.motivo_cancelacion` y `orden_compra.motivo_cancelacion`
 - [ ] `orden_compra.proveedor_id` **sin clave foránea**: `proveedor` es de `proveedores`, que depende de `compras`, y la clave invertiría la arista. Lo valida el puerto `CatalogoProveedores` que declara `compras` (TKT-029, TKT-030), y está en la lista cerrada de [modelo de datos §2](03-modelo-datos.md#2-convenciones)
@@ -703,6 +724,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 | **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-004, TKT-005 |
 
 **Criterios técnicos**
+
 - [ ] Función pura que recibe presupuestado, consumido y solicitado, y devuelve permitido o bloqueado con disponible y excedente
 - [ ] Evalúa **los dos controles**: importe de la partida y volumen por insumo **dentro del tipo de partida** —`(tipo_partida_id, insumo_id)`, nunca solo por insumo—
 - [ ] El `consumido` llega ya calculado y su definición es **una sola** para todo el sistema, la de [modelo de datos §15](03-modelo-datos.md#el-consumido-de-rn-03), y la calcula `compras` (TKT-021): `requisiciones vivas + comprometido + ejercido`, cada peso contado una vez
@@ -723,6 +745,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-019, TKT-020, TKT-007 |
 
 **Criterios técnicos**
+
 - [ ] Una sola transacción: bloquea, lee consumido, evalúa, persiste y escribe bitácora
 - [ ] **`compras` es dueño del cálculo del `consumido` y del `disponible`** ([modelo de datos §15](03-modelo-datos.md#el-consumido-de-rn-03)): `requisiciones_vivas` —las `EVALUADA` y `AUTORIZADA` sin convertir— y `comprometido` —el saldo no recibido de las órdenes `ABIERTA` y `PARCIAL`— salen de tablas suyas, y el **ejercido** le llega por el puerto **`FuenteEjercido`**, que declara `compras/aplicacion` e implementan otros módulos. Es la misma definición que lee el semáforo, que se la pide a `compras` y no la reescribe (TKT-039)
 - [ ] `FuenteEjercido` se ejecuta **con la sesión de la transacción en curso**, dentro del bloqueo de ADR-004: un ejercido leído fuera del bloqueo podría quedar viejo entre la lectura y la escritura
@@ -753,6 +776,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 | **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-021 |
 
 **Criterios técnicos**
+
 - [ ] Dos transacciones **reales y simultáneas** contra la misma partida, no simuladas con dobles de prueba
 - [ ] Verifica que exactamente una queda `EVALUADA` y la otra `BLOQUEADA`
 - [ ] Verifica que el disponible final refleja solo la aceptada
@@ -771,6 +795,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 | **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-021 |
 
 **Criterios técnicos**
+
 - [ ] `GET /api/v1/obras/{obra_id}/tipos-partida/{tipo_partida_id}/disponible`, con importe y cantidades por insumo, y el **consumido desglosado en tres**: requisiciones vivas, saldo de órdenes y ejercido
 - [ ] `GET /api/v1/obras/{obra_id}/tipos-partida/{tipo_partida_id}/requisiciones-vivas`: **requisiciones evaluadas sin convertir**, ordenadas por antigüedad, con importe y solicitante: es el contrapeso de que la reserva no caduque sola
 - [ ] `POST /api/v1/requisiciones` guarda en borrador sin evaluar, o crea y envía en un paso y responde **`201`**; `POST /api/v1/requisiciones/{requisicion_id}/envio` envía un borrador ya guardado y responde **`200`**, porque el recurso ya existía (HDU-002 esc. 3)
@@ -791,6 +816,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-023, TKT-008 |
 
 **Criterios técnicos**
+
 - [ ] Selección de obra y partida que muestra presupuestado, consumido —desglosado en requisiciones vivas, saldo de órdenes y ejercido— y disponible antes de capturar
 - [ ] Lista de requisiciones evaluadas sin convertir con acción de cancelar, accesible desde la consulta de disponible
 - [ ] Captura de renglones con insumo y cantidad, mostrando la cantidad disponible de cada insumo
@@ -821,6 +847,7 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 **Qué hace.** Resuelve una solicitud de autorización —autorizar o rechazar— en una sola transacción que mueve la solicitud y la requisición, exige motivo en los dos sentidos y asienta la decisión en la bitácora. Es idempotente: una solicitud se resuelve una vez.
 
 **Criterios técnicos**
+
 - [ ] Una sola transacción: bloquea la solicitud con `SELECT … FOR UPDATE`, comprueba que sigue `PENDIENTE`, consulta la regla de autoridad de TKT-026, escribe la resolución, mueve la requisición y asienta la bitácora. Si la bitácora falla, no hay resolución (`RN-04`)
 - [ ] **Autorizar**: solicitud a `AUTORIZADA` con `resuelta_por_id` y `resuelta_en`; requisición de `BLOQUEADA` a `AUTORIZADA`; asiento con el motivo y la regla `RN-03` (HDU-003 esc. 4)
 - [ ] **Rechazar**: solicitud y requisición a `RECHAZADA`, y la requisición ya no puede convertirse en orden de compra (HDU-003 esc. 5). `RECHAZADA` no es `CANCELADA` ([modelo de datos §14](03-modelo-datos.md#14-máquinas-de-estado))
@@ -844,6 +871,7 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 **Qué hace.** Usa en `dominio/` la prohibición de resolver lo propio que implementa TKT-006 (`evaluar_resolucion`); el rol lo comprueba `api/` con `exigir_rol` (TKT-006). Se prueba sin HTTP ni base de datos.
 
 **Criterios técnicos**
+
 - [ ] Función pura que recibe el actor y el solicitante (`evaluar_resolucion(*, solicitante_id, resolutor_id)`, sin roles) y devuelve un `ResultadoResolucion`, con `motivo = AUTO_RESOLUCION` cuando solicitante y resolutor coinciden, sin recibir roles. La falta de rol no la decide esta función: es `ROL_INSUFICIENTE` y la decide `api/` con `exigir_rol` (TKT-006), antes de llamar al caso de uso. `evaluar_resolucion` (TKT-006) cubre solo `AUTO_RESOLUCION` y no recibe roles
 - [ ] El permiso efectivo es la **unión** de los roles del actor ([arquitectura §7.1](02-arquitectura.md#71-autorización)), que `exigir_rol` comprueba en `api/`; tener `DIRECCION_GENERAL` no exime de la prohibición de auto-autorización (HDU-003 esc. 8), que `evaluar_resolucion` aplica sin recibir roles
 - [ ] La regla *"nadie resuelve lo suyo"* se escribe **una vez**, con un nombre que no dice *solicitud*: HDU-008 esc. 7 —no validar la propia medición— la reutiliza en la fase 2 por la interfaz publicada de `identidad`, que es donde vive. La implementa TKT-006 como `evaluar_resolucion`, publicada en `cimenta.identidad.interfaz`; este ticket la usa y no la reescribe.
@@ -866,6 +894,7 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 **Qué hace.** Expone la bandeja de Dirección General, su contador, el detalle con las cifras del momento del bloqueo, la resolución y la consulta de excepciones de la bitácora.
 
 **Criterios técnicos**
+
 - [ ] `GET /api/v1/solicitudes-autorizacion?estado=PENDIENTE`: ordenadas de la más antigua a la más reciente, con obra, tipo de partida, solicitante, importe solicitado y excedente; las resueltas no aparecen (HDU-003 esc. 2). Las **sin efecto** sí aparecen, marcadas y con el motivo de la cancelación (esc. 10)
 - [ ] `GET /api/v1/solicitudes-autorizacion/contador`: número de pendientes **resolubles**, que vale cero cuando no queda ninguna (esc. 1) **(asumido: las sin efecto no cuentan, porque no hay nada que decidir sobre ellas)**
 - [ ] `GET /api/v1/solicitudes-autorizacion/{solicitud_id}`: cifras tomadas de `solicitud_autorizacion.contexto` y de la fila de la requisición **tal como quedaron al bloquear**, nunca recalculadas; renglones de la requisición y regla que provocó el bloqueo (esc. 3)
@@ -890,6 +919,7 @@ Retoma el flujo donde HDU-002 lo deja: una `requisicion` en `BLOQUEADA` con su `
 **Qué hace.** La bandeja de Dirección General con su contador en la navegación, el detalle de cada solicitud y la resolución con motivo.
 
 **Criterios técnicos**
+
 - [ ] Contador de pendientes en la navegación, visible solo con `DIRECCION_GENERAL`, que desaparece al llegar a cero (HDU-003 esc. 1)
 - [ ] Bandeja ordenada de la más antigua a la más reciente, con las columnas del escenario 2; las sin efecto, distinguibles y sin botones de resolver (esc. 10)
 - [ ] Detalle con las cifras **del momento del bloqueo**, rotuladas así, y no las del disponible de hoy: si la partida siguió consumiéndose, el detalle tiene que seguir explicando por qué se bloqueó (esc. 3)
@@ -921,6 +951,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 **Qué hace.** Esquema y CRUD del proveedor en el módulo `proveedores`, con los campos de la v1.1 ya capturables, y la baja protegida por las órdenes pendientes.
 
 **Criterios técnicos**
+
 - [ ] Tabla `proveedor` según [modelo de datos §9](03-modelo-datos.md#9-proveedores--v11), con `UNIQUE (rfc)` — invariante 28 —, `estado` `ACTIVO`, `DESACTIVADO` o `BAJA`, `tope_consignacion`, `dia_corte` y `dia_pago` aunque su lógica sea de la v1.1
 - [ ] Alta con jueves y sábado como corte y pago por defecto (`RN-17`), visible en el selector al guardarse (HDU-004 esc. 2)
 - [ ] RFC duplicado responde `409` `CONFLICTO` `RFC_DUPLICADO` mostrando el proveedor existente y no crea nada; la restricción única lo garantiza aunque la comprobación previa se salte (esc. 3)
@@ -944,6 +975,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 **Qué hace.** Convierte una requisición `EVALUADA` o `AUTORIZADA` en una orden de compra `ABIERTA` dirigida a un proveedor, copiando sus renglones, con folio único y consecutivo, y rechaza los estados desde los que no se puede emitir.
 
 **Criterios técnicos**
+
 - [ ] Una sola transacción: bloquea la requisición con `SELECT … FOR UPDATE`, comprueba su estado, valida el proveedor por el puerto `CatalogoProveedores` —`orden_compra.proveedor_id` no tiene clave foránea, y esta validación es lo único que la sostiene—, crea orden y renglones, pasa la requisición a `CONVERTIDA` y asienta la bitácora (HDU-004 esc. 4)
 - [ ] La orden hereda `obra_id` de la requisición y alcanza su tipo de partida por `requisicion_id`: una requisición origina **como mucho una** orden, y esa cadena es de la que cuelga el semáforo
 - [ ] Renglones **copiados** de la requisición, con `cantidad_ordenada`, `costo_unitario` y `cantidad_recibida = 0`; no se cambia el precio al emitir **(asumido: el escenario 4 dice "copiados", y un precio distinto movería el consumido sin pasar por `RN-03`)**
@@ -970,6 +1002,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 **Qué hace.** Cancela una orden `ABIERTA` sin ninguna entrada y devuelve la requisición al estado del que salió, sin liberar presupuesto. Rechaza la cancelación de una orden que ya recibió material y ofrece reprogramar el faltante.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/ordenes-compra/{orden_compra_id}/cancelacion` con motivo obligatorio, guardado en `orden_compra.motivo_cancelacion`; sin motivo, `422` **(asumido: el escenario 9 dice "indicando el motivo")**
 - [ ] La orden pasa a `CANCELADA` y la requisición vuelve a `EVALUADA`, **o a `AUTORIZADA` si nació de una excepción resuelta**, para no perder la autorización de Dirección General; puede volver a convertirse (HDU-004 esc. 9, [modelo de datos §14](03-modelo-datos.md#14-máquinas-de-estado))
 - [ ] **No libera presupuesto**: el importe vuelve al sumando de requisiciones vivas y el consumido no cambia. Un test compara el disponible antes y después, al céntimo. Para liberarlo hay que cancelar además la requisición, que es la única transición que suelta la reserva
@@ -991,6 +1024,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 **Qué hace.** Responde a *"¿cuánto y de qué se le pidió a este proveedor en cada obra?"* y monta las pantallas de catálogo de proveedores, de emisión y de cancelación de órdenes.
 
 **Criterios técnicos**
+
 - [ ] `GET /api/v1/proveedores/{proveedor_id}/pedidos-por-obra?desde=…&hasta=…&estado=…`: por obra e insumo, cantidad e importe pedidos, más el total del proveedor; los datos los da la interfaz publicada de `compras` (HDU-004 esc. 11)
 - [ ] Se prueba con el caso real del cliente: dos obras, mismo proveedor, mismo insumo —100 tableros para la obra 1 y 50 para la 2— y el desglose no los suma en una sola fila
 - [ ] Interfaz de catálogo con el componente de formulario de TKT-008: el botón `+` abre el alta con el foco en el nombre (esc. 1); RFC duplicado muestra el existente (esc. 3); desactivar se ofrece siempre, y la baja con órdenes pendientes pinta el `409` `PROVEEDOR_CON_ORDENES_ABIERTAS` con sus órdenes y la acción de desactivar tomada del contrato (esc. 12)
@@ -1018,6 +1052,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 **Qué hace.** Crea las tablas del libro mayor de inventario y de las entradas, con los tipos de movimiento de la v1.1 ya contemplados.
 
 **Criterios técnicos**
+
 - [ ] Tablas `entrada_almacen`, `entrada_renglon` y `movimiento_inventario` según [modelo de datos §6](03-modelo-datos.md#6-almacén)
 - [ ] `movimiento_inventario.tipo` con los seis valores —`ENTRADA`, `SALIDA`, `TRASPASO_SALIDA`, `TRASPASO_ENTRADA`, `MERMA`, `AJUSTE`— aunque la fase 1 use dos
 - [ ] `movimiento_inventario.tipo_partida_id` `NOT NULL` y `obra_id` `NOT NULL` —invariante 1—: se copia del de la requisición de origen, y sin él un `AJUSTE` no llegaría a ninguna partida del semáforo
@@ -1042,6 +1077,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 **Qué hace.** Escribe como funciones puras la validación contra remisión, el cálculo del saldo pendiente acumulado entre entregas, la derivación del estado de la orden y el límite de no recibir más de lo ordenado.
 
 **Criterios técnicos**
+
 - [ ] `RN-05`: una entrada sin folio de remisión es inválida y el resultado lo explica: la entrada se valida contra la remisión del proveedor, no contra la orden (HDU-005 esc. 4)
 - [ ] `RN-06`: saldo pendiente por renglón = ordenado − recibido acumulado, sobre cualquier número de entregas (esc. 2 y 3)
 - [ ] Derivación del estado de la orden desde sus renglones: `ABIERTA` sin nada recibido, `PARCIAL` con algún saldo, `CERRADA` **solo** con todo entregado —lo recibido cubre lo ordenado, con o sin excedente autorizado—. No existe ninguna función que cierre con saldo (esc. 1, 3, 12 y 21)
@@ -1066,6 +1102,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 > **Si la talla L no cabe en el sprint, la costura es el reenvío.** La entrada en línea con sus rechazos —escenarios 1 a 7 y 14— va primero y cierra el hilo vertical; el reenvío con excedente autorizado —escenarios 21 y 22— puede ir detrás en el mismo sprint 5 sin tocarla, porque solo añade un camino a la misma transacción. Mientras falte, un excedente autorizado no se puede registrar todavía; lo que nunca ocurre es recibirlo sin autorización.
 
 **Criterios técnicos**
+
 - [ ] Una sola transacción: bloquea con `SELECT … FOR UPDATE`, **por la interfaz publicada de `compras`**, **`orden_compra` primero y después sus renglones ordenados por id** —el mismo orden que la cancelación de TKT-031, [arquitectura §8.2](02-arquitectura.md#82-recepción-parcial--rn-06-y-rn-07)—, copia `proveedor_id` de la orden a `entrada_almacen`, valida con TKT-034, inserta entrada, renglones y un movimiento `ENTRADA` por renglón, actualiza `cantidad_recibida`, deriva el estado y asienta la bitácora
 - [ ] El movimiento copia `tipo_partida_id` de la requisición y `costo_unitario` del renglón de la orden; `importe = cantidad × costo_unitario` sin redondeo intermedio
 - [ ] Entrada completa: orden `CERRADA`, saldo cero, movimiento por las 100 unidades (HDU-005 esc. 1); parcial: orden `PARCIAL` con saldo de 50 (esc. 2); segunda entrega con otro folio: `CERRADA` y dos movimientos separados (esc. 3)
@@ -1097,6 +1134,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 **Qué hace.** Da una nueva fecha comprometida al saldo de un renglón con motivo obligatorio (**PA-07**), deja la orden en `PARCIAL` y conserva comprometido el presupuesto. Es la vía que sustituye al cierre con saldo, que no existe.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/ordenes-compra/{orden_compra_id}/renglones/{renglon_id}/reprogramacion` con fecha nueva y motivo; vive en `compras`, dueño de `reprogramacion_entrega`
 - [ ] Registra fecha anterior, fecha nueva, saldo pendiente y motivo; actualiza `fecha_compromiso`; la orden **permanece** `PARCIAL`; bitácora (HDU-005 esc. 10)
 - [ ] El presupuesto sigue comprometido: un test compara el disponible antes y después, al céntimo
@@ -1119,6 +1157,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 **Qué hace.** Corrige una entrada mal capturada con un movimiento `AJUSTE` de signo contrario y motivo, sin tocar el movimiento original, y recalcula el saldo pendiente.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/entradas-almacen/{entrada_id}/correccion` con renglón, **`cantidad_correcta` absoluta** —lo que de verdad llegó— y motivo. El cliente nunca manda el ajuste: **el servidor calcula la diferencia** y escribe el `AJUSTE` de signo contrario
 - [ ] Sobre una orden `PARCIAL` de 100 con una entrada capturada de 70 que en realidad fue de 50: genera un `AJUSTE` de −20 con su motivo, el mismo `tipo_partida_id` y el mismo costo unitario que la entrada; **no** modifica ni borra el original; la existencia calculada pasa a 50, el saldo de la orden pasa de 30 a 50, `cantidad_recibida` del renglón se recalcula por la interfaz de `compras` y la orden sigue `PARCIAL` (HDU-005 esc. 8)
 - [ ] Sin motivo: `422` y ningún movimiento (esc. 9)
@@ -1141,6 +1180,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 **Qué hace.** Expone el registro y la consulta de entradas, los saldos pendientes por obra con su antigüedad y su contador de reprogramaciones, la existencia calculada y el historial de movimientos.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/entradas-almacen`, `GET /api/v1/entradas-almacen` y `GET /api/v1/entradas-almacen/{entrada_id}`, con los roles `ALMACEN` y `RESIDENTE`, que según el [PRD §4](01-descripcion-producto.md#4-usuarios-y-roles) también recibe material contra remisión
 - [ ] `GET /api/v1/obras/{obra_id}/saldos-pendientes`: por orden e insumo, ordenado, recibido y saldo; fecha comprometida vigente; **cuántas veces se reprogramó cada renglón**; antigüedad desde la **primera** fecha comprometida (HDU-005 esc. 13)
 - [ ] `GET /api/v1/obras/{obra_id}/existencias`: suma de movimientos por insumo; **no** lee ninguna columna de stock porque no existe
@@ -1162,6 +1202,7 @@ Historia: [HDU-005](04-historias-usuario.md#hdu-005--entrada-de-material-con-rec
 **Qué hace.** La pantalla de recepción de material, **en línea**: captura de remisión y cantidades contra la orden, saldo pendiente visible, reprogramación, corrección e historial.
 
 **Criterios técnicos**
+
 - [ ] Selección de la orden por obra y proveedor; captura de folio y fecha de remisión obligatorios, con el error de `RN-05` del servidor si faltan
 - [ ] Por renglón: ordenado, recibido, saldo pendiente y fecha comprometida vigente **antes** de capturar
 - [ ] El `409` de `RN-07` se pinta con la pantalla de bloqueo de TKT-008, con las cifras del detalle y la acción de solicitar autorización tomada del contrato (HDU-005 esc. 5)
@@ -1194,6 +1235,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 **Qué hace.** Separa en `analitica` **qué fuentes existen** de **cómo se agregan**: el semáforo lee el destajo, la nómina imputada y el avance físico a través de un puerto con tres adaptadores —`SIMULADO` y `VACIO` en la fase 1, `REAL` desde el sprint 8 (TKT-069)—, sin tocar la consulta ni la interfaz ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)).
 
 **Criterios técnicos**
+
 - [ ] Puerto `FuentesManoDeObraYAvance` en la capa de aplicación de `analitica`, con una lectura por fuente: destajo por tipo de partida (`DESTAJO`), nómina imputada a la obra (`NOMINA`) y avance físico por tipo de partida (`AVANCE_FISICO`), que cubre **alcance y m² validados**: no hay fuente `ALCANCE`. Cada lectura devuelve su valor **y su origen**: `REAL`, `SIMULADA` o `SIN_DATOS`
 - [ ] El origen se declara **por fuente** en el metadato, no para todo el puerto: con el adaptador real la nómina sale `SIN_DATOS` hasta el sprint 9 mientras destajo y avance físico ya son `REAL`, y el metadato tiene que poder decirlo
 - [ ] **Tres adaptadores, cada uno con su test**: `SIMULADO`, solo en `local`, `pruebas` y `demostracion`; **`VACIO`**, que devuelve todas las fuentes `SIN_DATOS` y es **el único admitido en `produccion` durante la fase 1**; y `REAL`, que es TKT-069. Este ticket entrega los dos primeros
@@ -1207,7 +1249,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 
 > **El riesgo de esta decisión no está en el tablero sino en la regla.** Un destajo simulado que llegara al consumido bloquearía requisiciones reales con dinero que no existe. Por eso el escenario 15 es de rechazo y vive en este ticket, no en la interfaz: lo que hay que probar es que el número que decide no se entera de que hay datos simulados.
 
-> **Los escenarios 14 y 15 de HDU-006 tienen vigencia de fase 1.** Cuando TKT-069 retira el adaptador simulado, sus tests se retiran con él y los escenarios salen del verificador con el segmento ` · retirado por TKT-069` en su título; no se reescriben. Lo que queda es su contrario: que ninguna fuente salga `SIMULADA`.
+> **Los escenarios 14 y 15 de HDU-006 tienen vigencia de fase 1.** Cuando TKT-069 retira el adaptador simulado, sus tests se retiran con él y los escenarios salen del verificador con el segmento `· retirado por TKT-069` en su título; no se reescriben. Lo que queda es su contrario: que ninguna fuente salga `SIMULADA`.
 
 > **Cuando nazca `pago_destajo` en la fase 2, el término de destajo del consumido deja de ser cero** porque `avance` implementa el puerto `FuenteEjercido` de `compras` (TKT-069), no porque se amplíe aquí ninguna consulta. El adaptador simulado se **elimina en el sprint 8, con TKT-069**; no se conserva como opción, porque sería configuración muerta con capacidad de mentir.
 
@@ -1224,6 +1266,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 **Qué hace.** La consulta del semáforo por obra y tipo de partida, con el consumido y el disponible que calcula `compras` y las fuentes del puerto de TKT-060, y el cálculo de avance, desviación y alerta en `dominio/`.
 
 **Criterios técnicos**
+
 - [ ] **`analitica` no reescribe las CTE del consumido.** Por tipo de partida obtiene `requisiciones_vivas`, `comprometido`, `ejercido`, `consumido` y `disponible` —con el presupuestado contra el que se calculan— llamando a la interfaz publicada de `compras`, con el rol de solo lectura —invariante 21—. La definición es una sola ([modelo de datos §15](03-modelo-datos.md#el-consumido-de-rn-03)), y el disponible del tablero es exactamente el que aplica `RN-03`
 - [ ] Destajo, nómina y avance físico **vienen del puerto de TKT-060**, nunca de una consulta propia del semáforo
 - [ ] **Cuatro filas por obra**, una por tipo de partida, más la fila de totales (HDU-006 esc. 1 y 13); cada fila expone `requisiciones_vivas` y `disponible`. El desglose por ubicación queda para TKT-040
@@ -1263,6 +1306,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 **Qué hace.** Expone el semáforo, su metadato de fuentes, el desglose de una partida, el detalle hasta el movimiento de origen y el resumen de alertas.
 
 **Criterios técnicos**
+
 - [ ] `GET /api/v1/obras/{obra_id}/semaforo`: filas por tipo de partida —con `requisiciones_vivas`, `disponible`, `ejercido` solo real y `ejercido_simulado` aparte—, fila de nómina, totales y **`fuentes[]`** con `REAL`, `SIMULADA` o `SIN_DATOS` para `PRESUPUESTADO`, `COMPROMETIDO`, `MATERIALES`, `DESTAJO`, `NOMINA` y `AVANCE_FISICO` (HDU-006 esc. 6 y 14)
 - [ ] La desviación viaja con **`ilustrativa: true`** si alguna de sus entradas es `SIMULADA` (regla 3 de ADR-017)
 - [ ] `GET /api/v1/obras/{obra_id}/semaforo/partidas/{tipo_partida_id}`: desglose por fuente y desglose **por ubicación del presupuestado** —**nivel y área**, desde la línea base congelada— (esc. 13). El material no tiene ubicación en el libro mayor y no se inventa **(asumido: es la lectura del escenario 13 compatible con el [modelo de datos §6](03-modelo-datos.md#6-almacén))**
@@ -1286,6 +1330,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 **Qué hace.** El tablero de obra: cuatro filas con su color, la fila de nómina aparte, los avisos de cifra parcial y de dato simulado, y el desglose navegable hasta el movimiento.
 
 **Criterios técnicos**
+
 - [ ] Cuatro filas por obra con sus columnas y la fila de totales (HDU-006 esc. 1 y 13); color `VERDE`, `AMARILLO` o `ROJO` según TKT-039 (`PA-18`, resuelta el 2026-10-17), y *sin avance medido* como estado, no como color (esc. 2, 3 y 16). El color lo trae el servidor; el cliente no lo calcula
 - [ ] **Aviso de cifra parcial** cuando **alguna fuente no es `REAL`** —`SIN_DATOS` o `SIMULADA`—, diciendo cuáles; la cifra no se presenta como costo real completo (esc. 6)
 - [ ] **El ejercido real se pinta en su celda y lo simulado en su propia columna**, marcada *dato simulado* celda a celda; rótulo **"ilustrativa"** en la desviación que llega con `ilustrativa: true`. La marca está en la celda, no en una nota al pie que una captura de pantalla recorta (esc. 14, ADR-017)
@@ -1317,6 +1362,7 @@ Están separados de la Épica 0 a propósito. La fundación entrega *la capacida
 **Qué hace.** Cubre los requisitos de seguridad que TKT-006 declara fuera de su alcance: límite de intentos, protección contra peticiones cruzadas, cabeceras y gestión de secretos.
 
 **Criterios técnicos**
+
 - [ ] Límite de intentos de acceso por origen y bloqueo **temporal** por cuenta tras `N` fallos, con cada intento asentado en `intento_acceso` (`RNF-04`)
 - [ ] El bloqueo caduca solo: una cuenta bloqueada para siempre es una denegación de servicio que cualquiera puede provocar
 - [ ] Token de doble envío verificado en **todo** método que muta estado, con test de rechazo sin token (`RNF-05`). El rechazo anónimo va a `intento_acceso` y al registro técnico, no a la bitácora (TKT-006)
@@ -1340,6 +1386,7 @@ Están separados de la Épica 0 a propósito. La fundación entrega *la capacida
 **Qué hace.** Convierte el borrador [`docs/api/openapi.yaml`](api/openapi.yaml) —descrito en la [especificación del API](07-especificacion-api.md)— en una prueba que se ejecuta en cada PR: compara el OpenAPI que FastAPI publica con el borrador para los endpoints de la fase 1 y falla el pipeline si divergen. Es lo que hace del borrador el contrato contra el que el agente genera el backend y el cliente sus tipos, y no un documento que se desactualiza en el primer sprint.
 
 **Criterios técnicos**
+
 - [ ] El borrador pasa la validación de OpenAPI 3.1 en el pipeline, y los ejemplos que trae —el contrato de error de la [arquitectura §7.3](02-arquitectura.md#73-contrato-de-error-de-regla-de-negocio) entre ellos— se validan contra sus propios esquemas
 - [ ] Un test obtiene el esquema que publica la aplicación y lo compara con el borrador, por operación de la fase 1: **ruta y método**, parámetros obligatorios, **códigos de respuesta** —incluidos `401`, `403`, `409` y `422`—, esquema del cuerpo y **forma del contrato de error**
 - [ ] **Todo importe es `string`** en los dos esquemas; un importe declarado como número en cualquiera de los dos falla la prueba, aunque coincidan entre sí (regla 1 de `CLAUDE.md`)
@@ -1366,6 +1413,7 @@ Están separados de la Épica 0 a propósito. La fundación entrega *la capacida
 **Bloqueado por PA-12.** Los objetivos de `RNF-10` —1 hora de pérdida, 8 horas de restauración— siguen **(asumido)**. Fijan el precio de la base gestionada, así que la pregunta tiene que estar respondida **antes de contratarla**, no después. Es lo único de este ticket que depende de alguien ajeno al equipo.
 
 **Criterios técnicos**
+
 - [ ] **PA-12 respondida por Dirección General** y los objetivos de `RNF-10` actualizados con lo que diga, o confirmados
 - [ ] PostgreSQL gestionado con **recuperación a un punto en el tiempo**, más volcado lógico diario retenido aparte del proveedor (`RNF-10`)
 - [ ] El respaldo cubre también los archivos subidos: bucket con **versionado de objetos** y política de ciclo de vida declarada (`RNF-19`). Una base restaurada cuya bitácora apunta a evidencia inexistente está restaurada a medias
@@ -1431,6 +1479,7 @@ Es un bloque de catálogo sin reglas duras salvo `RN-13`, pero bloquea a las dos
 **Qué hace.** Crea las tablas del catálogo de personal con las restricciones que protegen los créditos y siembra el catálogo de roles de oficio del cliente, que nace aquí y no en TKT-010 porque su tabla no existe antes.
 
 **Criterios técnicos**
+
 - [ ] Tablas `rol_oficio`, `empleado`, `cuadrilla` —con `activo`—, `cuadrilla_empleado` y `credito_empleado` según [modelo de datos §8](03-modelo-datos.md#8-personal-y-nómina)
 - [ ] `CHECK (saldo >= 0)` sobre `credito_empleado` — invariante 3 — y `CHECK (estado <> 'LIQUIDADO' OR saldo = 0)` — invariante 4 —, cada uno con un test que lo viola **con el rol de aplicación** y verifica que falla en el motor. El escenario 11 de HDU-009 descansa en el primero
 - [ ] `CHECK (salario_semanal > 0)` y `CHECK (tarifa_hora_extra >= 0)` — invariante 8 —, respaldo de motor del escenario 5 de HDU-007
@@ -1455,6 +1504,7 @@ Es un bloque de catálogo sin reglas duras salvo `RN-13`, pero bloquea a las dos
 **Qué hace.** CRUD de empleados con su rol de oficio, baja lógica protegida por el historial y decisión explícita sobre los créditos pendientes al dar de baja, con su pantalla de catálogo.
 
 **Criterios técnicos**
+
 - [ ] `GET /api/v1/roles-oficio` devuelve solo los roles activos del catálogo — HDU-007 esc. 2
 - [ ] `POST /api/v1/empleados` con nombre, rol de oficio, salario semanal, tarifa de hora extra e indicador de cuenta bancaria; el empleado queda activo y aparece en la consulta de asignables a cuadrilla — esc. 3
 - [ ] Sin rol de oficio responde `422` señalando el campo — esc. 4 —; salario de cero o negativo responde `422` — esc. 5 —. En ambos casos un test cuenta filas antes y después y verifica que no se creó ninguna
@@ -1480,6 +1530,7 @@ Es un bloque de catálogo sin reglas duras salvo `RN-13`, pero bloquea a las dos
 **Qué hace.** Alta de cuadrillas por obra con su encargado, asignación temporal de empleados y cambio de cuadrilla que conserva la asignación anterior. Publica la consulta que `avance` y la nómina necesitan: a qué cuadrilla pertenecía un empleado en una fecha.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/cuadrillas` con obra, nombre y encargado; el encargado tiene que ser un empleado activo. La existencia de la obra se comprueba por la interfaz publicada de `presupuesto`, nunca leyendo `obra` — esc. 6
 - [ ] `GET /api/v1/cuadrillas?obra_id=…&activa=true` devuelve las cuadrillas activas de una obra con su encargado: es la que alimenta el selector de HDU-008 esc. 10 y la lista de receptores posibles de TKT-051
 - [ ] `POST /api/v1/cuadrillas/{id}/asignaciones` con empleado y fecha de inicio — esc. 7. Si el empleado ya está en otra cuadrilla en esa fecha responde `409` `CONFLICTO` nombrando la cuadrilla vigente; la violación de la restricción de exclusión de TKT-042 —invariante 33— se traduce al mismo contrato, nunca a un `500`
@@ -1502,6 +1553,7 @@ Es un bloque de catálogo sin reglas duras salvo `RN-13`, pero bloquea a las dos
 **Qué hace.** Registro de créditos de Infonavit y préstamos de la empresa, con su suspensión y reactivación. Deja el saldo listo para que la nómina lo amortice y garantiza que ninguna otra vía lo toque.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/empleados/{id}/creditos` con tipo, monto total y descuento semanal: el crédito nace `ACTIVO` con saldo igual al monto — esc. 9
 - [ ] Un descuento semanal mayor que el monto total responde `422` con un mensaje que explica que el descuento no puede exceder la deuda; la restricción de motor de TKT-042 respalda el rechazo — esc. 10
 - [ ] `POST /api/v1/creditos/{id}/suspension` con motivo pasa a `SUSPENDIDO` y conserva el saldo; `POST /api/v1/creditos/{id}/reactivacion` con motivo lo devuelve a `ACTIVO` — esc. 11. Sin motivo, `422`; desde `LIQUIDADO`, `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION`
@@ -1533,6 +1585,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 **Qué hace.** Crea las tablas del módulo `avance` con las dos garantías de motor que lo sostienen —un avance pagado está validado y el alcance no se duplica— y expone la configuración de etapas de destajo por obra y tipo de partida (**PA-08**).
 
 **Criterios técnicos**
+
 - [ ] Tablas `etapa_destajo`, `alcance_destajo`, `avance`, `pago_destajo` y `pago_destajo_avance` según [modelo de datos §7](03-modelo-datos.md#7-avance-y-destajo)
 - [ ] `etapa_destajo.tipo_partida_id NOT NULL` y `UNIQUE (obra_id, tipo_partida_id, clave)` — invariante 32 —, de modo que `METAL · MUROS` y `METAL · PLAFONES Y CAJILLOS` son dos filas con precios propios — esc. 1
 - [ ] `CHECK (precio_venta_m2 >= 0 AND precio_destajo_m2 >= 0)`, `CHECK (m2_real >= 0)` y `CHECK (m2_contrato >= 0)` — invariante 8
@@ -1565,6 +1618,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 **Criterios técnicos**
 
 *Alcance*
+
 - [ ] `POST /api/v1/obras/{obra_id}/alcances-destajo/precarga` con un tipo de partida: crea una fila por área y etapa con los m² de contrato, sumando los conceptos en `M2` de las partidas de ese tipo en esa área. Lee la línea base por la interfaz publicada de `presupuesto`, nunca sus tablas — esc. 15
 - [ ] Sin línea base congelada responde `409` `CONFLICTO` `SIN_LINEA_BASE_CONGELADA` con la acción de ir a congelarla
 - [ ] La respuesta informa cuántos conceptos quedaron fuera por venir en `ML` o `PZA` — esc. 15
@@ -1574,6 +1628,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 - [ ] Un test verifica que corregir el alcance **no** altera el `m2_contrato` de las mediciones ya capturadas (DoD de HDU-008)
 
 *Medición y validación*
+
 - [ ] `POST /api/v1/avances` reservado a `RESIDENTE`, con área, etapa, cuadrilla, fecha de medición y **únicamente** `m2_real`. El caso de uso copia `m2_contrato` del alcance en la misma transacción y deja el avance `CAPTURADO` con su autor; no genera pago — esc. 3
 - [ ] Un cuerpo que incluya `m2_contrato` responde `403` con el mensaje de que el alcance lo corrige el Director de Proyectos; el alcance conserva su valor — esc. 17. No se ignora en silencio: quien lo intenta tiene que saber que no surtió efecto
 - [ ] `semana` la deriva el servidor de la fecha de medición: `fecha_medicion` más los días hasta el jueves siguiente, el jueves de corte de la semana de destajo de jueves a miércoles (`PA-19`, resuelta el 2026-10-17), y el invariante 37 lo respalda
@@ -1586,6 +1641,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 - [ ] Toda transición fuera de la máquina de estados de [§14](03-modelo-datos.md#avance) responde `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION`, con un test por transición prohibida
 
 *Pago*
+
 - [ ] `POST /api/v1/pagos-destajo` con obra, cuadrilla, semana y las mediciones a liquidar. Una medición no `VALIDADO` responde `409` con regla `RN-10`, identificando cuáles no lo están, y no crea el pago — esc. 6. El invariante 11 respalda el rechazo en el motor
 - [ ] Un pago liquida **solo mediciones de su misma semana**: una medición de otra semana responde `409` `CONFLICTO` `MEDICION_DE_OTRA_SEMANA`, código que se añade al catálogo del borrador en el mismo PR (TKT-005), identificándola, y no crea el pago **(asumido, sin bloqueo)**
 - [ ] Cada fila puente guarda `importe = m2_liquidados × precio_destajo_m2`, con el precio congelado, y el importe bruto del pago es la suma de esas filas. **`m2_liquidados` es el `m2_real` de la medición validada** (`PA-21`, resuelta el 2026-10-17)
@@ -1611,6 +1667,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 **Qué hace.** La pantalla del residente para medir de pie en obra, con o sin señal, y adjuntar sus fotos; la del Director de Proyectos para validar —viendo la evidencia— y corregir el alcance desde oficina, y el reporte de desviación de volumen por obra, nivel y cuadrilla (F4.7). **Pasó de M a L** al recibir de TKT-067 los adjuntos de la medición.
 
 **Criterios técnicos**
+
 - [ ] Pantalla de captura diseñada para teléfono: usable a 360 px de ancho con una mano, sin desplazamiento horizontal, verificada en Playwright con ventana móvil
 - [ ] Los m² de contrato se muestran en solo lectura junto al campo de m² reales; no existe control que permita editarlos — esc. 3 y esc. 17
 - [ ] El selector de cuadrillas ofrece solo las activas de la obra — esc. 10
@@ -1627,6 +1684,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 - [ ] Importes y cantidades con `decimal.js`
 
 *Adjuntos de la medición* —vinieron de TKT-067, que se queda con la remisión y el expediente—
+
 - [ ] En la captura, el componente de TKT-065 adjunta fotos a una medición **ya sincronizada**; mientras está en la cola, el botón aparece deshabilitado con la explicación — HDU-008 esc. 21 y 22
 - [ ] La lista de mediciones marca las que aún no tienen evidencia. Es una marca de pantalla, no una regla
 - [ ] En la validación, el Director de Proyectos ve la galería de la medición; sin fotos, un aviso lo dice **y no impide validar** — HDU-008 esc. 25 **(asumido, `PA-14`)**
@@ -1654,6 +1712,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 **Qué hace.** Crea las tablas de jornada, nómina, descuentos y pagos con las cuatro restricciones que hacen que la nómina cuadre por construcción.
 
 **Criterios técnicos**
+
 - [ ] Tablas `jornada`, `nomina_semana`, `nomina_renglon`, `imputacion_nomina_obra`, `descuento_nomina`, `pago_nomina` y `pago_nomina_detalle` según [modelo de datos §8](03-modelo-datos.md#8-personal-y-nómina)
 - [ ] `UNIQUE (empleado_id, fecha)` sobre `jornada` — invariante 16 —, con test
 - [ ] `CHECK (fecha_corte = fecha_inicio + 6 AND EXTRACT(DOW FROM fecha_corte) = 4)` — invariante 18 —, con test que intenta un corte en martes; `UNIQUE (fecha_corte)` sobre `nomina_semana`
@@ -1678,6 +1737,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 **Qué hace.** Abre la semana de nómina de la empresa con corte en jueves y registra cada día trabajado por empleado y obra (**PA-04**, `RN-23`), que es de donde se derivan los días de la nómina y su reparto entre obras.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/semanas-nomina` con la fecha de corte: si es jueves, fija el inicio en el viernes anterior y deja la semana `ABIERTA`, sin obra — la semana es de la empresa — esc. 1. Si no es jueves, `422` con regla `RN-23` y el recordatorio de corte el jueves y pago el sábado — esc. 2. El invariante 18 respalda el rechazo
 - [ ] Una segunda semana con la misma fecha de corte responde `409` `CONFLICTO`
 - [ ] `POST /api/v1/jornadas` con empleado, fecha, obra, fracción de día y horas extra; acepta medias jornadas — esc. 3. La cuadrilla la pone el caso de uso con `cuadrilla_vigente(empleado_id, fecha)` de TKT-044, no la captura el usuario
@@ -1704,6 +1764,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 **Qué hace.** Reparte el neto de cada empleado entre las obras en proporción a los días que trabajó en cada una, como dato derivado de las jornadas y no como estimación capturada, y **lleva la nómina al semáforo**: conecta su lectura al adaptador real de TKT-069, que hasta aquí la declaraba `SIN_DATOS`.
 
 **Criterios técnicos**
+
 - [ ] Función pura en `dominio/` que recibe las fracciones de día por obra y el neto, y devuelve la imputación por obra. `RN-23` en su docstring
 - [ ] El reparto suma **exactamente** el neto a cuatro decimales: el residuo de redondeo se asigna a la obra con más días, y a igualdad, a la de menor identificador **(asumido: política de redondeo no declarada; cualquier otra que sume exacto sirve)**
 - [ ] Con $7,000 de neto, tres días en Union Square y dos en ENITI: `4200.0000` y `2800.0000`, en un único renglón con cinco días — esc. 7
@@ -1727,6 +1788,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 **Qué hace.** Calcula la nómina de la semana en `dominio/`: días derivados de las jornadas, horas extra, amortización de créditos con liquidación automática y protección contra neto negativo. Reclama la modalidad de pago antes de escribir.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/semanas-nomina/{id}/calculo` sobre una semana `ABIERTA`: los días de cada empleado se **derivan** de sus jornadas, no se capturan — esc. 6
 - [ ] Importe de nómina = salario semanal × días ÷ `dias_semana_laboral` —6 días, el parámetro de TKT-049 (`PA-22`, resuelta el 2026-10-17)—; importe extra = horas extra × tarifa; neto = bruto − descuentos; total de la semana = Σ netos — esc. 6
 - [ ] El salario se **copia** al renglón: subir el salario después no cambia la nómina calculada — esc. 17
@@ -1754,6 +1816,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 **Qué hace.** Registra los depósitos separando *quién recibe* de *por cuenta de quién* (`RN-14`), permite preguntar por cualquier trabajador quién cobró su pago, y cierra la semana solo cuando todos tienen forma de cobro.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/semanas-nomina/{id}/pagos` con receptor, importe total, método, fecha y desglose por empleado. Tres netos de $3,000, $4,000 y $4,000 depositados en un solo pago de $11,000 al líder quedan con el líder como receptor y los tres en el desglose — esc. 13
 - [ ] Un desglose que no suma el total responde `409` con regla `RN-14` y la diferencia en el detalle (`"500.0000"`), y no persiste ni el pago ni el desglose — esc. 14. El invariante 7 respalda el rechazo, con un test que se salta el dominio
 - [ ] El importe del desglose de un empleado no puede exceder su neto pendiente de pagar en la semana **(asumido: el PRD no lo dice, pero sin ello un pago agrupado puede cubrir de más sin que nadie lo vea)**
@@ -1778,6 +1841,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 **Qué hace.** Las pantallas de oficina de Administración: abrir la semana, capturar jornadas, calcular, resolver advertencias, registrar depósitos y cerrar.
 
 **Criterios técnicos**
+
 - [ ] Apertura de semana con selector de fecha que propone jueves; la validación que manda es la del servidor
 - [ ] Captura de jornadas en rejilla empleado × día, con la obra de cada día, fracción y horas extra; ante un duplicado ofrece corregir la jornada existente — esc. 4
 - [ ] Vista del cálculo con días, importes, descuentos —en el orden en que se aplicaron, por antigüedad del adeudo— y saldo posterior de cada crédito, y la advertencia de neto protegido
@@ -1807,6 +1871,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 **Qué hace.** Garantiza que una cuadrilla cobra por destajo **o** por nómina en una semana, nunca por ambas (`RN-22`, **PA-09**), con la tabla que el invariante 15 necesita, la regla en `dominio/` y la interfaz que reclaman los dos lados.
 
 **Criterios técnicos**
+
 - [ ] Tabla `modalidad_pago_semana` con `UNIQUE (cuadrilla_id, semana)` — invariante 15 —: `RN-22` habla de cuadrilla y semana, no de obra —, con test que reclama las dos modalidades y verifica que la segunda falla en el motor
 - [ ] **`semana` es siempre el jueves de corte**, con `CHECK (EXTRACT(DOW FROM semana) = 4)` — invariante 37 —, y los dos lados la normalizan antes de reclamar (`PA-19`, resuelta el 2026-10-17). El destajo va de **jueves a miércoles** y la nómina de **viernes a jueves**; lo que comparten es el jueves de corte, y por él se compara. Un test genera un pago de destajo de la semana del jueves 20 al miércoles 26 de agosto de 2026 y una nómina del viernes 21 al jueves 27, y verifica que **chocan** —los dos tienen corte el jueves 27—; otro, con una medición del jueves 27, verifica que esa medición es de la semana siguiente y **no** choca
 - [ ] Regla pura en `dominio/` con `RN-22` en el docstring y en el nombre de sus tests
@@ -1869,6 +1934,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 **Qué hace.** Monta lo que TKT-008 dejó de tener: service worker, caché persistida de lectura, cola en IndexedDB y sincronización FIFO idempotente (`RNF-18`). No hace diferible ningún flujo: deja la maquinaria para que TKT-048 y TKT-068 la usen.
 
 **Criterios técnicos**
+
 - [ ] Service worker con `vite-plugin-pwa` que sirve el paquete instalado: un test de Playwright carga la aplicación, corta la red, recarga y la aplicación abre
 - [ ] Al detectar una versión nueva del API, la caché del paquete se invalida y se avisa al usuario: una versión vieja sirviendo código viejo es el modo de fallo nuevo que ADR-015 declara
 - [ ] Caché persistida de TanStack Query (`@tanstack/query-persist-client` sobre `idb`) solo para las consultas que una pantalla de campo declara necesitar; el resto no se persiste
@@ -1902,6 +1968,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 **Qué hace.** Hace que lo encolado entre por **los mismos casos de uso** que lo capturado en línea (regla 4 de ADR-015), con idempotencia sobre el identificador que genera el cliente y la misma respuesta de error por elemento.
 
 **Criterios técnicos**
+
 - [ ] `POST /api/v1/entradas-almacen` y `POST /api/v1/avances` aceptan `id` —UUID generado por el cliente— y `capturado_en`. **La sincronización no tiene ruta propia**: cada elemento de la cola es una petición a la ruta de su caso de uso, y su respuesta es la respuesta por elemento
 - [ ] Mismo `id` y misma carga ya aplicados responden `200` con la **representación actual** del recurso —que pudo cambiar desde entonces, por ejemplo al validarse—: ninguna fila nueva, ningún movimiento de inventario nuevo, ningún asiento de bitácora nuevo. Un test reenvía tres veces y cuenta — HDU-005 esc. 16, lado servidor; el dueño es TKT-068
 - [ ] **"Misma carga" se decide comparando los campos capturados, sin columna de hash.** Para una entrada: `orden_compra_id`, `folio_remision`, `fecha_remision`, `capturado_en` y, por renglón, `orden_compra_renglon_id`, `cantidad` y `solicitud_autorizacion_id`. Para un avance: `area_id`, `etapa_destajo_id`, `cuadrilla_id`, `fecha_medicion`, `m2_real` y `capturado_en`. Lo que el servidor deriva —`m2_contrato`, `semana`, `proveedor_id`— no entra en la comparación
@@ -1931,6 +1998,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 **Qué hace.** Un componente reutilizable, hermano de los tres de TKT-008, que abre la cámara, comprime, sube directo a la URL prefirmada con progreso y reintento, confirma, y muestra miniaturas y visor. No conoce a qué documento adjunta: lo recibe de quien lo usa.
 
 **Criterios técnicos**
+
 - [ ] `<input type="file" capture>` abre la cámara del teléfono; también admite elegir de la galería
 - [ ] Las imágenes se comprimen y **normalizan a JPEG** con `canvas` antes de subir ([stack §5.1](06-stack-tecnologico.md#51-composición)), con lado mayor de 2048 px **(asumido)**. Un HEIC que el navegador no sabe convertir se sube tal cual y se ofrece como descarga, sin romper la galería
 - [ ] El video no se recomprime. El componente avisa antes de subir si excede el límite (`RNF-06`, 50 MB **asumido**, `PA-15`), por cortesía: el límite lo hace cumplir el servidor
@@ -1957,6 +2025,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 **Qué hace.** Adjuntar a un avance (F8.1), a una entrada de almacén (F8.2) y a la obra (F8.4), anular sin borrar y consultar el expediente de la obra (F8.5). La integridad referencial que el motor no puede dar ([§12](03-modelo-datos.md#12-archivos-adjuntos)) la da aquí el caso de uso dueño del documento.
 
 **Criterios técnicos**
+
 - [ ] Dueño de los tests de HDU-008 esc. 21, 23, 24 y 25 y de HDU-005 esc. 19 y 20; el 22 es de TKT-067
 - [ ] `POST /api/v1/avances/{id}/adjuntos` en el módulo `avance`: comprueba que la medición existe y que quien adjunta tiene rol `RESIDENTE` o `DIRECTOR_PROYECTOS` **(asumido)**, y crea el `archivo` `PENDIENTE` por la interfaz de `archivos` con `referencia_tipo = 'AVANCE'` y el `obra_id` copiado del avance. Devuelve la URL prefirmada de subida — HDU-008 esc. 21
 - [ ] Se puede adjuntar a un avance en cualquier estado, incluido `VALIDADO`: la evidencia llega después que la medición y ese es el coste declarado de ADR-016 — HDU-008 esc. 22
@@ -1989,6 +2058,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 **Qué hace.** Pone el componente de TKT-065 en la recepción y en la ficha de la obra, y construye la vista del expediente. **Los adjuntos de la medición salieron de este ticket y son de TKT-048**, en el sprint 8: la captura y la validación del avance llegan antes que este ticket, y dejar sus fotos para el sprint 10 habría dejado dos sprints de avance sin evidencia.
 
 **Criterios técnicos**
+
 - [ ] En la recepción (TKT-038 y TKT-068), adjuntar la foto o el PDF de la remisión — HDU-005 esc. 19
 - [ ] En la ficha de la obra, subir documentos generales — F8.4
 - [ ] Vista del expediente por obra: filtros por tipo de documento y estado, autor, fecha, enlace al documento de origen —incluidas las mediciones de TKT-048— y conmutador para ver los anulados — F8.5
@@ -2010,6 +2080,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 **Qué hace.** Hace diferible la recepción en línea de TKT-038 sobre la cola de TKT-063 (`RNF-18`). Lo que la fase 1 declaraba como diferible en TKT-038 sale de allí y vive aquí. Es **dueño de los tests de HDU-005 esc. 15 a 18**; TKT-063 y TKT-064 aportan la cola y el lado servidor.
 
 **Criterios técnicos**
+
 - [ ] Al abrir la obra con señal, las órdenes `ABIERTA` y `PARCIAL` con sus renglones y saldos quedan en la caché persistida
 - [ ] Sin señal, la entrada se captura y queda `PENDIENTE` en la cola **sin generar movimiento de inventario**: un test verifica que el libro mayor del servidor no cambia mientras el elemento está en cola, y que la existencia calculada que muestra la pantalla tampoco — HDU-005 esc. 15
 - [ ] Cada renglón muestra el saldo pendiente de la caché **con su antigüedad**, y aparte las cantidades que ya hay en cola para ese renglón. No se resta una de otra ni se muestra un *saldo resultante*: el saldo cacheado orienta y no autoriza — HDU-005 esc. 18
@@ -2046,6 +2117,7 @@ En la fase 1, `analitica` lee la mano de obra y el avance por el puerto de [ADR-
 **Criterios técnicos**
 
 *Semáforo*
+
 - [ ] El adaptador `REAL` implementa el puerto **sin cambiar su firma ni la consulta del semáforo**: la misma batería de pruebas del puerto se ejecuta contra `VACIO` y `REAL` y pasa con ambos
 - [ ] Avance físico (`AVANCE_FISICO`): alcance = Σ `alcance_destajo.m2_contrato` y ejecutado = Σ `m2_real` de los avances `VALIDADO`, por tipo de partida a través de la etapa (**PA-08**), leídos con el rol de solo lectura —invariante 21—, como en [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo)
 - [ ] **El importe del destajo no lo suma el puerto**: llega al `ejercido` de la fila por `compras` (abajo), y el adaptador declara la fuente `DESTAJO` como `REAL` o `SIN_DATOS` para el metadato. Sumarlo por las dos vías lo contaría dos veces
@@ -2055,6 +2127,7 @@ En la fase 1, `analitica` lee la mano de obra y el avance por el puerto de [ADR-
 - [ ] Dueño del test de HDU-008 esc. 13: el costo de destajo llega al semáforo y es distinguible por fuente. Los de HDU-009 esc. 7 —la parte de cada obra— y esc. 18 son de TKT-056
 
 *Consumido de `RN-03`*
+
 - [ ] **`avance` implementa `FuenteEjercido`**, el puerto que declara `compras` (TKT-021), para el destajo: suma `pago_destajo_avance.importe` de las filas **vigentes**, agrupado por `etapa_destajo.tipo_partida_id` y excluidos los pagos `CANCELADO` ([modelo de datos §15](03-modelo-datos.md#el-consumido-de-rn-03)). Sumar `pago_destajo.importe_bruto` a través de la unión contaría el bruto del pago una vez por cada medición que liquida. Se ejecuta con la sesión de la transacción en curso, dentro del bloqueo de ADR-004
 - [ ] La arista es **`avance → compras`**, nueva y acíclica —`compras` no importa nada de `avance`—, y ya está declarada en el contrato `grafo-compras` desde TKT-002
 - [ ] El destajo llega al consumido **solo** por `FuenteEjercido`, nunca por el puerto de `analitica`: el contrato de TKT-060 que impide a `compras` importar `analitica` sigue en pie
@@ -2063,9 +2136,10 @@ En la fase 1, `analitica` lee la mano de obra y el avance por el puerto de [ADR-
 - [ ] **La nómina no entra en el consumido**: va aparte y a nivel de obra ([§15](03-modelo-datos.md#la-nómina-va-aparte), **PA-10**). Su test con nómina cerrada en la obra es de TKT-056
 
 *Retirada del simulado*
+
 - [ ] **El adaptador `VACIO` se retira junto con el `SIMULADO`**: desde el sprint 8 el `REAL` es el único adaptador en todos los entornos, y una fuente sin filas ya sale `SIN_DATOS` por sí sola. Un test verifica que la configuración solo admite `REAL`
 - [ ] **El adaptador simulado se elimina, no se conserva como opción** (ADR-017, *cuándo revisar*): se borran el adaptador, la semilla `backend/semillas/simulado/` y la opción de configuración. Un test verifica que la configuración ya no admite `SIMULADO` en ningún entorno —ni `local` ni `demostracion`—, que es lo que deja sin objeto la guarda de arranque de la regla 4
-- [ ] **Los tests de HDU-006 esc. 14 y 15 se retiran con el adaptador**, no se reescriben: tienen vigencia de fase 1 y salen del verificador con el segmento ` · retirado por TKT-069` en su título. Lo que queda cubierto es su contrario, el test `…_ninguna_fuente_sale_simulada` de arriba
+- [ ] **Los tests de HDU-006 esc. 14 y 15 se retiran con el adaptador**, no se reescriben: tienen vigencia de fase 1 y salen del verificador con el segmento `· retirado por TKT-069` en su título. Lo que queda cubierto es su contrario, el test `…_ninguna_fuente_sale_simulada` de arriba
 - [ ] Desde este ticket, la prueba de rendimiento de `RNF-15` de TKT-058 corre contra el adaptador real con su volumen sembrado, como ADR-017 exige al sustituirlo
 
 > **Viaja con TKT-047 y no después.** Entre el primer pago de destajo real y este ticket habría una ventana en la que el destajo existe y no consume: una requisición pasaría contra un disponible que ya no es real. Por eso TKT-047 no se fusiona sin este, aunque se desarrollen en paralelo.

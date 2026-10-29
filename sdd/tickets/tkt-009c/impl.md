@@ -4,7 +4,7 @@
 
 ## Qué se implementó
 
-`tools/verificar_escenarios.py` convierte en compuerta la regla de aceptación de [ADR-012](../../../docs/adr/20260918-trazabilidad-escenario-test.md): un escenario que cuenta y no tiene un test que lo nombre falla el pipeline. Un escenario cuenta desde que su historia está en `tools/historias_activas.txt`; los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`; y uno retirado con el segmento ` · retirado por TKT-0NN` en su título deja de contar. El verificador admite los nombres de fundación sin contarlos como huérfanos, informa de lo pendiente por historia y falla si una historia, o la línea `fase 2`, salen del archivo respecto a la base del PR.
+`tools/verificar_escenarios.py` convierte en compuerta la regla de aceptación de [ADR-012](../../../docs/adr/20260918-trazabilidad-escenario-test.md): un escenario que cuenta y no tiene un test que lo nombre falla el pipeline. Un escenario cuenta desde que su historia está en `tools/historias_activas.txt`; los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`; y uno retirado con el segmento `· retirado por TKT-0NN` en su título deja de contar. El verificador admite los nombres de fundación sin contarlos como huérfanos, informa de lo pendiente por historia y falla si una historia, o la línea `fase 2`, salen del archivo respecto a la base del PR.
 
 Está hecho solo con la biblioteca estándar y se ejecuta en el trabajo `herramientas` de `ci.yml`, con la base del PR por `env`. Sus pruebas usan documentos de ejemplo y el árbol real. Se escribió el ADR de la política, se retiraron las marcas «desde TKT-009» del verificador y se actualizaron las prosas de retiro de la documentación.
 

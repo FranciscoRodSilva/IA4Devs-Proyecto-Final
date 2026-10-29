@@ -131,6 +131,7 @@ Por qué: la regla 8 exige que la bitácora se escriba en la misma transacción 
 Criterios cubiertos: `CA-1` a `CA-10`, los dos `[S]` (`CA-11` y `CA-12`) y `CA-R1` a `CA-R5` de `sdd/tickets/tkt-007/spec.md`. Suite completa con Docker: 870 pruebas en verde (854 al ejecutar y 16 más tras la revisión), 15 contratos de `import-linter`, `ruff`, `mypy` y `verificar_float` limpios, una sola cabeza de Alembic. 28 mutantes de uno en uno, ninguno sobrevive. Una auditoría de arquitectura con un ciclo de corrección y una pasada independiente con otro; ambas reauditorías `APROBADO`.
 
 **Para quien aprueba, con atención:**
+
 - **Este PR no toca `docs/api/openapi.yaml`, pero enmienda el diseño de TKT-006** (el contrato C-1, la decisión D-3, `PA-T7` y las filas 3 y 4). Un `403` sin recurso se atribuye al usuario y no a la sesión. Lo decidió el usuario el 2026-10-21 y consta en `sdd/tickets/tkt-007/_index.md`.
 - La inmutabilidad es un permiso del rol de aplicación, no un disparador (D-6): el propietario puede modificar la tabla. La convención `conv-sql-postgres` se corrigió en este cambio.
 - La clave foránea de `bitacora.usuario_id` cruza de módulo; el modelo de datos §2 lo recoge como excepción.

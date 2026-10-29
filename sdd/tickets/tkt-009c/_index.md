@@ -42,7 +42,7 @@ ARCHIVADO
 
 ## Decisiones registradas
 
-Las de [TKT-009](../tkt-009/_index.md#decisiones-registradas), que valen para las cuatro partes. En esta: el verificador solo cuenta escenarios HDU, y la fase 2 y el retiro se marcan con la línea `fase 2` y el segmento ` · retirado por TKT-0NN`.
+Las de [TKT-009](../tkt-009/_index.md#decisiones-registradas), que valen para las cuatro partes. En esta: el verificador solo cuenta escenarios HDU, y la fase 2 y el retiro se marcan con la línea `fase 2` y el segmento `· retirado por TKT-0NN`.
 
 ## Tickets futuros sugeridos
 

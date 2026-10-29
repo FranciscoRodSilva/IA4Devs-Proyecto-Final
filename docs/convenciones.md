@@ -211,6 +211,7 @@ Archivos, modelos y endpoints relevantes
 Una única DoD para todo es un anti-patrón: demasiado genérica para guiar y demasiado específica para lo que no encaja.
 
 **Funcionalidad nueva**
+
 - [ ] Cubre todos los escenarios Gherkin, incluidos los de rechazo
 - [ ] Al menos un test por escenario
 - [ ] La cobertura del módulo no baja
@@ -220,24 +221,28 @@ Una única DoD para todo es un anti-patrón: demasiado genérica para guiar y de
 - [ ] Revisión de al menos un humano, no solo de agentes
 
 **Corrección de error**
+
 - [ ] Test que reproduce el fallo, commiteado **antes** del arreglo
 - [ ] Arreglo mínimo y enfocado, sin refactors no relacionados
 - [ ] El test pasa
 - [ ] Análisis breve en el ticket: por qué se introdujo y si CI podría haberlo detectado
 
 **Refactor**
+
 - [ ] La cobertura no baja
 - [ ] Comportamiento observable inalterado: mismos contratos, mismos endpoints
 - [ ] El PR explica la motivación arquitectónica
 - [ ] No mezclado con cambios funcionales
 
 **Documentación**
+
 - [ ] Revisado por un humano, no solo por IA
 - [ ] Los fragmentos de código son ejecutables
 - [ ] Sin enlaces rotos
 - [ ] Versionado en el repo
 
 **Spike / investigación**
+
 - [ ] Hallazgos, alternativas y recomendación documentados
 - [ ] ADR creado si la investigación cierra una decisión
 - [ ] Decisión explícita: continuar, pivotar o cancelar

@@ -154,7 +154,7 @@ No aplica en esta entrega. La **Entrega 1 es 100 % documentación**, sin código
 
 | | |
 |---|---|
-| **Repositorio destino** | https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final |
+| **Repositorio destino** | <https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final> |
 | **Rama de esta entrega** | `Produccion`, la rama por defecto. El estado revisado el 2026-10-14 queda fijado con la etiqueta `entrega-1`. La antigua rama `Entrega1` está archivada: se quedó atrás de `Produccion` y no contiene `C8` |
 | **Ubicación local actual** | `D:\Documentos\LIDR\Proyecto Final` |
 | **Estado** | 🟢 Documentación completa y publicada. `Doc de contexto/` queda fuera del repositorio por contener datos personales y precios del cliente — ver [Fuentes de contexto](#fuentes-de-contexto). |

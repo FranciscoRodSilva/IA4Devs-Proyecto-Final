@@ -450,21 +450,27 @@ Escenario: Los permisos de TKT-003 no cambian
 ```
 
 #### CA-R2 `[M]` · Las migraciones se aplican y se revierten
+
 `alembic upgrade head`, `downgrade` y `upgrade` otra vez sobre una base vacía terminan sin error, con los seis roles sembrados.
 
 #### CA-R3 `[M]` · Fronteras
+
 `uv run lint-imports` termina en verde y cada contrato sigue fallando ante su violación. `identidad/dominio` no importa nada fuera de la lista blanca; `auditoria` no importa `identidad`.
 
 #### CA-R4 `[M]` · Calidad y suite
+
 `ruff`, `mypy`, `verificar_float` y la suite completa de TKT-001 a TKT-005 terminan en verde con Docker en marcha.
 
 #### CA-R5 `[M]` · Contrato de error de TKT-005
+
 Los `401` y `403` de este ticket usan `SesionInvalida` y `PermisoDenegado`; un `HTTPException` de las ayudas de seguridad de FastAPI nunca llega al cliente.
 
 #### CA-R6 `[M]` · Rutas síncronas
+
 La prueba que recorre las rutas de TKT-005 (TC-78) sigue verde y cubre las rutas de identidad: ninguna es `async def`.
 
 #### CA-R7 `[M]` · Documentación
+
 `python tools/verificar_docs.py`, `python tools/extraer_mermaid.py` y `python -m unittest discover -s tools/tests -v` terminan sin problemas; los archivos nuevos sin BOM y con LF.
 
 ## Definition of Ready — INVEST

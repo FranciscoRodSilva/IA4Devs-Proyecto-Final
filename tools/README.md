@@ -66,7 +66,7 @@ Comprueba la regla de aceptación de [ADR-012](../docs/adr/20260918-trazabilidad
 
 **Argumentos.** `--raiz` indica la raíz del repositorio; por omisión, la que contiene `tools/`. `--activas-base` indica el `historias_activas.txt` de la base del PR: si existe, se compara con el actual, y si no existe, no se compara.
 
-**Qué cuenta.** Un escenario cuenta si su historia figura en `tools/historias_activas.txt` y no está retirado, y además su fase es 1, o es 2 y el archivo contiene la línea `fase 2`. La fase 2 se marca con el segmento ` · fase 2` en el título, o con la columna `Fase` de la tabla «El conjunto» igual a `2`. Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título; una nota en prosa no lo retira.
+**Qué cuenta.** Un escenario cuenta si su historia figura en `tools/historias_activas.txt` y no está retirado, y además su fase es 1, o es 2 y el archivo contiene la línea `fase 2`. La fase 2 se marca con el segmento `· fase 2` en el título, o con la columna `Fase` de la tabla «El conjunto» igual a `2`. Un escenario se retira con el segmento `· retirado por TKT-0NN` en su título; una nota en prosa no lo retira.
 
 **Etiquetas de la salida.** Cada línea empieza por su etiqueta:
 

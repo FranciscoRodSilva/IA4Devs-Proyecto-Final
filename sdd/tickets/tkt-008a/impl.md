@@ -1184,4 +1184,5 @@ backend/   ruff · mypy · lint-imports · verificar_float → All checks passed
 Los criterios `[M]` de TKT-008a están cumplidos con test. Hay un rechazo verificado por cada regla que toca el ticket: los criterios de dinero, de prueba de origen y del contrato de error tienen su caso de rechazo. Las rutas críticas, la prueba de origen y el dinero, tienen mutación probada. No se tocó `docs/api/openapi.yaml`.
 
 **Deuda que pasa a TKT-008b**, además de la ya anotada: N-1, un test de que `verificar` no escribe archivos; N-2, validar el token CSRF en `pedirToken` para que un token inválido no quede en caché; O1, tratar `acciones` y `detalle` como posiblemente ausentes en la pantalla de bloqueo, que es de TKT-008c; y D013, añadir `tools/tests/` a la frase de invariantes de la spec de 008b.
+
 - [x] Ningún archivo bajo `backend/` en el diff

@@ -194,9 +194,9 @@ tests\test_identidad_sin_create_all.py .                                 [100%]
 Las cinco de `test_tkt007_motor.py` son TC-18 a TC-22. TC-18 y TC-19, que estaban en rojo, pasan ahora por la razón prevista; TC-20 a TC-22 siguen en verde.
 
 ```text
-$ uv run mypy .                  -> Success: no issues found in 115 source files
-$ uv run ruff check .            -> All checks passed!
-$ uv run ruff format --check .   -> 115 files already formatted
+uv run mypy .                  -> Success: no issues found in 115 source files
+uv run ruff check .            -> All checks passed!
+uv run ruff format --check .   -> 115 files already formatted
 ```
 
 El `# type: ignore[attr-defined]` de TC-19 (`motor.pool.checkedout()`) no es innecesario: `pyproject.toml` fija `warn_unused_ignores = true` y mypy no lo marca como sobrante, así que sigue ahí sin tocarlo. Sin `pytest` completo: esta fila solo tocó `herramientas/`, y la suite completa la corre `/sdd-revisar`.
@@ -339,11 +339,11 @@ Los 42 son TC-23 a TC-32 con sus parametrizaciones y complementos. Lo que no se 
 Gates, desde `backend/`:
 
 ```text
-$ uv run ruff check .            -> All checks passed!
-$ uv run ruff format --check .   -> 117 files already formatted
-$ uv run mypy .                  -> Success: no issues found in 117 source files
-$ uv run python -m herramientas.verificar_float -> archivos revisados: 13; hallazgos: 0 (exit 0)
-$ uv run lint-imports            -> Contracts: 15 kept, 0 broken.
+uv run ruff check .            -> All checks passed!
+uv run ruff format --check .   -> 117 files already formatted
+uv run mypy .                  -> Success: no issues found in 117 source files
+uv run python -m herramientas.verificar_float -> archivos revisados: 13; hallazgos: 0 (exit 0)
+uv run lint-imports            -> Contracts: 15 kept, 0 broken.
 ```
 
 `dominio-sin-framework` queda `KEPT`, y el mismo contrato lo comprueba `test_tkt007_ca08_dominio_de_auditoria_puro` en TC-32.
@@ -468,11 +468,11 @@ Los 23 son TC-33 a TC-45 con sus parametrizaciones y complementos: los 15 casos 
 Gates, desde `backend/`:
 
 ```text
-$ uv run mypy .                  -> Success: no issues found in 122 source files
-$ uv run ruff check .            -> All checks passed!
-$ uv run ruff format --check .   -> 122 files already formatted
-$ uv run lint-imports            -> Contracts: 15 kept, 0 broken.
-$ uv run python -m herramientas.verificar_float -> archivos revisados: 13; hallazgos: 0
+uv run mypy .                  -> Success: no issues found in 122 source files
+uv run ruff check .            -> All checks passed!
+uv run ruff format --check .   -> 122 files already formatted
+uv run lint-imports            -> Contracts: 15 kept, 0 broken.
+uv run python -m herramientas.verificar_float -> archivos revisados: 13; hallazgos: 0
 ```
 
 **Refactor:** la única limpieza fue el formateo de la desviación 2. No hubo cambio de comportamiento ni de estructura respecto al literal, así que la suite no necesitó una segunda pasada. **Tests devueltos al tester:** TC-42 por el `arg-type` de la desviación 1. No se edita el test; se anota para que el tester decida si lo quiere tipar de otra forma. **Pendiente de la fila 5:** los mutantes MT-9, MT-11, MT-15, MT-16 y MT-19 sobre el código real, con el SHA-256 de cada archivo.
