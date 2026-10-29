@@ -117,6 +117,6 @@ El código `2` existe para que un fallo de `pip-audit` o de la red no pase en ve
 
 No hay opción `--ignore-vuln` en el script. Una excepción se declara en el paso de `pip-audit` del workflow, con un comentario que nombre quién la decidió, su motivo y la fecha de revisión; el script nunca la ve, porque `pip-audit` ya no la reporta.
 
-**Pruebas sin red.** `python -m unittest tools.tests.test_severidad_pip_audit -v` tiene treinta casos. La consulta a OSV se inyecta en `clasificar` y en `main`, y `urllib.request.urlopen` se sustituye en todas las pruebas por una función que falla si alguna la llama. Ninguna prueba toca OSV. El trabajo `herramientas` las corre con el resto de `tools/`, y la guarda de `skipped=` las incluye.
+**Pruebas sin red.** `python -m unittest tools.tests.test_severidad_pip_audit -v` las corre; sus pruebas están en `tools/tests/test_severidad_pip_audit.py`. La consulta a OSV se inyecta como parámetro en `clasificar`; `main` la toma de `consultar_osv`, que las pruebas sustituyen en el módulo. Además, `urllib.request.urlopen` se sustituye en todas las pruebas por una función que falla si alguna la llama. Ninguna prueba toca OSV. El trabajo `herramientas` las corre con el resto de `tools/`, y la guarda de `skipped=` las incluye.
 
 Sobre el árbol real, el paso de `pip-audit` seguido de este script termina en 0. Cómo reproducirlo en local está en [`arranque-local.md`](../docs/arranque-local.md#auditar-las-dependencias-en-local).

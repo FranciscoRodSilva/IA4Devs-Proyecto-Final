@@ -732,10 +732,10 @@ class TestTc38Formatos(PruebaBase):
 # ---------------------------------------------------------------------------------------------------------
 
 
-class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
+class TestPeorSeveridadEntreTodosLosGhsa(PruebaBase):
     """F001 · fallo abierto: un aviso con varios GHSA toma la severidad del peor, no la del primero."""
 
-    def test_f001_id_pysec_con_alias_ghsa_bajo_y_ghsa_alto_termina_en_1(self) -> None:
+    def test_ca10_esc02_id_pysec_con_alias_ghsa_bajo_y_ghsa_alto_termina_en_1(self) -> None:
         """RNF-08 · CA-10 esc. 2 — `PYSEC-1` con alias [GHSA bajo, GHSA alto]: gana la peor, el pipeline falla."""
         ruta = self.escribir_informe(
             informe_con(
@@ -752,7 +752,7 @@ class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
         self.assertTrue(propias[0].startswith("ALTA  django 3.2  "), propias[0])
         self.assertTrue(propias[0].endswith(SUFIJO_QUE_FALLA), propias[0])
 
-    def test_f001_clasificar_devuelve_la_peor_severidad_de_los_dos_ghsa(self) -> None:
+    def test_ca10_esc02_clasificar_devuelve_la_peor_severidad_de_los_dos_ghsa(self) -> None:
         """RNF-08 · CA-10 esc. 2 — el hallazgo guarda HIGH aunque el primer GHSA de los alias sea LOW."""
         modulo = self.sev()
         osv = OsvFalso({GHSA_BAJA: respuesta_osv("LOW"), GHSA_ALTA: respuesta_osv("HIGH")})
@@ -764,7 +764,7 @@ class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
         self.assertEqual(1, len(hallazgos))
         self.assertEqual("HIGH", hallazgos[0].severidad)
 
-    def test_f001_el_id_ghsa_bajo_mas_un_alias_ghsa_distinto_alto_termina_en_1(self) -> None:
+    def test_ca10_esc02_el_id_ghsa_bajo_mas_un_alias_ghsa_distinto_alto_termina_en_1(self) -> None:
         """RNF-08 · CA-10 esc. 2 — el id es un GHSA LOW y un alias GHSA distinto es HIGH: el alias no se ignora."""
         ruta = self.escribir_informe(
             informe_con(
@@ -780,7 +780,7 @@ class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
         self.assertEqual(1, codigo)
         self.assertTrue(self.lineas_de(lineas, "django")[0].startswith("ALTA"), lineas)
 
-    def test_f001_tres_ghsa_con_el_peor_en_medio_termina_en_1_como_critica(self) -> None:
+    def test_ca10_esc02_tres_ghsa_con_el_peor_en_medio_termina_en_1_como_critica(self) -> None:
         """RNF-08 · CA-10 esc. 2 — [LOW, CRITICAL, MODERATE]: el peor no es ni el primero ni el último."""
         ruta = self.escribir_informe(
             informe_con(
@@ -804,7 +804,7 @@ class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
         self.assertEqual(1, codigo)
         self.assertTrue(self.lineas_de(lineas, "django")[0].startswith("CRÍTICA"), lineas)
 
-    def test_f001_un_ghsa_que_consulta_bien_y_otro_sin_severidad_termina_en_1_como_desconocida(
+    def test_ca10_esc02_un_ghsa_que_consulta_bien_y_otro_sin_severidad_termina_en_1_como_desconocida(
         self,
     ) -> None:
         """RNF-08 · CA-10 esc. 2 — GHSA LOW junto a un GHSA cuya consulta no trae severidad: DESCONOCIDA, falla cerrado."""
@@ -820,7 +820,7 @@ class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
         self.assertEqual(1, codigo)
         self.assertTrue(self.lineas_de(lineas, "django")[0].startswith("DESCONOCIDA"), lineas)
 
-    def test_f001_cada_ghsa_distinto_se_consulta_una_sola_vez(self) -> None:
+    def test_ca10_esc03_cada_ghsa_distinto_se_consulta_una_sola_vez(self) -> None:
         """RNF-08 · CA-10 — GHSA repetidos entre el id y los alias se consultan una vez; los distintos, todos."""
         modulo = self.sev()
         casos = {
@@ -837,7 +837,7 @@ class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
 
                 self.assertEqual(sorted([GHSA_BAJA, GHSA_ALTA]), sorted(osv.consultas))
 
-    def test_f001_control_varios_ghsa_bajos_o_medios_no_fallan(self) -> None:
+    def test_ca10_esc03_control_varios_ghsa_bajos_o_medios_no_fallan(self) -> None:
         """RNF-08 · CA-10 esc. 3 — control: la corrección no sobre-falla; LOW y MODERATE juntos terminan en 0 como MEDIA."""
         ruta = self.escribir_informe(
             informe_con(
@@ -852,7 +852,7 @@ class TestF001PeorSeveridadEntreTodosLosGhsa(PruebaBase):
         self.assertTrue(self.lineas_de(lineas, "django")[0].startswith("MEDIA"), lineas)
 
 
-class TestF002ErroresDeConsultaYDeLecturaNoSonTraza(PruebaBase):
+class TestErroresDeConsultaYDeLecturaNoSonTraza(PruebaBase):
     """F002 · `main` termina con 2 y mensaje ante los errores de `http.client` y la recursión del JSON, no con traza."""
 
     ERRORES_HTTP = (
@@ -866,7 +866,7 @@ class TestF002ErroresDeConsultaYDeLecturaNoSonTraza(PruebaBase):
             informe_con(dependencia("django", "3.2", [vulnerabilidad(GHSA_ALTA, [])]))
         )
 
-    def test_f002_error_de_http_client_en_la_consulta_inyectada_termina_en_2_con_mensaje(
+    def test_ca10_esc02_error_de_http_client_en_la_consulta_inyectada_termina_en_2_con_mensaje(
         self,
     ) -> None:
         """RNF-08 · CA-10 — IncompleteRead, BadStatusLine y HTTPException no son OSError: igual terminan en 2."""
@@ -878,7 +878,7 @@ class TestF002ErroresDeConsultaYDeLecturaNoSonTraza(PruebaBase):
                 self.assertEqual(2, codigo)
                 self.assertIn("falla la consulta a OSV", errores)
 
-    def test_f002_error_de_http_client_en_urlopen_real_termina_en_2_con_mensaje(self) -> None:
+    def test_ca10_esc02_error_de_http_client_en_urlopen_real_termina_en_2_con_mensaje(self) -> None:
         """RNF-08 · CA-10 — mismo caso por el camino real: `urlopen` lanza el error dentro de `consultar_osv`."""
         ruta = self._informe_con_un_ghsa()
         for error in self.ERRORES_HTTP:
@@ -888,7 +888,9 @@ class TestF002ErroresDeConsultaYDeLecturaNoSonTraza(PruebaBase):
                 self.assertEqual(2, codigo)
                 self.assertIn("falla la consulta a OSV", errores)
 
-    def test_f002_json_del_informe_anidado_100000_niveles_termina_en_2_con_mensaje(self) -> None:
+    def test_ca10_esc02_json_del_informe_anidado_100000_niveles_termina_en_2_con_mensaje(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 — un informe con `[` anidado 100000 veces desborda la recursión de `json`: exit 2, no traza."""
         ruta = self.escribir_informe("[" * 100_000)
 
@@ -897,7 +899,9 @@ class TestF002ErroresDeConsultaYDeLecturaNoSonTraza(PruebaBase):
         self.assertEqual(2, codigo)
         self.assertIn("no se puede leer el informe", errores)
 
-    def test_f002_respuesta_de_osv_anidada_100000_niveles_termina_en_2_con_mensaje(self) -> None:
+    def test_ca10_esc02_respuesta_de_osv_anidada_100000_niveles_termina_en_2_con_mensaje(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 — la misma recursión en la respuesta de OSV: exit 2 con «falla la consulta a OSV»."""
         ruta = self._informe_con_un_ghsa()
 
@@ -909,10 +913,12 @@ class TestF002ErroresDeConsultaYDeLecturaNoSonTraza(PruebaBase):
         self.assertIn("falla la consulta a OSV", errores)
 
 
-class TestF003AliasesConElementosQueNoSonCadena(PruebaBase):
+class TestAliasesConElementosQueNoSonCadena(PruebaBase):
     """F003 · un alias que no es cadena es un informe mal formado: exit 2 con mensaje, no `AttributeError` ni `TypeError`."""
 
-    def test_f003_aliases_con_elementos_que_no_son_cadena_termina_en_2_con_mensaje(self) -> None:
+    def test_ca10_esc02_aliases_con_elementos_que_no_son_cadena_termina_en_2_con_mensaje(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 — `[1]`, `[null]` y `["GHSA-x", 5]` no se entienden; no pasan en verde ni dan traza."""
         casos = {
             "[1]": [1],
@@ -932,7 +938,7 @@ class TestF003AliasesConElementosQueNoSonCadena(PruebaBase):
                 self.assertEqual(2, codigo)
                 self.assertTrue(errores.strip(), "un informe mal formado debe explicarse en stderr")
 
-    def test_f003_leer_informe_rechaza_un_alias_que_no_es_cadena(self) -> None:
+    def test_ca10_esc02_leer_informe_rechaza_un_alias_que_no_es_cadena(self) -> None:
         """RNF-08 · CA-10 — la validación vive en `leer_informe`: lanza `ValueError`, que `main` convierte en 2."""
         modulo = self.sev()
         for alias in ([1], [None], [GHSA_BAJA, 5]):
@@ -942,7 +948,7 @@ class TestF003AliasesConElementosQueNoSonCadena(PruebaBase):
                 )
 
 
-class TestF004TopeDeLecturaDeLaRespuestaDeOsv(PruebaBase):
+class TestTopeDeLecturaDeLaRespuestaDeOsv(PruebaBase):
     """F004 de seguridad · `consultar_osv` lee a lo sumo 1.000.000 de bytes: una respuesta mayor no agota la memoria."""
 
     TOPE = 1_000_000
@@ -956,7 +962,7 @@ class TestF004TopeDeLecturaDeLaRespuestaDeOsv(PruebaBase):
         assert len(cuerpo) == tamano
         return cuerpo
 
-    def test_f004_respuesta_de_un_millon_y_un_bytes_se_rechaza_con_value_error(self) -> None:
+    def test_ca10_esc02_respuesta_de_un_millon_y_un_bytes_se_rechaza_con_value_error(self) -> None:
         """RNF-08 · CA-10 — 1.000.001 bytes superan el tope aunque sean JSON válido: `ValueError`."""
         modulo = self.sev()
         respuesta = RespuestaHttpConLimite(self.cuerpo_de(self.TOPE + 1))
@@ -967,7 +973,7 @@ class TestF004TopeDeLecturaDeLaRespuestaDeOsv(PruebaBase):
         ):
             modulo.consultar_osv(GHSA_ALTA)
 
-    def test_f004_respuesta_de_un_millon_exacto_de_bytes_se_acepta(self) -> None:
+    def test_ca10_esc02_respuesta_de_un_millon_exacto_de_bytes_se_acepta(self) -> None:
         """RNF-08 · CA-10 — control del borde: 1.000.000 bytes exactos pasan, el tope no es `>=`."""
         modulo = self.sev()
         respuesta = RespuestaHttpConLimite(self.cuerpo_de(self.TOPE))
@@ -977,7 +983,7 @@ class TestF004TopeDeLecturaDeLaRespuestaDeOsv(PruebaBase):
 
         self.assertEqual("HIGH", datos["database_specific"]["severity"])
 
-    def test_f004_read_se_llama_siempre_con_un_limite_y_no_se_lee_todo_un_cuerpo_enorme(
+    def test_ca10_esc02_read_se_llama_siempre_con_un_limite_y_no_se_lee_todo_un_cuerpo_enorme(
         self,
     ) -> None:
         """RNF-08 · CA-10 — con 5 MB en la respuesta, `read` recibe un límite entero y se consume a lo sumo tope + 1 byte."""
@@ -997,7 +1003,7 @@ class TestF004TopeDeLecturaDeLaRespuestaDeOsv(PruebaBase):
         self.assertLessEqual(sum(respuesta.lecturas), self.TOPE + 1)
         self.assertLessEqual(respuesta.posicion, self.TOPE + 1)
 
-    def test_f004_main_con_una_respuesta_de_osv_demasiado_grande_termina_en_2(self) -> None:
+    def test_ca10_esc02_main_con_una_respuesta_de_osv_demasiado_grande_termina_en_2(self) -> None:
         """RNF-08 · CA-10 — de punta a punta: la respuesta de 1.000.001 bytes es un fallo de consulta, no un HIGH ni un 0."""
         ruta = self.escribir_informe(
             informe_con(dependencia("django", "3.2", [vulnerabilidad(GHSA_ALTA, [])]))
@@ -1030,7 +1036,9 @@ class TestMutantesDeLaValidacionDelInforme(PruebaBase):
         self.assertTrue(errores.strip(), "un informe mal formado debe explicarse en stderr")
         self.assertEqual([], consultas.consultas)
 
-    def test_m01_dependencia_con_vulnerabilidades_sin_nombre_o_version_termina_en_2(self) -> None:
+    def test_ca10_esc02_dependencia_con_vulnerabilidades_sin_nombre_o_version_termina_en_2(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 — sin `name` o `version` no se puede nombrar el hallazgo: exit 2, no un `KeyError`."""
         vulns = [vulnerabilidad(GHSA_ALTA, [])]
         casos = {
@@ -1043,7 +1051,7 @@ class TestMutantesDeLaValidacionDelInforme(PruebaBase):
             with self.subTest(caso=descripcion):
                 self._exigir_exit_2(json.dumps({"dependencies": [entrada]}))
 
-    def test_m02_json_que_no_es_una_lista_de_dependencias_termina_en_2(self) -> None:
+    def test_ca10_esc02_json_que_no_es_una_lista_de_dependencias_termina_en_2(self) -> None:
         """RNF-08 · CA-10 — `{}`, `{"dependencies": null}`, una cadena suelta y demás formas ajenas no son un informe limpio."""
         casos = {
             "objeto vacío": "{}",
@@ -1061,7 +1069,7 @@ class TestMutantesDeLaValidacionDelInforme(PruebaBase):
             with self.subTest(forma=descripcion):
                 self._exigir_exit_2(texto)
 
-    def test_m03_vulns_que_no_es_una_lista_termina_en_2(self) -> None:
+    def test_ca10_esc02_vulns_que_no_es_una_lista_termina_en_2(self) -> None:
         """RNF-08 · CA-10 — un `vulns` nulo, vacío-falsy o escalar no se toma por «sin vulnerabilidades»: exit 2."""
         for valor in (None, {}, "", 0, 5, "texto", {"id": GHSA_ALTA}, False):
             with self.subTest(vulns=valor):
@@ -1071,7 +1079,7 @@ class TestMutantesDeLaValidacionDelInforme(PruebaBase):
                     )
                 )
 
-    def test_m04_vulnerabilidad_sin_id_cadena_termina_en_2(self) -> None:
+    def test_ca10_esc02_vulnerabilidad_sin_id_cadena_termina_en_2(self) -> None:
         """RNF-08 · CA-10 — un `id` ausente, nulo o numérico, o una vulnerabilidad que no es objeto: exit 2."""
         casos = {
             "id numérico": {"id": 5, "aliases": []},
@@ -1089,7 +1097,7 @@ class TestMutantesDeLaValidacionDelInforme(PruebaBase):
                     )
                 )
 
-    def test_m05_aliases_que_no_es_una_lista_termina_en_2(self) -> None:
+    def test_ca10_esc02_aliases_que_no_es_una_lista_termina_en_2(self) -> None:
         """RNF-08 · CA-10 — `aliases` como cadena, nulo, número o mapa no se reinterpreta: exit 2."""
         for valor in (GHSA_ALTA, None, 5, {}, {GHSA_ALTA: 1}):
             with self.subTest(aliases=valor):
@@ -1100,7 +1108,7 @@ class TestMutantesDeLaValidacionDelInforme(PruebaBase):
                 }
                 self._exigir_exit_2(json.dumps({"dependencies": [entrada]}))
 
-    def test_m11_dependencia_sin_la_clave_vulns_no_falla(self) -> None:
+    def test_ca10_esc01_dependencia_sin_la_clave_vulns_no_falla(self) -> None:
         """RNF-08 · CA-10 esc. 1 — `pip-audit` omite `vulns` en dependencias omitidas (`skip_reason`): exit 0 sin consultar."""
         omitida = {
             "name": "proyecto-local",
@@ -1121,7 +1129,7 @@ class TestMutantesDeLaValidacionDelInforme(PruebaBase):
                 self.assertEqual([], osv.consultas)
                 self.assertEqual(["Sin vulnerabilidades en el informe de pip-audit."], lineas)
 
-    def test_m11_clasificar_y_leer_informe_aceptan_una_dependencia_sin_vulns(self) -> None:
+    def test_ca10_esc01_clasificar_y_leer_informe_aceptan_una_dependencia_sin_vulns(self) -> None:
         """RNF-08 · CA-10 esc. 1 — la ausencia de `vulns` se tolera en `leer_informe` y en `clasificar`, cada una por su cuenta."""
         modulo = self.sev()
         sin_vulns = [{"name": "django", "version": "5.1"}]
@@ -1152,7 +1160,9 @@ class TestMutantesDeLaRespuestaDeOsv(PruebaBase):
         "severity no reconocida": {"database_specific": {"severity": "SEVERE"}},
     }
 
-    def test_m06_clasificar_marca_desconocida_una_respuesta_sin_la_forma_esperada(self) -> None:
+    def test_ca10_esc02_clasificar_marca_desconocida_una_respuesta_sin_la_forma_esperada(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 esc. 2 — ninguna respuesta rara de OSV lanza ni se promueve a una severidad conocida."""
         modulo = self.sev()
         for descripcion, respuesta in self.RESPUESTAS_SIN_FORMA.items():
@@ -1165,7 +1175,9 @@ class TestMutantesDeLaRespuestaDeOsv(PruebaBase):
 
                 self.assertEqual("DESCONOCIDA", hallazgos[0].severidad)
 
-    def test_m06_main_termina_en_1_ante_una_respuesta_de_osv_sin_la_forma_esperada(self) -> None:
+    def test_ca10_esc02_main_termina_en_1_ante_una_respuesta_de_osv_sin_la_forma_esperada(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 esc. 2 — una lista o `null` en lugar del objeto de OSV: exit 1 con la línea DESCONOCIDA, no traza."""
         ruta = self.escribir_informe(
             informe_con(dependencia("django", "3.2", [vulnerabilidad(GHSA_ALTA, [])]))
@@ -1183,7 +1195,9 @@ class TestMutantesDeLaRespuestaDeOsv(PruebaBase):
                     self.lineas_de(lineas, "django")[0],
                 )
 
-    def test_m06_por_el_camino_real_un_json_valido_que_no_es_objeto_termina_en_1(self) -> None:
+    def test_ca10_esc02_por_el_camino_real_un_json_valido_que_no_es_objeto_termina_en_1(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 esc. 2 — con `consultar_osv` real, `[]` o `null` válidos como JSON son DESCONOCIDA, exit 1."""
         ruta = self.escribir_informe(
             informe_con(dependencia("django", "3.2", [vulnerabilidad(GHSA_ALTA, [])]))
@@ -1199,7 +1213,7 @@ class TestMutantesDeLaRespuestaDeOsv(PruebaBase):
                     self.lineas_de(lineas, "django")[0].startswith("DESCONOCIDA"), lineas
                 )
 
-    def test_m07_respuesta_de_osv_que_no_es_json_termina_en_2(self) -> None:
+    def test_ca10_esc02_respuesta_de_osv_que_no_es_json_termina_en_2(self) -> None:
         """RNF-08 · CA-10 — HTML de un proxy, cuerpo vacío o bytes que no son UTF-8: fallo de consulta, exit 2, nunca 0 ni 1."""
         ruta = self.escribir_informe(
             informe_con(dependencia("django", "3.2", [vulnerabilidad(GHSA_ALTA, [])]))
@@ -1225,7 +1239,7 @@ class TestMutantesDeLaRespuestaDeOsv(PruebaBase):
 class TestMutantesDeLaSalida(PruebaBase):
     """Mutantes 8, 9 y 10: el resumen, la URL consultada y el paréntesis de alias, con el texto exacto."""
 
-    def test_m08_la_linea_de_resumen_afirma_los_dos_numeros_exactos(self) -> None:
+    def test_ca10_esc02_la_linea_de_resumen_afirma_los_dos_numeros_exactos(self) -> None:
         """RNF-08 · CA-10 — 3 hallazgos, 2 que fallan: `Hallazgos: 3 · que fallan el pipeline: 2`, en ese orden."""
         ruta = self.escribir_informe(
             informe_con(
@@ -1247,7 +1261,7 @@ class TestMutantesDeLaSalida(PruebaBase):
         self.assertEqual(1, codigo)
         self.assertEqual("Hallazgos: 3 · que fallan el pipeline: 2", lineas[-1])
 
-    def test_m08_la_linea_de_resumen_sin_fallos_dice_cero(self) -> None:
+    def test_ca10_esc03_la_linea_de_resumen_sin_fallos_dice_cero(self) -> None:
         """RNF-08 · CA-10 — 2 hallazgos y ninguno falla: `Hallazgos: 2 · que fallan el pipeline: 0` y exit 0."""
         ruta = self.escribir_informe(
             informe_con(
@@ -1262,7 +1276,7 @@ class TestMutantesDeLaSalida(PruebaBase):
         self.assertEqual(0, codigo)
         self.assertEqual("Hallazgos: 2 · que fallan el pipeline: 0", lineas[-1])
 
-    def test_m09_el_identificador_se_codifica_entero_en_la_url_consultada(self) -> None:
+    def test_ca10_esc02_el_identificador_se_codifica_entero_en_la_url_consultada(self) -> None:
         """RNF-08 · CA-10 — `/`, `?`, `#`, espacio y `%` del identificador no abren ruta, consulta ni fragmento de la URL."""
         modulo = self.sev()
         casos = {
@@ -1298,25 +1312,25 @@ class TestMutantesDeLaSalida(PruebaBase):
         self.assertEqual(1, len(propias), lineas)
         return propias[0]
 
-    def test_m10_el_id_repetido_entre_los_alias_no_se_repite_en_el_parentesis(self) -> None:
+    def test_ca10_esc02_el_id_repetido_entre_los_alias_no_se_repite_en_el_parentesis(self) -> None:
         """RNF-08 · CA-10 — id `PYSEC-1` que también figura en los alias: `GHSA (PYSEC-1)`, sin `PYSEC-1, PYSEC-1`."""
         linea = self._linea_de("PYSEC-1", ["PYSEC-1", GHSA_ALTA], "HIGH")
 
         self.assertEqual(f"ALTA  django 3.2  {GHSA_ALTA} (PYSEC-1) {SUFIJO_QUE_FALLA}", linea)
 
-    def test_m10_el_id_ghsa_va_de_cabeza_y_no_se_repite_en_el_parentesis(self) -> None:
+    def test_ca10_esc02_el_id_ghsa_va_de_cabeza_y_no_se_repite_en_el_parentesis(self) -> None:
         """RNF-08 · CA-10 — id GHSA con un alias CVE: `GHSA (CVE)`; el id no se añade a sí mismo."""
         linea = self._linea_de(GHSA_ALTA, ["CVE-2024-0001"], "HIGH")
 
         self.assertEqual(f"ALTA  django 3.2  {GHSA_ALTA} (CVE-2024-0001) {SUFIJO_QUE_FALLA}", linea)
 
-    def test_m10_el_ghsa_repetido_en_los_alias_no_se_repite_en_el_parentesis(self) -> None:
+    def test_ca10_esc02_el_ghsa_repetido_en_los_alias_no_se_repite_en_el_parentesis(self) -> None:
         """RNF-08 · CA-10 — id GHSA que también está en sus alias: la cabeza no reaparece entre paréntesis."""
         linea = self._linea_de(GHSA_ALTA, [GHSA_ALTA, "CVE-2024-0001"], "HIGH")
 
         self.assertEqual(f"ALTA  django 3.2  {GHSA_ALTA} (CVE-2024-0001) {SUFIJO_QUE_FALLA}", linea)
 
-    def test_m10_sin_ghsa_la_cabeza_es_el_id_y_los_alias_van_entre_parentesis(self) -> None:
+    def test_ca10_esc02_sin_ghsa_la_cabeza_es_el_id_y_los_alias_van_entre_parentesis(self) -> None:
         """RNF-08 · CA-10 esc. 2 — sin GHSA: `PYSEC-2 (CVE-2)`; sin alias, sin paréntesis."""
         con_alias = self._linea_de("PYSEC-2", ["CVE-2024-0002"], "LOW")
         sin_alias = self._linea_de("PYSEC-2", [], "LOW")
@@ -1330,7 +1344,7 @@ class TestMutantesDeLaSalida(PruebaBase):
 class TestMutantesDeLaCodificacion(PruebaBase):
     """Mutantes 12 y 13: el informe se lee como UTF-8 y la salida se escribe como UTF-8, sea cual sea la codificación local."""
 
-    def test_m12_el_informe_se_lee_con_encoding_utf8_explicito(self) -> None:
+    def test_ca10_esc03_el_informe_se_lee_con_encoding_utf8_explicito(self) -> None:
         """RNF-08 · CA-10 — `read_text` recibe `encoding="utf-8"`: no se depende de la codificación de la plataforma."""
         ruta = self.escribir_informe(
             informe_con(dependencia("django", "3.2", [vulnerabilidad(GHSA_BAJA, [])]))
@@ -1352,7 +1366,7 @@ class TestMutantesDeLaCodificacion(PruebaBase):
         args, kwargs = llamadas[0]
         self.assertEqual("utf-8", kwargs.get("encoding", args[0] if args else None))
 
-    def test_m12_un_informe_con_caracteres_no_ascii_se_lee_bien(self) -> None:
+    def test_ca10_esc03_un_informe_con_caracteres_no_ascii_se_lee_bien(self) -> None:
         """RNF-08 · CA-10 — «descripción» con acentos y un nombre con `Ł` (UTF-8 `C5 81`, ilegible en cp1252) llegan intactos."""
         nombre = "paquete-Łódź"
         entrada = dependencia(nombre, "1.0", [vulnerabilidad(GHSA_BAJA, [])])
@@ -1372,7 +1386,9 @@ class TestMutantesDeLaCodificacion(PruebaBase):
         bruto = io.BytesIO()
         return bruto, io.TextIOWrapper(bruto, encoding="ascii", newline="\n", write_through=True)
 
-    def test_m13_la_salida_estandar_se_escribe_en_utf8_aunque_la_consola_sea_ascii(self) -> None:
+    def test_ca10_esc02_la_salida_estandar_se_escribe_en_utf8_aunque_la_consola_sea_ascii(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 — `→` y `Í` salen como UTF-8 por stdout aunque la codificación inicial del flujo no los admita."""
         modulo = self.sev()
         ruta = self.escribir_informe(
@@ -1394,7 +1410,9 @@ class TestMutantesDeLaCodificacion(PruebaBase):
         texto = bruto_salida.getvalue().decode("utf-8")
         self.assertIn(f"CRÍTICA  django 3.2  {GHSA_CRITICA} {SUFIJO_QUE_FALLA}", texto.splitlines())
 
-    def test_m13_la_salida_de_errores_se_escribe_en_utf8_aunque_la_consola_sea_ascii(self) -> None:
+    def test_ca10_esc02_la_salida_de_errores_se_escribe_en_utf8_aunque_la_consola_sea_ascii(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 — `_salida_utf8` reconfigura también stderr: un mensaje con `«` o `→` sale como UTF-8."""
         modulo = self.sev()
         texto = "«vulns» → Í"
@@ -1409,7 +1427,7 @@ class TestMutantesDeLaCodificacion(PruebaBase):
         self.assertEqual(texto + "\n", bruto_salida.getvalue().decode("utf-8"))
         self.assertEqual(texto + "\n", bruto_errores.getvalue().decode("utf-8"))
 
-    def test_m13_un_flujo_que_no_es_textiowrapper_no_se_toca(self) -> None:
+    def test_ca10_esc02_un_flujo_que_no_es_textiowrapper_no_se_toca(self) -> None:
         """RNF-08 · CA-10 — un `StringIO` no tiene `reconfigure`: `_salida_utf8` lo deja como está, sin lanzar."""
         modulo = self.sev()
         salida, errores = io.StringIO(), io.StringIO()
@@ -1426,7 +1444,7 @@ class TestMutantesDeLaCodificacion(PruebaBase):
 # ---------------------------------------------------------------------------------------------------------
 
 
-class TestF007DesconocidaPesaMasQueModerate(PruebaBase):
+class TestDesconocidaPesaMasQueModerate(PruebaBase):
     """F007 · `DESCONOCIDA` es peor que `MODERATE` en `ORDEN_DE_GRAVEDAD`, sin importar el orden de los GHSA."""
 
     def _linea_de_django(self, ghsa_primero: str, ghsa_segundo: str, respuestas: dict) -> None:
@@ -1447,7 +1465,7 @@ class TestF007DesconocidaPesaMasQueModerate(PruebaBase):
         self.assertTrue(propias[0].endswith(SUFIJO_QUE_FALLA), propias[0])
         self.assertEqual([ghsa_primero, ghsa_segundo], osv.consultas)
 
-    def test_f007_moderate_y_despues_un_ghsa_sin_severidad_termina_en_1_como_desconocida(
+    def test_ca10_esc02_moderate_y_despues_un_ghsa_sin_severidad_termina_en_1_como_desconocida(
         self,
     ) -> None:
         """RNF-08 · CA-10 esc. 2 — [MODERATE, sin severidad]: la severidad ausente no se pierde tras el MODERATE."""
@@ -1457,7 +1475,7 @@ class TestF007DesconocidaPesaMasQueModerate(PruebaBase):
             {GHSA_MEDIA: respuesta_osv("MODERATE"), GHSA_ALTA: respuesta_osv(None)},
         )
 
-    def test_f007_un_ghsa_sin_severidad_y_despues_moderate_termina_en_1_como_desconocida(
+    def test_ca10_esc02_un_ghsa_sin_severidad_y_despues_moderate_termina_en_1_como_desconocida(
         self,
     ) -> None:
         """RNF-08 · CA-10 esc. 2 — [sin severidad, MODERATE]: el MODERATE posterior no rebaja la severidad ausente."""
@@ -1468,10 +1486,10 @@ class TestF007DesconocidaPesaMasQueModerate(PruebaBase):
         )
 
 
-class TestF008SeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
+class TestSeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
     """F008 · `Hallazgo.aviso` es el GHSA que decidió la severidad: el primero en un empate, y solo se corta en HIGH o CRITICAL."""
 
-    def test_f008_empate_de_dos_ghsa_low_conserva_el_primero_como_aviso_y_consulta_los_dos(
+    def test_ca10_esc03_empate_de_dos_ghsa_low_conserva_el_primero_como_aviso_y_consulta_los_dos(
         self,
     ) -> None:
         """RNF-08 · CA-10 — [LOW, LOW]: gana el primero (`<`, no `<=`); LOW no corta, así que se consulta también el segundo."""
@@ -1487,7 +1505,9 @@ class TestF008SeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
         self.assertEqual("LOW", hallazgos[0].severidad)
         self.assertEqual([GHSA_BAJA, GHSA_OTRO], osv.consultas)
 
-    def test_f008_ghsa_sin_severidad_y_despues_high_no_corta_y_el_aviso_es_el_segundo(self) -> None:
+    def test_ca10_esc02_ghsa_sin_severidad_y_despues_high_no_corta_y_el_aviso_es_el_segundo(
+        self,
+    ) -> None:
         """RNF-08 · CA-10 — [sin severidad, HIGH]: DESCONOCIDA no corta la consulta; gana el HIGH y su GHSA es el aviso."""
         modulo = self.sev()
         osv = OsvFalso({GHSA_BAJA: respuesta_osv(None), GHSA_ALTA: respuesta_osv("HIGH")})
@@ -1502,10 +1522,10 @@ class TestF008SeleccionDelAvisoEnLaPeorSeveridad(PruebaBase):
         self.assertEqual([GHSA_BAJA, GHSA_ALTA], osv.consultas)
 
 
-class TestObservacionesDelAuditorCiclo2(PruebaBase):
+class TestBordesDelPrefijoGhsaYDelTopeDeLectura(PruebaBase):
     """Observaciones baratas del auditor: reconocimiento del prefijo GHSA y borde exacto del tope de lectura."""
 
-    def test_obs1_un_ghsa_en_minusculas_no_se_reconoce_no_se_consulta_y_es_desconocida(
+    def test_ca10_esc02_un_ghsa_en_minusculas_no_se_reconoce_no_se_consulta_y_es_desconocida(
         self,
     ) -> None:
         """RNF-08 · CA-10 — `ghsa-abcd-efgh-ijkl` no es un GHSA (el prefijo distingue mayúsculas): sin consulta, DESCONOCIDA, exit 1."""
@@ -1527,14 +1547,14 @@ class TestObservacionesDelAuditorCiclo2(PruebaBase):
                 self.assertEqual(1, len(propias), lineas)
                 self.assertTrue(propias[0].startswith("DESCONOCIDA"), propias[0])
 
-    def test_obs2_respuesta_de_un_millon_y_un_bytes_con_json_valido_al_inicio_se_rechaza(
+    def test_ca10_esc02_respuesta_de_un_millon_y_un_bytes_con_json_valido_al_inicio_se_rechaza(
         self,
     ) -> None:
         """RNF-08 · CA-10 — JSON válido seguido de espacios hasta 1.000.001 bytes: el primer millón se parsearía, pero el exceso se detecta."""
         modulo = self.sev()
         valido = b'{"database_specific": {"severity": "HIGH"}}'
-        cuerpo = valido + b" " * (TestF004TopeDeLecturaDeLaRespuestaDeOsv.TOPE + 1 - len(valido))
-        self.assertEqual(TestF004TopeDeLecturaDeLaRespuestaDeOsv.TOPE + 1, len(cuerpo))
+        cuerpo = valido + b" " * (TestTopeDeLecturaDeLaRespuestaDeOsv.TOPE + 1 - len(valido))
+        self.assertEqual(TestTopeDeLecturaDeLaRespuestaDeOsv.TOPE + 1, len(cuerpo))
 
         with (
             mock.patch("urllib.request.urlopen", return_value=RespuestaHttpConLimite(cuerpo)),
@@ -1542,7 +1562,7 @@ class TestObservacionesDelAuditorCiclo2(PruebaBase):
         ):
             modulo.consultar_osv(GHSA_ALTA)
 
-    def test_obs4_un_id_con_el_texto_ghsa_pegado_sin_guion_no_es_un_ghsa(self) -> None:
+    def test_ca10_esc02_un_id_con_el_texto_ghsa_pegado_sin_guion_no_es_un_ghsa(self) -> None:
         """RNF-08 · CA-10 — `GHSAabcd` no lleva el guion del prefijo `GHSA-`: no se consulta y el hallazgo es DESCONOCIDA."""
         modulo = self.sev()
         osv = OsvFalso(por_omision=respuesta_osv("LOW"))

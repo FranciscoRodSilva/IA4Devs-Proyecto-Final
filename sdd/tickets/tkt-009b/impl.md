@@ -16,7 +16,8 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 | 2026-10-28 | Una severidad de OSV desconocida o ausente es `DESCONOCIDA` y falla | Extiende el fallo cerrado de `A-3` a valores no reconocidos |
 | 2026-10-28 | `consultar_osv` codifica el identificador con `quote(..., safe="")` | Un identificador con caracteres especiales no altera la URL |
 | 2026-10-28 | `comprobar_regla_comun_7` admite el `\|\| true` de `uv run pip-audit` en el trabajo `dependencias` | El diseño pide ese `\|\| true` y a la vez prohíbe todo el resto; la excepción está acotada y tiene sus pruebas |
-| 2026-10-28 | Las pruebas de Dependabot viven en `tools/tests/test_definicion_dependabot.py` | `test_definicion_ci.py` ya pasa de 3,100 líneas |
+| 2026-10-28 | Las pruebas de Dependabot viven en `tools/tests/test_definicion_dependabot.py` | `test_definicion_ci.py` ya pasa de 3100 líneas |
+| 2026-10-28 | Los tests en rojo de B2, B3 y B4 los escribe `tester-backend` (`sonnet`), no `ingeniero-devsecops` (`haiku`) | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | 2026-10-28 | El trabajo `dependencias` no ejecuta `npm ci` | `npm audit` lee `package-lock.json`; se comprobó que sale igual sin `node_modules` |
 | 2026-10-28 | Fecha del ADR: 20261029 | La mayor entre hoy y la del ADR más reciente |
 | 2026-10-29 | Orden del token en B5: se crea activo y sin permisos y se revoca después del empuje | El primer intento no fue concluyente; solo el token activo se probó (GH013) |
@@ -60,7 +61,7 @@ Las filas B1 a B4 y B7 de la parte b del [diseño común](../tkt-009/design.md#p
 
 **Los casos de TC-18 sobre el repositorio real nacen en verde, y se investigó.** El invariante ya se cumple: `.github/` solo tiene `workflows/ci.yml`, sin exclusiones ni `secrets.`. Para que no sean vacuos, el lector exige que `ci.yml` exista y sus mutantes sintéticos (`paths-ignore` con `.env.example`, un `secret_scanning.yml`, `secrets.X`) sí los ponen en rojo.
 
-**Cifras tras el ciclo 1 de revisión.** `tools/tests/test_severidad_pip_audit.py` tiene 70 pruebas (30 originales más las del ciclo 1 de revisión) y `tools/tests` suma 287, de las cuales 24 son de Dependabot. El ciclo 1 añadió el módulo auxiliar `tools/tests/_ayudantes.py` y tocó `tools/tests/test_definicion_ci.py`, `tools/tests/test_definicion_dependabot.py` y `tools/tests/test_severidad_pip_audit.py`. El filtro evalúa ahora todos los `GHSA` de un hallazgo, captura también `http.client.HTTPException` y `RecursionError`, valida que los alias sean cadenas, lee a lo sumo 1.000.000 de bytes de la respuesta de OSV y pasa `mypy --strict`.
+**Cifras tras los ciclos 1 y 2 de revisión.** `tools/tests/test_severidad_pip_audit.py` tiene 77 pruebas (30 originales, 40 del ciclo 1 de la revisión y 7 del ciclo 2) y `tools/tests` suma 294, de las cuales 24 son de Dependabot. El ciclo 1 añadió el módulo auxiliar `tools/tests/_ayudantes.py` y tocó `tools/tests/test_definicion_ci.py`, `tools/tests/test_definicion_dependabot.py` y `tools/tests/test_severidad_pip_audit.py`. El filtro evalúa ahora todos los `GHSA` de un hallazgo, captura también `http.client.HTTPException` y `RecursionError`, valida que los alias sean cadenas, lee a lo sumo 1.000.000 de bytes de la respuesta de OSV y pasa `mypy --strict`.
 
 ### Ciclo TDD por fila
 
@@ -219,16 +220,17 @@ El aviso moderado queda informado en el registro y el trabajo termina en verde (
 |---|---|---|---|---|
 | Rama | `git-entrega` | `haiku` | `haiku` | — |
 | B1 | `ingeniero-devsecops` | `haiku` | `haiku` | — |
-| B2 · rojo | `tester-backend` | `sonnet` | `sonnet` | — |
+| B2 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | B2 · verde | `ingeniero-devsecops` | `haiku` | `haiku` | — |
-| B2 · mutación y B3 · rojo | `tester-backend` | `sonnet` | `sonnet` | — |
+| B2 · mutación | `tester-backend` | `sonnet` | `sonnet` | — |
+| B3 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | B3 · verde | `ingeniero-devsecops` | `haiku` | `haiku` | — |
-| B4 · rojo | `tester-backend` | `sonnet` | `sonnet` | — |
+| B4 · rojo | `ingeniero-devsecops` | `haiku` | `tester-backend` · `sonnet` | La regla 6 de CLAUDE.md dice que quien escribe el código no toca los tests, y el diseño asignaba ambas cosas a un mismo agente; el orquestador separó el rojo (tester) del verde (desarrollador) |
 | B4 · verde | `ingeniero-devsecops` | `haiku` | `haiku` | — |
 | B7 | `ingeniero-devsecops` | `haiku` | `haiku` | — |
 | Auditoría de arquitectura y corrección | `auditor-arquitectura`, `corrector-revision` | `sonnet`, `haiku` | `sonnet`, `haiku` | — |
 
-Ningún paso subió de modelo. B5 y B6 las ejecutaron personas, no agentes; la fila B6 del diseño asignaba `git-entrega` y no se usó.
+Ningún paso subió de modelo por no cerrar tras dos intentos. El rojo de B2, B3 y B4 se encargó a `tester-backend` en `sonnet` en lugar de `ingeniero-devsecops` en `haiku`, por el motivo de la regla 6 de `CLAUDE.md` que consta en «Ajustes respecto al design». B5 y B6 las ejecutaron personas, no agentes; la fila B6 del diseño asignaba `git-entrega` y no se usó.
 
 ## Resultado contra los criterios de aceptación
 
@@ -240,7 +242,7 @@ Ningún paso subió de modelo. B5 y B6 las ejecutaron personas, no agentes; la f
 | `CA-11` esc. 2 | `[M]` | Cumplido | Consulta de `gh api` con los dos ajustes en `enabled`; empuje de ensayo rechazado con `GH013` (B5, TC-16 y TC-17) |
 | `CA-R2` | `[M]` | Cumplido | El diff de `pyproject.toml` es una línea del grupo `dev`; `15 kept, 0 broken` |
 | `CA-R3` | `[M]` | Cumplido | Esc. 1 por TC-18 y TC-22; esc. 2 por el empuje rechazado de B5 |
-| `CA-R4` | `[M]` | Cumplido | La suite de `tools/` pasa de 178 a 287 pruebas sin quitar ninguna ni añadir `skip` |
+| `CA-R4` | `[M]` | Cumplido | La suite de `tools/` pasa de 178 a 294 pruebas sin quitar ninguna ni añadir `skip` |
 | `CA-15` su parte | `[M]` | Cumplido | `docs/06` §6.4 y los textos de la auditoría; TC-70b sin marcas que retirar |
 
 Un Must incumplido **no se aprueba**. Con B5 y B6 hechas, no queda ningún Must pendiente.
@@ -249,7 +251,7 @@ Un Must incumplido **no se aprueba**. Con B5 y B6 hechas, no queda ningún Must 
 
 | Auditor | Veredicto | Hallazgos | Ciclos |
 |---|---|---|---|
-| `auditor-arquitectura` | `REQUIERE CAMBIOS` en ambas pasadas; sus dos Menores (documentales) están corregidos y verificados con `verificar_docs.py`, sin una tercera reauditoría | 2 Menores (F001, F002) | 2 |
+| `auditor-arquitectura` | `REQUIERE CAMBIOS` en ambas pasadas; sus dos Menores (documentales) están corregidos y verificados con `verificar_docs.py`, sin una tercera reauditoría | 4 Menores (F001 a F004) y la observación O3 | 2 en la ejecución; la revisión lleva sus propios ciclos (ver «Revisión») |
 | `auditor-sql` | No aplica | No hay esquema ni migración | — |
 
 ### Hallazgos y su resolución
@@ -258,8 +260,35 @@ Un Must incumplido **no se aprueba**. Con B5 y B6 hechas, no queda ningún Must 
 |---|---|---|---|---|---|
 | F001 | arquitectura | Menor | `sdd/tickets/tkt-009b/ajustes-repositorio.md:134` | Atribuía al paso de `pip-audit` la lista de vulnerabilidades, que sale en el paso del filtro | Resuelto (confirmado por la reauditoría) |
 | F002 | arquitectura | Menor | `sdd/tickets/tkt-009b/impl.md:3` | El enlace a `delta.md`, que aún no existe, rompía `verificar_docs.py`, y la cifra de archivos estaba desactualizada | Resuelto: el enlace pasa a «delta (pendiente)» y la cifra es 159; `verificar_docs.py` da `✓ Sin problemas.` |
+| F003 | arquitectura | Menor | `sdd/tickets/tkt-009b/impl.md`, «Modelo por paso» | Decía que la fila B6 quedaba para `git-entrega`, cuando la ejecutó la persona usuaria | Resuelto |
+| F004 | arquitectura | Menor | `docs/05-tickets-trabajo.md:382` y fila B5 del diseño | Pedían «token revocado», pero el único procedimiento verificado usa un token activo y sin permisos | Resuelto |
+| O3 | arquitectura | Observación | `tools/tests/test_definicion_ci.py` | El archivo está sin formatear desde antes de este ticket | Persiste, fuera de alcance |
 
 Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `GHSA` de un hallazgo (corregido en el ciclo 1 de revisión: ahora evalúa todos); `zizmor` no estaba instalado en su entorno (la salida en 0 la confirmó la ejecución con `uvx` de esta sesión); `nanoid@3.1.30` resultó no servir para la ronda 2 (tres avisos altos); el candidato pasa a ser `stream-json@3.6.0`, con un único aviso medio confirmado el 2026-10-29.
+
+### Revisión (`/sdd-revisar`, 2026-10-29)
+
+**Suite ejecutada en la revisión.**
+
+| Comprobación | Resultado |
+|---|---|
+| Backend, `uv run pytest` | `1138 passed in 240.71s (0:04:00)` |
+| `uv run ruff check .` | `All checks passed` |
+| `uv run ruff format --check .` | `153 files already formatted` |
+| `uv run mypy .` | `Success` en 153 archivos |
+| `uv run lint-imports` | `15 kept, 0 broken` |
+| `uv run python -m herramientas.verificar_float` | 18 archivos, 0 hallazgos |
+| `python tools/verificar_docs.py` | `Sin problemas` |
+| `python -m unittest discover -s tools/tests` | 294 pruebas, `OK`, sin `skipped` |
+| `zizmor@1.31.1 --offline` | `No findings` |
+| `verificar_escenarios` | exigidos 0, pendientes 0, 162 |
+
+**Auditorías de la revisión, por ciclo.**
+
+* **Ciclo 1.** Arquitectura `REQUIERE CAMBIOS` (F003 y F004, Menores). Código `REQUIERE CAMBIOS`: F001 y F002 Mayores (fallo abierto con varios `GHSA` y `HTTPException` sin capturar), F004 Mayor (13 mutantes vivos), F003, F005 y F006 Menores. Seguridad `REQUIERE CAMBIOS`: F001 y F002 `MEDIA`, F003 a F007 `BAJA`. Documentación `REQUIERE CAMBIOS`: F001 y F002 Mayores, F003 a F010 Menores. Se corrigieron con TDD: pruebas en rojo en `25ac431` (25 en rojo), código en `c94ceb4` y documentación en `5d6c7c4`.
+* **Ciclo 2 de reauditoría.** Seguridad `APROBADO`. Código `REQUIERE CAMBIOS`: F007 Mayor (huecos de prueba del orden de severidades), F008 y F009 Menores; se corrigió con 7 pruebas nuevas en `039b5d4`. Arquitectura `REQUIERE CAMBIOS` (N1, renombrar las pruebas por escenario; N2, esta tabla de auditorías). Documentación `REQUIERE CAMBIOS` (F011 Mayor, F012 a F016). El ciclo 2 de corrección de documentación se aplicó en esta pasada.
+
+**Decisión del corrector, a revisar:** `_peor` corta en el primer `HIGH` o `CRITICAL`, como describe el ADR en sus costes aceptados.
 
 ## Hallazgos fuera de alcance
 
@@ -284,7 +313,7 @@ Observaciones del auditor que no bloquean: el filtro solo consultaba el primer `
 
 - [x] Todos los criterios `[M]` cumplidos con evidencia
 - [x] Ciclo TDD completo en cada fila ejecutable por un agente: rojo antes de verde, ningún test editado por un desarrollador
-- [x] Suite en verde, con la salida pegada arriba (287 pruebas de `tools/` tras el ciclo 1 de la revisión)
+- [x] Suite en verde, con la salida pegada arriba (294 pruebas de `tools/` tras los ciclos 1 y 2 de la revisión)
 - [x] ≥1 test de rechazo por regla implicada
 - [x] Mutación en las rutas críticas del filtro y de la comprobación `comprobar_tc14`
 - [ ] Todas las auditorías `APROBADO`: la de arquitectura quedó en `REQUIERE CAMBIOS` en su último veredicto formal, con los dos Menores ya corregidos; falta además `/sdd-revisar`
