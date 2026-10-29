@@ -4,7 +4,7 @@
 
 ## Estado
 
-REQUIERE DECISIÓN
+LISTO PARA EJECUTAR
 
 ## Ficha
 
@@ -37,6 +37,7 @@ REQUIERE DECISIÓN
 |---|---|---|---|---|
 | 2026-10-28 | — | `LISTO PARA EJECUTAR` | partición de TKT-009 | Nace de la decisión del gate de diseño de TKT-009. Spec repartida: M10, M11, S1 y su parte de M12; `CA-13`, `CA-14`, `CA-16` y `CA-R4`. No se ejecuta hasta que TKT-009a esté `ARCHIVADO` o `LISTO PARA PR`. Última parte en fusionar, para que su limpieza se aplique sobre la documentación ya escrita por las otras |
 | 2026-10-29 | `LISTO PARA EJECUTAR` | `REQUIERE DECISIÓN` | `/sdd-ejecutar` | D1 hecha (seis archivos de configuración; `lychee.toml` con `include_fragments = "none"` por la versión 0.24.2). D2 mide la línea base: 183 hallazgos que `--fix` no corrige (162 de `markdownlint-cli2`, 20 de `Vale` y 1 de `lychee`) frente al umbral de 120 de `A-5`. Se detiene la parte d y se propone partir la limpieza, como manda el diseño. Decide la persona que aprueba |
+| 2026-10-29 | `REQUIERE DECISIÓN` | `LISTO PARA EJECUTAR` | usuario | La persona que aprueba responde «Seguir en 009d»: la limpieza de la línea base (183 hallazgos, por encima del umbral de 120 de `A-5`) se hace en este ticket, con D3 en un commit solo de formato y D4 en un commit por herramienta. Ninguna regla se apaga. Queda decidir antes de D4 cómo se escriben las cinco citas intencionales de «tablaroka» de `sdd/tickets/tkt-009/design.md` |
 
 ## Decisiones registradas
 

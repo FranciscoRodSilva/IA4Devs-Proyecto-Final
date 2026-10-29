@@ -4,7 +4,7 @@
 
 ## Qué se implementó
 
-Las filas D1 y D2 de la parte d del [diseño común](../tkt-009/design.md#parte-d--calidad-documental). **La ejecución se detuvo en D2 porque la línea base supera el umbral de 120 hallazgos** que fija el supuesto `A-5`. Las filas D3 a D7 no se han empezado. El estado es `REQUIERE DECISIÓN`: la persona que aprueba debe elegir entre partir la limpieza en su propio ticket, como propone el diseño, o continuar aquí con un umbral mayor.
+Las filas D1 y D2 de la parte d del [diseño común](../tkt-009/design.md#parte-d--calidad-documental). **La ejecución se detuvo en D2 porque la línea base supera el umbral de 120 hallazgos** que fija el supuesto `A-5`. Las filas D3 a D7 no se han empezado. El estado pasó a `REQUIERE DECISIÓN` y la persona que aprueba eligió continuar aquí en lugar de partir la limpieza en su propio ticket.
 
 ## Ajustes respecto al design
 
