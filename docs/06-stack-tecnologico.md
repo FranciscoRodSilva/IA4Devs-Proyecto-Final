@@ -468,7 +468,22 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 
 ### Integración continua
 
-**GitHub Actions**, con los trabajos que TKT-009 enumera: tests de backend contra PostgreSQL real, tests de frontend, contratos de `import-linter`, calidad documental, **auditoría de dependencias** (`pip-audit` y `npm audit`) y la **prueba de rendimiento del semáforo**. Nivel de aviso en local, nivel de error en el pipeline.
+**GitHub Actions**, en `.github/workflows/ci.yml`, disparado por `pull_request` y con `permissions: contents: read` por omisión. Cada trabajo corre en `ubuntu-24.04` con su tiempo máximo, y los que no dependen de otro corren en paralelo. Los trabajos que hoy existen son estos:
+
+- **`backend`**: `ruff format --check`, `ruff check`, `mypy`, `verificar_float` y `pytest` contra PostgreSQL real, levantado con testcontainers. La cobertura se mide con `pytest-cov` y sale por el registro; el informe `cobertura.xml` y el `pytest.xml` se suben como artefacto `backend-pruebas`, con catorce días de retención, y la subida falla si no hay ningún archivo que subir. **La cobertura no tiene umbral**: `pytest-cov` la mide y no falla por debajo de ningún porcentaje. Fijar un mínimo es otro ticket, con una base medida.
+- **`fronteras`**: `lint-imports`, el contrato de fronteras de [ADR del 2026-10-17](adr/20261017-interfaz-publicada-y-contrato-de-fronteras.md).
+- **`contrato-api`**: reservado para TKT-061. Hoy solo imprime que está reservado; `frontend` espera a este trabajo.
+- **`frontend`**: `npm run lint`, `npm run typecheck`, `npm test` y `npm run tipos:verificar`. Node sale de `engines` en `frontend/package.json`.
+- **`humo`**: el recorrido de Playwright con PostgreSQL levantado por Compose, la base migrada y las contraseñas de los roles fijadas. Si falla, sube el informe HTML.
+- **`herramientas`**: las pruebas de `tools/` con `unittest`. Una guarda falla el paso si alguna prueba se salta.
+- **`workflows`**: `zizmor` sobre `.github/workflows`, para auditar los propios flujos.
+- **`documentacion`**: `verificar_docs.py`.
+
+Dos reglas de higiene rigen el archivo. Cada acción se fija por SHA completo, con su versión en un comentario, porque una etiqueta se mueve y un SHA no. Y el intérprete de Python es el 3.14, con el mismo `uv sync --locked --python 3.14` que documenta [`arranque-local.md`](arranque-local.md), porque sin fijarlo `uv` elige el más nuevo y puede compilar mal `pyyaml`. Ningún paso lleva `continue-on-error`: una compuerta que no falla está desactivada.
+
+**Desviación respecto a TKT-009.** El trabajo `backend` no levanta MinIO. Su servicio y sus pruebas contra un almacén real llegan con TKT-059, que los añade a ese trabajo, porque antes no existe el adaptador de almacén que los usaría.
+
+Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias llega con la parte b de TKT-009 y la calidad documental completa con la parte d. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
 
 Dos trabajos más, que son los que meten la IA en el pipeline sin darle la última palabra:
 

@@ -325,7 +325,7 @@ Que otro ticket dependa de TKT-008 significa que depende de los tres. Un consumi
 **Qué hace.** Configura CI con tests, verificación de fronteras entre módulos, trazabilidad escenario ↔ test y calidad de documentación, y deja el sitio donde se enganchan la prueba de contrato de TKT-061 y la revisión de TKT-062.
 
 **Criterios técnicos**
-- [ ] Trabajo de tests de backend contra PostgreSQL real **y MinIO**, los dos con testcontainers, con reporte de cobertura
+- [ ] Trabajo de tests de backend contra PostgreSQL real, con testcontainers y reporte de cobertura. **MinIO no entra en este ticket**: su servicio y sus pruebas llegan con TKT-059, que los añade a ese mismo trabajo. Antes de TKT-059 no existe el adaptador de almacén que usaría MinIO, así que levantarlo aquí no comprobaría nada
 - [ ] Trabajo de frontend: `npm ci`, `npm run lint`, `npm run typecheck`, `npm test` y **`npm run tipos:verificar`**, este último con **`uv` y Node en el mismo trabajo** y `uv sync --locked --python 3.14` hecho en `backend/`, con el intérprete fijado como en [`arranque-local.md`](arranque-local.md) (TKT-008, `PA-T10`)
 - [ ] Trabajo del humo de Playwright, `npm run e2e`, con Docker, la base migrada, las contraseñas de los roles fijadas y un `.env` construido desde `.env.example` (TKT-008)
 - [ ] Trabajo de verificación de fronteras entre módulos (TKT-002), que falla el pipeline si se cruzan
@@ -340,6 +340,54 @@ Que otro ticket dependa de TKT-008 significa que depende de los tres. Un consumi
 - [ ] Nivel de aviso en local, nivel de error en CI
 
 **Non-goals** — No configura despliegue: se decide en el Paso 5.
+
+#### Partición en cuatro tickets hermanos
+
+TKT-009 se ejecuta como cuatro tickets hermanos que comparten la spec y el diseño de [`sdd/tickets/tkt-009/`](../sdd/tickets/tkt-009/_index.md). El diseño aprobado el 2026-10-28 suma unas 1,230 líneas escritas a mano, tres veces el tope de unas 400 por cambio que fija la metodología. TKT-009 queda como ticket paraguas: se cierra cuando se cierran los cuatro.
+
+**El orden de fusión es fijo: a → c → b → d.** Las tres últimas editan los mismos documentos —`docs/06-stack-tecnologico.md`, `tools/README.md` y `docs/arranque-local.md`— y la limpieza documental de TKT-009d recorre todo `docs/` y `sdd/`, incluido `docs/04-historias-usuario.md`, que TKT-009c lee y modifica. Cada parte se rebasa sobre la anterior ya fusionada antes de abrir su PR.
+
+Que otro ticket dependa de TKT-009 significa que depende de los cuatro. TKT-061 solo necesita TKT-009a, que declara el trabajo reservado, y TKT-062 solo necesita que el pipeline de TKT-009a esté en verde.
+
+| Ticket | Contenido | Talla | Depende de | Filas del diseño |
+|---|---|---|---|---|
+| TKT-009a | Pipeline de pruebas y fronteras | S | TKT-002, TKT-008 | A0 a A8 |
+| TKT-009c | Verificador de escenarios sin test | M | TKT-009a | C1 a C6 |
+| TKT-009b | Auditoría de dependencias, Dependabot y escaneo de secretos | M | TKT-009a | B1 a B7 |
+| TKT-009d | Calidad de documentación | M | TKT-009a, y fusiona después de TKT-009b | D1 a D7 |
+
+##### TKT-009a · Pipeline de pruebas y fronteras
+
+**Qué hace.** Crea el flujo de GitHub Actions `ci.yml`, disparado por `pull_request` y con permisos mínimos, con los trabajos de backend, fronteras entre módulos, frontend, humo de Playwright, suite de `tools/`, seguridad de los workflows y `verificar_docs.py`. Declara el trabajo reservado de TKT-061 y no depende de la revisión de TKT-062. **Los tests de backend corren contra PostgreSQL y no contra MinIO**: MinIO llega con TKT-059, que lo añade al trabajo `backend`.
+
+- [ ] Trabajo de backend con formato, lint, tipos, `verificar_float` y `pytest` contra PostgreSQL real con testcontainers, y reporte de cobertura sin umbral
+- [ ] Trabajo de fronteras, de frontend con `tipos:verificar` y del humo de Playwright, con los pasos que documenta [`arranque-local.md`](arranque-local.md)
+- [ ] Trabajo reservado para TKT-061 entre los tests de backend y la generación de tipos, y ninguna dependencia de TKT-062
+- [ ] Permisos mínimos: `contents: read` y sin `pull_request_target`
+
+##### TKT-009c · Verificador de escenarios sin test
+
+**Qué hace.** Escribe `tools/verificar_escenarios.py` y `tools/historias_activas.txt` y engancha el verificador al pipeline. Falla ante un escenario que cuenta y no tiene test, informa los pendientes, admite los nombres de los tickets de fundación y deja de exigir los escenarios retirados con el segmento ` · retirado por TKT-0NN` en su título.
+
+- [ ] Un escenario activo sin test falla el pipeline y se nombra; uno todavía no activo se informa como pendiente
+- [ ] Los escenarios de fase 2 no cuentan hasta que `historias_activas.txt` contiene la línea `fase 2`, y una historia no sale nunca del archivo
+- [ ] Un test que nombra una historia o un escenario inexistentes falla; los nombres de fundación se admiten y los demás se ignoran
+
+##### TKT-009b · Cadena de suministro
+
+**Qué hace.** Audita las dependencias de Python y de npm y falla ante severidad alta, activa Dependabot y deja verificado el escaneo de secretos del repositorio.
+
+- [ ] `pip-audit` con un filtro de severidad que falla ante `HIGH`, `CRITICAL` o severidad desconocida, y `npm audit --audit-level=high`
+- [ ] `.github/dependabot.yml` para `uv`, `npm` y `github-actions`
+- [ ] Escaneo de secretos y protección de empuje activos, comprobados con `gh api` y un empuje de ensayo con un token revocado
+
+##### TKT-009d · Calidad de documentación
+
+**Qué hace.** Configura `markdownlint-cli2`, `Vale` con el vocabulario del glosario, `lychee` y `mermaid-cli` en el pipeline, y el detector de enlaces en un cron semanal. Limpia la línea base de avisos, que nunca se había ejecutado: aviso en local y error en CI.
+
+- [ ] Trabajo `documentacion` con los cuatro verificadores, y vocabulario del proyecto declarado para `Vale`
+- [ ] Línea base limpia, medida antes de editar: si supera 120 hallazgos que `--fix` no corrige, la limpieza se separa en su propio ticket
+- [ ] Detector de enlaces también en cron semanal
 
 ---
 
@@ -418,6 +466,7 @@ Que otro ticket dependa de TKT-008 significa que depende de los tres. Un consumi
 - [ ] **Barrido al arrancar** de los `PENDIENTE` con la caducidad vencida, **reutilizando el mecanismo que construye TKT-015** para las importaciones con latido vencido (`RNF-17`), no uno nuevo: elimina el objeto que llegara a subirse y pasa la fila a **`CADUCADO`**, sin borrarla. `CADUCADO` y no `ANULADO` porque el barrido no tiene autor, y el invariante 24 exige autor y motivo para anular ([modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos))
 - [ ] Ninguna ruta del API devuelve los bytes de un archivo: un test recorre el enrutador y falla si alguna respuesta de `archivos` es un flujo binario (regla 15 de `CLAUDE.md`)
 - [ ] Tests de `RNF-06` y `RNF-19` del [stack §6.6](06-stack-tecnologico.md#66-qué-se-comprueba-solo) contra **MinIO real**: un `.svg` renombrado a `.jpg` se rechaza por su tipo real, un tamaño excedido se rechaza, la URL de lectura caduca, un PDF se sirve como descarga, un hash que no coincide no pasa a `DISPONIBLE`, y el hash confirmado aparece en la bitácora
+- [ ] Añade el servicio y las pruebas de MinIO al trabajo `backend` del pipeline. TKT-009 deja ese trabajo sin MinIO hasta este ticket, porque antes no hay almacén que probar (ver su ficha)
 
 > **Las sumas de verificación del almacén hay que comprobarlas al implementar.** Firmar la subida con el SHA-256 y leerlo después con los metadatos del objeto mantiene los bytes fuera del servidor, pero depende de que MinIO y R2 admitan esa suma en URL prefirmadas. Si alguno no la devuelve, la confirmación la calcula leyendo el objeto **desde el almacén y en un trabajo**, nunca dentro de una ruta `def`. *(asumido, a verificar con la documentación vigente de los dos destinos)*
 

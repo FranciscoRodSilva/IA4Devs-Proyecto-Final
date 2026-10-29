@@ -11,8 +11,9 @@ Estas pruebas no usan la base. Lanzan el script como lo hace `frontend/e2e/prepa
 Las contraseñas son valores de prueba que no corresponden a ningún servidor.
 
 Requieren `uv`, porque el script importa `pwdlib` y `sqlalchemy` del entorno de `backend/`. Sin
-`uv` se saltan con ese motivo: un trabajo del pipeline de `tools/` que no instale `uv` no las corre.
-TKT-009 decide si ese trabajo lo instala.
+`uv` se saltan con ese motivo. En el pipeline `.github/workflows/ci.yml` el trabajo `herramientas`,
+que ejecuta la suite de `tools/`, instala `uv` y sincroniza el entorno de `backend/`, así que allí
+estas pruebas se ejecutan y no se saltan.
 
 Ejecución, desde la raíz del repositorio:
 

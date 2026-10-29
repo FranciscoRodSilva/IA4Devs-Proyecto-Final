@@ -34,7 +34,11 @@ El último es el que sostiene la [regla de aceptación](../docs/04-historias-usu
 python -m unittest discover -s tools/tests -v
 ```
 
-Las pruebas de `verificar_docs.py` usan solo la biblioteca estándar y se ejecutan desde la raíz del repositorio. Cada caso construye su árbol de archivos en un directorio temporal. Cuando TKT-009 meta la suite en el pipeline, pytest recogerá estas mismas clases sin cambios.
+Las pruebas de `verificar_docs.py` usan solo la biblioteca estándar y se ejecutan desde la raíz del repositorio. Cada caso construye su árbol de archivos en un directorio temporal.
+
+El pipeline las corre en el trabajo `herramientas`, con `unittest` y sin `-v`, y falla si la salida contiene `skipped=`: una prueba saltada no cuenta como verde. Sin `-v`, `unittest` no imprime los docstrings, así que un docstring que contenga `skipped=` no provoca un falso rojo.
+
+`test_definicion_ci.py` comprueba la definición de `.github/workflows/ci.yml`: que cada compuerta esté en su trabajo, en el orden que exige el criterio, con sus comandos, permisos y disparadores. Lee el texto del flujo con expresiones regulares, porque la biblioteca estándar no trae analizador de YAML. El fijado de las acciones por SHA no lo comprueba este archivo: lo revisa `zizmor`, que sí analiza los flujos. Se ejecuta desde la raíz con `python -m unittest tools.tests.test_definicion_ci -v`.
 
 ## `extraer_mermaid.py`
 

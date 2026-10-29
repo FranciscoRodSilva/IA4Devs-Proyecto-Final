@@ -26,6 +26,25 @@ function dobleSesion(roles: Rol[], cambios?: Partial<UsuarioActual>) {
   return http.get(`${ORIGEN}${RUTA_SESION}`, () => HttpResponse.json(usuarioActual(roles, cambios)));
 }
 
+/**
+ * GET /sesion con el ciclo de vida del servidor real: una vez que el cierre se resolvió, la sesión ya no existe y responde 401.
+ * Al salir, el armazón sigue montado un instante tras `navegar` y, al vaciarse la caché, vuelve a pedir la sesión; un doble que
+ * siguiera contestando 200 repoblaría la caché a destiempo (carrera que solo aparece con la CPU escasa).
+ */
+function dobleSesionQueTermina(roles: Rol[]) {
+  let terminada = false;
+  return {
+    sesion: http.get(`${ORIGEN}${RUTA_SESION}`, () =>
+      terminada
+        ? HttpResponse.json(errorSesion("SIN_SESION"), { status: 401 })
+        : HttpResponse.json(usuarioActual(roles)),
+    ),
+    alCerrar: () => {
+      terminada = true;
+    },
+  };
+}
+
 function dobleCsrf() {
   return http.get(`${ORIGEN}${RUTA_CSRF}`, () => HttpResponse.json(tokenCsrf()));
 }
@@ -136,11 +155,13 @@ describe("TKT-008 · aplicación y armazón", () => {
 
   test("tkt008_ca07_esc07 · salir · cierre aceptado", async () => {
     const csrfRecibido: Array<string | null> = [];
+    const { sesion: doble, alCerrar } = dobleSesionQueTermina(["COMPRAS"]);
     servidorPruebas.use(
-      dobleSesion(["COMPRAS"]),
+      doble,
       dobleCsrf(),
       http.post(`${ORIGEN}${RUTA_CIERRE}`, ({ request }) => {
         csrfRecibido.push(request.headers.get("X-CSRF-Token"));
+        alCerrar();
         return new HttpResponse(null, { status: 204 });
       }),
     );
@@ -156,10 +177,14 @@ describe("TKT-008 · aplicación y armazón", () => {
   });
 
   test("tkt008_ca07_esc07 · salir · el cierre responde 401 porque la sesión ya había terminado", async () => {
+    const { sesion: doble, alCerrar } = dobleSesionQueTermina(["COMPRAS"]);
     servidorPruebas.use(
-      dobleSesion(["COMPRAS"]),
+      doble,
       dobleCsrf(),
-      http.post(`${ORIGEN}${RUTA_CIERRE}`, () => HttpResponse.json(errorSesion("SESION_CADUCADA"), { status: 401 })),
+      http.post(`${ORIGEN}${RUTA_CIERRE}`, () => {
+        alCerrar();
+        return HttpResponse.json(errorSesion("SESION_CADUCADA"), { status: 401 });
+      }),
     );
     const { router, queryClient, usuario } = renderizarAplicacion("/");
     await screen.findByRole("heading", { level: 1, name: "Línea base" });
