@@ -28,7 +28,7 @@ TKT-009c queda algo por encima del tope y no se parte más: el verificador y sus
 | # | Resolución | Peldaño |
 |---|---|---|
 | `A-2` | Cobertura **sin umbral**: `pytest-cov` imprime el resumen en el registro y sube `cobertura.xml` como artefacto. Sin `--cov-fail-under`. Fijar un mínimo es otro ticket, con una base medida | 1 · YAGNI |
-| `A-3` | `pip-audit` **no da severidad**: su salida JSON trae `id`, `fix_versions`, `aliases` y `description`, y ninguna opción filtra por gravedad (consultado con Context7, pip-audit 2.10). La severidad sale del aviso de GitHub (`GHSA-…`) en OSV, campo `database_specific.severity`. `HIGH` y `CRITICAL` fallan; `MODERATE` y `LOW` se informan; sin `GHSA` o sin severidad, **falla** (política de fallo cerrado). En el cliente basta lo nativo: `npm audit --audit-level=high` informa todo y solo devuelve código distinto de cero desde `high` | 5 para Python, 2 para npm |
+| `A-3` | `pip-audit` **no da severidad**: su salida JSON trae `id`, `fix_versions`, `aliases` y `description`, y ninguna opción filtra por gravedad (consultado con Context7, pip-audit 2.10). La severidad sale del aviso de GitHub (`GHSA-…`) en OSV, campo `database_specific.severity`. `HIGH` y `CRITICAL` fallan; `MODERATE` y `LOW` se informan; sin `GHSA` o sin severidad, **falla** (política de fallo cerrado). La extensión del fallo cerrado a la severidad `DESCONOCIDA` y a los fallos de red de la consulta (código 2) es `(asumido)` y la persona que aprueba puede revertirla: ver el [ADR de severidad](../../../docs/adr/20261029-severidad-en-la-auditoria-de-dependencias.md). En el cliente basta lo nativo: `npm audit --audit-level=high` informa todo y solo devuelve código distinto de cero desde `high` | 5 para Python, 2 para npm |
 | `A-4` | El escaneo de secretos y la protección de empuje son **ajustes del repositorio**. Se verifican con `gh api` y con un empuje de ensayo que la persona dueña del repositorio hace con un token real activo y sin permisos, revocado después del empuje; la evidencia queda en `impl.md`. Si el repositorio es privado y no tiene *Secret Protection*, se escala: ver fila B5 | 2 · nativo |
 | `A-5` | Línea base desconocida: la fila D2 la **mide** antes de tocar nada. Si quedan **más de 120 hallazgos** que `--fix` no corrige, se detiene la parte d y se escala proponiendo separar la limpieza en su propio ticket | — |
 | `A-6` | La fase 2 empieza cuando `tools/historias_activas.txt` contiene la línea exacta `fase 2`. Sin ella, los escenarios de fase 2 no cuentan. Como las historias, la línea no sale del archivo: el verificador falla si la base del PR la tenía y el PR la quita | 4 · cambio mínimo sobre el archivo de ADR-012 |
@@ -144,7 +144,7 @@ class Hallazgo:
     paquete: str
     version: str
     identificador: str            # el `id` de pip-audit
-    aviso: str | None             # el GHSA-… de peor severidad entre el id y sus alias; None si no hay ninguno
+    aviso: str | None             # el GHSA-… que fija la severidad: el peor de los consultados, con corte en el primer HIGH o CRITICAL; None si no hay ninguno
     severidad: str                # LOW · MODERATE · HIGH · CRITICAL · DESCONOCIDA
 
 def leer_informe(texto: str) -> list[dict]: ...   # acepta {"dependencies": [...]} y la lista antigua
@@ -357,10 +357,10 @@ Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el 
 | TC-31 | Un hallazgo `CRITICAL` termina en 1 | **rechazo** | `CA-10` | esc. 2 |
 | TC-32 | Un hallazgo `MODERATE` termina en 0 y se informa como `MEDIA` | **rechazo** (de bloqueo de más) | `CA-10` | esc. 3 |
 | TC-33 | Un hallazgo `LOW` termina en 0 | feliz | `CA-10` | esc. 3 |
-| TC-34 | Un hallazgo sin `GHSA` termina en 1 como `DESCONOCIDA` | **rechazo** | `CA-10` | esc. 2 |
+| TC-34 | Un hallazgo sin `GHSA` termina en 1 como `DESCONOCIDA` `(asumido)`, ver el ADR de severidad | **rechazo** | `CA-10` | esc. 2 |
 | TC-35 | Un informe sin vulnerabilidades termina en 0 | feliz | `CA-10` | esc. 1 |
 | TC-36 | JSON inexistente o ilegible termina en 2 | **rechazo** | `CA-10` | — |
-| TC-37 | Un error de la consulta a OSV termina en 2 | **rechazo** | `CA-10` | — |
+| TC-37 | Un error de la consulta a OSV termina en 2 `(asumido)`, ver el ADR de severidad | **rechazo** | `CA-10` | — |
 | TC-38 | Acepta el formato `{"dependencies": […]}` y la lista antigua | feliz | `CA-10` | — |
 | TC-40 | Historia activa con el esc. 4 sin test: código 1 y `FALTA HDU-002 esc. 4` | **rechazo** | `CA-6` | esc. 1 |
 | TC-41 | Con `test_hdu002_esc04_…`: código 0 y sin `FALTA` | feliz | `CA-6` | esc. 2 |
