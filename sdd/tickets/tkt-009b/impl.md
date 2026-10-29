@@ -173,7 +173,7 @@ Un Must incumplido **no se aprueba**: los tres criterios en pendiente o parcial 
 | F001 | arquitectura | Menor | `sdd/tickets/tkt-009b/ajustes-repositorio.md:134` | Atribuía al paso de `pip-audit` la lista de vulnerabilidades, que sale en el paso del filtro | Resuelto (confirmado por la reauditoría) |
 | F002 | arquitectura | Menor | `sdd/tickets/tkt-009b/impl.md:3` | El enlace a `delta.md`, que aún no existe, rompía `verificar_docs.py`, y la cifra de archivos estaba desactualizada | Resuelto: el enlace pasa a «delta (pendiente)» y la cifra es 159; `verificar_docs.py` da `✓ Sin problemas.` |
 
-Observaciones del auditor que no bloquean: `_aviso_ghsa` solo consulta el primer `GHSA` de un hallazgo; `zizmor` no estaba instalado en su entorno (la salida en 0 la confirmó la ejecución con `uvx` de esta sesión); `nanoid@3.1.30` como candidato `moderate` de la ronda 2 no se ha verificado, y la guía exige confirmarlo antes de empujar.
+Observaciones del auditor que no bloquean: `_aviso_ghsa` solo consulta el primer `GHSA` de un hallazgo; `zizmor` no estaba instalado en su entorno (la salida en 0 la confirmó la ejecución con `uvx` de esta sesión); `nanoid@3.1.30` resultó no servir para la ronda 2 (tres avisos altos); el candidato pasa a ser `stream-json@3.6.0`, con un único aviso medio confirmado el 2026-10-29.
 
 ## Hallazgos fuera de alcance
 

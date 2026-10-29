@@ -139,17 +139,17 @@ Si cae otro trabajo además de `dependencias`, se anota en `impl.md` y se explic
 
 ### 2.3 Ronda 2: solo un aviso moderate
 
-La ronda 2 revierte la ronda 1 y añade un solo paquete. El candidato es `nanoid@3.1.30`. Antes de empujar, se confirma en la base de avisos de GitHub que su único aviso es `moderate`:
+La ronda 2 revierte la ronda 1 y añade un solo paquete. El candidato es `stream-json@3.6.0`, que sustituye a `nanoid@3.1.30`: la consulta del 2026-10-29 mostró que este tiene tres avisos altos. Antes de empujar, se confirma en la base de avisos de GitHub que su único aviso es `moderate`:
 
 ```bash
-gh api "/advisories?affects=nanoid@3.1.30&ecosystem=npm" --jq '.[] | {ghsa_id, severity, summary}'
+gh api "/advisories?affects=stream-json@3.6.0&ecosystem=npm" --jq '.[] | {ghsa_id, severity, summary}'
 ```
 
 Todos los avisos de la respuesta tienen que tener `severity` igual a `moderate`. Si aparece un `high` o un `critical`, o si el candidato deja de ser solo `moderate`, se elige otro paquete `npm` con un único aviso `moderate` y se repite la consulta. Si la consulta no devuelve ningún aviso, el candidato tampoco sirve, porque la ronda necesita un aviso visible.
 
 ```bash
 git revert --no-edit HEAD
-(cd frontend && npm install --save-dev --save-exact nanoid@3.1.30)
+(cd frontend && npm install --save-dev --save-exact stream-json@3.6.0)
 (cd frontend && npm audit --audit-level=high)
 echo $?
 ```
@@ -158,7 +158,7 @@ echo $?
 
 ```bash
 git add frontend/package.json frontend/package-lock.json
-git commit -m "Ensayo TKT-009b · ronda 2: nanoid 3.1.30, solo un aviso moderate (no fusionar)"
+git commit -m "Ensayo TKT-009b · ronda 2: stream-json 3.6.0, solo un aviso moderate (no fusionar)"
 git push origin ensayo/tkt-009b-compuertas
 ```
 
@@ -167,7 +167,7 @@ git push origin ensayo/tkt-009b-compuertas
 **Mensajes esperados en el trabajo `dependencias`:**
 
 * El paso «Filtrar los hallazgos por severidad» termina en verde con `Sin vulnerabilidades en el informe de pip-audit.`, porque el lock del backend está limpio.
-* El paso «Auditar npm» termina en verde. Su registro muestra el aviso `moderate` de `nanoid`, aunque no falle. Si el registro no lo muestra, se anota en `impl.md`, porque el criterio `CA-10` pide que el hallazgo se informe.
+* El paso «Auditar npm» termina en verde. Su registro muestra el aviso `moderate` de `stream-json`, aunque no falle. Si el registro no lo muestra, se anota en `impl.md`, porque el criterio `CA-10` pide que el hallazgo se informe.
 * El trabajo termina en verde.
 
 ### 2.4 Abrir el PR en borrador
@@ -184,7 +184,7 @@ PR de ensayo. No se fusiona.
 Demuestra la compuerta `dependencias` de TKT-009b (fila B6 del diseño común).
 
 * Ronda 1 (primer commit): `django 3.2` en el grupo dev y `lodash 4.17.20` en devDependencies. El trabajo `dependencias` tiene que terminar en rojo, con una línea ALTA o CRÍTICA para django y el fallo de `npm audit` para lodash.
-* Ronda 2 (commit final): se revierte la ronda 1 y se añade `nanoid 3.1.30`, cuyo único aviso es moderate. El trabajo tiene que terminar en verde, con el aviso moderate visible en el registro.
+* Ronda 2 (commit final): se revierte la ronda 1 y se añade `stream-json 3.6.0`, cuyo único aviso es moderate. El trabajo tiene que terminar en verde, con el aviso moderate visible en el registro.
 
 Al terminar la verificación, este PR se cierra sin fusionar y su rama se borra.
 
@@ -199,7 +199,7 @@ El PR tiene que ser de borrador. El flujo `pull_request` del pipeline corre en l
 
 * Para cada ronda: el enlace a la ejecución del pipeline, el nombre del trabajo `dependencias` y de cada paso con su resultado.
 * Un extracto del registro de los pasos «Filtrar los hallazgos por severidad» y «Auditar npm» de cada ronda. Ni el token ni ningún secreto aparecen en esta parte; si algún extracto los contuviera, se quitaría antes de pegarlo.
-* La salida de la consulta de `nanoid` y la de `npm audit` en local.
+* La salida de la consulta de `stream-json` y la de `npm audit` en local.
 
 ### 2.6 Cierre
 
