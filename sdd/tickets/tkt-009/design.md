@@ -28,8 +28,8 @@ TKT-009c queda algo por encima del tope y no se parte más: el verificador y sus
 | # | Resolución | Peldaño |
 |---|---|---|
 | `A-2` | Cobertura **sin umbral**: `pytest-cov` imprime el resumen en el registro y sube `cobertura.xml` como artefacto. Sin `--cov-fail-under`. Fijar un mínimo es otro ticket, con una base medida | 1 · YAGNI |
-| `A-3` | `pip-audit` **no da severidad**: su salida JSON trae `id`, `fix_versions`, `aliases` y `description`, y ninguna opción filtra por gravedad (consultado con Context7, pip-audit 2.10). La severidad sale del aviso de GitHub (`GHSA-…`) en OSV, campo `database_specific.severity`. `HIGH` y `CRITICAL` fallan; `MODERATE` y `LOW` se informan; sin `GHSA` o sin severidad, **falla** (política de fallo cerrado). En el cliente basta lo nativo: `npm audit --audit-level=high` informa todo y solo devuelve código distinto de cero desde `high` | 5 para Python, 2 para npm |
-| `A-4` | El escaneo de secretos y la protección de empuje son **ajustes del repositorio**. Se verifican con `gh api` y con un empuje de ensayo que la persona dueña del repositorio hace con un token real revocado; la evidencia queda en `impl.md`. Si el repositorio es privado y no tiene *Secret Protection*, se escala: ver fila B5 | 2 · nativo |
+| `A-3` | `pip-audit` **no da severidad**: su salida JSON trae `id`, `fix_versions`, `aliases` y `description`, y ninguna opción filtra por gravedad (consultado con Context7, pip-audit 2.10). La severidad sale del aviso de GitHub (`GHSA-…`) en OSV, campo `database_specific.severity`. `HIGH` y `CRITICAL` fallan; `MODERATE` y `LOW` se informan; sin `GHSA` o sin severidad, **falla** (política de fallo cerrado). La extensión del fallo cerrado a la severidad `DESCONOCIDA` y a los fallos de red de la consulta (código 2) es `(asumido)` y la persona que aprueba puede revertirla: ver el [ADR de severidad](../../../docs/adr/20261029-severidad-en-la-auditoria-de-dependencias.md). En el cliente basta lo nativo: `npm audit --audit-level=high` informa todo y solo devuelve código distinto de cero desde `high` | 5 para Python, 2 para npm |
+| `A-4` | El escaneo de secretos y la protección de empuje son **ajustes del repositorio**. Se verifican con `gh api` y con un empuje de ensayo que la persona dueña del repositorio hace con un token real activo y sin permisos, revocado después del empuje; la evidencia queda en `impl.md`. Si el repositorio es privado y no tiene *Secret Protection*, se escala: ver fila B5 | 2 · nativo |
 | `A-5` | Línea base desconocida: la fila D2 la **mide** antes de tocar nada. Si quedan **más de 120 hallazgos** que `--fix` no corrige, se detiene la parte d y se escala proponiendo separar la limpieza en su propio ticket | — |
 | `A-6` | La fase 2 empieza cuando `tools/historias_activas.txt` contiene la línea exacta `fase 2`. Sin ella, los escenarios de fase 2 no cuentan. Como las historias, la línea no sale del archivo: el verificador falla si la base del PR la tenía y el PR la quita | 4 · cambio mínimo sobre el archivo de ADR-012 |
 | `A-7` | Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título, la misma forma que ya usa ` · fase 2`: `**Escenario 14: Mano de obra y avance simulados, y rotulados como tales · fase 1 · retirado por TKT-069**`. El texto del escenario no cambia. Una nota en prosa, sin el segmento, no retira nada. Hoy no se retira ninguno: lo hará TKT-069 | 4 · extiende una convención existente |
@@ -144,7 +144,7 @@ class Hallazgo:
     paquete: str
     version: str
     identificador: str            # el `id` de pip-audit
-    aviso: str | None             # el primer GHSA-… entre el id y sus alias
+    aviso: str | None             # el GHSA-… que fija la severidad: el peor de los consultados, con corte en el primer HIGH o CRITICAL (asumido; confirmado por quien aprueba el 2026-10-29, `A-12`); None si no hay ninguno
     severidad: str                # LOW · MODERATE · HIGH · CRITICAL · DESCONOCIDA
 
 def leer_informe(texto: str) -> list[dict]: ...   # acepta {"dependencies": [...]} y la lista antigua
@@ -268,13 +268,13 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 
 | # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
 |---|---|---|---|---|---|---|
-| B1 | `uv add --dev pip-audit` en `backend/`. Rojo previo: `uv run pip-audit --version` falla | TC-R2a | `ingeniero-devsecops` | `haiku` | `uv sync --locked --python 3.14`; `uv run pip-audit --version`; `git diff backend/pyproject.toml` solo en `dev` | Pendiente |
-| B2 | `tools/tests/test_severidad_pip_audit.py` en rojo; después `tools/severidad_pip_audit.py` con las firmas de arriba | TC-30 a TC-38 | `ingeniero-devsecops` | `haiku` | `python -m unittest tools.tests.test_severidad_pip_audit -v` en verde; sobre el árbol real, el `uv export` y el `pip-audit` del trabajo seguidos del script terminan en 0 | Pendiente |
-| B3 | Trabajo `dependencias` en `ci.yml` y sus casos en `test_definicion_ci.py` | TC-14 | `ingeniero-devsecops` | `haiku` | TC-14 en verde; `npm audit --audit-level=high` en `frontend/` termina en 0 sobre el árbol real; `zizmor` sigue en 0 | Pendiente |
-| B4 | `.github/dependabot.yml` y sus casos, incluido el que comprueba que no existe `.github/secret_scanning.yml` ni ningún `paths-ignore` que cite `.env.example` | TC-15, TC-18 | `ingeniero-devsecops` | `haiku` | TC-15 y TC-18 en verde | Pendiente |
-| B5 | Ajustes del repositorio. El agente prepara los comandos; **los ejecuta la persona dueña del repositorio**: `gh api repos/FranciscoRodSilva/IA4Devs-Proyecto-Final --jq '{visibility, security_and_analysis}'`; activa alertas de Dependabot, actualizaciones de seguridad, escaneo de secretos y protección de empuje; repite la consulta. Si el escaneo no está disponible para el plan del repositorio, se detiene la parte y se ejecuta `/sdd-escalar` con tres opciones: hacer público el repositorio, contratar *Secret Protection* o añadir `gitleaks` al pipeline | TC-16, TC-17 | persona usuaria | — | La segunda consulta muestra `secret_scanning` y `secret_scanning_push_protection` en `enabled`. Empuje de ensayo: la persona crea un token personal de GitHub sin permisos, lo **revoca**, lo pega en un archivo de la rama de ensayo e intenta empujar; el empuje se rechaza o queda la alerta. Evidencia en `impl.md` sin el token | Pendiente |
-| B6 | Ensayo en el pipeline de la parte b | TC-11a, TC-11b | `git-entrega` | `haiku` | Rojo con la dependencia `ALTA` de Python y con la de npm; verde con la `MEDIA` de npm, que se ve informada en el registro | Pendiente |
-| B7 | Documentación, marcas y ADR de severidad | TC-70b | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0, con el ADR en el índice | Pendiente |
+| B1 | `uv add --dev pip-audit` en `backend/`. Rojo previo: `uv run pip-audit --version` falla | TC-R2a | `ingeniero-devsecops` | `haiku` | `uv sync --locked --python 3.14`; `uv run pip-audit --version`; `git diff backend/pyproject.toml` solo en `dev` | ✓ Hecho |
+| B2 | `tools/tests/test_severidad_pip_audit.py` en rojo; después `tools/severidad_pip_audit.py` con las firmas de arriba | TC-30 a TC-38 | `ingeniero-devsecops` | `haiku` | `python -m unittest tools.tests.test_severidad_pip_audit -v` en verde; sobre el árbol real, el `uv export` y el `pip-audit` del trabajo seguidos del script terminan en 0 | ✓ Hecho |
+| B3 | Trabajo `dependencias` en `ci.yml` y sus casos en `test_definicion_ci.py` | TC-14 | `ingeniero-devsecops` | `haiku` | TC-14 en verde; `npm audit --audit-level=high` en `frontend/` termina en 0 sobre el árbol real; `zizmor` sigue en 0 | ✓ Hecho |
+| B4 | `.github/dependabot.yml` y sus casos, incluido el que comprueba que no existe `.github/secret_scanning.yml` ni ningún `paths-ignore` que cite `.env.example` | TC-15, TC-18 | `ingeniero-devsecops` | `haiku` | TC-15 y TC-18 en verde | ✓ Hecho |
+| B5 | Ajustes del repositorio. El agente prepara los comandos; **los ejecuta la persona dueña del repositorio**: `gh api repos/FranciscoRodSilva/IA4Devs-Proyecto-Final --jq '{visibility, security_and_analysis}'`; activa alertas de Dependabot, actualizaciones de seguridad, escaneo de secretos y protección de empuje; repite la consulta. Si el escaneo no está disponible para el plan del repositorio, se detiene la parte y se ejecuta `/sdd-escalar` con tres opciones: hacer público el repositorio, contratar *Secret Protection* o añadir `gitleaks` al pipeline | TC-16, TC-17 | persona usuaria | — | La segunda consulta muestra `secret_scanning` y `secret_scanning_push_protection` en `enabled`. Empuje de ensayo: la persona crea un token personal de GitHub sin permisos, lo pega en un archivo de la rama de ensayo, intenta empujar y lo **revoca** justo después; el empuje se rechaza o queda la alerta. Evidencia en `impl.md` sin el token. (Orden real: token activo y sin permisos, revocado después del empuje; ver impl.md de TKT-009b, fila B5.) | ✓ Hecho |
+| B6 | Ensayo en el pipeline de la parte b | TC-11a, TC-11b | `git-entrega` | `haiku` | Rojo con la dependencia `ALTA` de Python y con la de npm; verde con la `MEDIA` de npm, que se ve informada en el registro | ✓ Hecho |
+| B7 | Documentación, marcas y ADR de severidad | TC-70b | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0, con el ADR en el índice | ✓ Hecho |
 
 ### Parte c · Verificador de escenarios
 
@@ -316,7 +316,7 @@ Cada ronda es un commit en la rama de ensayo. Las violaciones de una ronda caen 
 | a | 3 | Revertir todo | todos | Verde |
 | b | 1 | `django==3.2` en el grupo `dev` | `dependencias` | Línea `ALTA` o `CRÍTICA` con paquete, versión y `GHSA` |
 | b | 1 | `lodash@4.17.20` en `devDependencies` | `dependencias` | `npm audit` con severidad `high` |
-| b | 2 | Solo un paquete de npm cuyo único aviso sea `moderate` (candidato: `nanoid@3.1.30`; se confirma en la base de avisos de GitHub antes de empujar, y si ya no es solo `moderate` se elige otro que lo sea) | ninguno | El aviso aparece en el registro y el trabajo queda en verde |
+| b | 2 | Solo un paquete de npm cuyo único aviso sea `moderate` (candidato: `stream-json@3.6.0`; `nanoid@3.1.30` tiene avisos altos; se confirma en la base de avisos de GitHub antes de empujar, y si ya no es solo `moderate` se elige otro que lo sea) | ninguno | El aviso aparece en el registro y el trabajo queda en verde |
 | c | 1 | `HDU-001` añadida a `tools/historias_activas.txt` | `herramientas` | 27 líneas `FALTA HDU-001 esc. N` |
 | d | 1 | Un enlace relativo roto, «tablaroka» en un documento, un diagrama con `A -> B` en un `flowchart` y un enlace a `https://cimenta-ensayo.invalid/` | `documentacion` | `verificar_docs.py` y `lychee` con el enlace y su archivo; `Cimenta.Vocabulario` con archivo y línea; `::error` con el archivo del diagrama |
 
@@ -346,7 +346,7 @@ Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el 
 | TC-14 | El trabajo `dependencias` ejecuta `pip-audit` con `--require-hashes`, el script de severidad y `npm audit --audit-level=high` | estático | `CA-10` | esc. 1 |
 | TC-15 | `dependabot.yml` declara `uv` o `pip` en `/backend`, `npm` en `/frontend` y `github-actions` en `/` | estático | `CA-11` | esc. 1 |
 | TC-16 | `gh api` muestra escaneo de secretos y protección de empuje activos | manual | `CA-11` | esc. 2 |
-| TC-17 | Empuje con un token revocado: rechazado o registrado | **rechazo** (manual) | `CA-11` esc. 2, `CA-R3` esc. 2 | — |
+| TC-17 | Empuje con un token activo y sin permisos, revocado después del empuje: rechazado o registrado | **rechazo** (manual) | `CA-11` esc. 2, `CA-R3` esc. 2 | — |
 | TC-18 | `.env.example` no aparece en ningún `paths-ignore` y no existe `secret_scanning.yml` | **rechazo** (estático) | `CA-11` | esc. 3 |
 | TC-20 | `zizmor` falla ante un workflow sin `permissions` y nombra el archivo | **rechazo** | `CA-12` | esc. 3 |
 | TC-21 | Cada workflow declara `permissions:` a nivel de flujo con `contents: read`, y ninguna línea con `: write` carece de comentario | estático | `CA-12` | esc. 1 |
@@ -357,10 +357,10 @@ Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el 
 | TC-31 | Un hallazgo `CRITICAL` termina en 1 | **rechazo** | `CA-10` | esc. 2 |
 | TC-32 | Un hallazgo `MODERATE` termina en 0 y se informa como `MEDIA` | **rechazo** (de bloqueo de más) | `CA-10` | esc. 3 |
 | TC-33 | Un hallazgo `LOW` termina en 0 | feliz | `CA-10` | esc. 3 |
-| TC-34 | Un hallazgo sin `GHSA` termina en 1 como `DESCONOCIDA` | **rechazo** | `CA-10` | esc. 2 |
+| TC-34 | Un hallazgo sin `GHSA` termina en 1 como `DESCONOCIDA` `(asumido)`, ver el ADR de severidad | **rechazo** | `CA-10` | esc. 2 |
 | TC-35 | Un informe sin vulnerabilidades termina en 0 | feliz | `CA-10` | esc. 1 |
 | TC-36 | JSON inexistente o ilegible termina en 2 | **rechazo** | `CA-10` | — |
-| TC-37 | Un error de la consulta a OSV termina en 2 | **rechazo** | `CA-10` | — |
+| TC-37 | Un error de la consulta a OSV termina en 2 `(asumido)`, ver el ADR de severidad | **rechazo** | `CA-10` | — |
 | TC-38 | Acepta el formato `{"dependencies": […]}` y la lista antigua | feliz | `CA-10` | — |
 | TC-40 | Historia activa con el esc. 4 sin test: código 1 y `FALTA HDU-002 esc. 4` | **rechazo** | `CA-6` | esc. 1 |
 | TC-41 | Con `test_hdu002_esc04_…`: código 0 y sin `FALTA` | feliz | `CA-6` | esc. 2 |

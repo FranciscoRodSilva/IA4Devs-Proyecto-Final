@@ -466,8 +466,8 @@ La de **Fundación**, más el genérico de [`sdd/metodologia.md` §8](../../../s
 |---|---|---|---|
 | `A-1` | **MinIO queda fuera** del trabajo de backend en el sprint 1: llega con TKT-059, que no depende de TKT-009. Decidió el usuario el 2026-10-28 | El criterio original del ticket queda incumplido hasta TKT-059 | Decidido, desviación registrada |
 | `A-2` | **La cobertura se reporta sin umbral** `(asumido)`: ningún documento fija un mínimo ni hay herramienta instalada | Si se quiere un mínimo, falta un valor y una base contra la que compararlo | Abierta |
-| `A-3` | **La severidad «alta» en `pip-audit`** `(asumido)`: la herramienta no da severidad directa y hay que obtenerla de otra fuente (p. ej. CVSS de la base de avisos) | Sin ella, fallaría con cualquier vulnerabilidad, o con ninguna | Abierta, para el diseño |
-| `A-4` | **El escaneo de secretos es un ajuste del repositorio, no un archivo** `(asumido)`: se verifica con la API de GitHub o a mano, y la evidencia queda en `impl.md` | La compuerta no se puede probar en CI | Abierta, para el diseño |
+| `A-3` | **La severidad «alta» en `pip-audit`** `(asumido)`: la herramienta no da severidad directa y hay que obtenerla de otra fuente (p. ej. CVSS de la base de avisos) | Sin ella, fallaría con cualquier vulnerabilidad, o con ninguna | Resuelta por [ADR del 2026-10-29](../../../docs/adr/20261029-severidad-en-la-auditoria-de-dependencias.md) |
+| `A-4` | **El escaneo de secretos es un ajuste del repositorio, no un archivo** `(asumido)`: se verifica con la API de GitHub o a mano, y la evidencia queda en `impl.md` | La compuerta no se puede probar en CI | Resuelta: empuje de ensayo con token activo sin permisos, rechazado con GH013 (ver impl.md de TKT-009b) |
 | `A-5` | **La línea base de `Vale` y `markdownlint` es desconocida**: nunca se han ejecutado. Se limpia en este ticket por decisión del usuario | Puede crecer más de lo previsto y romper la talla S | Abierta, se mide en diseño |
 | `A-6` | **La fase 2 «empieza» cuando un archivo versionado lo declara** `(asumido)`: hoy no existe ningún marcador. Mientras no exista, sus escenarios no cuentan | Sin un marcador, la fase 2 arrancaría sin que el verificador lo note | Abierta, para el diseño |
 | `A-7` | **La nota de retiro de un escenario es legible por máquina** `(asumido)`: hoy es prosa en `docs/04-historias-usuario.md` y hay que fijar su forma | Sin ella, retirar HDU-006 esc. 14 y 15 no se puede automatizar | Resuelta por [ADR del 2026-10-29](../../../docs/adr/20261029-politica-del-verificador-de-escenarios.md) |
@@ -475,6 +475,7 @@ La de **Fundación**, más el genérico de [`sdd/metodologia.md` §8](../../../s
 | `A-9` | **Python 3.14 en CI**, como fija `PA-T10`, aunque `requires-python` sea `>=3.13` y `mypy` apunte a 3.13 `(asumido)` | Un fallo solo en 3.13 no se detectaría | Heredada de TKT-008 |
 | `A-10` | **El paraguas TKT-008 sigue «EN CURSO»** aunque sus tres partes están archivadas | Dependencia nominal sin cerrar | Abierta: cerrarlo en `/sdd-completar` o antes |
 | `A-11` | **`Vale` con estilo de inglés sobre prosa en español** (`docs/convenciones.md`, §12) `(asumido)`: el diseño elige las reglas que sirven al español | Falsos positivos masivos | Abierta |
+| `A-12` | **¿Se acepta que el filtro deje de consultar al primer `GHSA` `HIGH` o `CRITICAL` de un hallazgo, aunque otro `GHSA` del mismo hallazgo sea más grave?** `(asumido)` Solo cambia la etiqueta (`ALTA` en lugar de `CRÍTICA`); el código de salida es el mismo | Una etiqueta menos grave que la real en el registro del paso; el pipeline falla igual | Resuelta el 2026-10-29: la persona que aprueba la acepta; el corte se mantiene |
 
 ## Pasada adversarial
 
