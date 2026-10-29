@@ -1,6 +1,6 @@
 # Impl · TKT-009d · Calidad de documentación
 
-> [← index](_index.md) | [← design](../tkt-009/design.md) | Siguiente: delta (pendiente)
+> [← index](_index.md) | [← design](../tkt-009/design.md) | Siguiente: [delta](delta.md)
 
 ## Qué se implementó
 
@@ -326,5 +326,5 @@ Estado de los hallazgos de la reauditoría:
 **`LISTO PARA PR`, con una excepción aceptada.** Los criterios `[M]` están cumplidos con evidencia, no queda ningún hallazgo crítico ni Mayor sin atender, y el pipeline del PR [#19](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/19) pasó los nueve trabajos sobre `18dce53` ([ejecución 40958703474](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40958703474)), incluido `herramientas` en Linux, donde corren por primera vez las pruebas que ejecutan con `bash` los pasos de `mermaid-cli` y de `Vale`, y el paso nuevo `Auditar el lock de mermaid-cli`. Los tres ciclos de corrección de `/sdd-revisar` están agotados:
 
 - **Seguridad:** `APROBADO` en su reauditoría del ciclo 1 (registro del orquestador; el informe no se guardó en disco). Su MEDIA, el lock de `mermaid-cli`, se resolvió con el paso nuevo de `dependencias` y la cuarta entrada de Dependabot.
-- **Código, arquitectura y documentación:** `REQUIERE CAMBIOS` en la reauditoría del ciclo 2. Todos sus hallazgos se aplicaron con su texto literal en el ciclo 3 (entre ellos el Mayor R-COD-F009, con su prueba en rojo primero), **sin una reauditoría formal**, porque los ciclos estaban agotados. Es la misma excepción que se aceptó en TKT-009a, TKT-009b y TKT-009c. La persona que aprueba la aceptó el 2026-10-29 con su respuesta «Sí, acepto», después de fusionar el PR #19.
+- **Código, arquitectura y documentación:** `REQUIERE CAMBIOS` en la reauditoría del ciclo 2. Todos sus hallazgos se aplicaron con su texto literal en el ciclo 3 (entre ellos el Mayor R-COD-F001, con su prueba en rojo primero), **sin una reauditoría formal**, porque los ciclos estaban agotados. Es la misma excepción que se aceptó en TKT-009a, TKT-009b y TKT-009c. La persona que aprueba la aceptó el 2026-10-29 con su respuesta «Sí, acepto», después de fusionar el PR #19.
 - **Deuda aceptada, de prioridad baja:** `npx --yes markdownlint-cli2@0.24.0` resuelve sus dependencias transitivas sin lockfile, el paquete `vale` de PyPI descarga el binario sin hash, los dos avisos `low` de `katex` no tienen arreglo compatible, y `ruff format` falla en archivos de `tools/` que ya estaban sin formatear.

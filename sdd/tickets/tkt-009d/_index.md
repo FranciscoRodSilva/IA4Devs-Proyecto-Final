@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA PR
+ARCHIVADO
 
 ## Ficha
 
@@ -29,7 +29,7 @@ LISTO PARA PR
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-28 |
 | Design | [design.md común](../tkt-009/design.md), filas D1 a D7 | `/sdd-disenar` | Aprobado el 2026-10-28 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Filas D1 a D7 hechas; la limpieza se hizo en este ticket por decisión de la persona que aprueba |
-| Delta | delta.md | `/sdd-completar` | Pendiente |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-10-29 |
 
 ## Log de estados
 
@@ -45,6 +45,7 @@ LISTO PARA PR
 | 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-revisar` | Ciclo 2 de corrección, en la rama `tkt-009d-correcciones-revision`, commits `c30c76e`…`d750d0d`: pruebas de comportamiento de los comprobadores y documentación del lock de `mermaid-cli`, de `interrogate` y del estado de la revisión |
 | 2026-10-29 | `EN REVISIÓN` | `EN REVISIÓN` | `/sdd-revisar` | Ciclo 3 de corrección, en curso: documentación de la reauditoría del ciclo 2. Sin veredicto hasta que `/sdd-revisar` vuelva a auditar |
 | 2026-10-29 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Criterios `[M]` cumplidos; suite en verde (backend 1138, `tools/` 341); PR [#19](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/19) con los nueve trabajos en verde sobre `18dce53` y fusionado. Seguridad `APROBADO`; código, arquitectura y documentación sin reauditoría formal tras agotar los tres ciclos. La persona que aprueba responde «Sí, acepto» a la excepción de cierre, como en TKT-009a, TKT-009b y TKT-009c. Siguiente: `/sdd-completar` |
+| 2026-10-29 | `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` | Delta escrito, observaciones anotadas en `sdd/_evolucion.md`, documentación auditada y PR de cierre preparado. Cierra la planificación; el despliegue es un evento posterior |
 
 ## Decisiones registradas
 
