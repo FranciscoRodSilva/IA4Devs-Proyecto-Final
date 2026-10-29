@@ -307,4 +307,6 @@ El frontend no se ejecutó en local, porque `frontend/node_modules` está roto. 
 
 **Veredicto:** todos los criterios `[M]` cumplidos, sin hallazgo Mayor ni Crítico pendiente. `LISTO PARA PR`.
 
+**Excepción del gate de `/sdd-completar`, decidida por la persona dueña el 2026-10-29.** La última confirmación de `auditor-arquitectura` dio `REQUIERE CAMBIOS` por seis Menores de registro (R006 a R011), sin Críticos ni Mayores. Se corrigieron en el commit `006607b` con los datos reales y no se reauditaron: cada corrección de registro cambia el HEAD o una cifra y deja obsoleto algo que cita el siguiente auditor. La persona dueña eligió archivar con esa excepción en lugar de abrir otra reauditoría.
+
 **Pipeline tras el último cambio de código y de configuración:** el pipeline completo se ejecutó sobre `f2bb169` y los ocho trabajos terminaron en verde (`actions/runs/40798645609`); los commits posteriores solo tocan registros de `sdd/`. Antes se había ejecutado sobre `15b08ff`, que incluye el commit `199f37f`, y los ocho trabajos terminaron en verde (`actions/runs/40793874972`). Quedan dos acciones locales tuyas: restaurar `frontend/node_modules` (`npm ci`, tras cerrar el proceso que lo bloquea) y las contraseñas de roles de tu base de desarrollo, que `contrasenas_roles` reescribió con los valores de tu `.env`.
