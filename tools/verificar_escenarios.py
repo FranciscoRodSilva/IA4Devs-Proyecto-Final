@@ -20,7 +20,6 @@ from pathlib import Path
 # tools/verificar_escenarios.py → tools/ → raíz del repositorio
 RAIZ_DEL_REPOSITORIO = Path(__file__).resolve().parent.parent
 
-CARPETAS_DE_TESTS = ("backend/tests", "frontend/src", "frontend/scripts", "frontend/e2e")
 PATRON_HDU = re.compile(r"^(?:test_)?hdu(\d{3})_esc(\d{2,})(?=$|[_\s·])")
 PATRON_FUNDACION = re.compile(r"^(?:test_)?tkt\d{3}[a-z]?_car?\d+_esc\d+(?=$|[_\s·])")
 
@@ -216,9 +215,37 @@ def _nombres_python(texto: str, archivo: str) -> list[NombreDeTest]:
     return encontrados
 
 
+def _lineas_con_codigo(texto: str) -> list[tuple[int, str]]:
+    """Pares (número de línea, texto) de lo que no es comentario. Límite de A-8: un comentario al final de una
+    línea de código no se descarta; solo se descartan las líneas que empiezan por un comentario y los bloques
+    `/* … */`, aunque abran y cierren en líneas distintas. Lo que viene tras el cierre de un bloque sí se lee.
+    """
+    visibles: list[tuple[int, str]] = []
+    en_bloque = False
+    for numero, linea in enumerate(texto.splitlines(), start=1):
+        if en_bloque:
+            cierre = linea.find("*/")
+            if cierre == -1:
+                continue
+            en_bloque = False
+            linea = linea[cierre + 2 :]
+        else:
+            inicio = linea.lstrip()
+            if inicio.startswith("//") or inicio.startswith("*"):
+                continue
+            if inicio.startswith("/*"):
+                cierre = inicio.find("*/", 2)
+                if cierre == -1:
+                    en_bloque = True
+                    continue
+                linea = inicio[cierre + 2 :]
+        visibles.append((numero, linea))
+    return visibles
+
+
 def _nombres_typescript(texto: str, archivo: str) -> list[NombreDeTest]:
     encontrados: list[NombreDeTest] = []
-    for numero, linea in enumerate(texto.splitlines(), start=1):
+    for numero, linea in _lineas_con_codigo(texto):
         for coincide in _TEST_TYPESCRIPT.finditer(linea):
             encontrados.append(NombreDeTest(archivo, numero, coincide.group(2)))
     return encontrados
@@ -239,7 +266,7 @@ def recolectar_tests(raiz: Path) -> list[NombreDeTest]:
                 relativa = ruta.relative_to(raiz)
                 if "node_modules" in relativa.parts or not ruta.is_file():
                     continue
-                texto = ruta.read_text(encoding="utf-8")
+                texto = _leer(ruta, raiz)
                 encontrados.extend(_LECTORES[lector](texto, relativa.as_posix()))
     return sorted(encontrados, key=lambda t: (t.archivo, t.linea))
 
@@ -342,12 +369,22 @@ ANCHO_ETIQUETA = 11  # «FALTA», «PENDIENTE», «RETIRADO» y «ERROR» van se
 ETIQUETAS_QUE_FALLAN = frozenset({"FALTA", "ERROR"})
 
 
-def _leer(ruta: Path) -> str:
-    """Lee un archivo en UTF-8. Un archivo que no es UTF-8 es una entrada mal formada."""
+def _nombre_para_humanos(ruta: Path, raiz: Path | None) -> str:
+    """Ruta relativa a `raiz` con «/» si `ruta` está bajo ella; si no, solo el nombre (p. ej. `--activas-base`)."""
+    if raiz is not None:
+        try:
+            return ruta.relative_to(raiz).as_posix()
+        except ValueError:
+            pass
+    return ruta.name
+
+
+def _leer(ruta: Path, raiz: Path | None = None) -> str:
+    """Lee un archivo en UTF-8. Un archivo que no es UTF-8 es una entrada mal formada que nombra su ruta."""
     try:
         return ruta.read_text(encoding="utf-8")
     except UnicodeDecodeError as error:
-        raise EntradaInvalida(f"{ruta.name} no está en UTF-8: {error}") from error
+        raise EntradaInvalida(f"{_nombre_para_humanos(ruta, raiz)} no está en UTF-8: {error}") from error
 
 
 def _informe(raiz: Path, activas_base: Path | None) -> Informe:
@@ -359,8 +396,8 @@ def _informe(raiz: Path, activas_base: Path | None) -> Informe:
     if not ruta_activas.is_file():
         raise EntradaInvalida("no existe tools/historias_activas.txt: el verificador no adivina qué historias están activas")
 
-    historias = leer_historias(_leer(ruta_documento))
-    activas, fase_2 = leer_activas(_leer(ruta_activas))
+    historias = leer_historias(_leer(ruta_documento, raiz))
+    activas, fase_2 = leer_activas(_leer(ruta_activas, raiz))
 
     base: tuple[frozenset[str], bool] | None = None
     if activas_base is not None and activas_base.is_file():

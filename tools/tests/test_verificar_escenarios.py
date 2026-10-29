@@ -52,6 +52,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from collections.abc import Iterator
 from pathlib import Path
 from unittest import mock
 
@@ -265,20 +266,32 @@ class BaseConRaiz(unittest.TestCase):
         self.addCleanup(temporal.cleanup)
         self.directorio = Path(temporal.name)
 
-    def raiz(self, **argumentos: object) -> Path:
-        return construir_raiz(self.directorio, **argumentos)  # type: ignore[arg-type]
+    def raiz(
+        self,
+        *,
+        activas: str | None = ACTIVAS_VACIAS,
+        retiro: str | None = None,
+        tests: dict[str, list[str]] | None = None,
+        historias_md: str | None = None,
+    ) -> Path:
+        return construir_raiz(self.directorio, activas=activas, retiro=retiro, tests=tests, historias_md=historias_md)
 
-    def correr(self, raiz: Path, base: str | None = None) -> tuple[int, str]:
-        """Ejecuta `main` y devuelve (código, salida estándar y de error juntas)."""
+    def correr_separado(self, raiz: Path, base: str | None = None) -> tuple[int, str, str]:
+        """Ejecuta `main` y devuelve (código, stdout, stderr) por separado."""
         argumentos = ["--raiz", str(raiz)]
         if base is not None:
             archivo = self.directorio / "activas_base.txt"
             archivo.write_text(base, encoding="utf-8")
             argumentos += ["--activas-base", str(archivo)]
-        salida = io.StringIO()
-        with contextlib.redirect_stdout(salida), contextlib.redirect_stderr(salida):
+        salida, error = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(salida), contextlib.redirect_stderr(error):
             codigo = ve.main(argumentos)
-        return codigo, salida.getvalue()
+        return codigo, salida.getvalue(), error.getvalue()
+
+    def correr(self, raiz: Path, base: str | None = None) -> tuple[int, str]:
+        """Ejecuta `main` y devuelve (código, salida estándar y de error juntas)."""
+        codigo, salida, error = self.correr_separado(raiz, base)
+        return codigo, salida + error
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -465,6 +478,74 @@ class PruebasRecolectarTests(BaseConRaiz):
                 ve.NombreDeTest("frontend/src/a.test.ts", linea_ts(1), "hdu002_esc02 · dos"),
             ],
         )
+
+    def test_tc43_recolectar_typescript_ignora_lineas_comentadas(self) -> None:
+        """CA-6 · rechazo · un `it(…)` dentro de `//`, de `/* … */` o de un bloque con « * » no es un test.
+
+        Límite de A-8, que el lector no cubre: un comentario al final de una línea de código
+        (`foo(); // it("hdu002_esc01_x", …)`) sigue leyéndose como test. Solo se ignoran las líneas que empiezan por
+        un comentario.
+        """
+        raiz = self.raiz(
+            tests={
+                "frontend/src/x.test.ts": [
+                    '// it("hdu002_esc01_x", () => {});',
+                    '/* test("hdu002_esc02_y", () => {}); */',
+                    '/*\n * it("hdu002_esc03_z", () => {});\n */',
+                ]
+            }
+        )
+
+        self.assertEqual(ve.recolectar_tests(raiz), [])
+
+    def test_tc43_recolectar_typescript_lee_el_test_real_que_sigue_a_un_bloque_comentado(self) -> None:
+        """CA-6 · el filtro de comentarios no se come lo que viene después: el `it(…)` real tras el bloque se lee."""
+        raiz = self.raiz(
+            tests={
+                "frontend/src/x.test.ts": [
+                    '/*\n * it("hdu002_esc03_comentado", () => {});\n */',
+                    it_("hdu002_esc04_real"),
+                ]
+            }
+        )
+
+        nombres = [t.nombre for t in ve.recolectar_tests(raiz)]
+
+        self.assertEqual(nombres, ["hdu002_esc04_real"])
+
+    def test_tc43_recolectar_typescript_bloque_sin_asterisco_y_codigo_tras_el_cierre(self) -> None:
+        """CA-6 · un bloque `/* … */` cuyas líneas interiores no empiezan por « * » se ignora entero, y el código que
+        sigue a su cierre, en la misma línea o en otra, se lee.
+
+        Sin asteriscos interiores, nada descarta las líneas del bloque salvo que el lector lo siga como bloque.
+        """
+        raiz = self.raiz(
+            tests={
+                "frontend/src/x.test.ts": [
+                    '/*\n it("hdu002_esc01_dentro_sin_asterisco", () => {});\n texto\n*/',
+                    '/* nota */ ' + it_("hdu002_esc02_misma_linea"),
+                    '/*\n nota\n*/ ' + it_("hdu002_esc03_tras_cierre_multilinea"),
+                    it_("hdu002_esc04_con_url_http://x.test/a"),
+                ]
+            }
+        )
+
+        nombres = [t.nombre for t in ve.recolectar_tests(raiz)]
+
+        self.assertEqual(
+            nombres,
+            [
+                "hdu002_esc02_misma_linea",
+                "hdu002_esc03_tras_cierre_multilinea",
+                "hdu002_esc04_con_url_http://x.test/a",
+            ],
+        )
+
+    def test_tc43_recolectar_typescript_una_linea_con_asterisco_suelta_fuera_de_bloque_no_es_test(self) -> None:
+        """CA-6 · rechazo · fuera de un bloque, una línea que empieza por « * » (resto de un comentario cortado) se descarta."""
+        raiz = self.raiz(tests={"frontend/src/x.test.ts": [' * ' + it_("hdu002_esc01_suelta")]})
+
+        self.assertEqual(ve.recolectar_tests(raiz), [])
 
     def test_tc43_recolectar_salta_node_modules_y_carpetas_ajenas(self) -> None:
         """CA-6 · no se leen `node_modules`, ni tests fuera de las carpetas de A-8, ni archivos que no son de test."""
@@ -929,7 +1010,7 @@ class PruebasSobreElArbolReal(unittest.TestCase):
     """TC-56 (fila C4). A diferencia de las demás clases, no construye un árbol de ejemplo: ejecuta `main([])` sobre el
     repositorio, con `tools/historias_activas.txt` y `docs/04-historias-usuario.md` reales.
 
-    Hoy ninguna historia está activa: los 162 escenarios del documento quedan `PENDIENTE`, nada se exige y por eso el
+    Hoy ninguna historia está activa: todos los escenarios del documento quedan `PENDIENTE`, nada se exige y por eso el
     verificador no falla. Cuando la planificación de un sprint active una historia, estos números cambian y esta prueba
     se actualiza con ellos, en el mismo cambio. Mientras tanto, el pipeline corre el verificador sobre el árbol real
     sin romperse, y los tests de fundación (`test_tkt…_car…_esc…`) se cuentan sin cubrir ningún escenario ni ser error.
@@ -948,20 +1029,28 @@ class PruebasSobreElArbolReal(unittest.TestCase):
         self.assertEqual(hechos(self.salida, "FALTA"), [], self.salida)
         self.assertEqual(hechos(self.salida, "ERROR"), [], self.salida)
 
-    def test_tc56_arbol_real_resumen_con_162_pendientes_y_nada_exigido(self) -> None:
-        """TC-56 · CA-7 esc. 1 — el resumen dice 162 escenarios, 0 exigidos, 162 pendientes, 0 retirados y 0 tests HDU."""
+    def test_tc56_arbol_real_resumen_con_todo_pendiente_y_nada_exigido(self) -> None:
+        """TC-56 · CA-7 esc. 1 — el resumen cuenta todos los escenarios del documento como pendientes y no exige ninguno.
+
+        El total sale de leer el documento real, no de un número fijo: añadir una historia no rompe la prueba.
+        """
+        documento = (ve.RAIZ_DEL_REPOSITORIO / "docs" / "04-historias-usuario.md").read_text(encoding="utf-8")
+        total = sum(len(escenarios) for escenarios in ve.leer_historias(documento).values())
+        self.assertGreater(total, 0, "el documento real debe tener escenarios")
         lineas = resumen(self.salida)
-        prefijo = resumen_esperado(162, 0, 0, 0, 162, 0, 0, 0).removesuffix("0")  # lo que sigue es el recuento de fundación
-        coincide = re.fullmatch(re.escape(prefijo) + r"\d+", lineas)
-        self.assertIsNotNone(coincide, f"resumen inesperado: {lineas!r}\n{self.salida}")
-        for fragmento in ("exigidos 0", "pendientes 162", "retirados 0"):
-            self.assertIn(fragmento, lineas)
+        literal = (
+            f"Escenarios: {total} · exigidos 0 · cubiertos 0 · faltan 0 · pendientes {total} · retirados 0 · "
+            "tests HDU 0 · tests de fundación "
+        )
+        # Todo es literal salvo el recuento de fundación, que crece con cada ticket.
+        self.assertRegex(lineas, "^" + re.escape(literal) + r"\d+$", self.salida)
 
     def test_tc56_arbol_real_cuenta_los_tests_de_fundacion(self) -> None:
         """TC-56 · CA-7 esc. 1 — los tests de fundación del repositorio entran en el recuento, y ninguno es error ni cubre un escenario."""
         encontrado = re.search(r"tests de fundación (\d+)$", resumen(self.salida))
-        self.assertIsNotNone(encontrado, f"la salida no trae la línea de resumen:\n{self.salida}")
-        contados = int(encontrado.group(1))  # type: ignore[union-attr]
+        if encontrado is None:
+            self.fail(f"la salida no trae la línea de resumen:\n{self.salida}")
+        contados = int(encontrado.group(1))
         reales = [t for t in ve.recolectar_tests(ve.RAIZ_DEL_REPOSITORIO) if ve.PATRON_FUNDACION.match(t.nombre)]
         self.assertGreater(len(reales), 0, "el repositorio ya tiene tests de fundación: el recuento no puede ser 0")
         self.assertEqual(contados, len(reales), self.salida)
@@ -1117,16 +1206,14 @@ class PruebasLecturaExploratoria(unittest.TestCase):
     def test_tc55_leer_activas_numero_de_historia_que_no_es_hdu_y_tres_cifras(self) -> None:
         """Códigos · mutante «match en lugar de fullmatch»: «HDU-0011» y «HDU-001x» no son «HDU-NNN»."""
         for linea in ("HDU-0011", "HDU-001x"):
-            with self.subTest(linea=linea):
-                with self.assertRaises(ve.EntradaInvalida):
-                    ve.leer_activas(ACTIVAS_VACIAS + linea + "\n")
+            with self.subTest(linea=linea), self.assertRaises(ve.EntradaInvalida):
+                ve.leer_activas(ACTIVAS_VACIAS + linea + "\n")
 
     def test_tc55_leer_activas_los_espacios_alrededor_de_la_linea_la_invalidan(self) -> None:
         """Códigos · mutante «línea con espacios aceptada»: el archivo se lee línea a línea y exacta (decisión a confirmar)."""
         for linea in ("HDU-001 ", " HDU-001", "fase 2 "):
-            with self.subTest(linea=repr(linea)):
-                with self.assertRaises(ve.EntradaInvalida):
-                    ve.leer_activas(ACTIVAS_VACIAS + linea + "\n")
+            with self.subTest(linea=repr(linea)), self.assertRaises(ve.EntradaInvalida):
+                ve.leer_activas(ACTIVAS_VACIAS + linea + "\n")
 
     def test_tc55_leer_activas_el_mensaje_nombra_el_numero_de_linea(self) -> None:
         """Códigos · mutante «sin número de línea»: tras tres comentarios, «texto suelto» es la línea 4."""
@@ -1169,7 +1256,7 @@ class PruebasRecoleccionExploratoria(BaseConRaiz):
         )
         recorrer = Path.rglob
 
-        def al_reves(self_: Path, patron: str):  # type: ignore[no-untyped-def]
+        def al_reves(self_: Path, patron: str) -> Iterator[Path]:
             return iter(sorted(recorrer(self_, patron), reverse=True))
 
         with mock.patch.object(Path, "rglob", al_reves):
@@ -1219,18 +1306,6 @@ class PruebasRecoleccionExploratoria(BaseConRaiz):
 
 class PruebasSalidaExploratoria(BaseConRaiz):
     """Mutantes de `clasificar`, `_informe` y `main` que sobrevivían."""
-
-    def correr_separado(self, raiz: Path, base: str | None = None) -> tuple[int, str, str]:
-        """Como `correr`, pero devuelve (código, stdout, stderr) por separado."""
-        argumentos = ["--raiz", str(raiz)]
-        if base is not None:
-            archivo = self.directorio / "activas_base.txt"
-            archivo.write_text(base, encoding="utf-8")
-            argumentos += ["--activas-base", str(archivo)]
-        salida, error = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(salida), contextlib.redirect_stderr(error):
-            codigo = ve.main(argumentos)
-        return codigo, salida.getvalue(), error.getvalue()
 
     def test_tc48_salida_un_retiro_en_una_historia_sin_ticket_se_lista_y_se_cuenta(self) -> None:
         """CA-7 esc. 4 · mutante «RETIRADO solo en historia activa»: TKT-069 retira con HDU-001 aún sin ticket."""
@@ -1322,6 +1397,55 @@ class PruebasSalidaExploratoria(BaseConRaiz):
         self.assertEqual(codigo, 2)
         self.assertIn("UTF-8", error)
 
+    def test_tc55_salida_un_archivo_de_test_que_no_es_utf8_termina_en_2(self) -> None:
+        """Códigos · rechazo · F001: un `test_x.py` en Latin-1 es entrada mal formada y el error nombra su ruta relativa."""
+        raiz = self.raiz()
+        archivo = raiz / "backend" / "tests" / "sub" / "test_x.py"
+        archivo.parent.mkdir(parents=True)
+        archivo.write_bytes("# caf\xe9\ndef test_hdu002_esc01_x(self):\n    pass\n".encode("latin-1"))
+
+        codigo, salida, error = self.correr_separado(raiz)
+
+        self.assertEqual(codigo, 2, error)
+        self.assertEqual(salida, "")
+        self.assertTrue(error.startswith("entrada mal formada: "), error)
+        self.assertIn("UTF-8", error)
+        self.assertIn("backend/tests/sub/test_x.py", error)
+
+    def test_tc55_salida_un_archivo_de_test_de_typescript_que_no_es_utf8_termina_en_2(self) -> None:
+        """Códigos · rechazo · F001: un `.test.ts` en Latin-1 también es entrada mal formada, con su ruta relativa."""
+        raiz = self.raiz()
+        archivo = raiz / "frontend" / "src" / "sub" / "a.test.ts"
+        archivo.parent.mkdir(parents=True)
+        archivo.write_bytes('// caf\xe9\nit("hdu002_esc01_x", () => {});\n'.encode("latin-1"))
+
+        codigo, salida, error = self.correr_separado(raiz)
+
+        self.assertEqual(codigo, 2, error)
+        self.assertEqual(salida, "")
+        self.assertTrue(error.startswith("entrada mal formada: "), error)
+        self.assertIn("UTF-8", error)
+        self.assertIn("frontend/src/sub/a.test.ts", error)
+
+    def test_tc43_salida_un_test_comentado_de_typescript_no_cubre_el_escenario(self) -> None:
+        """CA-6 esc. 2 · rechazo · F002: `// it("hdu002_esc04 · …")` y un bloque `/* … */` no cubren; el esc. 4 sigue `FALTA`."""
+        raiz = self.raiz(
+            activas=ACTIVAS_VACIAS + "HDU-002\n",
+            tests={
+                "backend/tests/test_req.py": nombres_hdu("HDU-002", 1, 2, 3),
+                "frontend/src/req.test.ts": [
+                    '// it("hdu002_esc04 · La requisición excede el importe", () => {});',
+                    '/*\n * test("hdu002_esc04 · en un bloque", () => {});\n */',
+                ],
+            },
+        )
+
+        codigo, salida = self.correr(raiz)
+
+        self.assertEqual(codigo, 1)
+        self.assertEqual(hechos(salida, "FALTA"), ["HDU-002 esc. 4 · La requisición excede el importe presupuestado"])
+        self.assertEqual(resumen(salida), resumen_esperado(12, 4, 3, 1, 8, 0, 3, 0))
+
     def test_tc53_salida_una_base_inexistente_no_se_compara(self) -> None:
         """CA-8 esc. 4 · mutante «la base se lee aunque no exista»: la ruta dada no existe, como en un PR sin el archivo."""
         raiz = self.raiz(activas=ACTIVAS_VACIAS + "HDU-003\n")
@@ -1368,7 +1492,7 @@ class PruebasSalidaExploratoria(BaseConRaiz):
         )
 
         self.assertEqual(proceso.returncode, 0, proceso.stderr.decode("utf-8", "replace"))
-        self.assertIn("Escenarios: 12 · exigidos 0".encode("utf-8"), proceso.stdout)
+        self.assertIn("Escenarios: 12 · exigidos 0".encode(), proceso.stdout)
 
 
 if __name__ == "__main__":

@@ -151,7 +151,7 @@ Detectados de paso. **No se implementan aquí.**
 | `tools/verificar_escenarios.py` | La expresión de nombres de Python no ve `async def test_`. `CLAUDE.md` los excluye (SQLAlchemy síncrono) | Baja |
 | `tools/verificar_escenarios.py` | Un comentario con sangría en `historias_activas.txt` es hoy `EntradaInvalida`; la spec no lo decide | Baja |
 | `tools/verificar_escenarios.py` | Una marca `· fase 1` en una historia de columna `2` no gana sobre la columna, por el diseño; `CLAUDE.md` dice que la marca «declara» la fase | Baja |
-| Pipeline | El `it.skip` que nombra un escenario sigue contando como cobertura (objeción 8 del diseño) | Media |
+| Pipeline | Un `it("hdu…")` dentro de un `describe.skip` sigue contando como cobertura, porque el lector no mira el bloque que lo contiene (objeción 8 del diseño). `it.skip(...)` no cuenta | Media |
 
 ## Documentación actualizada
 
@@ -181,3 +181,59 @@ Detectados de paso. **No se implementan aquí.**
 - [ ] `ruff`, `mypy` y `lint-imports` no se ejecutaron: el ticket no toca `backend/`; el trabajo `backend` del pipeline está en verde
 
 Quedan, como en TKT-009a, dos acciones locales tuyas: restaurar `frontend/node_modules` y revisar las contraseñas de roles de tu base de desarrollo.
+
+## Revisión (`/sdd-revisar`, 2026-10-29)
+
+**Completitud, corrección y coherencia.** Los cinco criterios `[M]` de la spec (`CA-6`, `CA-7`, `CA-8`, `CA-R4` y la parte de `CA-15`) tienen resultado y evidencia en este documento. Se implementó lo de la spec sin alcance de más y los archivos coinciden con los del diseño.
+
+**Suite ejecutada en esta revisión:**
+
+```
+uv run pytest -q                    -> 1138 passed in 229.84s (0:03:49), exit=0
+uv run ruff check . / format --check -> All checks passed! / 153 files already formatted
+uv run mypy .                       -> Success: no issues found in 153 source files
+uv run lint-imports                 -> Contracts: 15 kept, 0 broken.
+herramientas.verificar_float        -> hallazgos: 0
+python tools/verificar_docs.py      -> ✓ Sin problemas.
+python tools/verificar_escenarios.py -> exigidos 0 · pendientes 162, exit 0
+uvx zizmor@1.31.1 --offline .github/workflows -> No findings to report.
+python -m unittest discover -s tools/tests   -> Ran 178 tests ... OK (sin "skipped=")
+uvx ruff check --config backend/pyproject.toml (verificador y sus dos archivos de pruebas) -> All checks passed!
+```
+
+El frontend no se tocó en este ticket. Su evidencia es el trabajo `frontend` del pipeline.
+
+**Auditorías de la revisión.** `auditor-arquitectura` y `auditor-seguridad` dieron `APROBADO`. `auditor-codigo` y `auditor-docs` dieron `REQUIERE CAMBIOS`, y el ciclo 1 de corrección resolvió todos sus hallazgos:
+
+| ID | Auditor | Severidad | Hallazgo | Estado |
+|---|---|---|---|---|
+| F001 de código | código | Mayor | `recolectar_tests` no atrapaba `UnicodeDecodeError`: un test que no era UTF-8 daba traza y código 1 en lugar del 2 de «entrada mal formada». Ahora usa la lectura común y el mensaje nombra la ruta relativa | Resuelto |
+| F002 de código | código | Mayor | Un test de TypeScript comentado (`// it(…)` o `/* test(…) */`) cubría el escenario: falso verde. `_lineas_con_codigo` ignora líneas y bloques comentados | Resuelto |
+| F003 de código | código | Mayor | Tres errores de `ruff` en el archivo de pruebas | Resuelto |
+| F004 de código | código | Menor | `CARPETAS_DE_TESTS`, constante sin uso | Resuelto |
+| F005 de código | código | Menor | TC-56 fijaba el total real de 162 escenarios | Resuelto: el total se calcula del documento |
+| F006 de código | código | Menor | `type: ignore` de conveniencia y duplicación en las pruebas | Resuelto |
+| F001 a F003 de docs | docs | Menor | `tools/README.md`: causas del código 2 incompletas y rótulo del resumen; la fila de `it.skip` de este documento era inexacta | Resuelto |
+| F001 a F005 de seguridad | seguridad | Baja | Lectura sin tope; `--activas-base` inexistente se ignora; enlaces simbólicos; la política de repositorio (CODEOWNERS) | Persiste: observaciones |
+| O004 de arquitectura | arquitectura | Observación | Este documento describía mal el hueco de `it.skip` | Resuelto con la fila de «Hallazgos fuera de alcance» |
+
+**Pruebas del ciclo 1.** Primero el rojo del tester: 89 pruebas, 84 en verde y 5 en rojo por la razón esperada (la traza de `UnicodeDecodeError` en dos casos, y el test comentado que cubre un escenario en tres). Después el verde del desarrollador: 89 en verde y 176 en toda la suite de `tools/`.
+
+**Decisión del desarrollador, para revisar** (asumido, límite de A-8 de `sdd/tickets/tkt-009/spec.md`): el código que sigue a un `*/` en la misma línea (`/* x */ it("hdu…")`) cuenta como test, porque no es comentario. Un `/*` que abre un bloque a mitad de una línea de código no abre bloque: es un límite de A-8.
+
+**Observaciones que quedan abiertas, ninguna bloqueante:** las del ADR `20261015-fuentes-simuladas-analitica.md:34`, el criterio CA-7 de la spec común de TKT-009 (resuelto en su fila A-7, pero el Gherkin sigue hablando de «nota»), la propuesta de `auditor-codigo` de partir `clasificar`, y la de proteger `tools/` y `.github/` con CODEOWNERS (política de repositorio).
+
+**Ciclo 2 de corrección (código y documentación).** La reauditoría de código encontró un Mayor nuevo (F007): cuatro mutantes de `_lineas_con_codigo` (no seguir los bloques de varias líneas, no leer lo que sigue a `*/` en la misma línea o en otra, y quitar la regla `*`) sobrevivían con la suite en verde, porque en los casos de bloque cada línea interior empezaba por ` * ` y esa regla las descartaba sola. El código era correcto; faltaban las pruebas. Se añadieron dos (`test_tc43_recolectar_typescript_bloque_sin_asterisco_y_codigo_tras_el_cierre` y `test_tc43_recolectar_typescript_una_linea_con_asterisco_suelta_fuera_de_bloque_no_es_test`) y cada una cae con su mutante; el cuarto mutante no resultó equivalente y lo mata `test_tc43_recolectar_typescript_una_linea_con_asterisco_suelta_fuera_de_bloque_no_es_test`. También se quitó el último `type: ignore` (F006). La suite del verificador queda en 91 pruebas y la de `tools/` en 178, sin `skipped=`. La reauditoría de documentación pidió dos Menores (F004 y F005): decir en `tools/README.md` y en `docs/06` §7.2 que en TypeScript los comentarios no cuentan.
+
+| ID | Auditor | Severidad | Hallazgo | Estado |
+|---|---|---|---|---|
+| F007 de código | código | Mayor | Pruebas de `_lineas_con_codigo` que no discriminaban: cuatro mutantes sobrevivían | Resuelto |
+| F004 de docs | docs | Menor | `tools/README.md` no decía que en TypeScript se ignoran los comentarios | Resuelto |
+| F005 de docs | docs | Menor | `docs/06` §7.2 no excluía los tests comentados | Resuelto: §7.2 recoge el límite de A-8 |
+| F006 de docs | docs | Mayor | la regla de comentarios de TypeScript se citaba como límite de A-8 sin estar en la spec | Resuelto |
+| F007 de docs | docs | Menor | La fila «F005 de docs» de este registro figuraba como resuelta antes de corregir `docs/06` §7.2 | Resuelto |
+| F008 de docs | docs | Menor | La fila A-8 de la spec no decía que el código que sigue al `*/` de un bloque en la misma línea sí se lee | Resuelto: ahora lo enuncia |
+
+**Ciclo 3 de documentación y veredicto.** La tercera reauditoría de documentación resolvió F005 y F006 y encontró dos Menores más (un registro de este documento y la frase de A-8 sobre el código que sigue a `*/`). Con los tres ciclos agotados y solo Menores vivos, se aplicaron con el texto literal del auditor y se verificaron contra el código (`_lineas_con_codigo` lee `' it("hdu001_esc01 x")'` tras un `*/`) y con `verificar_docs.py`, **sin una cuarta reauditoría**. Quedan por tanto `auditor-docs` en `REQUIERE CAMBIOS` en su último veredicto formal, `auditor-arquitectura`, `auditor-seguridad` y `auditor-codigo` en `APROBADO`. Es la misma excepción que se aplicó en TKT-009a: la persona dueña debe aceptarla al archivar.
+
+**Veredicto:** cinco criterios `[M]` cumplidos, sin hallazgo Mayor ni Crítico vivo, y la pila de comprobaciones locales en verde. `LISTO PARA PR`, con esa excepción.

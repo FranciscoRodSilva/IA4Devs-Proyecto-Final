@@ -4,7 +4,7 @@
 
 ## Estado
 
-EN REVISIÓN
+LISTO PARA PR
 
 ## Ficha
 
@@ -37,6 +37,7 @@ EN REVISIÓN
 |---|---|---|---|---|
 | 2026-10-28 | — | `LISTO PARA EJECUTAR` | partición de TKT-009 | Nace de la decisión del gate de diseño de TKT-009. Spec repartida: M5 y su parte de M12; `CA-6`, `CA-7`, `CA-8` y `CA-R4`. No se ejecuta hasta que TKT-009a esté `ARCHIVADO` o `LISTO PARA PR`. Segunda parte en fusionar |
 | 2026-10-29 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas C1 a C6 hechas con ciclo TDD sobre la rama de TKT-009a. Verificador con 171 pruebas de `tools/`, mutación de 110 mutantes y ensayo en el pipeline que mostró un defecto real (el paso del verificador se omitía si fallaban las pruebas), corregido con `if: ${{ !cancelled() }}`. Auditoría de arquitectura `APROBADO` tras un ciclo. Detalle en [impl.md](impl.md) |
+| 2026-10-29 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Cinco criterios `[M]` cumplidos. Suite ejecutada: 1138 pruebas de backend, `ruff`, `mypy`, `lint-imports`, `verificar_docs.py`, `zizmor` y 178 pruebas de `tools/` en verde. Dos ciclos de corrección de código (tres Mayores en el primero y un Mayor de pruebas que no discriminaban en el segundo) y tres de documentación. Cierre con una excepción del gate, a aceptar al archivar: la última reauditoría de documentación quedó en `REQUIERE CAMBIOS` por dos Menores que se aplicaron con el texto del auditor sin una cuarta reauditoría. Detalle en [impl.md](impl.md) |
 
 ## Decisiones registradas
 

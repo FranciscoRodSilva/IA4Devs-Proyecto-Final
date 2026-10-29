@@ -62,7 +62,7 @@ Sírvelo por HTTP: con `file://` los navegadores bloquean la carga del módulo.
 python tools/verificar_escenarios.py [--raiz ruta] [--activas-base ruta]
 ```
 
-Comprueba la regla de aceptación de [ADR-012](../docs/adr/20260918-trazabilidad-escenario-test.md): cada escenario que cuenta tiene al menos un test que lo nombra. Lee los escenarios de `docs/04-historias-usuario.md`, los nombres de los tests de `backend/tests/`, `frontend/src/`, `frontend/scripts/` y `frontend/e2e/` (sin `node_modules`), y `tools/historias_activas.txt`. Usa solo la biblioteca estándar. El trabajo `herramientas` del pipeline lo ejecuta en cada PR y, cuando la base del PR contiene el archivo, le pasa esa copia con `--activas-base`.
+Comprueba la regla de aceptación de [ADR-012](../docs/adr/20260918-trazabilidad-escenario-test.md): cada escenario que cuenta tiene al menos un test que lo nombra. Lee los escenarios de `docs/04-historias-usuario.md`, los nombres de los tests de `backend/tests/`, `frontend/src/`, `frontend/scripts/` y `frontend/e2e/` (sin `node_modules`). En TypeScript ignora las líneas que empiezan por `//` o `*` y los bloques `/* … */`, aunque ocupen varias líneas; un `/*` a mitad de una línea de código no abre bloque (límite de A-8). Lee además `tools/historias_activas.txt`. Usa solo la biblioteca estándar. El trabajo `herramientas` del pipeline lo ejecuta en cada PR y, cuando la base del PR contiene el archivo, le pasa esa copia con `--activas-base`.
 
 **Argumentos.** `--raiz` indica la raíz del repositorio; por omisión, la que contiene `tools/`. `--activas-base` indica el `historias_activas.txt` de la base del PR: si existe, se compara con el actual, y si no existe, no se compara.
 
@@ -77,9 +77,9 @@ Comprueba la regla de aceptación de [ADR-012](../docs/adr/20260918-trazabilidad
 | `PENDIENTE` | Un escenario que todavía no cuenta: su historia no tiene ticket en curso, o es de fase 2 sin iniciar | Informa |
 | `RETIRADO` | Un escenario con el segmento de retiro en su título | Informa |
 
-La última línea resume los recuentos: escenarios, exigidos, cubiertos, faltan, pendientes, retirados, tests de historia y tests de fundación.
+La última línea resume los recuentos: escenarios, exigidos, cubiertos, faltan, pendientes, retirados, tests HDU y tests de fundación.
 
-**Códigos de salida.** `0` si no hay `FALTA` ni `ERROR`; `1` si hay alguno; `2` si la entrada está mal formada: una línea de `historias_activas.txt` que no es `HDU-NNN`, `fase 2`, comentario ni vacía; una historia activa que no existe en el documento; una historia sin fila en «El conjunto»; o un archivo que no está en UTF-8.
+**Códigos de salida.** `0` si no hay `FALTA` ni `ERROR`; `1` si hay alguno; `2` si la entrada está mal formada: una línea de `historias_activas.txt` que no es `HDU-NNN`, `fase 2`, comentario ni vacía; una historia activa que no existe en el documento; una historia sin fila en «El conjunto»; una historia que aparece dos veces en el documento; una fila de «El conjunto» sin columna `Fase`; la falta de `docs/04-historias-usuario.md` o de `tools/historias_activas.txt`; un `historias_activas.txt` de la base del PR mal formado; o un archivo que no está en UTF-8 (el mensaje nombra su ruta relativa).
 
 **Cómo se actualiza `tools/historias_activas.txt`.** La planificación de cada sprint añade una línea `HDU-NNN` por cada historia que entra en él, y añade la línea `fase 2` cuando empieza la fase 2. Las líneas que empiezan por `#` son comentarios. Ninguna línea sale del archivo: si una historia sale, el verificador da `ERROR` contra la base del PR. Un escenario retirado se marca con su segmento en el título del documento de historias, nunca quitando la historia de la lista.
 

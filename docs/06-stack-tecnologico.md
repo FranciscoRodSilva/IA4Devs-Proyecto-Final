@@ -398,7 +398,7 @@ Un script recorre `docs/04-historias-usuario.md`, extrae cada `HDU-XXX esc. N` y
 
 Resuelve además el problema que la regla de aceptación plantea: *"una historia se acepta solo si todos sus escenarios pasan en verde"* deja de ser una intención y pasa a ser comprobable.
 
-El script es `tools/verificar_escenarios.py` y corre en el trabajo `herramientas` del pipeline. Un escenario cuenta desde que su historia figura en `tools/historias_activas.txt`, y los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`. Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título; una nota en prosa no lo retira. En TypeScript, el nombre de un test de historia sigue la misma forma que en Python, `"hdu002_esc04 · …"`, en el primer argumento de `it`, `test` o `describe`. La política completa está en [ADR del 2026-10-29](adr/20261029-politica-del-verificador-de-escenarios.md).
+El script es `tools/verificar_escenarios.py` y corre en el trabajo `herramientas` del pipeline. Un escenario cuenta desde que su historia figura en `tools/historias_activas.txt`, y los de fase 2 cuentan cuando ese archivo contiene la línea `fase 2`. Un escenario se retira con el segmento ` · retirado por TKT-0NN` en su título; una nota en prosa no lo retira. En TypeScript, el nombre de un test de historia sigue la misma forma que en Python, `"hdu002_esc04 · …"`, en el primer argumento de `it`, `test` o `describe`. Un test comentado al inicio de una línea, con `//` o dentro de un bloque `/* … */` que empiece la línea, no cuenta. Un comentario que sigue a código en la misma línea no se descarta (límite de A-8). La política completa está en [ADR del 2026-10-29](adr/20261029-politica-del-verificador-de-escenarios.md).
 
 ### 7.3. Frontend
 
