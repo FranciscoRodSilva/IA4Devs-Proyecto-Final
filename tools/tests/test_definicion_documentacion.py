@@ -66,13 +66,16 @@ import os
 import re
 import shlex
 import sys
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 DIRECTORIO_DE_PRUEBAS = os.path.dirname(os.path.abspath(__file__))
 if DIRECTORIO_DE_PRUEBAS not in sys.path:
     sys.path.insert(0, DIRECTORIO_DE_PRUEBAS)
 
+import _ayudantes  # noqa: E402
 from _ayudantes import (  # noqa: E402
     ejecutar_en_bash,
     exigir_rojo,
@@ -751,11 +754,11 @@ def comprobar_acciones_fijadas(texto: str, id_trabajo: str) -> list[str]:
 
 
 def _comprobar_checkout(
-    id_trabajo: str, lista: list[list[str]], i_checkout: int | None
+    id_trabajo: str, lista: list[list[str]], i_checkout: int | None, consecuencia: str = ""
 ) -> list[str]:
     """El trabajo tiene `actions/checkout` y este no persiste las credenciales (regla común 4)."""
     if i_checkout is None:
-        return [f"'{id_trabajo}': falta actions/checkout"]
+        return [f"'{id_trabajo}': falta actions/checkout{consecuencia}"]
     if not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
         return [f"'{id_trabajo}': el checkout debe declarar `persist-credentials: false`"]
     return []
@@ -907,17 +910,24 @@ PASO_DE_MERMAID = "Diagramas con mermaid-cli"
 PASO_DE_VALE = "Prosa con Vale"
 RUTA_DE_MMDC = ".github/mermaid/node_modules/.bin/mmdc"
 
-# mmdc de mentira: valida el archivo que recibe con `-i`; sale 1 si contiene `INVALID`, 2 si no recibe un archivo legible.
+# mmdc de mentira: valida el archivo que recibe con `-i`; sale 1 si contiene `INVALID`, 2 si no recibe un archivo legible o
+# si falta `-o` (o su carpeta no existe), como el mmdc real con un Markdown de entrada.
 MMDC_DE_MENTIRA = """#!/usr/bin/env bash
 entrada=""
+salida=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     -i) entrada="$2"; shift 2 ;;
+    -o) salida="$2"; shift 2 ;;
     *) shift ;;
   esac
 done
 if [ -z "$entrada" ] || [ ! -f "$entrada" ]; then
   echo "mmdc de mentira: falta -i con un archivo legible" >&2
+  exit 2
+fi
+if [ -z "$salida" ] || [ ! -d "$(dirname "$salida")" ]; then
+  echo "mmdc de mentira: falta -o con una carpeta existente" >&2
   exit 2
 fi
 if grep -q INVALID "$entrada"; then
@@ -1021,6 +1031,20 @@ ESCENARIOS_DE_MERMAID: tuple[
         1,
         (_anotacion("docs/malo.md"), _anotacion("tools/README.md")),
         (),
+    ),
+    (
+        "un archivo con espacio en el nombre, inválido, se anota entero",
+        {"docs/con espacio.md": DIAGRAMA_INVALIDO},
+        1,
+        (_anotacion("docs/con espacio.md"),),
+        (),
+    ),
+    (
+        "un archivo con espacio en el nombre, válido, pasa",
+        {"docs/con espacio.md": DIAGRAMA_VALIDO},
+        0,
+        (),
+        ("::error",),
     ),
     (
         "un Markdown sin bloque mermaid no se valida",
@@ -1208,7 +1232,9 @@ def _comprobar_trabajos_de_enlaces(texto: str) -> list[str]:
         i_checkout = _indice_de_uses(lista, "actions/checkout@")
         if i_checkout is not None and i_checkout > i_lychee:
             problemas.append(f"'{id_trabajo}': actions/checkout va después de lychee-action")
-        problemas += _comprobar_checkout(id_trabajo, lista, i_checkout)
+        problemas += _comprobar_checkout(
+            id_trabajo, lista, i_checkout, "; lychee no tendría los Markdown que revisar"
+        )
         problemas += _comprobar_paso_de_lychee(id_trabajo, lista[i_lychee])
     if not encontrado:
         problemas.append("enlaces.yml: ningún trabajo usa lycheeverse/lychee-action")
@@ -3082,12 +3108,34 @@ def _ci_real(caso: unittest.TestCase) -> str:
     return _leer_flujos(caso)["ci.yml"]
 
 
+# Bytes que no son UTF-8 ni cp1252 válidos (`\xff\xfe` y `\x81\x8d\x8f\x90\x9d`): lo que imprime un lanzador de WSL sin distribución.
+BYTES_ILEGIBLES = b"\xff\xfeB\x00A\x00\x81\x8d\x8f\x90\x9d"
+
+
+def _bash_de_mentira_con_bytes_ilegibles(carpeta: Path) -> str:
+    """Un ejecutable que se hace pasar por `bash` e imprime `BYTES_ILEGIBLES`: un `.cmd` en Windows, un guion `sh` en el resto."""
+    emisor = carpeta / "emisor.py"
+    emisor.write_text(
+        f"import sys\nsys.stdout.buffer.write({BYTES_ILEGIBLES!r})\nsys.stdout.buffer.flush()\n",
+        encoding="utf-8",
+    )
+    if os.name == "nt":
+        lanzador = carpeta / "bash.cmd"
+        lanzador.write_bytes(f'@"{sys.executable}" "{emisor}"\r\n'.encode())
+    else:
+        lanzador = carpeta / "bash"
+        lanzador.write_bytes(f'#!/bin/sh\nexec "{sys.executable}" "{emisor}"\n'.encode())
+        lanzador.chmod(0o755)
+    return str(lanzador)
+
+
 class PruebasDeMutantesDeFlujoDelTrabajoDocumentacion(unittest.TestCase):
     """F001 — mutantes que dejan el texto del paso «correcto» pero cambian lo que hace. Solo los mata ejecutar el `run:`."""
 
     def test_tc65_mutantes_de_flujo_del_paso_de_mermaid_se_detectan_al_ejecutarlo(self):
-        """CA-16 esc. 1 · TC-65 — diez mutantes de flujo (la marca de fallo se borra, el bucle no corre o la selección no encuentra
-        nada) dejan el paso en verde con un diagrama inválido; el escenario que los detecta es el del diagrama inválido."""
+        """CA-16 esc. 1 · TC-65 — nueve mutantes de flujo (la marca de fallo se borra, el bucle no corre o la selección no encuentra
+        nada) dejan el paso en verde con un diagrama inválido; el escenario que los detecta es el del diagrama inválido, salvo
+        `else fallos=0`, que solo cae con un diagrama válido después de uno inválido."""
         ci = _ci_real(self)
         marca = "fallos=1"
         sangria = "              "
@@ -3127,6 +3175,22 @@ class PruebasDeMutantesDeFlujoDelTrabajoDocumentacion(unittest.TestCase):
             comprobar_comportamiento_de_mermaid,
             casos,
             fragmento="escenario «un diagrama inválido en docs»",
+        )
+
+    def test_tc65_mutantes_sin_salida_para_mmdc_se_detectan_al_ejecutarlo(self):
+        """CA-16 esc. 1 · TC-65 · F012 — el mmdc real exige `-o` con una carpeta existente: sin `-o`, o sin el `mkdir -p` que la crea,
+        falla incluso con un diagrama válido. Lo detecta el escenario de solo diagramas válidos, no el del inválido."""
+        ci = _ci_real(self)
+        exigir_rojo_en_todos(
+            self,
+            comprobar_comportamiento_de_mermaid,
+            {
+                "mmdc sin -o": sustituir(ci, ' -o "$RUNNER_TEMP/mermaid/$n.md"', ""),
+                "sin mkdir de la carpeta de salida": sustituir(
+                    ci, 'mkdir -p "$RUNNER_TEMP/mermaid"', "true"
+                ),
+            },
+            fragmento="escenario «solo diagramas válidos»",
         )
 
     def test_tc65_mutantes_de_flujo_del_paso_de_vale_se_detectan_al_ejecutarlo(self):
@@ -3195,6 +3259,39 @@ class PruebasDeMutantesDeFlujoDelTrabajoDocumentacion(unittest.TestCase):
             localizar_bash.__wrapped__()
         self.assertIn("No hay un bash utilizable", str(capturado.exception))
         self.assertIn("no-existe", str(capturado.exception))
+
+    def test_tc65_un_bash_que_imprime_bytes_ilegibles_se_rechaza_y_se_prueba_el_siguiente_candidato(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 · F009 — el `bash.exe` del lanzador de WSL sin distribución imprime UTF-16 o cp1252, no UTF-8.
+        `localizar_bash` lo rechaza con «no imprime su versión» (sin `UnicodeDecodeError` ni `AttributeError`) y pasa al
+        siguiente candidato válido, que en Windows es el Git bash."""
+        real = localizar_bash()
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temporal:
+            ilegible = _bash_de_mentira_con_bytes_ilegibles(Path(temporal))
+            motivo = _ayudantes._motivo_de_rechazo(ilegible)
+            self.assertIsNotNone(motivo)
+            self.assertIn("no imprime su versión", motivo)
+            with mock.patch.object(
+                _ayudantes, "_candidatos_de_bash", return_value=[ilegible, real]
+            ):
+                self.assertEqual(localizar_bash.__wrapped__(), real)
+
+    def test_tc65_un_cimenta_bash_con_bytes_ilegibles_falla_con_el_motivo_y_no_con_una_excepcion_ajena(
+        self,
+    ):
+        """CA-16 esc. 1 · TC-65 · F009 — si `CIMENTA_BASH` imprime bytes ilegibles, la prueba falla con `AssertionError`
+        que nombra el candidato y «no imprime su versión»; nunca con `UnicodeDecodeError` ni `AttributeError`."""
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temporal:
+            ilegible = _bash_de_mentira_con_bytes_ilegibles(Path(temporal))
+            with (
+                mock.patch.dict(os.environ, {"CIMENTA_BASH": ilegible}),
+                self.assertRaises(AssertionError) as capturado,
+            ):
+                localizar_bash.__wrapped__()
+        self.assertIn("No hay un bash utilizable", str(capturado.exception))
+        self.assertIn(ilegible, str(capturado.exception))
+        self.assertIn("no imprime su versión", str(capturado.exception))
 
 
 class DefinicionDeCIFilaD5(unittest.TestCase):

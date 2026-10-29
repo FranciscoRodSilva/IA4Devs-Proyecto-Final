@@ -127,13 +127,16 @@ def _motivo_de_rechazo(bash: str) -> str | None:
             resultado = subprocess.run(
                 [bash, "-c", _PRUEBA_DE_BASH, "bash", Path(temporal).as_posix()],
                 capture_output=True,
-                text=True,
                 timeout=60,
                 env=_entorno(bash, []),
             )
         except (OSError, subprocess.SubprocessError) as error:
             return f"no se pudo ejecutar ({error})"
-    lineas = resultado.stdout.split()
+    # Bytes, no texto: un candidato que no escribe UTF-8 (el lanzador de WSL imprime UTF-16) no debe romper el hilo lector.
+    salida = resultado.stdout.decode("utf-8", errors="replace")
+    lineas = salida.split()
+    if "�" in salida:
+        return "no imprime su versión (su salida no es UTF-8 legible): no es bash"
     if not lineas or lineas[0] in ("directorio-legible", "herramientas"):
         return "no imprime su versión (`$BASH_VERSION` vacío): no es bash"
     if "directorio-legible" not in lineas:
@@ -159,8 +162,7 @@ def _candidatos_de_bash() -> list[str]:
     raices.append(Path("C:/Program Files/Git"))
     for raiz in raices:
         candidatos += [str(raiz / "bin" / "bash.exe"), str(raiz / "usr" / "bin" / "bash.exe")]
-    vistos: set[str] = set()
-    return [c for c in candidatos if not (c in vistos or vistos.add(c))]
+    return list(dict.fromkeys(candidatos))
 
 
 @functools.cache
