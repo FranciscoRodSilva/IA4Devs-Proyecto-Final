@@ -58,7 +58,7 @@ TKT-009c queda algo por encima del tope y no se parte más: el verificador y sus
 | `pip-audit` en el grupo `dev` | 3 · reuso de `uv.lock` | Fija su versión como las demás; cierra la deuda de TKT-001 y TKT-003 |
 | `tools/severidad_pip_audit.py` | 5 · objeto nuevo | `pip-audit` no da severidad (`A-3`) y `RNF-08` distingue «alta» |
 | `npm audit --audit-level=high` | 2 · nativo | La opción hace exactamente lo que pide `CA-10` |
-| `.github/dependabot.yml` | 2 · nativo | Tres ecosistemas: `uv`, `npm`, `github-actions` |
+| `.github/dependabot.yml` | 2 · nativo | Tres ecosistemas: `uv`, `npm`, `github-actions`; desde la parte d, cuatro entradas (ver «Ajustes registrados al ejecutar la parte d») |
 | Escaneo de secretos y protección de empuje | 2 · nativo | Ajuste del repositorio; `gitleaks` se descarta salvo que el ajuste no esté disponible |
 | Excepción de las credenciales de `.env.example` | 1 · YAGNI | Ningún archivo de excepción: los patrones de proveedor no reconocen `solo-desarrollo-*`. Si una alerta genérica las marcara, se descarta **esa alerta** como «usada en pruebas», citando este diseño; nunca `paths-ignore`, que excluiría el archivo entero |
 | `tools/verificar_escenarios.py` | 5 · objeto nuevo | Lo prevé ADR-012 y no existe herramienta. Copia los dos patrones de `verificar_docs.py` (`^## (HDU-\d{3}) ·` y `\*\*Escenario (\d+):`) en lugar de importarlo: allí están dentro de funciones con estado global |
@@ -123,13 +123,13 @@ jobs:
 | `herramientas` | — | checkout con `fetch-depth: 0` · setup-uv · `uv sync --locked --python 3.14` en `backend/` · paso con `shell: bash` declarado explícitamente, que es lo que hace que GitHub lo ejecute con `bash --noprofile --norc -eo pipefail {0}`: `uv run --no-project --python 3.14 python -m unittest discover -s tools/tests 2>&1 \| tee "$RUNNER_TEMP/tools.txt"`. Sin `shell: bash`, el intérprete por omisión es `bash -e {0}`, sin `pipefail`, y el estado del paso sería el de `tee`, siempre 0: una prueba rota no lo pondría en rojo · `! grep -q "skipped=" "$RUNNER_TEMP/tools.txt"`. La regla vale para todo paso del pipeline que use una tubería, también el de Vale de la parte d. La parte c añade el paso del verificador de escenarios | a, c |
 | `workflows` | — | checkout · setup-uv · `uvx zizmor@<versión> --offline .github/workflows` | a |
 | `documentacion` | — | checkout · `python3 tools/verificar_docs.py`. La parte d añade `markdownlint-cli2`, `Vale`, `lychee` y `mermaid-cli` | a, d |
-| `dependencias` | — | checkout · setup-uv · setup-node · en `backend/`: `uv export --locked --all-groups --no-emit-project --format requirements.txt -o "$RUNNER_TEMP/req.txt"` · `uv run pip-audit -r "$RUNNER_TEMP/req.txt" --require-hashes --disable-pip --strict -f json -o "$RUNNER_TEMP/pip-audit.json"` sin cortar el guion si devuelve 1 (`\|\| true`) · `python3 tools/severidad_pip_audit.py "$RUNNER_TEMP/pip-audit.json"` · en `frontend/`: `npm audit --audit-level=high` | b |
+| `dependencias` | — | checkout · setup-uv · setup-node · en `backend/`: `uv export --locked --all-groups --no-emit-project --format requirements.txt -o "$RUNNER_TEMP/req.txt"` · `uv run pip-audit -r "$RUNNER_TEMP/req.txt" --require-hashes --disable-pip --strict -f json -o "$RUNNER_TEMP/pip-audit.json"` sin cortar el guion si devuelve 1 (`\|\| true`) · `python3 tools/severidad_pip_audit.py "$RUNNER_TEMP/pip-audit.json"` · en `frontend/`: `npm audit --audit-level=high` · desde la parte d, en `.github/mermaid/`: `npm audit --audit-level=high` en el paso «Auditar el lock de mermaid-cli» (ver «Ajustes registrados al ejecutar la parte d») | b |
 
 El paso de `pip-audit` admite que termine en 1 porque así señala que encontró vulnerabilidades; quien decide es `severidad_pip_audit.py`, que falla con código 2 si el JSON no existe o no se puede leer, de modo que un error de `pip-audit` no pasa en verde. Una excepción a una vulnerabilidad concreta se declara con `--ignore-vuln <ID>` en ese paso y un comentario que nombra quién la decidió; el ticket arranca sin ninguna.
 
 **`.github/workflows/enlaces.yml`** (parte d): `on: schedule: - cron: "0 13 * * 1"` (lunes a las 07:00 de la Ciudad de México) y `workflow_dispatch`; `permissions: contents: read`; un trabajo con checkout y `lycheeverse/lychee-action` con la misma configuración que el del PR.
 
-**`.github/dependabot.yml`** (parte b): versión 2, tres entradas semanales: `package-ecosystem: "uv"` en `/backend`, `"npm"` en `/frontend` y `"github-actions"` en `/`. Si GitHub rechaza el ecosistema `uv` al validar el archivo, se sustituye por `"pip"` en la misma fila y se anota.
+**`.github/dependabot.yml`** (parte b): versión 2, tres entradas semanales (desde la parte d son cuatro; ver «Ajustes registrados al ejecutar la parte d»): `package-ecosystem: "uv"` en `/backend`, `"npm"` en `/frontend` y `"github-actions"` en `/`. Si GitHub rechaza el ecosistema `uv` al validar el archivo, se sustituye por `"pip"` en la misma fila y se anota.
 
 ### Herramientas · `tools/`
 
@@ -310,6 +310,7 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 - **`lycheeVersion: v0.24.2` explícito** (trabajos `documentacion` y `enlaces.yml`, fila D5). La acción `lychee-action` no depende de su valor por omisión, que podría cambiar (regla común 3).
 - **`medium.com` excluido de `lychee`** (`lychee.toml`, fila D1; ajuste en D6). Medium responde `403` al corredor de GitHub y `200` a una persona, así que el enlace no está roto: el primer PR lo puso en rojo. El resto de enlaces externos sigue comprobándose.
 - **Salida de `mmdc` numerada** (paso de diagramas, fila D5). La salida de cada diagrama va a `$RUNNER_TEMP/mermaid/$n.md`, con `n` el número de orden del archivo, y no a `<archivo aplanado>.md`. Evita construir un nombre a partir de una ruta y no cambia lo que se valida.
+- **Cuarta entrada de Dependabot y auditoría del lock de `mermaid-cli`** (`.github/dependabot.yml` y trabajo `dependencias`, ciclo 1 de `/sdd-revisar`). `.github/dependabot.yml` pasa de tres a cuatro entradas semanales: `uv` en `/backend`, `npm` en `/frontend`, `npm` en `/.github/mermaid` y `github-actions` en `/`. El trabajo `dependencias` añade el paso «Auditar el lock de mermaid-cli», con `npm audit --audit-level=high` en `.github/mermaid/`. Lo decidió la persona que aprueba en `/sdd-revisar`, al amparo de `RNF-08`, porque ese lock instala un paquete que se ejecuta en el corredor y quedaba sin auditar ni vigilar.
 
 ## Ensayo de compuertas
 
