@@ -179,6 +179,7 @@ jobs:
         run: |
           ! grep -q "skipped=" "$RUNNER_TEMP/tools.txt"
       - name: Verificar que cada escenario exigido tenga su test
+        if: ${{ !cancelled() }}
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
         run: |

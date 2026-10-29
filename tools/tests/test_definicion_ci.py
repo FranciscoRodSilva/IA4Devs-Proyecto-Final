@@ -1547,10 +1547,13 @@ PASO_GUARDA = (
 )
 
 # Fila C4 (parte c): el verificador de escenarios, tras la guarda de saltos. Sin tubería, así que sin `shell: bash`; la base
-# del PR entra por `env:` y nunca por `${{ }}` dentro de `run:`.
+# del PR entra por `env:` y nunca por `${{ }}` dentro de `run:`. Lleva `if: ${{ !cancelled() }}` para que corra aunque fallen las
+# pruebas de tools/ o la guarda de saltos: si no, otra compuerta taparía a esta (regla común 6 del diseño).
+IF_DEL_VERIFICADOR = "        if: ${{ !cancelled() }}\n"
 PASO_ESCENARIOS = (
     "      - name: Verificar que cada escenario exigido tenga su test\n"
-    "        env:\n"
+    + IF_DEL_VERIFICADOR
+    + "        env:\n"
     "          BASE: ${{ github.event.pull_request.base.sha }}\n"
     "        run: |\n"
     "          argumentos=()\n"
@@ -2354,6 +2357,11 @@ def comprobar_tc57(trabajos: dict[str, list[str]]) -> list[str]:
     orden = comando(paso)
     if not _en_la_raiz(bloque, paso):
         problemas.append("'herramientas': python3 tools/verificar_escenarios.py se ejecuta desde la raíz del repositorio")
+    if _expresion_de_if(valor_del_paso(paso, "if")) != "${{!cancelled()}}":
+        problemas.append(
+            "'herramientas': el paso del verificador de escenarios no declara `if: ${{ !cancelled() }}` (exacto: ni `always()` ni sin `if`); "
+            "si fallan las pruebas de tools/ o la guarda de saltos no correría y esa compuerta quedaría tapada"
+        )
     if not ENV_DE_LA_BASE.search(valor_del_paso(paso, "env") or ""):
         problemas.append(
             "'herramientas': el paso del verificador de escenarios no declara en env: BASE: ${{ github.event.pull_request.base.sha }}"
@@ -2421,6 +2429,20 @@ class PruebasDeMutantesDeLaFilaC4(unittest.TestCase):
             "trabajo ausente": sustituir(CI_A4, "\n  herramientas:\n", "\n  utilidades:\n"),
         }
         exigir_rojo_en_todos(self, comprobar_tc57, casos, "verificar_escenarios", fragmentos={"trabajo ausente": "no existe el trabajo"})
+
+    def test_c4_mutantes_tc57_el_verificador_corre_aunque_fallen_las_pruebas_y_la_guarda(self):
+        """CA-6 esc. 1 · TC-57 y regla común 6 — sin `if: ${{ !cancelled() }}` exacto en el paso, un fallo previo en `herramientas` lo salta y tapa la compuerta."""
+        casos = {
+            "sin if": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, ""),
+            "if: always()": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        if: always()\n"),
+            "if: ${{ always() }}": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        if: ${{ always() }}\n"),
+            "if comentado": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        # if: ${{ !cancelled() }}\n"),
+            "if: success()": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        if: ${{ success() }}\n"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc57, casos, "no declara `if: ${{ !cancelled() }}`")
+        # Con `!cancelled()` el paso sigue siendo válido para las reglas comunes 7 y 9.
+        for comprobacion in (comprobar_regla_comun_7, comprobar_regla_comun_9):
+            self.assertEqual(comprobacion(extraer_trabajos(CI_A4)), [])
 
     def test_c4_mutantes_tc57_sin_activas_base_el_historial_no_se_compara(self):
         """CA-6 esc. 1 · TC-57 — sin `--activas-base` una historia podría salir de la lista sin que nadie lo vea."""
