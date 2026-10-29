@@ -1,0 +1,32 @@
+name: Enlaces
+
+# Detector semanal de enlaces rotos (TKT-009d, fila D5). Solo lee: la configuración de lychee es la del trabajo
+# `documentacion` de ci.yml, para que lo que encuentra el cron sea lo que el PR habría visto.
+on:
+  schedule:
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Una sola corrida a la vez: si el cron coincide con una lanzada a mano, la segunda espera y no se solapa.
+concurrency:
+  group: enlaces
+  cancel-in-progress: false
+
+jobs:
+  enlaces:
+    name: Enlaces · detector semanal con lychee
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Enlaces con lychee
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --config lychee.toml --no-progress 'docs/**/*.md' 'sdd/**/*.md' README.md CLAUDE.md tools/README.md
+          lycheeVersion: v0.24.2
+          fail: true
