@@ -464,9 +464,9 @@ Comprobaciones que no existen como herramienta de terceros. Viven en [`tools/`](
 | `tools/extraer_mermaid.py` | Diagramas con sintaxis inválida, que en GitHub se renderizan como bloque de error | ✅ En uso |
 | Escenarios sin test | El verificador de §7.2, que sostiene la regla de aceptación | ✅ En uso |
 
-`verificar_docs.py` corre en el trabajo `documentacion` del pipeline, y el de escenarios en el trabajo `herramientas`. En el pipeline, los diagramas los valida `@mermaid-js/mermaid-cli` 12.0.0, que hace lo mismo sin navegador: está fijado con su lockfile en `.github/mermaid/` e instalado con `npm ci`. `tools/extraer_mermaid.py` queda para verificar en local.
+`verificar_docs.py` corre en el trabajo `documentacion` del pipeline, y el de escenarios en el trabajo `herramientas`. En el pipeline, los diagramas los valida `@mermaid-js/mermaid-cli` 12.0.0, que usa Chromium sin cabeza: está fijado con su lockfile en `.github/mermaid/` e instalado con `npm ci`. `tools/extraer_mermaid.py` queda para verificar en local.
 
-**Herramientas de terceros de la documentación.** markdownlint-cli2, Vale, lychee y mermaid-cli van fijadas por versión. En el pipeline, cualquier hallazgo falla su paso; en local solo informan. El detalle de lo que comprueba cada una está en [`tools/README.md`](../tools/README.md).
+**Herramientas de terceros de la documentación.** markdownlint-cli2, Vale, lychee y mermaid-cli van fijadas por versión. En el pipeline, cualquier hallazgo falla su paso; en local, `Vale` imprime avisos y las demás imprimen sus errores sin bloquear nada, porque no hay pipeline. El detalle de lo que comprueba cada una está en [`tools/README.md`](../tools/README.md).
 
 ---
 
@@ -489,7 +489,7 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 - **`humo`**: el recorrido de Playwright con PostgreSQL levantado por Compose, la base migrada y las contraseñas de los roles fijadas. Si falla, sube el informe HTML.
 - **`herramientas`**: las pruebas de `tools/` con `unittest`. Una guarda falla el paso si alguna prueba se salta.
 - **`workflows`**: `zizmor` sobre `.github/workflows`, para auditar los propios flujos.
-- **`documentacion`**: `verificar_docs.py`; `markdownlint-cli2` 0.24.0 sobre `docs/`, `sdd/` y los README; Vale 3.25.1 con el alcance, cuya salida se guarda y falla si hay cualquier alerta, incluidas las de aviso; `lychee` 0.24.2 con `fail: true`; y `@mermaid-js/mermaid-cli` 12.0.0 sobre cada diagrama. Todos los pasos llevan `if: ${{ !cancelled() }}`: un fallo no oculta los siguientes, así que un PR ve de una vez todas sus alertas documentales.
+- **`documentacion`**: `verificar_docs.py`; `markdownlint-cli2` 0.24.0 sobre `docs/`, `sdd/` y los README; Vale 3.25.1 con el alcance, cuya salida se guarda y falla si hay cualquier alerta, incluidas las de aviso; `lychee` 0.24.2 con `fail: true`; y `@mermaid-js/mermaid-cli` 12.0.0 sobre cada diagrama. Todos los pasos, salvo el de checkout, llevan `if: ${{ !cancelled() }}`: un fallo no oculta los siguientes, así que un PR ve de una vez todas sus alertas documentales.
 - **`dependencias`**: `pip-audit` sobre el lock del backend, con el filtro de severidad de `tools/severidad_pip_audit.py`, y `npm audit --audit-level=high` sobre el del frontend. La política está en [§6.4](#64-dependencias).
 
 **Detector semanal de enlaces.** `.github/workflows/enlaces.yml` es un flujo aparte. Corre el mismo `lychee`, con la misma configuración, cada lunes a las 13:00 UTC y también a mano. Tiene `concurrency` con `cancel-in-progress: false`: una corrida espera a la anterior y no se solapa con ella.

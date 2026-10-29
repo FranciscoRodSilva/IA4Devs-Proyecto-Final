@@ -48,10 +48,12 @@ Se elige el **estilo propio mínimo** porque:
 
 **Negativas o costes aceptados**
 
-* El binario de Vale no tiene hash fijado en el repositorio (ver la decisión).
+* El paquete `vale` de PyPI descarga el binario oficial sin hash fijado en el repositorio (ver la decisión). Prioridad baja, `(asumido)`.
+* `npx --yes markdownlint-cli2@0.24.0` resuelve sus dependencias transitivas en cada ejecución, porque no hay lockfile para esa herramienta. Prioridad baja, `(asumido)`.
 * `--no-sandbox` en el corredor (ver la decisión).
 * Vale no revisa la voz pasiva ni la ortografía. La voz activa que pide la convención se revisa a mano.
-* El trabajo `dependencias` audita el lock del frontend y el del backend, pero no el de `.github/mermaid/`, y Dependabot tampoco lo cubre. Hoy esa comprobación es manual, con `npm audit`. Es una brecha frente a `RNF-08` que se propone cerrar con un paso en `dependencias`, y la decisión queda en manos de la persona que aprueba.
+
+**Brecha cerrada.** Las actualizaciones de seguridad de Dependabot sí cubrían el lock de `.github/mermaid/` (la ejecución dinámica 40943924695 lo demuestra), pero las de versión faltaban. Desde la corrección del ciclo 1 de `/sdd-revisar` de TKT-009d, el trabajo `dependencias` audita `.github/mermaid` con `npm audit --audit-level=high` y Dependabot lo vigila cada semana. Con ello se cumple `RNF-08` también para ese lock.
 
 **Cuándo revisar esta decisión**
 

@@ -18,6 +18,7 @@ Las filas D1 a D5 y D7 de la parte d del [diseño común](../tkt-009/design.md#p
 | 2026-10-29 | El enlace externo roto del ensayo es una página de GitHub que da 404, no `https://cimenta-ensayo.invalid/` | `lychee` excluye por defecto los dominios reservados `.invalid` (comprobado: «Excluded 1» y cero errores), así que esa violación nunca habría puesto el trabajo en rojo |
 | 2026-10-29 | `lychee.toml` excluye `^https://medium\.com/` además de `cimenta\.test` | El primer PR (ejecución 40936972466, `ca1e9ab`) dejó en rojo solo `lychee`: un artículo de Medium citado en `sdd/00-propuesta-toolkit.md:456` responde `403` al corredor de GitHub y `200` desde una máquina de la persona usuaria, porque Medium bloquea las IP de los corredores. El diseño prevé ampliar `exclude` en el PR que lo necesita (objeción 2 de la pasada adversarial); se prefiere a aceptar el `403`, que taparía enlaces rotos reales |
 | 2026-10-29 | Se añaden `lycheeVersion: v0.24.2` explícito en la acción y `if: ${{ !cancelled() }}` también en `setup-node`, `setup-uv` y la instalación de `mermaid-cli` | Regla común 3 (el valor por omisión de la acción puede cambiar) y regla común 6 (un `setup-uv` omitido taparía el hallazgo de `Vale` con «command not found») |
+| 2026-10-29 | La salida de `mmdc` va a `$RUNNER_TEMP/mermaid/$n.md`, con `n` el número de orden del archivo, y no a `<archivo aplanado>.md` | Evita construir un nombre de archivo a partir de una ruta; no cambia lo que se valida (observación O1 de la auditoría de arquitectura) |
 | 2026-10-29 | Las pruebas de D5 viven en un archivo nuevo, `tools/tests/test_definicion_documentacion.py`, y no en `tools/tests/test_definicion_ci.py` | El archivo de las partes a y b ya pasa de 3100 líneas y un archivo por tema es más legible (asumido) |
 
 ## Archivos tocados
@@ -96,9 +97,9 @@ Alcance: 119 archivos (`docs/**/*.md`, `sdd/**/*.md`, `README.md`, `CLAUDE.md` y
 
 **`Cimenta.Vocabulario`:** las 5 alertas están en `sdd/tickets/tkt-009/design.md` (líneas 292, 294, 319, 382 y 384) y citan «`tablaroka`» a propósito, como ejemplo del error que la regla detecta. Hay que decidir antes de D4 cómo escribirlas (entre comillas de código, p. ej.) sin apagar la regla.
 
-**`Vale.Terms`:** 10 alertas por mayúsculas («`PLAFONES`», «`CAJILLOS`» en `docs/01-descripcion-producto.md` y `docs/04-historias-usuario.md`) y por «`cimenta`» en minúscula en `sdd/tickets/tkt-003/design.md` y `sdd/tickets/tkt-006/impl.md`.
+**`Vale.Terms`:** 10 alertas por mayúsculas («`PLAFONES`», «`CAJILLOS`» en `docs/01-descripcion-producto.md` y `docs/04-historias-usuario.md`) y por «`cimenta`» en minúscula en `sdd/tickets/tkt-003/design.md` y «`Cimenta`» con inicial mayúscula en `sdd/tickets/tkt-006/impl.md`.
 
-**Decisión pendiente.** El umbral de `A-5` está superado (183 contra 120). El diseño dice que, en ese caso, la parte se detiene y se propone separar la limpieza en su propio ticket. Esta ejecución se detiene aquí: ver `_index.md`.
+**Decisión tomada.** El umbral de `A-5` está superado (183 contra 120). La persona que aprueba decidió seguir en este ticket (ver `_index.md`, log del 2026-10-29); la limpieza se hizo en D3 y D4.
 
 #### Fila D3 · limpieza automática
 
@@ -109,7 +110,7 @@ Alcance: 119 archivos (`docs/**/*.md`, `sdd/**/*.md`, `README.md`, `CLAUDE.md` y
 | Herramienta | Antes | Después | Qué se hizo |
 |---|---|---|---|
 | `markdownlint-cli2` (`b6d8f34`) | 164 (MD040 106, MD028 29, MD025 16, MD001 13) | 0 | Idioma en 106 bloques de código (`text`, y `diff` en uno); 29 citas separadas por una línea en blanco se unen con `>`; 16 encabezados de primer nivel de `docs/05-tickets-trabajo.md` pasan a segundo nivel sin cambiar su texto ni las anclas; un byte NUL real de `sdd/tickets/tkt-007/impl.md` pasa al texto visible `\x00`. Los 164 de esta fila son los 162 de la medición más 2 MD040 de los dos bloques del propio impl.md, escrito después de medir. |
-| `Vale` (`9a9f8b4`) | 26 (`Vale.Terms` 13, `Cimenta.Vocabulario` 8, `Vale.Repetition` 5) | 0 | Los nombres literales (`PLAFONES Y CAJILLOS`, rutas, datos de entrada) y las citas intencionales de «`tablaroka`» van en código en línea; cuatro repeticiones reales («del del proceso») se corrigen y una «A» repetida en una celda se reformula. Ninguna regla se apagó ni se tocó el vocabulario. En `docs/04-historias-usuario.md` cambian tres pasos de escenario (líneas 503, 1330 y 1589; no son títulos): el nombre de la partida, que estaba en mayúsculas sin código, pasa a código en línea. Los títulos `**Escenario N:` y su significado no cambian Las 26 incluyen 6 alertas de los documentos del propio ticket escritos durante D2 (5 en `impl.md` y 1 en `_index.md`), que la medición de 20 no contaba; el umbral no cambia: 183 sin el ticket y 191 con él, por encima de 120. |
+| `Vale` (`9a9f8b4`) | 26 (`Vale.Terms` 13, `Cimenta.Vocabulario` 8, `Vale.Repetition` 5) | 0 | Los nombres literales (`PLAFONES Y CAJILLOS`, rutas, datos de entrada) y las citas intencionales de «`tablaroka`» van en código en línea; cuatro repeticiones reales («del del proceso») se corrigen y una «A» repetida en una celda se reformula. Ninguna regla se apagó ni se tocó el vocabulario. En `docs/04-historias-usuario.md` cambian tres pasos de escenario (líneas 503, 1330 y 1589; no son títulos): el nombre de la partida, que estaba en mayúsculas sin código, pasa a código en línea. Los títulos `**Escenario N:` y su significado no cambian. Las 26 incluyen 6 alertas de los documentos del propio ticket escritos durante D2 (5 en `impl.md` y 1 en `_index.md`), que la medición de 20 no contaba; el umbral no cambia: 183 sin el ticket y 191 con él, por encima de 120. |
 | `lychee` | 1 error de 1333 enlaces | 0 errores de 1347 | El cambio de `sdd/tickets/tkt-006/impl.md:670` (el dato `<Ana@Cimenta.TEST>` en código en línea) resuelve el único enlace roto |
 
 **Decisión de jerarquía.** La bajada de los H1 de `docs/05` a H2 deja algunos encabezados hijos como H2 hermanos de su sección: `tools/verificar_docs.py` exige que los encabezados de ticket sean H3. Cambiar esa regla del verificador es una decisión posterior.
@@ -166,7 +167,7 @@ mermaid-cli:
   Error: Parse error on line 2 (flowchart TD, A -> B), con la anotación ::error del archivo
 ```
 
-Los registros de ambas ejecuciones no contienen `ghp_` ni `github_pat_`. El detector semanal `enlaces.yml` no se puede lanzar hasta que llegue a la rama por omisión; su definición la fijan las pruebas TC-64 y su configuración es la del PR, que acaba de funcionar. La primera ejecución manual con `gh workflow run enlaces.yml` tras la fusión se anota en `delta.md`.
+Los registros de ambas ejecuciones no contienen `ghp_` ni `github_pat_`. El detector semanal `enlaces.yml` no se podía lanzar hasta que llegara a la rama por omisión; su definición la fijan las pruebas TC-64 y su configuración es la del PR. Tras la fusión se lanzó a mano con `gh workflow run enlaces.yml`: la ejecución [40943983006](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40943983006) terminó en `success` sobre `6fb4cb6`. Su resultado se anota en `delta.md`.
 
 ## Modelo por paso
 
@@ -196,11 +197,12 @@ Los registros de ambas ejecuciones no contienen `ghp_` ni `github_pat_`. El dete
 
 ## Auditorías
 
-Primera pasada de cierre de fase y una reauditoría acotada, ambas con `REQUIERE CAMBIOS` por Menores documentales. Los de la primera pasada (F001, F003, F004 y F006) están resueltos y la reauditoría los confirmó. Ella encontró dos Menores y una observación nuevos (N001 a N003), que se aplicaron con su texto literal sin una segunda reauditoría. Ninguna auditoría ha aprobado este ticket todavía: `/sdd-revisar` vuelve a auditarlo.
+Primera pasada de cierre de fase y una reauditoría acotada, ambas con `REQUIERE CAMBIOS` por Menores documentales. Los de la primera pasada (F001, F003, F004 y F006) están resueltos y la reauditoría los confirmó. Ella encontró dos Menores y dos observaciones nuevos (N001 a N004): N001 a N003 se aplicaron con su texto literal sin una segunda reauditoría, y N004 se resolvió con la ejecución del pipeline. Ninguna auditoría ha aprobado este ticket todavía: `/sdd-revisar` vuelve a auditarlo.
 
 | Auditor | Veredicto | Hallazgos | Nota |
 |---|---|---|---|
-| `auditor-arquitectura` | **REQUIERE CAMBIOS** | F001 a F003 Menores; F004 a F007 observaciones | Falta su reauditoría |
+| `auditor-arquitectura` | **REQUIERE CAMBIOS** | F001 a F003 Menores; F004 a F007 observaciones | Reauditoría en la fila siguiente |
+| `auditor-arquitectura` (reauditoría) | **REQUIERE CAMBIOS** | N001 y N002 Menores; N003 y N004 observaciones | N001 a N003 aplicados; N004 resuelto |
 | `auditor-sql` | No aplica | — | El ticket no toca el esquema |
 
 Estado de los hallazgos:
@@ -208,16 +210,16 @@ Estado de los hallazgos:
 | ID | Tipo | Hallazgo | Estado |
 |---|---|---|---|
 | F001 | Menor | Las secciones finales de este documento datan de cuando la ejecución se detuvo en D2 | **Resuelto** al aplicar esta corrección |
-| F002 | Menor | El PR de ensayo #18 y su rama `ensayo/tkt-009d-compuertas` siguen abiertos | **Pendiente**: lo cierra la persona usuaria (cerrar el PR #18 y borrar la rama de ensayo) |
+| F002 | Menor | El PR de ensayo #18 y su rama `ensayo/tkt-009d-compuertas` siguen abiertos | **Resuelto**: el PR #18 se cerró sin fusionar el 2026-10-29 y la rama `ensayo/tkt-009d-compuertas` ya no existe en `origin` |
 | F003 | Menor | Los ajustes de la parte d (pruebas en `test_definicion_documentacion.py`, `lycheeVersion` y la exclusión de `medium.com`) no figuraban en el diseño | **Resuelto** al aplicar esta corrección |
 | F004 | Observación | La fila D4 de `markdownlint-cli2` decía 164 sin explicar la diferencia con los 162 de la medición | **Resuelto** al aplicar esta corrección |
-| F005 | Observación | `.github/mermaid` sin auditoría ni Dependabot | **Observación**: no se actúa en este ticket |
+| F005 | Observación | `.github/mermaid` sin auditoría ni Dependabot | **Resuelto** en el ciclo 1 de `/sdd-revisar`: el trabajo `dependencias` audita `.github/mermaid` con `npm audit --audit-level=high` y Dependabot lo vigila cada semana |
 | F006 | Observación | Tres pasos de escenario de `docs/04` cambiaron de texto a código sin que la fila D4 lo aclarara | **Resuelto** al aplicar esta corrección |
-| F007 | Observación | El pipeline no se ha comprobado sobre el último commit | **Pendiente**: empujar y comprobar el pipeline sobre el último commit |
+| F007 | Observación | El pipeline no se ha comprobado sobre el último commit | **Resuelto**: la ejecución [40943128945](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40943128945) sobre `b00f4da` dejó los nueve trabajos en verde |
 | N001 | Menor | La verificación final decía que D2 tenía ciclo con rojo antes de verde | **Resuelto**: D2 es una medición sin ciclo |
 | N002 | Menor | Se hablaba de cinco violaciones previstas y de la cobertura de TC-62, TC-63, TC-66 y TC-68 para todas | **Resuelto**: cuatro previstas más la de `markdownlint`, que no tiene TC |
 | N003 | Observación | Las 26 alertas de `Vale` frente a las 20 de la medición | **Resuelto**: 6 son de los documentos del propio ticket escritos durante D2 |
-| N004 | Observación | `lychee` no se pudo ejecutar en la reauditoría | **Pendiente**: se confirma en el pipeline al empujar, junto con F007 |
+| N004 | Observación | `lychee` no se pudo ejecutar en la reauditoría | **Resuelto**: en la ejecución 40943128945 sobre `b00f4da`, los pasos `Enlaces con lychee` y `Diagramas con mermaid-cli` terminaron en `success` |
 
 ## Hallazgos fuera de alcance
 
@@ -225,7 +227,8 @@ Estado de los hallazgos:
 |---|---|---|
 | `.github/puppeteer-config.json` | `--no-sandbox` desactiva el sandbox de Chromium en el corredor; es una decisión del diseño, para la auditoría de seguridad | Baja |
 | `lychee.toml` | `exclude_path` toma expresiones regulares: el punto de `.venv` es un comodín | Baja |
-| `Vale` en CI | El paquete de PyPI `vale` es un envoltorio de terceros que descarga el binario oficial en la primera ejecución; convendría fijar el binario oficial por SHA del asset | Media |
+| `Vale` en CI | El paquete de PyPI `vale` es un envoltorio de terceros que descarga el binario oficial en la primera ejecución sin hash; convendría fijar el binario oficial por SHA del asset (coste aceptado en el ADR, `(asumido)`) | Baja |
+| `npx --yes markdownlint-cli2@0.24.0` | Resuelve sus dependencias transitivas en cada ejecución, sin lockfile (coste aceptado en el ADR, `(asumido)`) | Baja |
 
 ## Documentación actualizada
 
@@ -254,12 +257,37 @@ El commit `6b8ad11` (fila D7) tocó doce archivos, no once: el ADR y su entrada 
 - [x] Rechazos: las cuatro violaciones previstas en el diseño ponen en rojo su paso con archivo y línea (TC-62, TC-63, TC-66 y TC-68). El fallo de `markdownlint` (MD040, `docs/convenciones.md:404`) no estaba previsto y no tiene TC; si se quiere uno propio, es un cambio de diseño que aprueba la persona que aprueba
 - [x] Mutación de los comprobadores: las pruebas de D5 en `tools/tests/test_definicion_documentacion.py` incluyen clases `PruebasDeMutantes…` que comprueban que cada mutante es detectado
 - [x] Documentación actualizada en la fila D7 (ver la tabla de arriba), y `verificar_docs.py` en 0
-- [ ] Todas las auditorías APROBADO: **no**. `auditor-arquitectura` está en REQUIERE CAMBIOS por Menores: F001 y F003 aplicados en esta corrección; F002 queda a cargo de la persona usuaria; falta la reauditoría
+- [ ] Todas las auditorías APROBADO: **no**. `auditor-arquitectura` y su reauditoría están en REQUIERE CAMBIOS por Menores, ya aplicados (F001 a F007 y N001 a N004 resueltos); falta que `/sdd-revisar` vuelva a auditar
 - [x] Rama correcta y sin secretos en el diff
 
-Queda a cargo de la persona usuaria:
+Pendiente para `delta.md`: anotar la ejecución manual de `enlaces.yml` [40943983006](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40943983006), `success` sobre `6fb4cb6`.
 
-- F002: cerrar el PR de ensayo #18 y borrar la rama `ensayo/tkt-009d-compuertas`.
-- F007: empujar la rama y comprobar el pipeline sobre el último commit.
-- La reauditoría de `auditor-arquitectura`.
-- La primera ejecución manual de `enlaces.yml` tras la fusión, con `gh workflow run enlaces.yml`; su resultado se anota en `delta.md`.
+## Revisión (`/sdd-revisar`, 2026-10-29)
+
+**Contexto.** El PR [#17](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/17) se fusionó (`6fb4cb6`) antes de la revisión, así que esta se hace sobre la rama `tkt-009d-correcciones-revision`, creada después de la fusión.
+
+**Suite ejecutada.**
+
+| Comprobación | Resultado |
+|---|---|
+| Backend (`uv run pytest`) | `1138 passed in 242.68s` |
+| `ruff` | En verde |
+| `mypy` | 153 archivos |
+| `lint-imports` | 15 |
+| `verificar_float` | 18 archivos |
+| `verificar_docs.py` | En verde |
+| Pruebas de `tools/` | 325 |
+| `markdownlint-cli2` | 0 |
+| `Vale` | 0 |
+| `zizmor` | Sin hallazgos |
+
+**Auditorías del ciclo 0.** Las cuatro dieron `REQUIERE CAMBIOS`. Cada auditor numera sus hallazgos desde F001 o D001, así que aquí llevan prefijo para no repetir identificadores.
+
+| Auditor | Prefijo | Hallazgos |
+|---|---|---|
+| `auditor-arquitectura` | `R-ARQ-` | F001 a F004, Menores |
+| `auditor-codigo` | `R-COD-` | F001 y F002 Mayores; F003 a F006 |
+| `auditor-seguridad` | `R-SEG-` | F001 `MEDIA`; F002 a F005 `BAJA` |
+| `auditor-docs` | `R-DOC-` | D001 a D006 Menores; D007 a D009 observaciones |
+
+**Ciclo 1 de corrección, en curso.** La rama `tkt-009d-correcciones-revision` recoge las pruebas endurecidas de los comprobadores, la auditoría del lock de `mermaid-cli` en el trabajo `dependencias`, la cuarta entrada de Dependabot para `.github/mermaid` y las correcciones documentales de esta pasada.

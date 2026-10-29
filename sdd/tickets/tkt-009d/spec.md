@@ -6,7 +6,7 @@
 
 TKT-009 se partió en cuatro tickets hermanos al aprobarse su diseño, el 2026-10-28. Esta spec no redacta criterios nuevos: reparte los de la [spec común](../tkt-009/spec.md) y fija cuáles cierra este ticket. El texto Gherkin de cada criterio está en la spec común y es el que se prueba.
 
-TKT-009d pone en el pipeline la calidad de la documentación: `markdownlint-cli2`, `Vale` con el vocabulario del glosario, `lychee` y `mermaid-cli`, más el detector de enlaces en un cron semanal. Ninguna de esas herramientas tiene configuración ni se ha ejecutado nunca sobre unas 33,000 líneas de Markdown, por lo que el ticket mide la línea base antes de tocar nada y la limpia: aviso en local, error en CI.
+TKT-009d pone en el pipeline la calidad de la documentación: `markdownlint-cli2`, `Vale` con el vocabulario del glosario, `lychee` y `mermaid-cli`, más el detector de enlaces en un cron semanal. Ninguna de esas herramientas tiene configuración ni se ha ejecutado nunca sobre unas 37,000 líneas de Markdown, por lo que el ticket mide la línea base antes de tocar nada y la limpia: aviso en local, error en CI.
 
 ## Historia de usuario
 
