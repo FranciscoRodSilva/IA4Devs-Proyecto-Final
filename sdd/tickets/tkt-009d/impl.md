@@ -6,7 +6,7 @@
 
 Las filas D1 a D5 y D7 de la parte d del [diseño común](../tkt-009/design.md#parte-d--calidad-documental). La línea base documental, que superaba el umbral de 120 hallazgos de `A-5` (183), se limpió en este ticket por decisión de la persona que aprueba: `markdownlint-cli2`, `Vale` y `lychee` dan cero sobre el alcance. El trabajo `documentacion` de `ci.yml` ejecuta ahora el verificador propio, `markdownlint-cli2`, `Vale` con el vocabulario del glosario, `lychee` y `mermaid-cli`, y `enlaces.yml` repite la comprobación de enlaces cada lunes. El ADR de `Vale` para prosa en español y la documentación afectada cierran la fila D7.
 
-**Queda pendiente la fila D6**, el ensayo en el pipeline, que exige empujar la rama y abrir dos PR en borrador a mano. La rama `ensayo/tkt-009d-compuertas` está preparada en local con la ronda 1 (cinco violaciones) y el revert que deja la limpieza.
+**La fila D6**, el ensayo en el pipeline, la ejecutó la persona usuaria con dos PR en borrador: la ronda 1 puso en rojo los cinco pasos esperados y la limpieza dejó todo en verde (ver «Fila D6»).
 
 ## Ajustes respecto al design
 
@@ -127,9 +127,45 @@ Alcance: 119 archivos (`docs/**/*.md`, `sdd/**/*.md`, `README.md`, `CLAUDE.md` y
 
 ADR `docs/adr/20261029-vale-para-prosa-en-espanol.md` con sus opciones descartadas (estilo Microsoft, ortografía con Hunspell, sin `Vale`) y el estilo propio mínimo elegido; recuento de decisiones de 25 a 26 en `CLAUDE.md`, `README.md` y `llms.txt`; `convenciones.md` §10, la skill `conv-documentacion`, `docs/06` §9 y §10, `docs/arranque-local.md` y `tools/README.md`. Los tres verificadores y `verificar_docs.py` dan cero tras el cambio.
 
-#### Fila D6 · ensayo en el pipeline (pendiente de la persona usuaria)
+#### Fila D6 · ensayo en el pipeline (lo ejecutó la persona usuaria)
 
-La rama local `ensayo/tkt-009d-compuertas` está preparada: `8686f6a` (ronda 1) añade a `docs/convenciones.md` un enlace relativo roto, una página de GitHub que da 404, «`tablaroka`», un bloque sin idioma y un diagrama `flowchart TD` con `A -> B`; `71d54d1` lo revierte (ronda de limpieza). En local ya fallan `verificar_docs.py` (enlace roto), `markdownlint-cli2` (MD040) y `Vale` (`Cimenta.Vocabulario`); `lychee` falla con el 404; el diagrama solo se puede validar en el pipeline. Faltan las ejecuciones del pipeline: pasos esperados en rojo en la ronda 1 y todo en verde tras el revert.
+**Primer PR limpio.** El PR [#17](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/17), en borrador hacia `Produccion`, dejó en rojo solo el paso de `lychee` en su primera ejecución ([40936972466](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40936972466), sobre `ca1e9ab`): un artículo de Medium responde `403` al corredor. Con la exclusión de `^https://medium\.com/` (`a4c5949`), la ejecución [40938042934](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40938042934) pasó los nueve trabajos. Era la primera validación real de `Vale`, `lychee` y `mmdc` en el corredor.
+
+**Ensayo.** El PR de ensayo [#18](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/18), en borrador con base en `tkt-009d-calidad-documental`, usa la rama `ensayo/tkt-009d-compuertas`: `8686f6a` (ronda 1) añade a `docs/convenciones.md` las cinco violaciones y `71d54d1` las revierte (ronda de limpieza). Las violaciones nunca se fusionan.
+
+| Ronda | Commit | Ejecución | Resultado |
+|---|---|---|---|
+| 1 · cinco violaciones | `8686f6a` | [40939362032](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40939362032) | `failure`: solo el trabajo `Documentación`; los otros ocho trabajos en verde |
+| Limpieza (revert) | `71d54d1` | [40939383211](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/actions/runs/40939383211) | `success`: los nueve trabajos en verde |
+
+**Pasos del trabajo `Documentación`.**
+
+| Paso | Ronda 1 | Limpieza |
+|---|---|---|
+| Verificar la documentación | **`failure`** | `success` |
+| Markdown con markdownlint-cli2 | **`failure`** | `success` |
+| Prosa con Vale | **`failure`** | `success` |
+| Enlaces con lychee | **`failure`** | `success` |
+| Instalar mermaid-cli | `success` | `success` |
+| Diagramas con mermaid-cli | **`failure`** | `success` |
+
+**Extractos de la ronda 1, cada violación en su paso:**
+
+```text
+Verificar la documentación:
+  ✗ Enlace roto · docs/convenciones.md → no-existe-ensayo.md
+markdownlint-cli2:
+  docs/convenciones.md:404 error MD040/fenced-code-language Fenced code blocks should have a language specified
+Vale:
+  docs/convenciones.md:400:54:Cimenta.Vocabulario:Usa 'tablaroca' en lugar de 'tablaroka' (glosario).
+lychee (2 errores):
+  [ERROR] docs/no-existe-ensayo.md (at 396:26) | File not found
+  [404] https://github.com/FranciscoRodSilva/enlace-roto-cimenta-ensayo-009d (at 398:25) | Rejected status code: 404 Not Found
+mermaid-cli:
+  Error: Parse error on line 2 (flowchart TD, A -> B), con la anotación ::error del archivo
+```
+
+Los registros de ambas ejecuciones no contienen `ghp_` ni `github_pat_`. El detector semanal `enlaces.yml` no se puede lanzar hasta que llegue a la rama por omisión; su definición la fijan las pruebas TC-64 y su configuración es la del PR, que acaba de funcionar. La primera ejecución manual con `gh workflow run enlaces.yml` tras la fusión se anota en `delta.md`.
 
 ## Modelo por paso
 

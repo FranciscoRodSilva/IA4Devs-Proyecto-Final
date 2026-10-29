@@ -296,7 +296,7 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 | D3 | Limpieza automática: `markdownlint-cli2 --fix` sobre el alcance, en un commit propio que no contiene otro cambio, después de fusionadas las partes a, c y b | TC-69 (parcial) | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con el mismo número de escenarios y de puntos; `git diff -U0 -- docs/04-historias-usuario.md` sin ninguna línea `**Escenario N:` cambiada (si aparece, se revierte a mano); `git diff --stat` en `impl.md` | ✓ Hecho |
 | D4 | Limpieza manual de lo que queda, un commit por herramienta | TC-69 | `ingeniero-devsecops` | `haiku` | `markdownlint-cli2`, `vale --output=line` y `lychee` sobre el alcance, con cero hallazgos | ✓ Hecho |
 | D5 | Pasos nuevos del trabajo `documentacion`, `.github/workflows/enlaces.yml` y sus casos en `test_definicion_ci.py` | TC-64, TC-65 | `ingeniero-devsecops` | `haiku` | TC-64 y TC-65 en verde; `zizmor` en 0 | ✓ Hecho |
-| D6 | Ensayo en el pipeline de la parte d | TC-62, TC-63, TC-66, TC-67, TC-68 | `git-entrega` | `haiku` | Cada violación pone el trabajo en rojo citando archivo y línea; ronda de limpieza en verde | Pendiente |
+| D6 | Ensayo en el pipeline de la parte d | TC-62, TC-63, TC-66, TC-67, TC-68 | `git-entrega` | `haiku` | Cada violación pone el trabajo en rojo citando archivo y línea; ronda de limpieza en verde | ✓ Hecho |
 | D7 | Documentación, marcas y ADR de `Vale` en español | TC-70d | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 y el trabajo `documentacion` en verde | ✓ Hecho |
 
 **Cierre de cada parte:** el PR de la parte corre el pipeline completo en verde sobre su árbol, sin la rama de ensayo, y `impl.md` enlaza esa ejecución.
