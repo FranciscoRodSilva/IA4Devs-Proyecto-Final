@@ -280,12 +280,12 @@ Estados de la tabla: A0 a A2 y A4 a A8 quedan `✓ Hecho`. A3 queda `⚠ Ajustad
 
 | # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
 |---|---|---|---|---|---|---|
-| C1 | `tools/tests/test_verificar_escenarios.py` con una función que construye en un directorio temporal un `docs/04-historias-usuario.md` de ejemplo (tabla «El conjunto» con fases `1`, `1+2` y `2`, y tres historias), un `historias_activas.txt` y archivos de test. Todos en rojo. Después, `leer_historias` y `leer_activas` | TC-44, TC-45, TC-46, TC-47, TC-48, TC-49, TC-55 | `ingeniero-devsecops` | `haiku` | `python -m unittest tools.tests.test_verificar_escenarios -v`: esos casos en verde, los demás aún en rojo | Pendiente |
-| C2 | `recolectar_tests` y `clasificar` | TC-40, TC-41, TC-42, TC-43, TC-50, TC-51, TC-52 | `ingeniero-devsecops` | `haiku` | Los casos de la fila en verde | Pendiente |
-| C3 | `main` con `--raiz` y `--activas-base`, y la salida con sus etiquetas | TC-53, TC-54 y el resto | `ingeniero-devsecops` | `haiku` | Toda la clase en verde; `python tools/verificar_escenarios.py` sobre el árbol real, con `tools/historias_activas.txt` aún inexistente, termina en 2 | Pendiente |
-| C4 | `tools/historias_activas.txt` real, paso del verificador en el trabajo `herramientas` y su caso en `test_definicion_ci.py` | TC-56, TC-57 | `ingeniero-devsecops` | `haiku` | Sobre el árbol real termina en 0 con «pendientes 162», «exigidos 0» y los tests de fundación contados; TC-57 en verde | Pendiente |
-| C5 | Ensayo en el pipeline de la parte c | TC-58 | `git-entrega` | `haiku` | Con `HDU-001` añadida a la lista en la rama de ensayo, el trabajo `herramientas` termina en rojo y lista sus 27 escenarios como `FALTA` | Pendiente |
-| C6 | Documentación, la marca de `CLAUDE.md:78`, las prosas de retiro de HDU-006 y TKT-069 y ADR (ver «Documentación afectada») | TC-70c | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con 162 escenarios y el mismo conteo de HDU-006; búsqueda de TC-70c sin coincidencias | Pendiente |
+| C1 | `tools/tests/test_verificar_escenarios.py` con una función que construye en un directorio temporal un `docs/04-historias-usuario.md` de ejemplo (tabla «El conjunto» con fases `1`, `1+2` y `2`, y tres historias), un `historias_activas.txt` y archivos de test. Todos en rojo. Después, `leer_historias` y `leer_activas` | TC-44, TC-45, TC-46, TC-47, TC-48, TC-49, TC-55 | `ingeniero-devsecops` | `haiku` | `python -m unittest tools.tests.test_verificar_escenarios -v`: esos casos en verde, los demás aún en rojo | ✓ Hecho |
+| C2 | `recolectar_tests` y `clasificar` | TC-40, TC-41, TC-42, TC-43, TC-50, TC-51, TC-52 | `ingeniero-devsecops` | `haiku` | Los casos de la fila en verde | ✓ Hecho |
+| C3 | `main` con `--raiz` y `--activas-base`, y la salida con sus etiquetas | TC-53, TC-54 y el resto | `ingeniero-devsecops` | `haiku` | Toda la clase en verde; `python tools/verificar_escenarios.py` sobre el árbol real, con `tools/historias_activas.txt` aún inexistente, termina en 2 | ✓ Hecho |
+| C4 | `tools/historias_activas.txt` real, paso del verificador en el trabajo `herramientas` y su caso en `test_definicion_ci.py` | TC-56, TC-57 | `ingeniero-devsecops` | `haiku` | Sobre el árbol real termina en 0 con «pendientes 162», «exigidos 0» y los tests de fundación contados; TC-57 en verde | ✓ Hecho |
+| C5 | Ensayo en el pipeline de la parte c | TC-58 | `git-entrega` | `haiku` | Con `HDU-001` añadida a la lista en la rama de ensayo, el trabajo `herramientas` termina en rojo y lista sus 27 escenarios como `FALTA` | ⚠ Ajustado |
+| C6 | Documentación, la marca de `CLAUDE.md:78`, las prosas de retiro de HDU-006 y TKT-069 y ADR (ver «Documentación afectada») | TC-70c | `ingeniero-devsecops` | `haiku` | `verificar_docs.py` en 0 con 162 escenarios y el mismo conteo de HDU-006; búsqueda de TC-70c sin coincidencias | ✓ Hecho |
 
 ### Parte d · Calidad documental
 
@@ -380,7 +380,7 @@ Los casos «estáticos» viven en `tools/tests/test_definicion_ci.py` y leen el 
 | TC-55 | Línea inválida o historia inexistente en la lista: código 2 | **rechazo** | `CA-6` | — |
 | TC-56 | Sobre el árbol real: código 0, 162 pendientes | feliz | `CA-7` | esc. 1 |
 | TC-57 | El trabajo `herramientas` ejecuta el verificador y le pasa la base del PR por `env` | estático | `CA-6` | esc. 1 |
-| TC-58 | Ensayo: HDU-001 activa, `herramientas` en rojo con 26 `FALTA` | **rechazo** | `CA-6` | esc. 1 |
+| TC-58 | Ensayo: HDU-001 activa, `herramientas` en rojo con 27 `FALTA` | **rechazo** | `CA-6` | esc. 1 |
 | TC-60 | `Vale` local sobre «tablaroka»: aviso con línea y código 0 | feliz | `CA-13` | esc. 2 |
 | TC-61 | `Vale` sobre los ocho términos del glosario: cero alertas | **rechazo** (de falso error) | `CA-13` | esc. 4 |
 | TC-62 | Ensayo: «tablaroka», `documentacion` en rojo con archivo y línea | **rechazo** | `CA-13` | esc. 3 |

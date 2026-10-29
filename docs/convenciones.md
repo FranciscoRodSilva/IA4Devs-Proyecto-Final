@@ -326,7 +326,7 @@ Si el código sin tests es deuda técnica, la documentación sin validación es 
 | **Fronteras entre módulos** | `import-linter` | Un módulo que importa el dominio o la infraestructura de otro |
 | **Consistencia de la documentación** | [`tools/verificar_docs.py`](../tools/README.md) | Enlaces y anclas rotos, identificadores inexistentes, conteos descuadrados |
 | **Diagramas** | [`tools/extraer_mermaid.py`](../tools/README.md) | Un diagrama Mermaid con sintaxis inválida |
-| **Escenarios sin test** | Verificador propio | Un escenario de la especificación que ningún test cubre |
+| **Escenarios sin test** | [`tools/verificar_escenarios.py`](../tools/verificar_escenarios.py) | Un escenario de la especificación que ningún test cubre |
 
 Dos ajustes de criterio:
 

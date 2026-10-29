@@ -1546,6 +1546,24 @@ PASO_GUARDA = (
     '          ! grep -q "skipped=" "$RUNNER_TEMP/tools.txt"\n'
 )
 
+# Fila C4 (parte c): el verificador de escenarios, tras la guarda de saltos. Sin tubería, así que sin `shell: bash`; la base
+# del PR entra por `env:` y nunca por `${{ }}` dentro de `run:`. Lleva `if: ${{ !cancelled() }}` para que corra aunque fallen las
+# pruebas de tools/ o la guarda de saltos: si no, otra compuerta taparía a esta (regla común 6 del diseño).
+IF_DEL_VERIFICADOR = "        if: ${{ !cancelled() }}\n"
+PASO_ESCENARIOS = (
+    "      - name: Verificar que cada escenario exigido tenga su test\n"
+    + IF_DEL_VERIFICADOR
+    + "        env:\n"
+    "          BASE: ${{ github.event.pull_request.base.sha }}\n"
+    "        run: |\n"
+    "          argumentos=()\n"
+    '          if git cat-file -e "$BASE:tools/historias_activas.txt"; then\n'
+    '            git show "$BASE:tools/historias_activas.txt" > "$RUNNER_TEMP/activas_base.txt"\n'
+    '            argumentos=(--activas-base "$RUNNER_TEMP/activas_base.txt")\n'
+    "          fi\n"
+    '          python3 tools/verificar_escenarios.py "${argumentos[@]}"\n'
+)
+
 HERRAMIENTAS_SINTETICO = (
     "  herramientas:\n"
     "    name: Herramientas · pruebas de tools/\n"
@@ -1557,6 +1575,7 @@ HERRAMIENTAS_SINTETICO = (
     + PASO_SINCRONIZAR_HERRAMIENTAS
     + PASO_TOOLS
     + PASO_GUARDA
+    + PASO_ESCENARIOS
 )
 
 PASO_ZIZMOR = "      - name: Auditar los workflows\n        run: uvx zizmor@1.14.2 --offline .github/workflows\n"
@@ -2302,6 +2321,247 @@ class SaltosSinUv(unittest.TestCase):
         self.assertEqual(codigo, 0, salida)
         self.assertIn("skipped=", salida)
         self.assertEqual(guarda_de_saltos(salida), 1)
+
+
+# =========================================================================================================
+# Fila C4 · el verificador de escenarios en el trabajo `herramientas` (TC-57)
+# =========================================================================================================
+
+VERIFICADOR_DE_ESCENARIOS = r"\bpython3 tools/verificar_escenarios\.py(?![\w.])"
+ENV_DE_LA_BASE = re.compile(r"^BASE:\s*\$\{\{\s*github\.event\.pull_request\.base\.sha\s*\}\}\s*$", flags=re.MULTILINE)
+EXISTE_EN_LA_BASE = re.compile(r"""\bgit cat-file -e "\$BASE:tools/historias_activas\.txt"(?![\w./-])""")
+VUELCA_LA_BASE = re.compile(r"""\bgit show "\$BASE:tools/historias_activas\.txt"\s*>\s*"?\$RUNNER_TEMP/activas_base\.txt"?(?![\w./-])""")
+PASA_LA_BASE = re.compile(r"""--activas-base[ =]+"?\$RUNNER_TEMP/activas_base\.txt"?(?![\w./-])""")
+
+
+def comprobar_tc57(trabajos: dict[str, list[str]]) -> list[str]:
+    """CA-6 esc. 1 · TC-57 (fila C4). El trabajo `herramientas` ejecuta `python3 tools/verificar_escenarios.py` después de la
+    guarda de saltos, desde la raíz. La base del PR entra por `env: BASE: ${{ github.event.pull_request.base.sha }}` (un `${{ }}`
+    en `run:` sería inyección de plantillas, regla común 8); si la base tenía `tools/historias_activas.txt`
+    (`git cat-file -e "$BASE:..."`), `git show` la vuelca a `$RUNNER_TEMP/activas_base.txt` y se pasa con `--activas-base`. Con
+    una tubería, el paso declara `shell: bash` (regla común 9)."""
+    secuencia, posiciones = comprobar_secuencia(
+        "herramientas",
+        trabajos,
+        [
+            ("guarda ! grep -q \"skipped=\"", GUARDA_DE_SALTOS, None),
+            ("python3 tools/verificar_escenarios.py", VERIFICADOR_DE_ESCENARIOS, None),
+        ],
+    )
+    problemas = list(secuencia)
+    posicion = posiciones.get("python3 tools/verificar_escenarios.py")
+    if "herramientas" not in trabajos or posicion is None:
+        return problemas
+    bloque = trabajos["herramientas"]
+    paso = pasos(bloque)[posicion[0]]
+    orden = comando(paso)
+    if not _en_la_raiz(bloque, paso):
+        problemas.append("'herramientas': python3 tools/verificar_escenarios.py se ejecuta desde la raíz del repositorio")
+    if _expresion_de_if(valor_del_paso(paso, "if")) != "${{!cancelled()}}":
+        problemas.append(
+            "'herramientas': el paso del verificador de escenarios no declara `if: ${{ !cancelled() }}` (exacto: ni `always()` ni sin `if`); "
+            "si fallan las pruebas de tools/ o la guarda de saltos no correría y esa compuerta quedaría tapada"
+        )
+    if not ENV_DE_LA_BASE.search(valor_del_paso(paso, "env") or ""):
+        problemas.append(
+            "'herramientas': el paso del verificador de escenarios no declara en env: BASE: ${{ github.event.pull_request.base.sha }}"
+        )
+    if "${{" in orden:
+        problemas.append(
+            "'herramientas': el paso del verificador de escenarios interpola ${{ }} dentro de run:; el valor entra por env: (inyección de plantillas)"
+        )
+    cat_file = EXISTE_EN_LA_BASE.search(orden)
+    volcado = VUELCA_LA_BASE.search(orden)
+    llamada = re.search(VERIFICADOR_DE_ESCENARIOS, orden)
+    if cat_file is None:
+        problemas.append('\'herramientas\': el paso del verificador de escenarios no comprueba con git cat-file -e "$BASE:tools/historias_activas.txt"')
+    if volcado is None:
+        problemas.append(
+            '\'herramientas\': el paso del verificador de escenarios no vuelca con git show "$BASE:tools/historias_activas.txt" '
+            'a "$RUNNER_TEMP/activas_base.txt"'
+        )
+    if cat_file is not None and volcado is not None and cat_file.start() > volcado.start():
+        problemas.append("'herramientas': git cat-file -e debe ir antes que git show (la base puede no tener el archivo)")
+    if volcado is not None and llamada is not None and volcado.start() > llamada.start():
+        problemas.append("'herramientas': git show debe volcar la base antes de ejecutar el verificador")
+    if not PASA_LA_BASE.search(orden):
+        problemas.append(
+            '\'herramientas\': el paso del verificador de escenarios no pasa --activas-base "$RUNNER_TEMP/activas_base.txt"'
+        )
+    if _tiene_tuberia(orden) and (valor_del_paso(paso, "shell") or "").strip("\"'") != "bash":
+        problemas.append("'herramientas': el paso del verificador de escenarios usa una tubería sin `shell: bash`")
+    return problemas
+
+
+COMPROBACIONES_DE_LA_FILA_C4 = (comprobar_tc57, comprobar_regla_comun_6, comprobar_regla_comun_7, comprobar_regla_comun_8, comprobar_regla_comun_9)
+
+
+class PruebasDeMutantesDeLaFilaC4(unittest.TestCase):
+    """Fila C4: el paso del verificador de escenarios se pone en rojo si se comenta, se mueve, pierde `--activas-base` o
+    interpola la base dentro de `run:`; y las reglas comunes 6, 7, 8 y 9 siguen en verde con el paso en su sitio."""
+
+    def test_c4_mutantes_el_texto_valido_pasa_tc57_y_las_reglas_comunes(self):
+        """Control — la base con el paso nuevo pasa TC-57 y las reglas comunes 6, 7, 8 y 9; sin esto un rojo podría ser del texto base."""
+        trabajos = extraer_trabajos(CI_CON_GUARDAS)
+        self.assertIn(PASO_ESCENARIOS, CI_CON_GUARDAS, "la base sintética debe llevar el paso nuevo")
+        for comprobacion in COMPROBACIONES_DE_LA_FILA_C4:
+            with self.subTest(comprobacion=comprobacion.__name__):
+                self.assertEqual(comprobacion(trabajos), [])
+        self.assertEqual(comprobar_tc23(trabajos), [], "añadir el paso no debe romper TC-23")
+
+    def test_c4_mutantes_tc57_el_paso_comentado_o_en_otro_trabajo_no_cuenta(self):
+        """CA-6 esc. 1 · TC-57 — comentar el paso, llevarlo a otro trabajo o anteponerlo a la guarda deja el caso en rojo."""
+        casos = {
+            "paso comentado": comentar(CI_A4, "herramientas", PASO_ESCENARIOS),
+            "paso movido a documentacion": mover(CI_A4, "herramientas", "documentacion", PASO_ESCENARIOS, PASO_CHECKOUT_SIMPLE),
+            "paso movido a workflows": mover(CI_A4, "herramientas", "workflows", PASO_ESCENARIOS, PASO_SETUP_UV),
+            "paso movido a backend": mover(CI_A4, "herramientas", "backend", PASO_ESCENARIOS, "      - run: uv run mypy .\n"),
+            "paso antes de la guarda": mutar(CI_A4, "herramientas", PASO_GUARDA + PASO_ESCENARIOS, PASO_ESCENARIOS + PASO_GUARDA),
+            "paso antes de las pruebas": mutar(CI_A4, "herramientas", PASO_TOOLS + PASO_GUARDA + PASO_ESCENARIOS, PASO_ESCENARIOS + PASO_TOOLS + PASO_GUARDA),
+            "el comando solo en un name": mutar(
+                CI_A4,
+                "herramientas",
+                PASO_ESCENARIOS,
+                "      - name: python3 tools/verificar_escenarios.py\n        run: echo omitido\n",
+            ),
+            "python en lugar de python3": mutar(CI_A4, "herramientas", "          python3 tools/verificar_escenarios.py", "          python tools/verificar_escenarios.py"),
+            "otro script": mutar(CI_A4, "herramientas", "tools/verificar_escenarios.py", "tools/verificar_docs.py"),
+            "trabajo ausente": sustituir(CI_A4, "\n  herramientas:\n", "\n  utilidades:\n"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc57, casos, "verificar_escenarios", fragmentos={"trabajo ausente": "no existe el trabajo"})
+
+    def test_c4_mutantes_tc57_el_verificador_corre_aunque_fallen_las_pruebas_y_la_guarda(self):
+        """CA-6 esc. 1 · TC-57 y regla común 6 — sin `if: ${{ !cancelled() }}` exacto en el paso, un fallo previo en `herramientas` lo salta y tapa la compuerta."""
+        casos = {
+            "sin if": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, ""),
+            "if: always()": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        if: always()\n"),
+            "if: ${{ always() }}": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        if: ${{ always() }}\n"),
+            "if comentado": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        # if: ${{ !cancelled() }}\n"),
+            "if: success()": mutar(CI_A4, "herramientas", IF_DEL_VERIFICADOR, "        if: ${{ success() }}\n"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc57, casos, "no declara `if: ${{ !cancelled() }}`")
+        # Con `!cancelled()` el paso sigue siendo válido para las reglas comunes 7 y 9.
+        for comprobacion in (comprobar_regla_comun_7, comprobar_regla_comun_9):
+            self.assertEqual(comprobacion(extraer_trabajos(CI_A4)), [])
+
+    def test_c4_mutantes_tc57_sin_activas_base_el_historial_no_se_compara(self):
+        """CA-6 esc. 1 · TC-57 — sin `--activas-base` una historia podría salir de la lista sin que nadie lo vea."""
+        casos = {
+            "sin --activas-base": mutar(CI_A4, "herramientas", '--activas-base "$RUNNER_TEMP/activas_base.txt"', ""),
+            "--activas-base lee otro archivo": mutar(CI_A4, "herramientas", '--activas-base "$RUNNER_TEMP/activas_base.txt"', '--activas-base "$RUNNER_TEMP/otro.txt"'),
+            "--activas-base comentado": mutar(
+                CI_A4,
+                "herramientas",
+                '          argumentos=(--activas-base "$RUNNER_TEMP/activas_base.txt")\n',
+                '          # argumentos=(--activas-base "$RUNNER_TEMP/activas_base.txt")\n',
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc57, casos, "--activas-base")
+
+    def test_c4_mutantes_tc57_la_base_del_pr_se_comprueba_y_se_vuelca(self):
+        """CA-6 esc. 1 · TC-57 — sin `git cat-file -e` o sin `git show`, o en otro orden, el archivo de la base no llega al verificador."""
+        casos = {
+            "sin git cat-file": (
+                mutar(CI_A4, "herramientas", 'if git cat-file -e "$BASE:tools/historias_activas.txt"; then', "if true; then"),
+                "git cat-file -e",
+            ),
+            "git cat-file sobre otra ruta": (
+                mutar(CI_A4, "herramientas", 'git cat-file -e "$BASE:tools/historias_activas.txt"', 'git cat-file -e "$BASE:docs/04-historias-usuario.md"'),
+                "git cat-file -e",
+            ),
+            "sin git show": (
+                mutar(
+                    CI_A4,
+                    "herramientas",
+                    '            git show "$BASE:tools/historias_activas.txt" > "$RUNNER_TEMP/activas_base.txt"\n',
+                    "            :\n",
+                ),
+                "git show",
+            ),
+            "git show vuelca a otro archivo": (
+                mutar(CI_A4, "herramientas", 'git show "$BASE:tools/historias_activas.txt" > "$RUNNER_TEMP/activas_base.txt"', 'git show "$BASE:tools/historias_activas.txt" > "$RUNNER_TEMP/otro.txt"'),
+                "git show",
+            ),
+            "git show antes que git cat-file": (
+                mutar(
+                    CI_A4,
+                    "herramientas",
+                    '          if git cat-file -e "$BASE:tools/historias_activas.txt"; then\n'
+                    '            git show "$BASE:tools/historias_activas.txt" > "$RUNNER_TEMP/activas_base.txt"\n',
+                    '          git show "$BASE:tools/historias_activas.txt" > "$RUNNER_TEMP/activas_base.txt"\n'
+                    '          if git cat-file -e "$BASE:tools/historias_activas.txt"; then\n',
+                ),
+                "git cat-file -e debe ir antes que git show",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc57, casos)
+
+    def test_c4_mutantes_tc57_la_base_entra_por_env_y_no_por_run(self):
+        """CA-6 esc. 1 · TC-57 y regla común 8 — `BASE` interpolado dentro de `run:`, o sin `env:`, deja el caso en rojo."""
+        interpolado = mutar(
+            CI_A4,
+            "herramientas",
+            'git cat-file -e "$BASE:tools/historias_activas.txt"',
+            'git cat-file -e "${{ github.event.pull_request.base.sha }}:tools/historias_activas.txt"',
+        )
+        casos = {
+            "BASE interpolado dentro de run": (interpolado, "interpola ${{ }} dentro de run:"),
+            "sin env BASE": (
+                mutar(CI_A4, "herramientas", "        env:\n          BASE: ${{ github.event.pull_request.base.sha }}\n", ""),
+                "no declara en env: BASE",
+            ),
+            "env BASE de otra expresión": (
+                mutar(CI_A4, "herramientas", "BASE: ${{ github.event.pull_request.base.sha }}", "BASE: ${{ github.sha }}"),
+                "no declara en env: BASE",
+            ),
+            "env BASE de la cabeza del PR": (
+                mutar(CI_A4, "herramientas", "pull_request.base.sha", "pull_request.head.sha"),
+                "no declara en env: BASE",
+            ),
+            "env con otro nombre": (mutar(CI_A4, "herramientas", "          BASE:", "          RAMA_BASE:"), "no declara en env: BASE"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc57, casos)
+        # La regla común 8 también lo ve: no depende de TC-57 para impedir la inyección.
+        self.assertTrue(any("interpola" in p for p in comprobar_regla_comun_8(extraer_trabajos(interpolado))))
+
+    def test_c4_mutantes_tc57_con_tuberia_el_paso_declara_shell_bash(self):
+        """Regla común 9 — si el paso del verificador usa una tubería, sin `shell: bash` no hay pipefail."""
+        con_tuberia = mutar(
+            CI_A4,
+            "herramientas",
+            '"${argumentos[@]}"\n',
+            '"${argumentos[@]}" | tee "$RUNNER_TEMP/escenarios.txt"\n',
+        )
+        con_shell = mutar(con_tuberia, "herramientas", "      - name: Verificar que cada escenario exigido tenga su test\n", "      - name: Verificar que cada escenario exigido tenga su test\n        shell: bash\n")
+        sin_shell = extraer_trabajos(con_tuberia)
+        self.assertTrue(any("tubería sin `shell: bash`" in p for p in comprobar_tc57(sin_shell)), comprobar_tc57(sin_shell))
+        self.assertTrue(any("tubería sin `shell: bash`" in p for p in comprobar_regla_comun_9(sin_shell)))
+        self.assertEqual(comprobar_tc57(extraer_trabajos(con_shell)), [])
+        self.assertEqual(comprobar_regla_comun_9(extraer_trabajos(con_shell)), [])
+
+    def test_c4_mutantes_las_reglas_comunes_siguen_viendo_las_compuertas_con_el_paso_nuevo(self):
+        """Reglas comunes 6 y 7 — añadir el paso no apaga ninguna compuerta ni deja de detectar un `continue-on-error` en él."""
+        con_continue = mutar(CI_CON_GUARDAS, "herramientas", "        env:\n", "        continue-on-error: true\n        env:\n")
+        con_or_true = mutar(CI_CON_GUARDAS, "herramientas", '"${argumentos[@]}"\n', '"${argumentos[@]}" || true\n')
+        for descripcion, texto in (("continue-on-error en el paso", con_continue), ("|| true en el paso", con_or_true)):
+            with self.subTest(mutante=descripcion):
+                self.assertNotEqual(comprobar_regla_comun_7(extraer_trabajos(texto)), [])
+
+
+class DefinicionDeCIFilaC4(unittest.TestCase):
+    """Fila C4 sobre el `ci.yml` real. Sin el paso en `herramientas`, falla; no se salta."""
+
+    def test_tc57_herramientas_ejecuta_el_verificador_de_escenarios_con_la_base_del_pr_por_env(self):
+        """CA-6 esc. 1 · TC-57 — tras la guarda de saltos: `env: BASE`, `git cat-file -e`, `git show` a `$RUNNER_TEMP/activas_base.txt`, `--activas-base` y `python3 tools/verificar_escenarios.py`."""
+        self.assertEqual(comprobar_tc57(_trabajos_de_ci(self)), [])
+
+    def test_tc57_las_reglas_comunes_6_7_8_y_9_siguen_en_verde_con_el_paso_nuevo(self):
+        """Reglas comunes 6 a 9 — el paso nuevo no interpola en `run:`, no enmascara el fallo y declara `shell: bash` si usa tubería."""
+        trabajos = _trabajos_de_ci(self)
+        self.assertIn("python3 tools/verificar_escenarios.py", "\n".join(comando(p) for p in pasos(trabajos.get("herramientas", []))))
+        for comprobacion in (comprobar_regla_comun_6, comprobar_regla_comun_7, comprobar_regla_comun_8, comprobar_regla_comun_9):
+            with self.subTest(comprobacion=comprobacion.__name__):
+                self.assertEqual(comprobacion(trabajos), [])
 
 
 if __name__ == "__main__":
