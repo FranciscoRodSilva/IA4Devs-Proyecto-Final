@@ -10,6 +10,8 @@ Qué cubren:
 * Fila A3, trabajo `humo`: TC-08.
 * Fila A4, trabajos `herramientas`, `workflows` y `documentacion`: TC-23, TC-21, TC-22 y TC-R4b, más el soporte de
   TC-20 y TC-24 (el trabajo `workflows` con zizmor de versión fija).
+* Fila B3, trabajo `dependencias`: TC-14 (`pip-audit` con hashes, el filtro de severidad y `npm audit`), con la única
+  excepción de `|| true` que admite la regla común 7.
 * Rechazos estáticos: TC-R1a (ni SQLite ni `create_all()`) y TC-13 (ni `workflow_run` ni `needs` ajeno).
 * Reglas comunes del diseño: 1 (corredor y tiempo máximo), 6 (cada paso de comprobación de `backend` y `frontend`
   lleva `if: ${{ !cancelled() }}`), 7 (ninguna compuerta se desactiva: sin `continue-on-error`, sin un `if:` que
@@ -1310,6 +1312,15 @@ def comprobar_regla_comun_8(trabajos: dict[str, list[str]]) -> list[str]:
 IF_QUE_NO_APAGA = ("${{!cancelled()}}", "!cancelled()", "${{always()}}", "always()", "${{failure()}}", "failure()")
 IF_DE_LAS_COMPUERTAS = ("${{!cancelled()}}", "!cancelled()")
 ENMASCARA_EL_FALLO = re.compile(r"\|\|\s*(?:true\b|:(?!\w)|exit\s+0\b)")
+# Única excepción a la regla común 7 (diseño, parte b): `pip-audit` termina en 1 cuando encuentra una vulnerabilidad, y quien
+# decide si falla el pipeline es `tools/severidad_pip_audit.py`. Su `|| true` solo se tolera en el trabajo `dependencias` y solo
+# al final de la propia orden de `uv run pip-audit`; cualquier otro `|| true` de ese trabajo, y todos los de los demás, se rechazan.
+TOLERANCIA_DE_PIP_AUDIT = re.compile(r"(\buv run pip-audit\b(?:[^\n|&;\\]|\\\n)*?)\s*\|\|\s*true\b")
+
+
+def _sin_la_tolerancia_de_pip_audit(id_trabajo: str, orden: str) -> str:
+    """La orden sin el `|| true` de `uv run pip-audit`, pero solo en el trabajo `dependencias`."""
+    return TOLERANCIA_DE_PIP_AUDIT.sub(r"\1", orden) if id_trabajo == "dependencias" else orden
 ES_COMPROBACION = re.compile(r"\b(?:uv run|npm run|npm test|python3 tools/verificar_docs\.py)(?![\w.])")
 ENCUENTRA_PYTEST = re.compile(r"(?:^|[\s;&|])pytest(?![\w.:/-])")
 FIN_DE_LA_ORDEN = re.compile(r"\n|&&|\|\||;|\|")
@@ -1332,7 +1343,8 @@ def _nombre_del_paso(paso: list[str]) -> str:
 
 def comprobar_regla_comun_7(trabajos: dict[str, list[str]]) -> list[str]:
     """Regla común 7: ninguna compuerta se desactiva sin quitarla. Se rechaza `continue-on-error` (de trabajo o de paso, con
-    cualquier valor), un `if:` distinto de `!cancelled()`, `always()` o `failure()`, y un `|| true` / `|| :` / `|| exit 0` en un `run:`."""
+    cualquier valor), un `if:` distinto de `!cancelled()`, `always()` o `failure()`, y un `|| true` / `|| :` / `|| exit 0` en un `run:`.
+    Única excepción: el `|| true` al final de `uv run pip-audit` en el trabajo `dependencias` (parte b del diseño)."""
     problemas = []
     for id_trabajo, bloque in trabajos.items():
         columna = _columna_del_trabajo(bloque)
@@ -1353,7 +1365,7 @@ def comprobar_regla_comun_7(trabajos: dict[str, list[str]]) -> list[str]:
                     f"'{id_trabajo}': el paso `{_nombre_del_paso(paso)}` tiene `if: {condicion}`, que puede apagarlo; "
                     "solo se admite `!cancelled()`, `always()` o `failure()`"
                 )
-            if ENMASCARA_EL_FALLO.search(_orden_sin_cadenas(comando(paso))):
+            if ENMASCARA_EL_FALLO.search(_sin_la_tolerancia_de_pip_audit(id_trabajo, _orden_sin_cadenas(comando(paso)))):
                 problemas.append(
                     f"'{id_trabajo}': el paso `{_nombre_del_paso(paso)}` enmascara su fallo con `|| true` (o `|| :`, `|| exit 0`)"
                 )
@@ -2562,6 +2574,556 @@ class DefinicionDeCIFilaC4(unittest.TestCase):
         for comprobacion in (comprobar_regla_comun_6, comprobar_regla_comun_7, comprobar_regla_comun_8, comprobar_regla_comun_9):
             with self.subTest(comprobacion=comprobacion.__name__):
                 self.assertEqual(comprobacion(trabajos), [])
+
+
+# =========================================================================================================
+# Fila B3 · el trabajo `dependencias` (TC-14)
+# =========================================================================================================
+
+UV_EXPORT = r"\buv export(?![\w-])"
+PIP_AUDIT = r"\buv run pip-audit(?![\w.-])"
+SEVERIDAD_PIP_AUDIT = r"\bpython3 tools/severidad_pip_audit\.py(?![\w.])"
+NPM_AUDIT = r"\bnpm audit(?![\w:-])"
+UV_EXPORT_Y_SU_ARCHIVO = ("-o", "--output-file")
+PIP_AUDIT_Y_SU_INFORME = ("-o", "--output")
+O_TRUE = re.compile(r"\|\|\s*true\b")
+SIN_CREDENCIALES = re.compile(r"""^persist-credentials:\s*["']?false["']?\s*$""", flags=re.MULTILINE)
+VERSION_DE_NODE = re.compile(r"""^node-version-file:\s*["']?frontend/package\.json["']?\s*$""", flags=re.MULTILINE)
+NIVEL_DE_NPM_AUDIT = re.compile(r"""(?<![\w-])--audit-level(?:=|\s+)["']?([\w-]+)""")
+OMITE_LO_DE_DESARROLLO = re.compile(r"(?<![\w-])(?:--omit(?:=|\s+)\S*dev|--production|--only(?:=|\s+)\S*prod)")
+LEE_SECRETOS = re.compile(r"\bsecrets\b(?=\s*[.\[])")
+
+
+def _invocacion(orden: str, patron: str) -> str:
+    """La línea de la primera orden que casa con `patron`, con las continuaciones `\\` unidas; vacía si no hay."""
+    unida = orden.replace("\\\n", " ")
+    encontrada = re.search(patron, unida)
+    return unida[encontrada.start() :].split("\n")[0] if encontrada else ""
+
+
+def _tiene_opcion(invocacion: str, opcion: str) -> bool:
+    """La opción aparece completa (`--strict` no casa con `--strict-x`) y fuera de las cadenas."""
+    return re.search(rf"(?<![\w-]){re.escape(opcion)}(?![\w-])", _orden_sin_cadenas(invocacion)) is not None
+
+
+def _valor_de_opcion(invocacion: str, opciones: tuple[str, ...]) -> str | None:
+    """El valor, sin comillas, de la primera de las `opciones` que aparezca, escrita `-o valor` o `--output=valor`."""
+    alternativas = "|".join(re.escape(opcion) for opcion in opciones)
+    encontrada = re.search(rf"""(?<![\w-])(?:{alternativas})(?:=|\s+)("[^"]*"|'[^']*'|[^\s|&;]+)""", invocacion)
+    return encontrada.group(1).strip("\"'") if encontrada else None
+
+
+def _informe_que_recibe_el_script(invocacion: str) -> str | None:
+    """El primer argumento que sigue a `python3 tools/severidad_pip_audit.py`, sin comillas."""
+    encontrada = re.search(SEVERIDAD_PIP_AUDIT + r"""\s+("[^"]*"|'[^']*'|[^\s|&;]+)""", invocacion)
+    return encontrada.group(1).strip("\"'") if encontrada else None
+
+
+def comprobar_tc14(trabajos: dict[str, list[str]]) -> list[str]:
+    """RNF-08 · CA-10 esc. 1 · TC-14 (fila B3). El trabajo `dependencias` exporta el lock del backend a un archivo, lo audita con
+    `uv run pip-audit` (`-r`, `--require-hashes`, `--disable-pip`, `--strict`, `-f json` y `|| true`: su código 1 no corta el
+    paso), pasa el informe a `python3 tools/severidad_pip_audit.py` DESPUÉS de pip-audit y, en `frontend/`, ejecuta
+    `npm audit --audit-level=high` sin excluir las dependencias de desarrollo. Los tres pasos de comprobación llevan
+    `if: ${{ !cancelled() }}` (regla común 6); solo pip-audit puede terminar en `|| true`. El trabajo no lee `secrets.`, no
+    declara `continue-on-error`, declara `shell: bash` en todo paso con tubería, usa checkout con `persist-credentials: false`,
+    setup-uv y setup-node con `node-version-file: frontend/package.json`, `runs-on: ubuntu-24.04` y `timeout-minutes: 15`."""
+    if "dependencias" not in trabajos:
+        return ["no existe el trabajo 'dependencias'"]
+    bloque = trabajos["dependencias"]
+    lista = pasos(bloque)
+    problemas = comprobar_regla_comun_1({"dependencias": bloque})
+    previos, i_checkout, i_uv = _comprobar_checkout_y_uv("dependencias", lista, True)
+    problemas += previos
+    if i_checkout is not None and not SIN_CREDENCIALES.search(valor_del_paso(lista[i_checkout], "with") or ""):
+        problemas.append("'dependencias': el checkout debe declarar `persist-credentials: false`")
+    i_node = _indice_de_uses(lista, "actions/setup-node@")
+    if i_node is None:
+        problemas.append("'dependencias': falta actions/setup-node; npm audit necesita Node")
+    elif not VERSION_DE_NODE.search(valor_del_paso(lista[i_node], "with") or ""):
+        problemas.append("'dependencias': setup-node debe declarar `node-version-file: frontend/package.json`")
+
+    secuencia, posiciones = comprobar_secuencia(
+        "dependencias",
+        trabajos,
+        [
+            ("uv export", UV_EXPORT, "backend"),
+            ("uv run pip-audit", PIP_AUDIT, "backend"),
+            ("python3 tools/severidad_pip_audit.py", SEVERIDAD_PIP_AUDIT, None),
+            ("npm audit", NPM_AUDIT, "frontend"),
+        ],
+    )
+    problemas += secuencia
+    for etiqueta, posicion in posiciones.items():
+        if i_checkout is not None and posicion[0] < i_checkout:
+            problemas.append(f"'dependencias': «{etiqueta}» va antes del checkout")
+        if i_uv is not None and etiqueta != "npm audit" and posicion[0] < i_uv:
+            problemas.append(f"'dependencias': «{etiqueta}» va antes de setup-uv")
+    if i_node is not None and "npm audit" in posiciones and posiciones["npm audit"][0] < i_node:
+        problemas.append("'dependencias': «npm audit» va antes de setup-node")
+
+    def invocacion(etiqueta: str, patron: str) -> str:
+        return _invocacion(comando(lista[posiciones[etiqueta][0]]), patron)
+
+    archivo_exportado = informe_de_pip_audit = None
+    if "uv export" in posiciones:
+        orden = invocacion("uv export", UV_EXPORT)
+        for opcion in ("--locked", "--all-groups", "--no-emit-project"):
+            if not _tiene_opcion(orden, opcion):
+                problemas.append(f"'dependencias': uv export no lleva {opcion}")
+        if not re.search(r"(?<![\w-])--format(?:=|\s+)requirements\.txt(?![\w.-])", orden):
+            problemas.append("'dependencias': uv export no lleva --format requirements.txt")
+        archivo_exportado = _valor_de_opcion(orden, UV_EXPORT_Y_SU_ARCHIVO)
+        if archivo_exportado is None:
+            problemas.append("'dependencias': uv export no escribe el archivo con -o; pip-audit no tendría qué leer")
+    if "uv run pip-audit" in posiciones:
+        orden = invocacion("uv run pip-audit", PIP_AUDIT)
+        for opcion in ("-r", "--require-hashes", "--disable-pip", "--strict"):
+            if not _tiene_opcion(orden, opcion):
+                problemas.append(f"'dependencias': pip-audit no lleva {opcion}")
+        if not re.search(r"(?<![\w-])(?:-f|--format)(?:=|\s+)json(?![\w-])", _orden_sin_cadenas(orden)):
+            problemas.append("'dependencias': pip-audit no lleva -f json; el script de severidad lee JSON")
+        informe_de_pip_audit = _valor_de_opcion(orden, PIP_AUDIT_Y_SU_INFORME)
+        if informe_de_pip_audit is None:
+            problemas.append("'dependencias': pip-audit no escribe el informe con -o; el script de severidad no tendría qué leer")
+        if not O_TRUE.search(_orden_sin_cadenas(orden)):
+            problemas.append(
+                "'dependencias': pip-audit no termina en `|| true`; su código 1 cortaría el paso antes de que decida el script de severidad"
+            )
+        leido = _valor_de_opcion(orden, ("-r", "--requirement"))
+        if archivo_exportado is not None and leido is not None and leido != archivo_exportado:
+            problemas.append(
+                f"'dependencias': pip-audit lee con -r {leido}, un archivo que uv export no escribe ({archivo_exportado})"
+            )
+    if "python3 tools/severidad_pip_audit.py" in posiciones:
+        etiqueta = "python3 tools/severidad_pip_audit.py"
+        paso = lista[posiciones[etiqueta][0]]
+        orden = invocacion(etiqueta, SEVERIDAD_PIP_AUDIT)
+        if not _en_la_raiz(bloque, paso):
+            problemas.append("'dependencias': python3 tools/severidad_pip_audit.py se ejecuta desde la raíz del repositorio")
+        recibido = _informe_que_recibe_el_script(orden)
+        if recibido is None or (informe_de_pip_audit is not None and recibido != informe_de_pip_audit):
+            problemas.append(
+                f"'dependencias': el script de severidad no recibe el informe que escribe pip-audit con -o ({informe_de_pip_audit!r}); recibe {recibido!r}"
+            )
+        if ENMASCARA_EL_FALLO.search(_orden_sin_cadenas(orden)):
+            problemas.append("'dependencias': el script de severidad enmascara su fallo con `|| true`; es quien hace fallar el pipeline")
+    if "npm audit" in posiciones:
+        orden = invocacion("npm audit", NPM_AUDIT)
+        nivel = NIVEL_DE_NPM_AUDIT.search(orden)
+        if nivel is None:
+            problemas.append("'dependencias': npm audit no lleva --audit-level=high")
+        elif nivel.group(1) != "high":
+            problemas.append(f"'dependencias': npm audit usa --audit-level={nivel.group(1)} y debe ser high")
+        if OMITE_LO_DE_DESARROLLO.search(orden):
+            problemas.append(
+                "'dependencias': npm audit excluye las dependencias de desarrollo (--omit=dev, --production o --only=prod); "
+                "una herramienta vulnerable también bloquea"
+            )
+        if ENMASCARA_EL_FALLO.search(_orden_sin_cadenas(orden)):
+            problemas.append("'dependencias': npm audit enmascara su fallo con `|| true`; un hallazgo alto no pondría el trabajo en rojo")
+
+    for etiqueta in ("uv run pip-audit", "python3 tools/severidad_pip_audit.py", "npm audit"):
+        if etiqueta in posiciones and _expresion_de_if(valor_del_paso(lista[posiciones[etiqueta][0]], "if")) not in IF_DE_LAS_COMPUERTAS:
+            problemas.append(
+                f"'dependencias': el paso de «{etiqueta}» no declara `if: ${{{{ !cancelled() }}}}` (regla común 6); "
+                "tras un fallo anterior no correría y se vería solo el primer fallo"
+            )
+    if any(re.match(r"\s*(?:-\s+)?[\"']?continue-on-error[\"']?\s*:", linea) for linea in bloque):
+        problemas.append("'dependencias': declara `continue-on-error`; una compuerta que no falla está desactivada")
+    if LEE_SECRETOS.search("\n".join(bloque)):
+        problemas.append("'dependencias': lee `secrets.`; ningún workflow del proyecto usa secretos")
+    for paso in lista:
+        if _tiene_tuberia(comando(paso)) and (valor_del_paso(paso, "shell") or "").strip("\"'") != "bash":
+            problemas.append(f"'dependencias': el paso `{_nombre_del_paso(paso)}` usa una tubería sin `shell: bash`")
+    return problemas
+
+
+# --- Texto sintético del trabajo `dependencias` ---------------------------------------------------------------
+
+GUARDA_DE_COMPUERTA = "        if: ${{ !cancelled() }}\n"
+PASO_SETUP_NODE = (
+    "      - uses: actions/setup-node@abc # v7\n"
+    "        with:\n"
+    "          node-version-file: frontend/package.json\n"
+)
+LINEA_UV_EXPORT = (
+    '        run: uv export --locked --all-groups --no-emit-project --format requirements.txt -o "$RUNNER_TEMP/req.txt"\n'
+)
+PASO_UV_EXPORT = "      - name: Exportar el lock del backend\n        working-directory: backend\n" + LINEA_UV_EXPORT
+LINEA_PIP_AUDIT = (
+    '          uv run pip-audit -r "$RUNNER_TEMP/req.txt" --require-hashes --disable-pip --strict -f json '
+    '-o "$RUNNER_TEMP/pip-audit.json" || true\n'
+)
+PASO_PIP_AUDIT = (
+    "      - name: Auditar Python con pip-audit\n"
+    + GUARDA_DE_COMPUERTA
+    + "        working-directory: backend\n"
+    "        run: |\n" + LINEA_PIP_AUDIT
+)
+LINEA_SEVERIDAD = '        run: python3 tools/severidad_pip_audit.py "$RUNNER_TEMP/pip-audit.json"\n'
+PASO_SEVERIDAD = "      - name: Filtrar los hallazgos por severidad\n" + GUARDA_DE_COMPUERTA + LINEA_SEVERIDAD
+LINEA_NPM_AUDIT = "        run: npm audit --audit-level=high\n"
+PASO_NPM_AUDIT = "      - name: Auditar npm\n" + GUARDA_DE_COMPUERTA + "        working-directory: frontend\n" + LINEA_NPM_AUDIT
+
+DEPENDENCIAS_SINTETICO = (
+    "  dependencias:\n"
+    "    name: Dependencias · pip-audit y npm audit\n"
+    "    runs-on: ubuntu-24.04\n"
+    "    timeout-minutes: 15\n"
+    "    steps:\n"
+    + PASO_CHECKOUT_SIMPLE
+    + PASO_SETUP_UV
+    + PASO_SETUP_NODE
+    + PASO_UV_EXPORT
+    + PASO_PIP_AUDIT
+    + PASO_SEVERIDAD
+    + PASO_NPM_AUDIT
+)
+
+CI_B3 = CI_CON_GUARDAS + DEPENDENCIAS_SINTETICO
+
+COMPROBACIONES_DE_LA_FILA_B3 = (
+    comprobar_tc14,
+    comprobar_regla_comun_1,
+    comprobar_regla_comun_6,
+    comprobar_regla_comun_7,
+    comprobar_regla_comun_8,
+    comprobar_regla_comun_9,
+)
+
+
+def con_linea(base: str, viejo: str, nuevo: str) -> str:
+    """`CI_B3` con `viejo` cambiado por `nuevo` dentro de la línea `base` del trabajo `dependencias`. Falla si `viejo` no está en `base`."""
+    if viejo not in base:
+        raise AssertionError(f"el mutante no es aplicable: {viejo!r} no está en {base!r}")
+    return mutar(CI_B3, "dependencias", base, base.replace(viejo, nuevo))
+
+
+def con_paso(paso: str, nuevo: str) -> str:
+    """`CI_B3` con el `paso` de `dependencias` sustituido por `nuevo`."""
+    return mutar(CI_B3, "dependencias", paso, nuevo)
+
+
+class PruebasDeMutantesDeLaFilaB3(unittest.TestCase):
+    """Fila B3: cada compuerta de `dependencias` se pone en rojo si se comenta, se mueve de trabajo, se reordena o se desvía.
+    Las pruebas de este grupo trabajan sobre texto sintético: su verde es el de la comprobación, no el de `ci.yml`."""
+
+    def test_tc14_mutantes_el_texto_valido_pasa_el_caso_y_todas_las_reglas_comunes(self):
+        """RNF-08 · CA-10 esc. 1 — control: la base con `dependencias` pasa TC-14 y las reglas comunes; sin esto un rojo podría ser del texto base."""
+        trabajos = extraer_trabajos(CI_B3)
+        self.assertIn("dependencias", trabajos)
+        for comprobacion in COMPROBACIONES_DE_LA_FILA_B3 + COMPROBACIONES_DE_TRABAJO + (comprobar_tc08, comprobar_tc57) + COMPROBACIONES_A4:
+            with self.subTest(comprobacion=comprobacion.__name__):
+                self.assertEqual(comprobacion(trabajos), [])
+
+    def test_tc14_mutantes_formas_equivalentes_validas_siguen_en_verde(self):
+        """RNF-08 · CA-10 esc. 1 — continuaciones de línea, otro orden de opciones, `--ignore-vuln` con su comentario, `--audit-level high` y pasos de más no rompen el caso."""
+        continuada = (
+            "          uv run pip-audit \\\n"
+            '            -o "$RUNNER_TEMP/pip-audit.json" -f json --strict \\\n'
+            '            --disable-pip --require-hashes -r "$RUNNER_TEMP/req.txt" \\\n'
+            "            --ignore-vuln GHSA-xxxx-xxxx-xxxx \\\n"
+            "            || true\n"
+        )
+        validos = {
+            "pip-audit con continuaciones, otro orden y --ignore-vuln": con_paso(
+                PASO_PIP_AUDIT, PASO_PIP_AUDIT.replace(LINEA_PIP_AUDIT, "          # excepción decidida por la dirección técnica\n" + continuada)
+            ),
+            "uv export con --output-file": con_linea(LINEA_UV_EXPORT, "-o ", "--output-file "),
+            "pip-audit con --output y --format": con_linea(LINEA_PIP_AUDIT, "-f json", "--format json").replace(
+                '-o "$RUNNER_TEMP/pip-audit.json"', '--output "$RUNNER_TEMP/pip-audit.json"'
+            ),
+            "npm audit con el nivel separado por espacio": con_linea(LINEA_NPM_AUDIT, "--audit-level=high", "--audit-level high"),
+            "npm audit con --json además": con_linea(LINEA_NPM_AUDIT, "--audit-level=high", "--audit-level=high --json"),
+            "un paso de más entre pip-audit y el script": mutar(
+                CI_B3, "dependencias", PASO_SEVERIDAD, "      - run: echo intermedio\n" + PASO_SEVERIDAD
+            ),
+            "if: ${{ !cancelled() }} entre comillas": con_paso(PASO_NPM_AUDIT, PASO_NPM_AUDIT.replace("${{ !cancelled() }}", '"${{ !cancelled() }}"')),
+            "tubería con shell: bash": con_paso(
+                PASO_SEVERIDAD,
+                "      - name: Filtrar los hallazgos por severidad\n"
+                + GUARDA_DE_COMPUERTA
+                + "        shell: bash\n"
+                + LINEA_SEVERIDAD.rstrip("\n")
+                + ' | tee "$RUNNER_TEMP/severidad.txt"\n',
+            ),
+        }
+        for descripcion, texto in validos.items():
+            with self.subTest(valido=descripcion):
+                trabajos = extraer_trabajos(texto)
+                self.assertEqual(comprobar_tc14(trabajos), [])
+                for regla in (comprobar_regla_comun_7, comprobar_regla_comun_9):
+                    self.assertEqual(regla(trabajos), [])
+
+    def test_tc14_mutantes_el_trabajo_y_cada_paso_comentado_o_en_otro_trabajo_no_cuentan(self):
+        """RNF-08 · CA-10 esc. 1 — comentar un paso, llevarlo a otro trabajo, invertir pip-audit y el script, o dejar el comando solo en un `name:`, deja el caso en rojo."""
+        casos = {
+            "trabajo ausente": (sustituir(CI_B3, "\n  dependencias:\n", "\n  auditoria:\n"), "no existe el trabajo 'dependencias'"),
+            "uv export comentado": (comentar(CI_B3, "dependencias", PASO_UV_EXPORT), "uv export"),
+            "pip-audit comentado": (comentar(CI_B3, "dependencias", PASO_PIP_AUDIT), "uv run pip-audit"),
+            "script de severidad comentado": (comentar(CI_B3, "dependencias", PASO_SEVERIDAD), "python3 tools/severidad_pip_audit.py"),
+            "npm audit comentado": (comentar(CI_B3, "dependencias", PASO_NPM_AUDIT), "npm audit"),
+            "script de severidad movido a documentacion": (
+                mover(CI_B3, "dependencias", "documentacion", PASO_SEVERIDAD, PASO_CHECKOUT_SIMPLE),
+                "python3 tools/severidad_pip_audit.py",
+            ),
+            "script de severidad movido a workflows": (
+                mover(CI_B3, "dependencias", "workflows", PASO_SEVERIDAD, PASO_SETUP_UV),
+                "python3 tools/severidad_pip_audit.py",
+            ),
+            "script de severidad movido a backend": (
+                mover(CI_B3, "dependencias", "backend", PASO_SEVERIDAD, PASO_MYPY_G),
+                "python3 tools/severidad_pip_audit.py",
+            ),
+            "pip-audit movido a fronteras": (
+                mover(CI_B3, "dependencias", "fronteras", PASO_PIP_AUDIT, "      - run: uv run lint-imports\n"),
+                "uv run pip-audit",
+            ),
+            "npm audit movido a frontend": (mover(CI_B3, "dependencias", "frontend", PASO_NPM_AUDIT, PASO_NPM_CI), "npm audit"),
+            "uv export movido a backend": (mover(CI_B3, "dependencias", "backend", PASO_UV_EXPORT, PASO_MYPY_G), "uv export"),
+            "script de severidad antes de pip-audit": (
+                mutar(CI_B3, "dependencias", PASO_PIP_AUDIT + PASO_SEVERIDAD, PASO_SEVERIDAD + PASO_PIP_AUDIT),
+                "python3 tools/severidad_pip_audit.py",
+            ),
+            "pip-audit antes de uv export": (
+                mutar(CI_B3, "dependencias", PASO_UV_EXPORT + PASO_PIP_AUDIT, PASO_PIP_AUDIT + PASO_UV_EXPORT),
+                "uv run pip-audit",
+            ),
+            "npm audit antes del script de severidad": (
+                mutar(CI_B3, "dependencias", PASO_SEVERIDAD + PASO_NPM_AUDIT, PASO_NPM_AUDIT + PASO_SEVERIDAD),
+                "npm audit",
+            ),
+            "el script solo en un name": (
+                con_paso(PASO_SEVERIDAD, PASO_SEVERIDAD.replace("Filtrar los hallazgos por severidad", "python3 tools/severidad_pip_audit.py").replace(
+                    LINEA_SEVERIDAD, "        run: echo omitido\n"
+                )),
+                "python3 tools/severidad_pip_audit.py",
+            ),
+            "python en lugar de python3": (con_linea(LINEA_SEVERIDAD, "python3 tools", "python tools"), "python3 tools/severidad_pip_audit.py"),
+            "otro script": (con_linea(LINEA_SEVERIDAD, "severidad_pip_audit.py", "verificar_docs.py"), "python3 tools/severidad_pip_audit.py"),
+            "pip-audit sin uv run": (con_linea(LINEA_PIP_AUDIT, "uv run pip-audit", "pip-audit"), "uv run pip-audit"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_uv_export_lleva_el_lock_completo_y_escribe_el_archivo(self):
+        """RNF-08 · CA-10 esc. 1 — sin `--locked`, `--all-groups`, `--no-emit-project`, `--format requirements.txt` o `-o`, o fuera de `backend/`, el caso queda en rojo."""
+        casos = {
+            "sin --locked": (con_linea(LINEA_UV_EXPORT, " --locked", ""), "uv export no lleva --locked"),
+            "sin --all-groups": (con_linea(LINEA_UV_EXPORT, " --all-groups", ""), "uv export no lleva --all-groups"),
+            "--all-groups tecleado a medias": (con_linea(LINEA_UV_EXPORT, "--all-groups", "--all-group"), "uv export no lleva --all-groups"),
+            "sin --no-emit-project": (con_linea(LINEA_UV_EXPORT, " --no-emit-project", ""), "uv export no lleva --no-emit-project"),
+            "sin --format": (con_linea(LINEA_UV_EXPORT, " --format requirements.txt", ""), "uv export no lleva --format requirements.txt"),
+            "otro formato": (con_linea(LINEA_UV_EXPORT, "requirements.txt -o", "pylock.toml -o"), "uv export no lleva --format requirements.txt"),
+            "sin -o": (con_linea(LINEA_UV_EXPORT, ' -o "$RUNNER_TEMP/req.txt"', ""), "uv export no escribe el archivo con -o"),
+            "fuera de backend": (con_paso(PASO_UV_EXPORT, PASO_UV_EXPORT.replace("        working-directory: backend\n", "")), "working-directory: backend"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_pip_audit_exige_hashes_json_y_no_cortar_el_guion(self):
+        """RNF-08 · CA-10 esc. 1 — sin `-r`, `--require-hashes`, `--disable-pip`, `--strict`, `-f json` o `|| true`, o leyendo otro archivo, el caso queda en rojo."""
+        casos = {
+            "sin -r": (con_linea(LINEA_PIP_AUDIT, ' -r "$RUNNER_TEMP/req.txt"', ""), "pip-audit no lleva -r"),
+            "sin --require-hashes": (con_linea(LINEA_PIP_AUDIT, " --require-hashes", ""), "pip-audit no lleva --require-hashes"),
+            "--require-hashes tecleado a medias": (
+                con_linea(LINEA_PIP_AUDIT, "--require-hashes", "--require-hash"), "pip-audit no lleva --require-hashes"
+            ),
+            "sin --disable-pip": (con_linea(LINEA_PIP_AUDIT, " --disable-pip", ""), "pip-audit no lleva --disable-pip"),
+            "sin --strict": (con_linea(LINEA_PIP_AUDIT, " --strict", ""), "pip-audit no lleva --strict"),
+            "sin -f json": (con_linea(LINEA_PIP_AUDIT, " -f json", ""), "pip-audit no lleva -f json"),
+            "-f columns": (con_linea(LINEA_PIP_AUDIT, "-f json", "-f columns"), "pip-audit no lleva -f json"),
+            "sin -o": (con_linea(LINEA_PIP_AUDIT, ' -o "$RUNNER_TEMP/pip-audit.json"', ""), "pip-audit no escribe el informe con -o"),
+            "sin || true": (con_linea(LINEA_PIP_AUDIT, " || true", ""), "pip-audit no termina en `|| true`"),
+            "|| true en un comentario": (con_linea(LINEA_PIP_AUDIT, " || true", " # || true"), "pip-audit no termina en `|| true`"),
+            "lee otro archivo": (
+                con_linea(LINEA_PIP_AUDIT, '-r "$RUNNER_TEMP/req.txt"', '-r "$RUNNER_TEMP/otro.txt"'), "un archivo que uv export no escribe"
+            ),
+            "fuera de backend": (con_paso(PASO_PIP_AUDIT, PASO_PIP_AUDIT.replace("        working-directory: backend\n", "")), "working-directory: backend"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_el_script_de_severidad_lee_el_informe_de_pip_audit_desde_la_raiz(self):
+        """RNF-08 · CA-10 esc. 2 — el script recibe el informe que escribe pip-audit, corre desde la raíz y no puede terminar en `|| true`."""
+        casos = {
+            "sin argumento": (con_linea(LINEA_SEVERIDAD, ' "$RUNNER_TEMP/pip-audit.json"', ""), "no recibe el informe"),
+            "lee otro informe": (con_linea(LINEA_SEVERIDAD, "pip-audit.json", "otro.json"), "no recibe el informe"),
+            "desde backend": (
+                con_paso(PASO_SEVERIDAD, PASO_SEVERIDAD.replace(LINEA_SEVERIDAD, "        working-directory: backend\n" + LINEA_SEVERIDAD)),
+                "se ejecuta desde la raíz",
+            ),
+            "|| true": (con_linea(LINEA_SEVERIDAD, "pip-audit.json\"", 'pip-audit.json" || true'), "enmascara su fallo"),
+            "|| exit 0": (con_linea(LINEA_SEVERIDAD, "pip-audit.json\"", 'pip-audit.json" || exit 0'), "enmascara su fallo"),
+            "|| :": (con_linea(LINEA_SEVERIDAD, "pip-audit.json\"", 'pip-audit.json" || :'), "enmascara su fallo"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_npm_audit_incluye_desarrollo_nivel_high_y_no_se_enmascara(self):
+        """RNF-08 · CA-10 esc. 2 — `npm audit` no admite `--omit=dev`, otro nivel que `high`, ni `|| true`, y corre en `frontend/`."""
+        casos = {
+            "sin --audit-level": (con_linea(LINEA_NPM_AUDIT, " --audit-level=high", ""), "no lleva --audit-level=high"),
+            "--audit-level=critical": (con_linea(LINEA_NPM_AUDIT, "=high", "=critical"), "debe ser high"),
+            "--audit-level=moderate": (con_linea(LINEA_NPM_AUDIT, "=high", "=moderate"), "debe ser high"),
+            "--audit-level=low": (con_linea(LINEA_NPM_AUDIT, "=high", "=low"), "debe ser high"),
+            "--audit-level moderate con espacio": (con_linea(LINEA_NPM_AUDIT, "=high", " moderate"), "debe ser high"),
+            "--omit=dev": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --omit=dev "), "dependencias de desarrollo"),
+            "--omit dev con espacio": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --omit dev "), "dependencias de desarrollo"),
+            "--omit=optional --omit=dev": (
+                con_linea(LINEA_NPM_AUDIT, "audit ", "audit --omit=optional --omit=dev "), "dependencias de desarrollo"
+            ),
+            "--production": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --production "), "dependencias de desarrollo"),
+            "--only=prod": (con_linea(LINEA_NPM_AUDIT, "audit ", "audit --only=prod "), "dependencias de desarrollo"),
+            "|| true": (con_linea(LINEA_NPM_AUDIT, "=high", "=high || true"), "npm audit enmascara su fallo"),
+            "|| exit 0": (con_linea(LINEA_NPM_AUDIT, "=high", "=high || exit 0"), "npm audit enmascara su fallo"),
+            "|| :": (con_linea(LINEA_NPM_AUDIT, "=high", "=high || :"), "npm audit enmascara su fallo"),
+            "desde la raíz": (
+                con_paso(PASO_NPM_AUDIT, PASO_NPM_AUDIT.replace("        working-directory: frontend\n", "")), "working-directory: frontend"
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_regla_comun_7_solo_pip_audit_de_dependencias_puede_terminar_en_or_true(self):
+        """RNF-08 · CA-10 esc. 2 — la excepción de la regla común 7 es solo el `|| true` de `uv run pip-audit` en `dependencias`: cualquier otro deja el caso en rojo."""
+        self.assertEqual(comprobar_regla_comun_7(extraer_trabajos(CI_B3)), [], "el `|| true` de pip-audit debe estar tolerado")
+        casos = {
+            "|| true en npm audit": con_linea(LINEA_NPM_AUDIT, "=high", "=high || true"),
+            "|| true en el script de severidad": con_linea(LINEA_SEVERIDAD, "pip-audit.json\"", 'pip-audit.json" || true'),
+            "|| exit 0 en el script de severidad": con_linea(LINEA_SEVERIDAD, "pip-audit.json\"", 'pip-audit.json" || exit 0'),
+            "|| true en uv export": con_linea(LINEA_UV_EXPORT, "req.txt\"", 'req.txt" || true'),
+            "pip-audit || true y otro || true en el mismo run": con_paso(
+                PASO_PIP_AUDIT, PASO_PIP_AUDIT + "          npm audit --audit-level=high || true\n"
+            ),
+            "pip-audit encadenado con otro || true": con_linea(LINEA_PIP_AUDIT, " || true", " && echo hecho || true"),
+            "|| true de pip-audit en el trabajo backend": mutar(
+                CI_B3, "backend", PASO_MYPY_G, PASO_MYPY_G + '      - run: uv run pip-audit -r "$RUNNER_TEMP/req.txt" || true\n'
+            ),
+            "|| true de pip-audit en el trabajo herramientas": mutar(
+                CI_B3, "herramientas", PASO_SETUP_UV, PASO_SETUP_UV + '      - run: uv run pip-audit -r "$RUNNER_TEMP/req.txt" || true\n'
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_regla_comun_7, casos, "||")
+
+    def test_tc14_mutantes_los_tres_pasos_de_comprobacion_llevan_if_no_cancelado(self):
+        """RNF-08 · CA-10 esc. 1 · regla común 6 — pip-audit, el script de severidad y `npm audit` sin `if: ${{ !cancelled() }}` exacto dejan el caso en rojo."""
+        casos = {}
+        for etiqueta, paso in (
+            ("uv run pip-audit", PASO_PIP_AUDIT),
+            ("python3 tools/severidad_pip_audit.py", PASO_SEVERIDAD),
+            ("npm audit", PASO_NPM_AUDIT),
+        ):
+            for descripcion, condicion in (
+                ("sin if", ""),
+                ("if: always()", "        if: always()\n"),
+                ("if: success()", "        if: ${{ success() }}\n"),
+                ("if comentado", "        # if: ${{ !cancelled() }}\n"),
+            ):
+                casos[f"{etiqueta} {descripcion}"] = (con_paso(paso, paso.replace(GUARDA_DE_COMPUERTA, condicion)), f"«{etiqueta}» no declara")
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+    def test_tc14_mutantes_la_regla_comun_6_del_diseno_sigue_cubriendo_backend_frontend_y_documentacion(self):
+        """Regla común 6 — añadir `dependencias` no cambia a qué trabajos obliga la regla común 6: sigue viendo un `uv run` sin guarda en `backend`."""
+        sin_guarda = mutar(CI_B3, "backend", PASO_MYPY_G, PASO_MYPY)
+        self.assertNotEqual(comprobar_regla_comun_6(extraer_trabajos(sin_guarda)), [])
+        self.assertEqual(comprobar_regla_comun_6(extraer_trabajos(CI_B3)), [])
+
+    def test_tc14_mutantes_el_trabajo_no_se_desactiva_ni_lee_secretos(self):
+        """RNF-08 · CA-10 esc. 2 · reglas comunes 5 y 7 — `continue-on-error`, `secrets.` o una tubería sin `shell: bash` dejan el caso en rojo."""
+        con_tuberia = con_paso(
+            PASO_SEVERIDAD,
+            PASO_SEVERIDAD.rstrip("\n") + ' | tee "$RUNNER_TEMP/severidad.txt"\n',
+        )
+        casos = {
+            "continue-on-error en pip-audit": (
+                con_paso(PASO_PIP_AUDIT, PASO_PIP_AUDIT.replace("        run: |\n", "        continue-on-error: true\n        run: |\n")),
+                "continue-on-error",
+            ),
+            "continue-on-error en npm audit": (
+                con_paso(PASO_NPM_AUDIT, PASO_NPM_AUDIT.replace(LINEA_NPM_AUDIT, "        continue-on-error: true\n" + LINEA_NPM_AUDIT)),
+                "continue-on-error",
+            ),
+            "continue-on-error: false también sobra": (
+                con_paso(PASO_NPM_AUDIT, PASO_NPM_AUDIT.replace(LINEA_NPM_AUDIT, "        continue-on-error: false\n" + LINEA_NPM_AUDIT)),
+                "continue-on-error",
+            ),
+            "continue-on-error en el trabajo": (
+                mutar(CI_B3, "dependencias", "    timeout-minutes: 15\n", "    timeout-minutes: 15\n    continue-on-error: true\n"),
+                "continue-on-error",
+            ),
+            "secrets. en un env": (
+                con_paso(PASO_NPM_AUDIT, PASO_NPM_AUDIT.replace(LINEA_NPM_AUDIT, "        env:\n          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}\n" + LINEA_NPM_AUDIT)),
+                "secrets.",
+            ),
+            "secrets. en el checkout": (
+                mutar(CI_B3, "dependencias", PASO_CHECKOUT_SIMPLE, PASO_CHECKOUT_SIMPLE.replace("persist-credentials: false", "persist-credentials: false\n          token: ${{ secrets.PAT }}")),
+                "secrets.",
+            ),
+            "tubería sin shell: bash": (con_tuberia, "tubería sin `shell: bash`"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+        self.assertTrue(any("tubería sin `shell: bash`" in p for p in comprobar_regla_comun_9(extraer_trabajos(con_tuberia))))
+
+    def test_tc14_mutantes_checkout_setup_corredor_y_tiempo_del_trabajo(self):
+        """RNF-08 · CA-10 esc. 1 · reglas comunes 1, 4 y 5 — checkout con credenciales persistidas, sin setup-uv/setup-node, el corredor o el tiempo equivocados dejan el caso en rojo."""
+        sin_node = con_paso(PASO_SETUP_NODE, "")
+        casos = {
+            "sin checkout": (con_paso(PASO_CHECKOUT_SIMPLE, ""), "falta actions/checkout"),
+            "checkout sin persist-credentials": (
+                con_paso(PASO_CHECKOUT_SIMPLE, "      - uses: actions/checkout@abc # v7\n"), "persist-credentials: false"
+            ),
+            "checkout con persist-credentials: true": (
+                con_paso(PASO_CHECKOUT_SIMPLE, PASO_CHECKOUT_SIMPLE.replace("persist-credentials: false", "persist-credentials: true")),
+                "persist-credentials: false",
+            ),
+            "checkout después de setup-uv": (
+                mutar(CI_B3, "dependencias", PASO_CHECKOUT_SIMPLE + PASO_SETUP_UV, PASO_SETUP_UV + PASO_CHECKOUT_SIMPLE),
+                "checkout debe ir antes de setup-uv",
+            ),
+            "sin setup-uv": (con_paso(PASO_SETUP_UV, ""), "falta astral-sh/setup-uv"),
+            "uv export antes de setup-uv": (
+                mutar(CI_B3, "dependencias", PASO_SETUP_UV + PASO_SETUP_NODE + PASO_UV_EXPORT, PASO_UV_EXPORT + PASO_SETUP_UV + PASO_SETUP_NODE),
+                "va antes de setup-uv",
+            ),
+            "sin setup-node": (sin_node, "falta actions/setup-node"),
+            "setup-node sin node-version-file": (
+                con_paso(PASO_SETUP_NODE, "      - uses: actions/setup-node@abc # v7\n        with:\n          node-version: 22\n"),
+                "node-version-file: frontend/package.json",
+            ),
+            "setup-node con otro archivo": (
+                con_paso(PASO_SETUP_NODE, PASO_SETUP_NODE.replace("frontend/package.json", "package.json")),
+                "node-version-file: frontend/package.json",
+            ),
+            "npm audit antes de setup-node": (
+                mutar(sin_node, "dependencias", PASO_NPM_AUDIT, PASO_NPM_AUDIT + PASO_SETUP_NODE), "va antes de setup-node"
+            ),
+            "runs-on ubuntu-latest": (
+                mutar(CI_B3, "dependencias", "    runs-on: ubuntu-24.04\n", "    runs-on: ubuntu-latest\n"), "runs-on debe ser ubuntu-24.04"
+            ),
+            "sin timeout-minutes": (mutar(CI_B3, "dependencias", "    timeout-minutes: 15\n", ""), "timeout-minutes debe ser 15"),
+            "timeout-minutes 30": (
+                mutar(CI_B3, "dependencias", "    timeout-minutes: 15\n", "    timeout-minutes: 30\n"), "timeout-minutes debe ser 15"
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc14, casos)
+
+
+class DefinicionDeCIFilaB3(unittest.TestCase):
+    """Fila B3 sobre el `ci.yml` real. Sin el trabajo `dependencias`, falla; no se salta."""
+
+    def test_tc14_dependencias_exporta_audita_python_con_hashes_filtra_la_severidad_y_audita_npm(self):
+        """RNF-08 · CA-10 esc. 1 · TC-14 — `dependencias`: `uv export`, `pip-audit` con `--require-hashes`, el script de severidad tras pip-audit y `npm audit --audit-level=high` en `frontend/`."""
+        self.assertEqual(comprobar_tc14(_trabajos_de_ci(self)), [])
+
+    def test_tc14_dependencias_cumple_las_reglas_comunes_1_6_7_8_y_9(self):
+        """RNF-08 · CA-10 esc. 1 — el trabajo nuevo existe y no rompe corredor y tiempo, ni las compuertas, ni la inyección de plantillas, ni `pipefail`."""
+        trabajos = _trabajos_de_ci(self)
+        self.assertTrue("dependencias" in trabajos, "el ci.yml no declara el trabajo `dependencias` (TKT-009b fila B3)")
+        for comprobacion in (comprobar_regla_comun_1, comprobar_regla_comun_6, comprobar_regla_comun_7, comprobar_regla_comun_8, comprobar_regla_comun_9):
+            with self.subTest(comprobacion=comprobacion.__name__):
+                self.assertEqual(comprobacion(trabajos), [])
+
+    def test_tc14_dependencias_corre_en_paralelo_sin_needs(self):
+        """RNF-08 · CA-10 esc. 1 — la tabla de trabajos del diseño le da `needs: —`: `dependencias` no espera a ningún otro trabajo."""
+        trabajos = _trabajos_de_ci(self)
+        self.assertTrue("dependencias" in trabajos, "el ci.yml no declara el trabajo `dependencias` (TKT-009b fila B3)")
+        self.assertEqual(ids_de_needs(trabajos["dependencias"]), [])
 
 
 if __name__ == "__main__":
