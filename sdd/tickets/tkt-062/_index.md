@@ -46,6 +46,7 @@ LISTO PARA EJECUTAR · partido en TKT-062a y TKT-062b
 | 2026-10-29 | — | `SPEC PENDIENTE` | `/sdd-definir` | Spec creada con el Must M1 a M11 validado por la persona responsable del proyecto |
 | 2026-10-29 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito; la revisión de impacto halló nueve puntos y se corrigieron. Esperan decisión humana D-1, D-2, D-3, I-1 a I-3 y la partición en a y b |
 | 2026-10-29 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | aprobación del gate | La persona responsable aprobó el diseño tras una auditoría independiente de preparación (`LISTO CON CORRECCIONES`, corregidas). Se parte en TKT-062a y TKT-062b; cada una tiene su `_index.md` y su `spec.md`, que reparten Must, criterios y filas del diseño sin redactar criterios nuevos. TKT-062 queda como paraguas |
+| 2026-10-30 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | cierre de TKT-062a | TKT-062a queda `ARCHIVADO` al fusionarse el PR de cierre de `tkt-062a-cierre`; su PR #21 ya está fusionado como `b2fd8f7`. Queda TKT-062b, que se ejecuta desde `Produccion` actualizada. TKT-062 sigue como paraguas hasta archivar las dos partes |
 
 ## Decisiones registradas
 
