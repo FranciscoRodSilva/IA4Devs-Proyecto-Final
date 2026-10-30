@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+EN REVISIÓN
 
 ## Ficha
 
@@ -28,7 +28,7 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Repartida de la spec común el 2026-10-29 |
 | Design | [design.md común](../tkt-062/design.md), filas A0 a A8 | `/sdd-disenar` | Aprobado el 2026-10-29 |
-| Impl | `impl.md` | `/sdd-ejecutar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-10-30 |
 | Delta | `delta.md` | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -36,6 +36,7 @@ LISTO PARA EJECUTAR
 | Fecha | De | A | Comando | Motivo |
 |---|---|---|---|---|
 | 2026-10-29 | — | `LISTO PARA EJECUTAR` | partición de TKT-062 | Nace del gate de diseño de TKT-062, aprobado por la persona responsable del proyecto. Spec repartida: M5, su parte de M8 y de M11; `CA-6`, su parte de `CA-9` y `CA-12`, `CA-R1`, `CA-R2` y `CA-R4`. Primera parte en fusionar |
+| 2026-10-30 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas A0 a A8 hechas: ciclo TDD en A2, A3, A4 y A7, ajustes del repositorio de A5 aplicados y verificados, ensayo A6 (rondas R0a y R1) con el PR #20 cerrado sin fusionar. 389 pruebas de `tools/` en verde, 48 nuevas. `auditor-arquitectura` `APROBADO` tras tres ciclos (F001 a F003 y F008, Menores). Pendientes para `/sdd-revisar`: las auditorías de código, seguridad y documentación, `CA-6` esc. 5 en vivo y la segunda mitad de `CA-R4`. Detalle en [impl.md](impl.md) |
 
 ## Decisiones registradas
 
