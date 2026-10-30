@@ -4,24 +4,35 @@
 # y github-actions en / (las acciones de GitHub de los workflows).
 # Si GitHub rechaza el ecosistema "uv" en esta versión, se sustituye por "pip" en la misma entrada
 # (diseño de TKT-009): el directorio y el intervalo no cambian.
+# Cada entrada declara `labels:`, que sustituye las etiquetas por omisión de Dependabot (dependencies y la del
+# ecosistema). `agent` es la etiqueta de origen que exige el flujo «Etiqueta de origen» (TKT-062a); la etiqueta
+# debe existir en el repositorio antes de fusionar.
 version: 2
 updates:
   - package-ecosystem: "uv"
     directory: "/backend"
     schedule:
       interval: "weekly"
+    labels:
+      - "agent"
 
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
+    labels:
+      - "agent"
 
   - package-ecosystem: "npm"
     directory: "/.github/mermaid"
     schedule:
       interval: "weekly"
+    labels:
+      - "agent"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "agent"

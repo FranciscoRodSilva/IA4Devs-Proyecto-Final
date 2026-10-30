@@ -64,8 +64,18 @@ CI = os.path.join(DIRECTORIO_DE_FLUJOS, "ci.yml")
 
 # Regla común 1 del diseño: corredor fijo y tiempo máximo por trabajo.
 CORREDOR = "ubuntu-24.04"
-TIEMPO_POR_TRABAJO = {"backend": 25, "humo": 20}
+# TKT-062 E1: `etiqueta` (etiqueta-origen.yml), `revision` y `publicar` (revision-ia.yml) tienen su propio tiempo máximo.
+TIEMPO_POR_TRABAJO = {"backend": 25, "humo": 20, "etiqueta": 5, "revision": 10, "publicar": 5}
 TIEMPO_POR_OMISION = 15
+
+# TKT-062 · excepción nombrada de las reglas comunes sobre todo flujo (diseño, «Constantes de la excepción nombrada»).
+# La guarda se compara con `_normalizada` (solo quita los espacios), nunca con `_expresion_de_if`, que hace
+# `.strip("\"'")` y se comería la comilla final de `'dependabot[bot]'`.
+FLUJO_DE_REVISION = "revision-ia.yml"
+GUARDA_DE_REVISION = (
+    "github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository "
+    "&& github.event.pull_request.user.login != 'dependabot[bot]'"
+)
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -1343,6 +1353,63 @@ def comprobar_regla_comun_7(trabajos: dict[str, list[str]]) -> list[str]:
                 problemas.append(
                     f"'{id_trabajo}': el paso `{_nombre_del_paso(paso)}` enmascara su fallo con `|| true` (o `|| :`, `|| exit 0`)"
                 )
+    return problemas
+
+
+def _sin_el_if_del_trabajo(bloque: list[str]) -> list[str]:
+    """El bloque del trabajo sin su `if:` a nivel de trabajo (ni las líneas de su cuerpo, si es un escalar de bloque)."""
+    columna = _columna_del_trabajo(bloque)
+    resultado: list[str] = []
+    dentro = False
+    for linea in bloque:
+        if _sangria(linea) == columna and re.match(r"\s*if:(?:\s|$)", linea) and not linea.lstrip().startswith("- "):
+            dentro = True
+            continue
+        if dentro and _sangria(linea) > columna:
+            continue
+        dentro = False
+        resultado.append(linea)
+    return resultado
+
+
+def _problemas_de_la_guarda_de_revision(trabajos: dict[str, list[str]]) -> list[str]:
+    """TKT-062 · única excepción a la regla común 7: el `if:` a nivel de trabajo de `revision` es `GUARDA_DE_REVISION`,
+    comparado con `_normalizada` (conserva la comilla final de `'dependabot[bot]'`). Sin `if:`, o con otro, es un problema."""
+    if "revision" not in trabajos:
+        return ["no declara el trabajo 'revision', el que lleva la guarda de la revisión"]
+    valor = valor_del_trabajo(trabajos["revision"], "if")
+    if _normalizada(valor) != _normalizada(GUARDA_DE_REVISION):
+        return [
+            f"'revision': el `if:` a nivel de trabajo debe ser exactamente GUARDA_DE_REVISION "
+            f"(`{GUARDA_DE_REVISION}`) y es {valor!r}"
+        ]
+    return []
+
+
+def comprobar_reglas_comunes_de_todo_flujo(flujos: dict[str, str]) -> list[str]:
+    """TKT-062 · CA-R2 · TC62-09. Aplica las reglas comunes 1, 7, 8 y 9 de TKT-009 a los trabajos de cada archivo de
+    `.github/workflows/` y prefija cada problema con el nombre del archivo. `flujos` es nombre de archivo -> texto.
+
+    Única excepción: en `FLUJO_DE_REVISION`, el `if:` a nivel de trabajo de `revision` no lo juzga la regla común 7 sino la
+    igualdad con `GUARDA_DE_REVISION`; cualquier otro `if:` de ese archivo sigue bajo la regla común 7. Las reglas comunes 6
+    y el pytest completo siguen limitados a `ci.yml`."""
+    if not flujos:
+        return ["no hay ningún workflow en .github/workflows/"]
+    problemas: list[str] = []
+    for nombre, texto in flujos.items():
+        trabajos = extraer_trabajos(texto)
+        para_la_regla_7 = trabajos
+        if nombre == FLUJO_DE_REVISION:
+            problemas += [f"{nombre}: {p}" for p in _problemas_de_la_guarda_de_revision(trabajos)]
+            if "revision" in trabajos:
+                para_la_regla_7 = {**trabajos, "revision": _sin_el_if_del_trabajo(trabajos["revision"])}
+        for regla, a_comprobar in (
+            (comprobar_regla_comun_1, trabajos),
+            (comprobar_regla_comun_7, para_la_regla_7),
+            (comprobar_regla_comun_8, trabajos),
+            (comprobar_regla_comun_9, trabajos),
+        ):
+            problemas += [f"{nombre}: {p}" for p in regla(a_comprobar)]
     return problemas
 
 
@@ -3247,6 +3314,359 @@ class DefinicionDeCIFilaB3(unittest.TestCase):
         trabajos = _trabajos_de_ci(self)
         self.assertTrue("dependencias" in trabajos, "el ci.yml no declara el trabajo `dependencias` (TKT-009b fila B3)")
         self.assertEqual(ids_de_needs(trabajos["dependencias"]), [])
+
+
+# =========================================================================================================
+# TKT-062a · fila A3 · reglas comunes de TKT-009 (1, 7, 8 y 9) sobre todo flujo · TC62-09
+# =========================================================================================================
+
+ETIQUETA_SINTETICA = """\
+name: Etiqueta de origen
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+permissions:
+  contents: read
+jobs:
+  etiqueta:
+    name: Etiqueta de origen
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Exactamente una etiqueta de origen
+        env:
+          ETIQUETAS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: python3 tools/etiqueta_origen.py
+"""
+
+REVISION_SINTETICA = (
+    """\
+name: Revisión IA
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+permissions:
+  contents: read
+jobs:
+  revision:
+    name: Revisión IA
+    if: """
+    + GUARDA_DE_REVISION
+    + """
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Revisar
+        run: echo revisar
+  publicar:
+    name: Publicar
+    needs: revision
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Publicar
+        run: echo publicar
+"""
+)
+
+TODOS_LOS_FLUJOS_SINTETICOS = {
+    "enlaces.yml": ENLACES_SINTETICO,
+    "etiqueta-origen.yml": ETIQUETA_SINTETICA,
+    FLUJO_DE_REVISION: REVISION_SINTETICA,
+}
+
+
+def _con_flujo(nombre: str, texto: str) -> dict[str, str]:
+    """Los flujos sintéticos válidos con `nombre` sustituido por `texto`."""
+    return {**TODOS_LOS_FLUJOS_SINTETICOS, nombre: texto}
+
+
+def _guarda_con(nueva: str) -> str:
+    return sustituir(REVISION_SINTETICA, "    if: " + GUARDA_DE_REVISION + "\n", nueva)
+
+
+def _exigir_rojo_por_archivo(caso: unittest.TestCase, casos: dict[str, tuple[dict[str, str], str, str]]) -> None:
+    """Cada mutante `(flujos, prefijo, razon)` pone `comprobar_reglas_comunes_de_todo_flujo` en rojo y algún problema empieza por
+    `prefijo` (el archivo y el trabajo) y menciona `razon`."""
+    for descripcion, (flujos, prefijo, razon) in casos.items():
+        with caso.subTest(mutante=descripcion):
+            problemas = _exigir_rojo(caso, comprobar_reglas_comunes_de_todo_flujo, flujos, prefijo)
+            caso.assertTrue(
+                any(p.startswith(prefijo) and razon in p for p in problemas),
+                f"ningún problema empieza por {prefijo!r} y menciona {razon!r}: {problemas}",
+            )
+
+
+class PruebasDeMutantesDeLasReglasComunesDeTodoFlujo(unittest.TestCase):
+    """TC62-09 · CA-R2. El caso nace en verde sobre el repositorio real; el rojo lo dan estos mutantes, que corren sobre
+    texto sintético: un flujo sin `timeout-minutes`, con otro corredor, con `continue-on-error`, con `${{ }}` en un
+    `run:`, con una tubería sin `shell: bash`, y la excepción de la guarda en `revision` de `revision-ia.yml`."""
+
+    def test_tkt062_car2_esc01_las_constantes_son_las_del_diseno(self):
+        """CA-R2 · TC62-09 — `FLUJO_DE_REVISION` y `GUARDA_DE_REVISION` valen literalmente lo que fija el diseño."""
+        self.assertEqual(FLUJO_DE_REVISION, "revision-ia.yml")
+        self.assertEqual(
+            GUARDA_DE_REVISION,
+            "github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository "
+            "&& github.event.pull_request.user.login != 'dependabot[bot]'",
+        )
+        self.assertEqual(
+            {k: TIEMPO_POR_TRABAJO[k] for k in ("etiqueta", "revision", "publicar")},
+            {"etiqueta": 5, "revision": 10, "publicar": 5},
+        )
+
+    def test_tkt062_car2_esc01_mutantes_el_control_valido_pasa_y_cada_regla_ve_los_flujos_nuevos(self):
+        """CA-R2 · TC62-09 (control) — sin esto, un mutante «en rojo» podría estarlo por culpa del texto base."""
+        self.assertEqual(comprobar_reglas_comunes_de_todo_flujo(TODOS_LOS_FLUJOS_SINTETICOS), [])
+        self.assertEqual(
+            comprobar_reglas_comunes_de_todo_flujo({"ci.yml": CI_A4, **TODOS_LOS_FLUJOS_SINTETICOS}), []
+        )
+
+    def test_tkt062_car2_esc01_mutantes_sin_ningun_flujo_es_rojo(self):
+        """CA-R2 · TC62-09 — un directorio sin flujos no es un verde por vacuidad."""
+        self.assertEqual(
+            comprobar_reglas_comunes_de_todo_flujo({}), ["no hay ningún workflow en .github/workflows/"]
+        )
+
+    def test_tkt062_car2_esc01_mutantes_regla_comun_1_corredor_y_tiempo_en_los_flujos_nuevos(self):
+        """CA-R2 · TC62-09 · regla común 1 — un flujo nuevo sin `timeout-minutes`, con otro corredor o con otro tiempo."""
+        sin_tiempo = sustituir(ETIQUETA_SINTETICA, "    timeout-minutes: 5\n", "")
+        otro_corredor = sustituir(ETIQUETA_SINTETICA, "runs-on: ubuntu-24.04", "runs-on: ubuntu-latest")
+        tiempo_ajeno = sustituir(ETIQUETA_SINTETICA, "timeout-minutes: 5", "timeout-minutes: 15")
+        revision_sin_tiempo = sustituir(REVISION_SINTETICA, "    timeout-minutes: 10\n", "")
+        revision_con_cinco = sustituir(REVISION_SINTETICA, "timeout-minutes: 10", "timeout-minutes: 5")
+        publicar_con_diez = sustituir(REVISION_SINTETICA, "    timeout-minutes: 5\n    steps:", "    timeout-minutes: 10\n    steps:")
+        casos = {
+            "etiqueta sin timeout-minutes": (_con_flujo("etiqueta-origen.yml", sin_tiempo), "etiqueta-origen.yml: 'etiqueta': timeout-minutes debe ser 5 y es None"),
+            "etiqueta con otro corredor": (_con_flujo("etiqueta-origen.yml", otro_corredor), "etiqueta-origen.yml: 'etiqueta': runs-on debe ser ubuntu-24.04"),
+            "etiqueta con 15 minutos en lugar de 5": (_con_flujo("etiqueta-origen.yml", tiempo_ajeno), "etiqueta-origen.yml: 'etiqueta': timeout-minutes debe ser 5 y es '15'"),
+            "revision sin timeout-minutes": (_con_flujo(FLUJO_DE_REVISION, revision_sin_tiempo), "revision-ia.yml: 'revision': timeout-minutes debe ser 10"),
+            "revision con 5 minutos en lugar de 10": (_con_flujo(FLUJO_DE_REVISION, revision_con_cinco), "revision-ia.yml: 'revision': timeout-minutes debe ser 10 y es '5'"),
+            "publicar con 10 minutos en lugar de 5": (_con_flujo(FLUJO_DE_REVISION, publicar_con_diez), "revision-ia.yml: 'publicar': timeout-minutes debe ser 5 y es '10'"),
+        }
+        _exigir_rojo_en_todos(self, comprobar_reglas_comunes_de_todo_flujo, casos)
+
+    def test_tkt062_car2_esc01_mutantes_regla_comun_1_tambien_en_los_flujos_que_ya_existian(self):
+        """CA-R2 · TC62-09 — la regla ya no se limita a `ci.yml`: `enlaces.yml` sin tiempo máximo o en otro corredor es rojo, con su nombre de archivo."""
+        sin_tiempo = sustituir(ENLACES_SINTETICO, "    timeout-minutes: 15\n", "")
+        otro_corredor = sustituir(ENLACES_SINTETICO, "runs-on: ubuntu-24.04", "runs-on: macos-latest")
+        casos = {
+            "enlaces sin timeout-minutes": (_con_flujo("enlaces.yml", sin_tiempo), "enlaces.yml: 'enlaces': timeout-minutes"),
+            "enlaces en macos": (_con_flujo("enlaces.yml", otro_corredor), "enlaces.yml: 'enlaces': runs-on debe ser ubuntu-24.04"),
+        }
+        _exigir_rojo_en_todos(self, comprobar_reglas_comunes_de_todo_flujo, casos)
+
+    def test_tkt062_car2_esc01_mutantes_regla_comun_7_nada_se_desactiva_en_los_flujos_nuevos(self):
+        """CA-R2 · TC62-09 · regla común 7 — `continue-on-error`, `|| true` y un `if:` que apaga el paso, en el flujo de etiqueta y en el de revisión."""
+        coe_paso = sustituir(
+            ETIQUETA_SINTETICA,
+            "        run: python3 tools/etiqueta_origen.py\n",
+            "        run: python3 tools/etiqueta_origen.py\n        continue-on-error: true\n",
+        )
+        coe_trabajo = sustituir(ETIQUETA_SINTETICA, "    timeout-minutes: 5\n", "    timeout-minutes: 5\n    continue-on-error: true\n")
+        o_true = sustituir(
+            ETIQUETA_SINTETICA, "run: python3 tools/etiqueta_origen.py\n", "run: python3 tools/etiqueta_origen.py || true\n"
+        )
+        if_en_paso = sustituir(
+            ETIQUETA_SINTETICA,
+            "        env:\n          ETIQUETAS",
+            "        if: github.event.action != 'unlabeled'\n        env:\n          ETIQUETAS",
+        )
+        if_en_el_trabajo_de_etiqueta = sustituir(
+            ETIQUETA_SINTETICA, "    timeout-minutes: 5\n", "    timeout-minutes: 5\n    if: github.event.action != 'unlabeled'\n"
+        )
+        coe_en_revision = sustituir(
+            REVISION_SINTETICA, "        run: echo revisar\n", "        run: echo revisar\n        continue-on-error: true\n"
+        )
+        casos = {
+            "continue-on-error en un paso de etiqueta": (_con_flujo("etiqueta-origen.yml", coe_paso), "etiqueta-origen.yml: 'etiqueta': declara `continue-on-error` en un paso"),
+            "continue-on-error a nivel de trabajo de etiqueta": (_con_flujo("etiqueta-origen.yml", coe_trabajo), "etiqueta-origen.yml: 'etiqueta': declara `continue-on-error` a nivel de trabajo"),
+            "|| true en el paso de etiqueta": (_con_flujo("etiqueta-origen.yml", o_true), "etiqueta-origen.yml: 'etiqueta': el paso `Exactamente una etiqueta de origen` enmascara su fallo"),
+            "if que apaga un paso de etiqueta": (_con_flujo("etiqueta-origen.yml", if_en_paso), "etiqueta-origen.yml: 'etiqueta': el paso `Exactamente una etiqueta de origen` tiene `if: github.event.action != 'unlabeled'`"),
+            "if a nivel de trabajo en etiqueta": (_con_flujo("etiqueta-origen.yml", if_en_el_trabajo_de_etiqueta), "etiqueta-origen.yml: 'etiqueta': el `if:` a nivel de trabajo"),
+            "continue-on-error en un paso de revision": (_con_flujo(FLUJO_DE_REVISION, coe_en_revision), "revision-ia.yml: 'revision': declara `continue-on-error` en un paso"),
+        }
+        _exigir_rojo_en_todos(self, comprobar_reglas_comunes_de_todo_flujo, casos)
+
+    def test_tkt062_car2_esc01_mutantes_regla_comun_8_ningun_run_interpola_en_los_flujos_nuevos(self):
+        """CA-R2 · TC62-09 · regla común 8 — `${{ }}` dentro de un `run:` del flujo de etiqueta o del de revisión."""
+        interpola = sustituir(
+            ETIQUETA_SINTETICA,
+            "        run: python3 tools/etiqueta_origen.py\n",
+            "        run: python3 tools/etiqueta_origen.py --titulo \"${{ github.event.pull_request.title }}\"\n",
+        )
+        interpola_en_revision = sustituir(
+            REVISION_SINTETICA, "        run: echo publicar\n", "        run: echo ${{ github.event.pull_request.body }}\n"
+        )
+        casos = {
+            "${{ }} en el run de etiqueta": (_con_flujo("etiqueta-origen.yml", interpola), "etiqueta-origen.yml: 'etiqueta': ", "interpola"),
+            "${{ }} en el run de publicar": (_con_flujo(FLUJO_DE_REVISION, interpola_en_revision), "revision-ia.yml: 'publicar': ", "interpola"),
+        }
+        _exigir_rojo_por_archivo(self, casos)
+
+    def test_tkt062_car2_esc01_mutantes_regla_comun_9_toda_tuberia_declara_shell_bash(self):
+        """CA-R2 · TC62-09 · regla común 9 — una tubería sin `shell: bash` en un flujo nuevo; con `shell: bash` pasa."""
+        con_tuberia = sustituir(
+            ETIQUETA_SINTETICA,
+            "        run: python3 tools/etiqueta_origen.py\n",
+            "        run: echo \"$ETIQUETAS\" | python3 tools/etiqueta_origen.py\n",
+        )
+        con_tuberia_en_revision = sustituir(
+            REVISION_SINTETICA, "        run: echo publicar\n", "        run: gh api x | jq .\n"
+        )
+        casos = {
+            "tubería sin shell: bash en etiqueta": (_con_flujo("etiqueta-origen.yml", con_tuberia), "etiqueta-origen.yml: 'etiqueta': ", "usa una tubería sin `shell: bash`"),
+            "tubería sin shell: bash en publicar": (_con_flujo(FLUJO_DE_REVISION, con_tuberia_en_revision), "revision-ia.yml: 'publicar': ", "usa una tubería sin `shell: bash`"),
+        }
+        _exigir_rojo_por_archivo(self, casos)
+        con_shell = sustituir(
+            con_tuberia,
+            "        run: echo \"$ETIQUETAS\" | python3 tools/etiqueta_origen.py\n",
+            "        shell: bash\n        run: echo \"$ETIQUETAS\" | python3 tools/etiqueta_origen.py\n",
+        )
+        self.assertEqual(comprobar_reglas_comunes_de_todo_flujo(_con_flujo("etiqueta-origen.yml", con_shell)), [])
+
+    def test_tkt062_car2_esc01_mutantes_la_guarda_de_revision_es_la_unica_excepcion(self):
+        """CA-R2 · TC62-09 · «guarda» — el `if:` de `revision` en `revision-ia.yml` solo pasa si es `GUARDA_DE_REVISION`; cualquier otro, o ninguno, es rojo."""
+        sin_draft = GUARDA_DE_REVISION.replace("github.event.pull_request.draft == false && ", "")
+        sin_full_name = GUARDA_DE_REVISION.replace(
+            "github.event.pull_request.head.repo.full_name == github.repository && ", ""
+        )
+        con_actor = GUARDA_DE_REVISION.replace("github.event.pull_request.user.login", "github.actor")
+        con_o = GUARDA_DE_REVISION.replace(" && ", " || ")
+        sin_comilla_final = GUARDA_DE_REVISION[:-1]
+        con_comillas_dobles = GUARDA_DE_REVISION.replace("'dependabot[bot]'", '"dependabot[bot]"')
+        sin_if = sustituir(REVISION_SINTETICA, "    if: " + GUARDA_DE_REVISION + "\n", "")
+        guarda_en_publicar = sustituir(
+            REVISION_SINTETICA, "    needs: revision\n", "    needs: revision\n    if: " + GUARDA_DE_REVISION + "\n"
+        )
+        no_revisa = sustituir(REVISION_SINTETICA, "  revision:\n", "  otra:\n").replace("needs: revision", "needs: otra")
+        casos = {
+            "if reducido a draft == false": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con("    if: github.event.pull_request.draft == false\n")),
+                "revision-ia.yml: 'revision': el `if:` a nivel de trabajo debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "if: always()": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con("    if: always()\n")),
+                "revision-ia.yml: 'revision': el `if:` a nivel de trabajo debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "guarda sin draft == false": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con(f"    if: {sin_draft}\n")),
+                "debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "guarda sin full_name": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con(f"    if: {sin_full_name}\n")),
+                "debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "guarda con github.actor en lugar de user.login": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con(f"    if: {con_actor}\n")),
+                "debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "guarda con || en lugar de &&": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con(f"    if: {con_o}\n")),
+                "debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "guarda sin la comilla final de 'dependabot[bot]' (_normalizada la conserva)": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con(f"    if: {sin_comilla_final}\n")),
+                "debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "guarda con comillas dobles en dependabot[bot]": (
+                _con_flujo(FLUJO_DE_REVISION, _guarda_con(f"    if: {con_comillas_dobles}\n")),
+                "debe ser exactamente GUARDA_DE_REVISION",
+            ),
+            "revision sin if": (
+                _con_flujo(FLUJO_DE_REVISION, sin_if),
+                "debe ser exactamente GUARDA_DE_REVISION (`" + GUARDA_DE_REVISION + "`) y es None",
+            ),
+            "la guarda copiada en publicar no es la excepción": (
+                _con_flujo(FLUJO_DE_REVISION, guarda_en_publicar),
+                "revision-ia.yml: 'publicar': el `if:` a nivel de trabajo es",
+            ),
+            "revision-ia.yml sin el trabajo revision": (
+                _con_flujo(FLUJO_DE_REVISION, no_revisa),
+                "revision-ia.yml: no declara el trabajo 'revision'",
+            ),
+            "la guarda en el trabajo de otro archivo no es la excepción": (
+                _con_flujo(
+                    "etiqueta-origen.yml",
+                    sustituir(
+                        ETIQUETA_SINTETICA,
+                        "    timeout-minutes: 5\n",
+                        "    timeout-minutes: 5\n    if: " + GUARDA_DE_REVISION + "\n",
+                    ),
+                ),
+                "etiqueta-origen.yml: 'etiqueta': el `if:` a nivel de trabajo es",
+            ),
+        }
+        _exigir_rojo_en_todos(self, comprobar_reglas_comunes_de_todo_flujo, casos)
+
+    def test_tkt062_car2_esc01_mutantes_otro_if_en_revision_ia_sigue_bajo_la_regla_comun_7(self):
+        """CA-R2 · TC62-09 — la excepción es solo el `if:` del trabajo `revision`: un `if:` de paso de ese archivo que apaga el paso sigue siendo rojo."""
+        if_de_paso = sustituir(
+            REVISION_SINTETICA,
+            "      - name: Revisar\n        run: echo revisar\n",
+            "      - name: Revisar\n        if: github.event.action == 'opened'\n        run: echo revisar\n",
+        )
+        _exigir_rojo(
+            self,
+            comprobar_reglas_comunes_de_todo_flujo,
+            _con_flujo(FLUJO_DE_REVISION, if_de_paso),
+            "revision-ia.yml: 'revision': el paso `Revisar` tiene `if:",
+        )
+
+    def test_tkt062_car2_esc01_mutantes_la_guarda_valida_pasa_aunque_cambien_los_espacios(self):
+        """CA-R2 · TC62-09 (control de `_normalizada`) — la misma guarda con otros espacios, o plegada en varias líneas, es la guarda;
+        `_normalizada` solo quita espacios y por eso conserva la comilla final de `'dependabot[bot]'`."""
+        con_espacios = GUARDA_DE_REVISION.replace(" == ", "  ==  ").replace(" && ", "   &&   ")
+        plegada = (
+            "    if: >-\n"
+            "      github.event.pull_request.draft == false\n"
+            "      && github.event.pull_request.head.repo.full_name == github.repository\n"
+            "      && github.event.pull_request.user.login != 'dependabot[bot]'\n"
+        )
+        for descripcion, nueva in {
+            "con espacios de más": f"    if: {con_espacios}\n",
+            "plegada con >-": plegada,
+        }.items():
+            with self.subTest(guarda=descripcion):
+                self.assertEqual(
+                    comprobar_reglas_comunes_de_todo_flujo(_con_flujo(FLUJO_DE_REVISION, _guarda_con(nueva))), []
+                )
+        self.assertTrue(_normalizada(GUARDA_DE_REVISION).endswith("!='dependabot[bot]'"))
+        self.assertNotEqual(_normalizada(GUARDA_DE_REVISION[:-1]), _normalizada(GUARDA_DE_REVISION))
+        # `_expresion_de_if` se comería esa comilla: por eso la guarda no se compara con ella.
+        self.assertNotEqual(_expresion_de_if(GUARDA_DE_REVISION), _normalizada(GUARDA_DE_REVISION))
+
+    def test_tkt062_car2_esc01_mutantes_el_nombre_del_archivo_prefija_cada_problema(self):
+        """CA-R2 · TC62-09 — cada problema empieza por el nombre del archivo que lo causa."""
+        sin_tiempo = sustituir(ETIQUETA_SINTETICA, "    timeout-minutes: 5\n", "")
+        problemas = comprobar_reglas_comunes_de_todo_flujo(_con_flujo("etiqueta-origen.yml", sin_tiempo))
+        self.assertNotEqual(problemas, [])
+        self.assertTrue(all(p.startswith("etiqueta-origen.yml: ") for p in problemas), problemas)
+
+
+class DefinicionDeLasReglasComunesDeTodoFlujo(unittest.TestCase):
+    """TC62-09 sobre el repositorio real. Nace en verde: `ci.yml` y `enlaces.yml` ya cumplen las cuatro reglas."""
+
+    def test_tkt062_car2_esc01_reglas_comunes_en_todo_flujo(self):
+        """CA-R2 · TC62-09 (rechazo estático) — las reglas comunes 1, 7, 8 y 9 de TKT-009 valen para cada archivo de `.github/workflows/`,
+        con `GUARDA_DE_REVISION` como única excepción, comparada con `_normalizada`."""
+        flujos = _leer_flujos(self)
+        self.assertIn("ci.yml", flujos)
+        self.assertIn("enlaces.yml", flujos)
+        self.assertEqual(comprobar_reglas_comunes_de_todo_flujo(flujos), [])
 
 
 if __name__ == "__main__":
