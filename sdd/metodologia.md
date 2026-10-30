@@ -49,11 +49,11 @@ Si falta cualquiera de los obligatorios → **STOP**. Se pide, no se rellena. Si
 | `EN REVISIÓN` | `REQUIERE DECISIÓN` · `RIESGOSO` | bloqueo | Auditores → escala |
 | `REQUIERE CAMBIOS` | `EN REVISIÓN` | `corrector-revision` arregla y se reaudita (máx. 3 ciclos) | Orquestador |
 | `REQUIERE DECISIÓN` · `RIESGOSO` | estado previo | el usuario responde | **Usuario** |
-| `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` produce `delta.md` y abre el PR | Orquestador |
+| `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` produce `delta.md`, abre el único PR del ticket, espera las diez comprobaciones y lo fusiona | Orquestador, con la **aprobación del usuario** a la fusión |
 
 El estado vive en `_index.md`. Quien lo mueve escribe la fila en el Log, con fecha y motivo.
 
-Dos transiciones tienen dueño humano a propósito. Un pipeline donde el agente aprueba su propio diseño no es un pipeline.
+Tres transiciones tienen dueño humano a propósito: aprobar el diseño, resolver lo escalado y aprobar la fusión a `Produccion`. Un pipeline donde el agente aprueba su propio diseño, o fusiona lo que escribió sin que ninguna persona lo haya aceptado, no es un pipeline.
 
 ---
 
@@ -232,7 +232,7 @@ El modelo se elige por la **naturaleza de la tarea**, no por su importancia. Pag
 | `desarrollador-sql` | `haiku` | medio | Igual, y el auditor revisa lo que produce |
 | `desarrollador-aplicacion` · `desarrollador-api` · `desarrollador-react` | `haiku` | medio | Igual: ponen en verde los tests de su capa siguiendo un diseño sin decisiones pendientes |
 | `corrector-revision` | `haiku` | medio | Aplica hallazgos ya diagnosticados por otro, con archivo y línea |
-| `git-entrega` | `haiku` | bajo | Ramas, diff, commit, PR. Mecánico y verificable por comando |
+| `git-entrega` | `haiku` | bajo | Ramas, diff, commit, PR y comprobaciones. La fusión se despacha en `sonnet`. Mecánico y verificable por comando |
 
 `opus` es la versión más reciente de Opus —hoy Opus 5.5— y queda **reservado a definir y diseñar**. Ningún agente de ejecución, prueba o auditoría sube a `opus`.
 
