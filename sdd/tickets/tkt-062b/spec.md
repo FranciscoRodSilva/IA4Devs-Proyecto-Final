@@ -6,7 +6,7 @@
 
 TKT-062 se partió en dos tickets hermanos al aprobarse su diseño, el 2026-10-29. Esta spec no redacta criterios nuevos: reparte los de la [spec común](../tkt-062/spec.md) y fija cuáles cierra este ticket. El texto Gherkin de cada criterio está en la spec común y es el que se prueba.
 
-TKT-062b crea la revisión automática: el flujo `revision-ia.yml`, con un trabajo que ejecuta `anthropics/claude-code-action` con permisos de solo lectura y otro que publica un único comentario tras un filtro de citas; las instrucciones versionadas `.claude/revision-pr.md`; el script `tools/publicar_revision.py`; la excepción nombrada de `secrets.` en las pruebas de TKT-009; el ADR-027; y los PR de ensayo. La revisión comenta y nunca aprueba ni bloquea. Se ejecuta con TKT-062a ya fusionado, porque usa la protección de `Produccion` y la comprobación «Etiqueta de origen» que esa parte deja puestas.
+TKT-062b crea la revisión automática: el flujo `revision-ia.yml`, con un trabajo que ejecuta `anthropics/claude-code-action` con permisos de solo lectura y otro que publica un único comentario tras un filtro de citas; las instrucciones versionadas `.claude/revision-pr.md`; el script `tools/publicar_revision.py`; la excepción nombrada de `secrets.` en las pruebas de TKT-009; el ADR-028; y los PR de ensayo. La revisión comenta y nunca aprueba ni bloquea. Se ejecuta con TKT-062a ya fusionado, porque usa la protección de `Produccion` y la comprobación «Etiqueta de origen» que esa parte deja puestas.
 
 ## Historia de usuario
 
@@ -20,12 +20,12 @@ Ticket de fundación, sin historia de usuario propia. La historia es la de la [s
 | | **M2** completo: permisos mínimos y revisión que no puede aprobar |
 | | **M3** completo: instrucciones versionadas que remiten y se leen de `Produccion` |
 | | **M4** completo: cada hallazgo cita lo que incumple, PR sin ticket y PR que toca `openapi.yaml` |
-| | **M6** completo: la excepción nombrada de `secrets.` y el ADR-027 |
+| | **M6** completo: la excepción nombrada de `secrets.` y el ADR-028 |
 | | **M7** completo: la clave en secretos del repositorio |
 | | **M8**, en su parte: el ajuste que impide a Actions aprobar PR, la clave dedicada con su tope y el secreto |
 | | **M9** completo: turnos y tiempo acotados `(asumido)` |
 | | **M10** completo: el PR de ensayo con el `float` y el `async def` |
-| | **M11**, en su parte: convenciones §12, stack §10 (`revision-ia.yml`), `tools/README.md` (`publicar_revision.py`), `CLAUDE.md` (revisión y recuento de ADR) y el ADR-027 |
+| | **M11**, en su parte: convenciones §12, stack §10 (`revision-ia.yml`), `tools/README.md` (`publicar_revision.py`), `CLAUDE.md` (revisión y recuento de ADR) y el ADR-028 |
 | **Should** | **S1** completo: la tercera violación en el PR de ensayo, confirmada el 2026-10-29 |
 | **Won't** | La etiqueta de origen y la protección de `Produccion` (TKT-062a, ya fusionada) · lo de la spec común |
 
@@ -60,7 +60,7 @@ Todos los de la [spec común](../tkt-062/spec.md#invariantes-que-deben-sobrevivi
 | `CA-11` `[M]` | Las dos violaciones comentadas y el PR de ensayo sin aprobación | B5 |
 | `CA-S1` `[S]` | La regla de negocio en un controlador | B5 |
 | `CA-9` `[M]` | Su parte: el ajuste de aprobación, la clave dedicada con su tope y el secreto | B4 |
-| `CA-12` `[M]` | Su parte: §12, stack §10, `tools/README.md`, `CLAUDE.md` y el ADR-027 | B7 |
+| `CA-12` `[M]` | Su parte: §12, stack §10, `tools/README.md`, `CLAUDE.md` y el ADR-028 | B7 |
 | `CA-R1` a `CA-R4` `[M]` | Con los cuatro flujos | B2, B8 |
 
 Los casos de prueba son los `TC62-NN` que el [diseño común](../tkt-062/design.md) asigna a las filas B1 a B8, y las rondas de ensayo son R0b a R6.
@@ -85,7 +85,7 @@ La genérica de [`sdd/metodologia.md` §8](../../../sdd/metodologia.md#8--defini
 - [ ] Los escenarios de la tabla pasan y cada compuerta nueva se demuestra en rojo antes de pasar a verde.
 - [ ] El pipeline completo corre en verde sobre el árbol del ticket, sin `skip`, `xfail` ni `.only` nuevos.
 - [ ] La evidencia manual de `CA-9` y las rondas de ensayo R0b a R6 constan en `impl.md`.
-- [ ] `python tools/verificar_docs.py` en verde y el ADR-027 publicado en su índice.
+- [ ] `python tools/verificar_docs.py` en verde y el ADR-028 publicado en su índice.
 - [ ] Auditoría de arquitectura, de seguridad, de código y de documentación sin hallazgos abiertos.
 
 ## Preguntas abiertas y supuestos

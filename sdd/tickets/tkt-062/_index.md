@@ -72,5 +72,5 @@ Lo que salió del alcance y merece su propio ticket.
 - `cooldown` de Dependabot y permisos por trabajo (deuda de TKT-009b).
 - Endurecer `verificar_escenarios.py` (deuda de TKT-009c).
 - Ruff sobre `tools/` (deuda de TKT-009a).
-- `CODEOWNERS` y plantilla de PR, que fijaría la etiqueta de origen al abrir y protegería `.github/` y `tools/` (mitigación de `A-6`).
+- `CODEOWNERS` y plantilla de PR, que fijaría la etiqueta de origen al abrir y protegería `.github/` y `tools/`; frente a quien tiene escritura no mitiga `A-6`, porque con una sola persona y `enforce_admins: false` se autoaprobaría u omitiría la revisión, y la mitigación real es la lectura del diff por la dueña.
 - Informe de calidad segmentada por etiqueta al cerrar cada sprint.

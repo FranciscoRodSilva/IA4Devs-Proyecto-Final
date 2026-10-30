@@ -17,7 +17,7 @@ Dos flujos nuevos de GitHub Actions, los dos aparte de `ci.yml` y los dos dispar
 | Parte | Rama | Musts | Qué entrega | Líneas estimadas | Depende de |
 |---|---|---|---|---|---|
 | **TKT-062a** · Etiqueta de origen obligatoria | `tkt-062a-etiqueta-origen` | M5, M8 (etiquetas y protección de `Produccion`), M11 (§6, §11, `tools/README.md`, `CLAUDE.md`, stack §10 y los documentos del toolkit que listan los orígenes) | `etiqueta-origen.yml`, `tools/etiqueta_origen.py`, `labels:` en Dependabot, las reglas comunes de TKT-009 extendidas a todo flujo con su excepción nombrada, la protección de la rama con el pipeline y la etiqueta requeridos, la regla de «todo entra por PR» | ~490 (≈ 170 + 320 de pruebas) | TKT-009 (archivado) |
-| **TKT-062b** · Revisión automatizada | `tkt-062b-revision-automatizada-pr` | M1, M2, M3, M4, M6, M7, M8 (secreto y ajuste de aprobación), M9, M10, M11 (§12, stack §10, `tools/README.md`, `CLAUDE.md`, ADR), S1 | `revision-ia.yml`, `.claude/revision-pr.md`, `tools/publicar_revision.py`, la excepción nombrada de `secrets.`, ADR-027 y los PR de ensayo | ~920 (≈ 400 + 520 de pruebas) | 062a fusionado |
+| **TKT-062b** · Revisión automatizada | `tkt-062b-revision-automatizada-pr` | M1, M2, M3, M4, M6, M7, M8 (secreto y ajuste de aprobación), M9, M10, M11 (§12, stack §10, `tools/README.md`, `CLAUDE.md`, ADR), S1 | `revision-ia.yml`, `.claude/revision-pr.md`, `tools/publicar_revision.py`, la excepción nombrada de `secrets.`, ADR-028 y los PR de ensayo | ~920 (≈ 400 + 520 de pruebas) | 062a fusionado |
 
 Ramas de ensayo: `ensayo/tkt-062a` desde `tkt-062a-etiqueta-origen`; `ensayo/tkt-062b` desde `tkt-062b-revision-automatizada-pr`; y `ensayo/tkt-062b-proteccion` desde `Produccion`, solo para la ronda R6.
 
@@ -28,7 +28,7 @@ Ramas de ensayo: `ensayo/tkt-062a` desde `tkt-062a-etiqueta-origen`; `ensayo/tkt
 | Parte | Filas | Criterios que cierra | Cierra cuando |
 |---|---|---|---|
 | **TKT-062a** | A0 a A8 | `CA-6` (esc. 1 a 5); `CA-9` en lo suyo: las cuatro etiquetas, la protección de `Produccion` con el pipeline y «Etiqueta de origen» requeridos, `enforce_admins: false`, la lista de colaboradores; `CA-12` en lo suyo: §6, §11, `CLAUDE.md` (etiquetas), `tools/README.md` (`etiqueta_origen.py`), stack §10 (`etiqueta-origen.yml`) y los documentos del toolkit que listan los orígenes (TC62-38); `CA-R1` y `CA-R2` sobre los flujos que existan (TC62-09, TC62-R1, TC62-R2); `CA-R4` (TC-15 de TKT-009 con `labels:`) | A8 en verde, con la evidencia de A5 y A6 en su `impl.md` |
-| **TKT-062b** | B1 a B8 | `CA-1`, `CA-2`, `CA-3`, `CA-4`, `CA-5`, `CA-7`, `CA-8`, `CA-10`, `CA-11` (esc. 1 y 2) y `CA-S1`; `CA-9` en lo suyo: el ajuste que impide a Actions aprobar, la clave dedicada con su tope y el secreto; `CA-12` en lo suyo: §12, stack §10 (`revision-ia.yml`), `tools/README.md` (`publicar_revision.py`), `CLAUDE.md` (revisión y recuento de ADR), ADR-027 (TC62-41); `CA-R1` a `CA-R4` con los cuatro flujos (TC62-R1 a TC62-R4) | B8 en verde, con la evidencia de B4 y B5 en su `impl.md` |
+| **TKT-062b** | B1 a B8 | `CA-1`, `CA-2`, `CA-3`, `CA-4`, `CA-5`, `CA-7`, `CA-8`, `CA-10`, `CA-11` (esc. 1 y 2) y `CA-S1`; `CA-9` en lo suyo: el ajuste que impide a Actions aprobar, la clave dedicada con su tope y el secreto; `CA-12` en lo suyo: §12, stack §10 (`revision-ia.yml`), `tools/README.md` (`publicar_revision.py`), `CLAUDE.md` (revisión y recuento de ADR), ADR-028 (TC62-41); `CA-R1` a `CA-R4` con los cuatro flujos (TC62-R1 a TC62-R4) | B8 en verde, con la evidencia de B4 y B5 en su `impl.md` |
 
 ## Decisiones de la persona dueña del repositorio
 
@@ -36,8 +36,8 @@ Ramas de ensayo: `ensayo/tkt-062a` desde `tkt-062a-etiqueta-origen`; `ensayo/tkt
 
 | # | Decisión | Estado y resolución |
 |---|---|---|
-| **D-1** | **Riesgo residual de `A-6`**: quien tenga escritura puede empujar una rama con `revision-ia.yml` modificado, abrir un PR y exfiltrar la clave en esa misma ejecución, antes de que nadie revise el diff | **RESUELTA · 2026-10-29.** Riesgo residual aceptado con las cinco mitigaciones de «Riesgo residual de `A-6`»; su revisión y la rotación quedan en ADR-027 |
-| **D-2** | **Quién aprueba.** GitHub no deja que la persona autora apruebe su propio PR, y la dueña es la única persona con escritura | **RESUELTA · 2026-10-29: sin segunda persona.** Protección de `Produccion` con `required_approving_review_count: 1` y **`enforce_admins: false`**: la regla obliga a todos salvo a la administradora, que fusiona con la omisión de la protección y lo registra (ver «Fusión con omisión de la protección»). El rechazo de `CA-11` se demuestra en la ronda R6 |
+| **D-1** | **Riesgo residual de `A-6`**: quien tenga escritura puede empujar una rama con `revision-ia.yml` modificado, abrir un PR y exfiltrar la clave en esa misma ejecución, antes de que nadie revise el diff | **RESUELTA · 2026-10-29.** Riesgo residual aceptado con las cinco mitigaciones de «Riesgo residual de `A-6`»; su revisión y la rotación quedan en ADR-028 |
+| **D-2** | **Quién aprueba.** GitHub no deja que la persona autora apruebe su propio PR, y la dueña es la única persona con escritura | **RESUELTA · 2026-10-29: sin segunda persona.** Protección de `Produccion` con `required_approving_review_count: 1` y **`enforce_admins: false`**: la regla obliga a todos salvo a la administradora, que fusiona con la omisión de la protección y lo registra (ver «Fusión con omisión de la protección»). El rechazo de `CA-11` se demuestra en la ronda R6. Véase [ADR-027](../../../docs/adr/20261030-proteccion-de-produccion-y-fusion-con-omision.md) |
 | **D-3** | **`A-2`: quién paga la clave y su tope de gasto** | **RESUELTA · 2026-10-29.** Clave **dedicada** a la revisión, en un espacio de trabajo propio de la consola de Anthropic, con un tope de gasto mensual que fija la persona dueña y queda en `impl.md` de 062b. Al agotarlo, el trabajo `revision` falla, `publicar` no corre y el PR queda sin comentario: no bloquea nada (`CA-8`) |
 | **I-1** | Quién publica | **RESUELTA · 2026-10-29: aceptada** tal como se describe abajo |
 | **I-2** | Un comentario por ejecución | **RESUELTA · 2026-10-29: aceptada** |
@@ -62,7 +62,7 @@ Cómo opera «al menos una aprobación humana» con una sola persona con escritu
 
 | # | Resolución | Evidencia | Peldaño |
 |---|---|---|---|
-| `A-1` | Valores iniciales `(asumido)`: `--max-turns 20` y `timeout-minutes: 10` en `revision`; `timeout-minutes: 5` en `publicar` y en `etiqueta`. Se revisan con el primer mes de uso real y el cambio se registra en ADR-027 | — | 1 · lo mínimo que exige M9 |
+| `A-1` | Valores iniciales `(asumido)`: `--max-turns 20` y `timeout-minutes: 10` en `revision`; `timeout-minutes: 5` en `publicar` y en `etiqueta`. Se revisan con el primer mes de uso real y el cambio se registra en ADR-028 | — | 1 · lo mínimo que exige M9 |
 | `A-2` | Modelo `--model sonnet` `(asumido)`: el alias de la CLI de Claude Code, que apunta al Sonnet vigente. Los puntos de §12 que quedan para la IA exigen leer intención; `haiku` los pierde y `opus` no aporta en una lista cerrada. Quién paga: `D-3` | `claude_args` acepta las banderas de la CLI (Context7, `anthropics/claude-code-action`, «Advanced Configuration with claude_args») | — |
 | `A-3` | **Confirmado.** `GITHUB_TOKEN` con `pull-requests: write` puede aprobar si el ajuste «Allow GitHub Actions to create and approve pull requests» está activo; el bloque `permissions:` no lo impide. Viene desactivado por omisión y se fija por API en `PUT /repos/{dueño}/{repo}/actions/permissions/workflow` con `can_approve_pull_request_reviews: false`. **El ajuste solo rige para `GITHUB_TOKEN`**: el token de la aplicación de Claude que la acción obtiene por OIDC no queda cubierto. Por eso la acción recibe `github_token: ${{ github.token }}`, y además el trabajo que ejecuta el modelo solo tiene `pull-requests: read` | Context7, `/github/docs`: «If you enable this setting, `GITHUB_TOKEN` can create and approve pull requests»; `/anthropics/claude-code-action`, `src/github/token.ts`: el `github_token` dado se usa tal cual y anula el intercambio OIDC | 2 · nativo |
 | `A-4` | **Resuelto.** `id-token: write` solo hace falta para la aplicación de Claude por OIDC; con `github_token` no se pide. Permisos: `revision` con `contents: read` y `pull-requests: read`; `publicar` con `contents: read` y `pull-requests: write` justificado. Ni `issues`, ni `actions`, ni `id-token`. Entradas usadas: `anthropic_api_key`, `github_token`, `prompt` y `claude_args` (`--model`, `--max-turns`, `--allowedTools`, `--disallowedTools`, `--json-schema`); salida `structured_output`. Sin `track_progress`: crearía un comentario que exige escritura. Versión: la última `v1.0.N` el día de la fila B3a, fijada por SHA (zizmor 1.31.1 exige SHA en toda acción desde 1.20.0, y `ci.yml` ya lo cumple) | Context7: FAQ «If you wish to not use the GitHub app, you can instead provide a `github_token`»; `docs/usage.md` «Structured Outputs»; zizmor `unpinned-uses` | 2 · nativo |
@@ -95,7 +95,7 @@ Cómo opera «al menos una aprobación humana» con una sola persona con escritu
 | `comprobar_tc22` y `comprobar_sin_secrets_en_flujos` acotadas | 4 · cambio mínimo | Tocan dos pruebas registradas como invariantes de proceso. **No es decisión del diseño**: la tomó la persona responsable el 2026-10-29 (`_index.md`). El diseño solo fija cómo |
 | `comprobar_regla_comun_1/7/8/9` (numeración de TKT-009) sobre **todo** flujo | 4 · cambio mínimo | Hoy solo se aplican a `ci.yml`. Se extiende la lectura, no las reglas; la única excepción nombrada es la guarda `if:` del trabajo `revision` |
 | `tools/tests/test_definicion_etiqueta.py` (062a) y `tools/tests/test_definicion_revision.py` (062b) | 5 · pequeño | Un archivo por tema y por parte, como `test_definicion_documentacion.py` en TKT-009d: `test_definicion_ci.py` pasa de 3,200 líneas, y cada parte queda coherente por sí sola |
-| ADR-027 | — | Ver «¿Merece ADR?» |
+| ADR-028 | — | Ver «¿Merece ADR?» |
 | `CODEOWNERS` sobre `.github/` y `tools/` | 1 · YAGNI | Won't de la spec; ticket futuro sugerido |
 | `concurrency` en los flujos nuevos | 1 · YAGNI | Won't de la spec; ticket futuro sugerido |
 | Comentario fijo que se edita en cada empuje | 1 · YAGNI | Ningún criterio lo pide; cada ejecución publica uno nuevo con el SHA revisado |
@@ -166,7 +166,7 @@ Cada una de las cuatro entradas de `.github/dependabot.yml` añade `labels:` con
 
 ```yaml
 name: Revisión IA
-# TKT-062b · ADR-027. Comenta y nunca aprueba ni bloquea: no es una comprobación requerida.
+# TKT-062b · ADR-028. Comenta y nunca aprueba ni bloquea: no es una comprobación requerida.
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
@@ -191,7 +191,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      # Publica un único comentario con los hallazgos citados. No basta para aprobar: el ajuste del repositorio lo impide (ADR-027).
+      # Publica un único comentario con los hallazgos citados. No basta para aprobar: el ajuste del repositorio lo impide (ADR-028).
       pull-requests: write
     steps: []   # ver la tabla
 ```
@@ -297,7 +297,7 @@ La fila B2 (062b) añade la tercera:
 
 | Nombre | Qué es |
 |---|---|
-| `motivos_de_secretos(nombre: str, texto: str) -> list[str]` | En `test_definicion_ci.py`. `nombre` es el **nombre base** del archivo y solo decide si aplica la excepción. Toma las líneas sin comentarios que casan con `\bsecrets\s*(?:\.\|\[\|:)`. Devuelve motivos **sin prefijo de archivo**, todos empezando por `"lee secrets."`. En cualquier archivo distinto de `FLUJO_DE_REVISION`: un motivo `"lee secrets.; solo el flujo de revisión puede leer un secreto (ADR-027)"` por línea. En `FLUJO_DE_REVISION`: **ningún motivo** solo si hay **exactamente una** línea, igual (sin espacios) a `USO_PERMITIDO_DEL_SECRETO` y dentro del `with:` del paso cuyo `uses:` empieza por `anthropics/claude-code-action@` en el trabajo `revision`. **Con cero líneas, con dos o más, o con una sola fuera de ese sitio**, devuelve un motivo `"lee secrets. fuera de la excepción: el secreto solo se lee, una vez, en anthropic_api_key del paso de claude-code-action del trabajo revision (ADR-027)"`. El caso de cero líneas existe para que nadie «arregle» la excepción quitando la clave y dejando la revisión sin credencial sin que una prueba lo note |
+| `motivos_de_secretos(nombre: str, texto: str) -> list[str]` | En `test_definicion_ci.py`. `nombre` es el **nombre base** del archivo y solo decide si aplica la excepción. Toma las líneas sin comentarios que casan con `\bsecrets\s*(?:\.\|\[\|:)`. Devuelve motivos **sin prefijo de archivo**, todos empezando por `"lee secrets."`. En cualquier archivo distinto de `FLUJO_DE_REVISION`: un motivo `"lee secrets.; solo el flujo de revisión puede leer un secreto (ADR-028)"` por línea. En `FLUJO_DE_REVISION`: **ningún motivo** solo si hay **exactamente una** línea, igual (sin espacios) a `USO_PERMITIDO_DEL_SECRETO` y dentro del `with:` del paso cuyo `uses:` empieza por `anthropics/claude-code-action@` en el trabajo `revision`. **Con cero líneas, con dos o más, o con una sola fuera de ese sitio**, devuelve un motivo `"lee secrets. fuera de la excepción: el secreto solo se lee, una vez, en anthropic_api_key del paso de claude-code-action del trabajo revision (ADR-028)"`. El caso de cero líneas existe para que nadie «arregle» la excepción quitando la clave y dejando la revisión sin credencial sin que una prueba lo note |
 | `comprobar_tc22` | Sigue prohibiendo `pull_request_target` en todo flujo y exigiendo `pull_request` en `ci.yml`. Para `secrets.`, por cada archivo, emite `f"{nombre}: {motivo}"` por cada motivo de `motivos_de_secretos(nombre, texto)`. El mutante de `test_definicion_documentacion.py:3045-3052` sigue exigiendo «`enlaces.yml: lee secrets.`» |
 | `comprobar_sin_secrets_en_flujos` | En `test_definicion_dependabot.py:271-279`. El envoltorio recorre las rutas `.github/workflows/*.yml`, llama a `motivos_de_secretos(os.path.basename(ruta), texto)` y **antepone él mismo la ruta completa**: `f"{ruta}: {motivo}"`. Así los mutantes de `test_definicion_dependabot.py:929`, `:936` y `:950` siguen recibiendo `f"{ruta}: lee secrets…"` (por ejemplo `".github/workflows/ci.yml: lee secrets"`) |
 
@@ -313,9 +313,9 @@ Quien tiene escritura puede abrir un PR desde una rama propia con `revision-ia.y
 2. **El modelo no escribe ni lee fuera del árbol.** El trabajo con el secreto tiene `pull-requests: read`, ninguna herramienta de escritura y `Read(./**)`; y `publicar_revision.py` descarta todo hallazgo con forma de clave (`CLAVE_EXPUESTA`). Una inyección de instrucciones no puede usar GitHub ni el comentario para sacar la clave.
 3. **Quién tiene escritura.** La evidencia de `CA-9` incluye la lista de colaboradores. Los agentes empujan con las credenciales de la dueña; ningún token de agente tiene escritura propia.
 4. **Daño acotado.** Clave dedicada, en un espacio de trabajo propio con límite de gasto (`D-3`). Una clave filtrada cuesta como máximo ese límite.
-5. **Rotación.** ADR-027 describe cómo revocar la clave en la consola de Anthropic, crear otra y sustituir el secreto con `gh secret set`, y cuándo: ante cualquier PR que toque `revision-ia.yml` sin un ticket que lo declare.
+5. **Rotación.** ADR-028 describe cómo revocar la clave en la consola de Anthropic, crear otra y sustituir el secreto con `gh secret set`, y cuándo: ante cualquier PR que toque `revision-ia.yml` sin un ticket que lo declare.
 
-La mitigación estructural es `CODEOWNERS` con revisión obligatoria sobre `.github/` (ticket futuro sugerido), que aun así no impide la ejecución del PR. El residuo lo aceptó la persona responsable el 2026-10-29 (`D-1`).
+`CODEOWNERS` (ticket futuro sugerido) no mitiga este riesgo frente a quien tiene escritura: con una sola persona con escritura y `enforce_admins: false` se autoaprobaría u omitiría la revisión, y tampoco impide la ejecución del PR. La mitigación real es la lectura del diff por la dueña. El residuo lo aceptó la persona responsable el 2026-10-29 (`D-1`).
 
 ## Orden de implementación
 
@@ -356,7 +356,7 @@ Rama `tkt-062b-revision-automatizada-pr`, creada desde `Produccion` con 062a fus
 | B3b | Caso de las instrucciones en `test_definicion_revision.py`, en rojo: `.claude/revision-pr.md` no existe. Después el archivo | TC62-17 | `tester-backend` → `ingeniero-devsecops` | `sonnet` → `sonnet` | TC62-17 en verde; `python tools/verificar_docs.py` en 0, porque recorre `.claude/` | ~100 | Pendiente |
 | B4 | **Ajustes de 062b, los ejecuta la persona dueña**: pasos 4 a 7 del procedimiento (`D-1` y `D-3` resueltas el 2026-10-29) | TC62-29m, TC62-37 (062b) | persona usuaria | — | Salidas de verificación con su fecha en `impl.md`, sin la clave | — | Pendiente |
 | B5 | Ensayo de 062b: rondas R0b a R6 | TC62-11e, TC62-15, TC62-15m, TC62-16, TC62-19, TC62-32, TC62-34, TC62-35, TC62-36 | `git-entrega`; el intento de fusión de R6 lo ejecuta la persona usuaria | `haiku` | Resultado esperado de cada ronda, enlace y extracto en `impl.md`; los PR de ensayo cerrados sin fusionar y las ramas borradas | — | Pendiente |
-| B6 | ∥ ADR-027 (ver «¿Merece ADR?») y su fila en `docs/adr/README.md` | — | `ingeniero-devsecops` | `sonnet` | `python tools/verificar_docs.py` en 0 con el ADR en el índice | ~90 | Pendiente |
+| B6 | ∥ ADR-028 (ver «¿Merece ADR?») y su fila en `docs/adr/README.md` | — | `ingeniero-devsecops` | `sonnet` | `python tools/verificar_docs.py` en 0 con el ADR en el índice | ~90 | Pendiente |
 | B7 | Documentación de 062b (filas B7 de «Documentación afectada»). Después, el caso TC62-41 en rojo y la corrección que lo pone en verde | TC62-41 | `tester-backend` → `ingeniero-devsecops` | `sonnet` → `haiku` · §14.2 tarea mecánica | `python3 tools/verificar_docs.py`, `npx --yes markdownlint-cli2@0.24.0 "docs/**/*.md" "sdd/**/*.md" README.md CLAUDE.md tools/README.md` (`ci.yml:222`) y `uvx --from vale==3.25.1.0 vale --output=line docs sdd README.md CLAUDE.md tools/README.md` (`ci.yml:230`) en 0; TC62-41 en verde | ~70 | Pendiente |
 | B8 | Cierre: como A8, con los dos flujos nuevos en el PR | TC62-R1 a TC62-R4 | `tester-backend` | `sonnet` | Como A8 | — | Pendiente |
 
@@ -665,7 +665,7 @@ Qué se actualiza en **este mismo cambio**. La columna Fila dice en qué fila, y
 | `docs/05-tickets-trabajo.md` (ficha de TKT-062) | Partición aprobada | A0 |
 | `docs/convenciones.md` §6 | Junto a «Revisión de al menos un humano»: con una sola persona con escritura, la revisión humana es la revisión de la dueña en el PR, y la fusión con omisión de la protección se registra en un comentario del PR. Todo cambio a `Produccion` entra por PR, también los cierres | A7 |
 | `docs/convenciones.md` §11 | La etiqueta dice **quién escribió el código**, la fija quien abre el PR y no cambia al aprobar, porque la revisión humana es obligatoria en todo PR. La comprueba `etiqueta-origen.yml`, que es comprobación requerida. Remite a §6 para la regla de PR | A7 |
-| `CLAUDE.md` | «Etiqueta el PR con su origen» nombra las cuatro etiquetas y la comprobación requerida `etiqueta-origen.yml` (A7); la frase de Comandos sobre lo que corre en cada PR añade `revision-ia.yml` como flujo aparte que no es comprobación requerida, y «26 decisiones» pasa a 27 (B7) | A7, B7 |
+| `CLAUDE.md` | «Etiqueta el PR con su origen» nombra las cuatro etiquetas y la comprobación requerida `etiqueta-origen.yml` (A7); la frase de Comandos sobre lo que corre en cada PR añade `revision-ia.yml` como flujo aparte que no es comprobación requerida, y «27 decisiones» pasa a 28 (B7) | A7, B7 |
 | `tools/README.md` | `etiqueta_origen.py`, `test_etiqueta_origen.py` y `test_definicion_etiqueta.py` (A7); `publicar_revision.py`, `test_publicar_revision.py` y `test_definicion_revision.py` (B7) | A7, B7 |
 | `docs/06-stack-tecnologico.md:484` | La frase de entrada de «Integración continua» deja de decir que todo vive en `ci.yml`: el pipeline es `ci.yml`, y junto a él `enlaces.yml` y `etiqueta-origen.yml` (requerido) (A7); B7 añade `revision-ia.yml` (no requerido) | A7, B7 |
 | `docs/06-stack-tecnologico.md:504-507` | «Dos trabajos más, que son los que meten la IA en el pipeline» deja de incluir la revisión como trabajo del pipeline: es un flujo aparte. La viñeta de TKT-062 dice cómo se garantiza que no aprueba | B7 |
@@ -675,16 +675,16 @@ Qué se actualiza en **este mismo cambio**. La columna Fila dice en qué fila, y
 | `.claude/agents/git-entrega.md:109` | «etiqueta de origen `agent`» pasa a «la etiqueta de origen del código, una de las cuatro»: un PR de agente lleva `agent` o `agent+human-review` según quién escribió, no según si ya se revisó | A7 |
 | `sdd/00-propuesta-toolkit.md:287` | La fila de `git-entrega` lista los cuatro orígenes y su significado | A7 |
 | `.claude/agents/ingeniero-devsecops.md:30` | La fila de la revisión dice que vive en `revision-ia.yml`, que comenta y no bloquea, y que es el único flujo que lee un secreto | B7 |
-| `.claude/agents/ingeniero-devsecops.md:83` | «Ningún secreto en *workflows*…» añade la excepción nombrada: `ANTHROPIC_API_KEY` solo en `revision-ia.yml`, por ADR-027 | B7 |
+| `.claude/agents/ingeniero-devsecops.md:83` | «Ningún secreto en *workflows*…» añade la excepción nombrada: `ANTHROPIC_API_KEY` solo en `revision-ia.yml`, por ADR-028 | B7 |
 | `docs/convenciones.md` §12 | Fila «Mantenimiento»: un comentario con los hallazgos citados, no «comentarios en línea» (`I-2`). Párrafo nuevo bajo la lista: cómo corre (dos trabajos, filtro de citas, base), qué no revisa (borradores, bifurcaciones, Dependabot) y dónde viven las instrucciones | B7 |
-| `docs/adr/` y su `README.md` | ADR-027 y su fila | B6 |
-| `README.md` y `llms.txt` | «26 ADRs» pasa a 27 | B7 |
+| `docs/adr/` y su `README.md` | ADR-028 y su fila | B6 |
+| `README.md` y `llms.txt` | «27 ADRs» pasa a 28 | B7 |
 
 ## ¿Merece ADR?
 
 **Sí.** Alguien que llegue verá un flujo que lee un secreto en un proyecto cuyas pruebas lo prohíben, un modelo sin escritura que no publica lo que escribe y un `pull_request` donde «lo normal» sería `pull_request_target`.
 
-`docs/adr/20261029-revision-automatizada-de-pr-con-unica-excepcion-de-secretos.md`, **ADR-027**, formato MADR, estado `Aceptado` (decisiones del gate del 2026-10-29). Se escribe en la fila B6.
+`docs/adr/20261029-revision-automatizada-de-pr-con-unica-excepcion-de-secretos.md`, **ADR-028**, formato MADR, estado `Aceptado` (decisiones del gate del 2026-10-29). Se escribe en la fila B6.
 
 - **Contexto y problema.** La revisión necesita una clave de API; las pruebas de TKT-009 prohíben `secrets.` en todo flujo; el modelo lee texto que escribe el autor del PR; `A-3` y `A-6`.
 - **Opciones consideradas.** (1) La elegida: flujo aparte con `pull_request`, excepción nombrada en un solo paso, modelo sin escritura con `github.token` y filtro de citas de la base en un trabajo sin secreto. (2) `pull_request_target` con checkout de la base: resuelve `A-6`, pero lo prohíbe la decisión del 2026-10-29 y una guarda mal escrita expone el secreto a bifurcaciones. (3) Dos flujos unidos por `workflow_run`: lo prohíbe `comprobar_tc13` y duplica la superficie. (4) Entorno con revisores requeridos: cada revisión espera una aprobación manual, lo que anula la automatización. (5) La aplicación de Claude por OIDC: el ajuste del repositorio no la cubre y podría aprobar. (6) El modelo publica directamente: nada impide mecánicamente un comentario sin cita, y el actor con escritura sería el que lee texto ajeno. (7) Un trabajo dentro de `ci.yml`: secreto en el pipeline y una IA que bloquea.
@@ -701,10 +701,10 @@ Qué se actualiza en **este mismo cambio**. La columna Fila dice en qué fila, y
 | El push protection no reconoce las claves de Anthropic | Media | `CA-7` esc. 3 sin guarda de plataforma | TC62-29 y `CLAVE_EXPUESTA` siguen en pie; se anota en `impl.md` |
 | zizmor activa `secrets-outside-env` | Baja | `workflows` en rojo | Contingencia decidida: entorno `revision-ia` sin reglas |
 | Dos ejecuciones de «Etiqueta de origen» sobre el mismo SHA (por ejemplo, `labeled` y `unlabeled` seguidos) terminan en desorden, y la protección toma la última que acaba, que puede ser la del estado viejo | Baja | Un rojo o un verde que no refleja las etiquetas actuales | Aceptado sin `concurrency`, que es Won't de la spec: se relanza la ejecución con `gh run rerun` o se vuelve a etiquetar. Queda en el ticket futuro de `concurrency` |
-| La revisión del PR que introduce 062b no funciona | Cierta | Ese PR llega sin comentario de la IA | Aceptado y escrito en ADR-027; el ensayo lo cubre |
+| La revisión del PR que introduce 062b no funciona | Cierta | Ese PR llega sin comentario de la IA | Aceptado y escrito en ADR-028; el ensayo lo cubre |
 | `.claude/revision-pr.md` fuera del alcance de `markdownlint-cli2`, Vale y `lychee` | Media | Formato o prosa sin revisar por herramienta | Aceptado sin ampliar alcance; `verificar_docs.py` sí lo recorre y TC62-17 fija lo esencial |
 | Pre-mortem: «la revisión nunca comentó nada útil» | Media | M10 y S1 sin valor | R2a y R2b exigen las tres citas concretas; si no salen, la fila B5 no cierra y se ajustan las instrucciones con el tester presente |
-| Pre-mortem: «la clave se filtró» | Baja | Gasto hasta el límite | Mitigaciones 1 a 5 de `A-6`; rotación de ADR-027 |
+| Pre-mortem: «la clave se filtró» | Baja | Gasto hasta el límite | Mitigaciones 1 a 5 de `A-6`; rotación de ADR-028 |
 | Pre-mortem: «nadie pudo fusionar durante una semana» | Baja tras `D-2` | Bloqueo del proyecto | `D-2` resuelta el 2026-10-29 con `enforce_admins: false`: la dueña fusiona con omisión de la protección, solo con las diez comprobaciones requeridas en verde |
 | Pre-mortem: «la omisión de la protección se volvió la norma sin dejar rastro» | Media | La revisión humana deja de verificarse | Cada fusión con omisión deja su comentario en el PR con la revisión de la dueña y las comprobaciones en verde; el bloque de `delta.md` lo exige |
 | Pre-mortem: «alguien siguió cerrando tickets por empuje directo» | Media | Cambios en `Produccion` sin PR ni comprobaciones | La regla de §6 y §11 y el recuadro «Cambio de flujo de trabajo»; `enforce_admins: false` no lo bloquea técnicamente y se dice |

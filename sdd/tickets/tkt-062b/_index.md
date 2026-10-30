@@ -16,7 +16,7 @@ LISTO PARA EJECUTAR
 | **Puntos** | Talla S en el backlog; unas 920 líneas según el diseño común (≈ 400 de flujo, script, instrucciones, documentación y ADR y ≈ 520 de pruebas). Queda por encima del tope orientativo y no se parte más: el flujo sin el filtro de publicación no comenta nada |
 | **Reglas implicadas** | `RNF-07`, `RNF-08`; `CLAUDE.md` (la revisión comenta y no aprueba); convenciones §12. Ninguna `RN-xx` |
 | **Invariantes en riesgo** | Ninguna tabla. De proceso: `comprobar_tc13`, `comprobar_tc21`, `comprobar_tc22` y `test_tc18_ningun_workflow_declara_secrets` de TKT-009, que aquí se acotan con la excepción nombrada de `revision-ia.yml`. Regresión `CA-R1` a `CA-R4` |
-| **Módulos en alcance** | `.github/workflows/revision-ia.yml`, `.claude/revision-pr.md`, `tools/publicar_revision.py`, `tools/tests/test_definicion_revision.py` y `test_definicion_ci.py`, `test_definicion_dependabot.py`, ADR-027 y la documentación de la revisión. Ningún archivo de `backend/` ni de `frontend/` |
+| **Módulos en alcance** | `.github/workflows/revision-ia.yml`, `.claude/revision-pr.md`, `tools/publicar_revision.py`, `tools/tests/test_definicion_revision.py` y `test_definicion_ci.py`, `test_definicion_dependabot.py`, ADR-028 y la documentación de la revisión. Ningún archivo de `backend/` ni de `frontend/` |
 | **Capas en alcance** | Entrega continua. Ninguna capa de la aplicación |
 | **Depende de** | TKT-062a (la protección de `Produccion` y la etiqueta requerida) |
 | **Bloquea a** | Nada de la fase 1; el informe de calidad por etiqueta lo usa más adelante |
@@ -42,7 +42,7 @@ LISTO PARA EJECUTAR
 Las de [TKT-062](../tkt-062/_index.md#decisiones-registradas), que valen para las dos partes. En esta parte:
 
 - **La clave de API es dedicada**, en un espacio de trabajo propio de Anthropic y con un tope de gasto mensual que fija la persona dueña (`D-3`); el valor queda en `impl.md`.
-- **El riesgo residual de la clave se acepta** con las cinco mitigaciones del diseño (`D-1`); su revisión y la rotación quedan en ADR-027.
+- **El riesgo residual de la clave se acepta** con las cinco mitigaciones del diseño (`D-1`); su revisión y la rotación quedan en ADR-028.
 - **El PR de esta parte puede quedar sin comentario de revisión**: la rama base todavía no tiene el flujo ni las instrucciones. No bloquea nada porque la revisión no es una comprobación requerida.
 
 ## Tickets futuros sugeridos
