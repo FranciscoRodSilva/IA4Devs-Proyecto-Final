@@ -96,6 +96,7 @@ En **este mismo cambio**:
 Despacha **`auditor-arquitectura`** y, si hubo esquema, **`auditor-sql`**, en `sonnet`. Son los dos que pueden invalidar el trabajo entero; conviene saberlo ahora y no en `/sdd-revisar`.
 
 - `REQUIERE CAMBIOS` → **`corrector-revision`** (`haiku`; `sonnet` si algún hallazgo es Mayor y toca un disparador del paso 3) con los hallazgos → reauditar. Máximo 3 ciclos.
+- Rigen el criterio de parada para la redacción y el informe previo literal de [`/sdd-revisar`](../sdd-revisar/SKILL.md), paso 4: se entrega a cada reauditoría el informe anterior con sus identificadores, y un hallazgo de redacción de una sección de cierre no abre un tercer ciclo.
 - `RIESGOSO` → detener **todo** el flujo → `/sdd-escalar`.
 
 ## Paso 7 · Cerrar

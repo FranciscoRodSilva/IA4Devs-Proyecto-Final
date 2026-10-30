@@ -42,7 +42,7 @@ Este es el único comando que puede abrir la pregunta: un subagente no tiene con
 
 Usa `AskUserQuestion` cuando las opciones sean cerradas. Si la decisión es abierta —una regla de negocio que no existe—, pregunta en texto: forzar opciones donde no las hay es peor que preguntar.
 
-**4 · Registrar la respuesta.** La decisión va a «Decisiones registradas» de `_index.md` con fecha y quién decidió. Si recorta alcance, también queda ahí: un `Should` recortado sin registro es un Must incumplido disfrazado.
+**4 · Registrar la respuesta.** Si la decisión recorta alcance, cambia un contrato o enmienda otro ticket, el registro lleva además una lista «Artefactos que repiten esto», obtenida con `Grep` del identificador o la cifra afectada (hub, `spec.md`, `design.md`, `impl.md`, ADR, ficha de `docs/05`, `docs/` y `llms.txt`), y cada elemento se marca al actualizarlo; `/sdd-revisar` la comprueba en lugar de dejarla al hallazgo de un auditor. La decisión va a «Decisiones registradas» de `_index.md` con fecha y quién decidió. Si recorta alcance, también queda ahí: un `Should` recortado sin registro es un Must incumplido disfrazado.
 
 **5 · Devolver el estado** al previo y decir cuál es el siguiente comando.
 
