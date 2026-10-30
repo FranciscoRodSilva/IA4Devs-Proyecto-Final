@@ -43,7 +43,16 @@ if DIRECTORIO_DE_PRUEBAS not in sys.path:
     sys.path.insert(0, DIRECTORIO_DE_PRUEBAS)
 
 from _ayudantes import _sangria, exigir_rojo, exigir_rojo_en_todos, sustituir  # noqa: E402  (la ruta se ajusta arriba)
-from test_definicion_ci import sin_comentarios  # noqa: E402
+from test_definicion_ci import (  # noqa: E402
+    CLAVE_ANTHROPIC_SINTETICA,
+    LINEA_DE_LA_CLAVE,
+    LINEA_DEL_PROMPT,
+    MOTIVO_DE_OTRO_FLUJO,
+    MOTIVO_FUERA_DE_LA_EXCEPCION,
+    REVISION_CON_CLAVE,
+    motivos_de_secretos,
+    sin_comentarios,
+)
 
 RAIZ = os.path.dirname(os.path.dirname(DIRECTORIO_DE_PRUEBAS))
 DIRECTORIO_GITHUB = os.path.join(RAIZ, ".github")
@@ -330,13 +339,13 @@ def comprobar_sin_exclusion_de_env(archivos: dict[str, str]) -> list[str]:
 
 
 def comprobar_sin_secrets_en_flujos(archivos: dict[str, str]) -> list[str]:
-    """`CA-R3` · TC-18. Ningún workflow declara `secrets.`, `secrets[` ni `secrets:`."""
+    """`CA-R3` y `CA-7` · TC-18. Ningún workflow declara `secrets.`, `secrets[` ni `secrets:`, salvo la excepción nombrada de
+    `revision-ia.yml` (`motivos_de_secretos`, compartida con TC-22). El envoltorio pasa el nombre base y antepone la ruta completa."""
     problemas = []
     for ruta in sorted(archivos):
         if not ruta.startswith(".github/workflows/") or not ruta.endswith((".yml", ".yaml")):
             continue
-        if re.search(r"\bsecrets\s*(?:\.|\[|:)", sin_comentarios(archivos[ruta])):
-            problemas.append(f"{ruta}: lee secrets; el pipeline no lee secretos (CA-R3)")
+        problemas += [f"{ruta}: {motivo}" for motivo in motivos_de_secretos(os.path.basename(ruta), archivos[ruta])]
     return problemas
 
 
@@ -1238,6 +1247,65 @@ class PruebasDeMutantesDeTC18(unittest.TestCase):
         for descripcion, archivos in validos.items():
             with self.subTest(valido=descripcion):
                 self.assertEqual(comprobar_tc18(archivos), [])
+
+
+RUTA_REVISION = ".github/workflows/revision-ia.yml"
+
+
+class PruebasDeMutantesDeTC18ConLaExcepcionDeRevision(unittest.TestCase):
+    """TKT-062b · TC62-28 y TC62-29 · CA-7. TC-18 y TC-22 de TKT-009 comparten una sola definición de la excepción de `secrets.`
+    (`motivos_de_secretos`); el envoltorio de TC-18 le pasa el nombre base y antepone él mismo la ruta completa."""
+
+    def base(self) -> dict[str, str]:
+        return {RUTA_CI: PruebasDeMutantesDeTC18.CI_VALIDO, RUTA_DEPENDABOT: DEPENDABOT_VALIDO}
+
+    def con_revision(self, texto: str) -> dict[str, str]:
+        return {**self.base(), RUTA_REVISION: texto}
+
+    def test_tkt062_ca07_esc01_tc18_el_uso_permitido_en_revision_ia_pasa(self):
+        """CA-7 esc. 1 · TC62-28 (control) · TC-18 — `revision-ia.yml` con la única lectura permitida no es un hallazgo de TC-18."""
+        self.assertEqual(comprobar_sin_secrets_en_flujos(self.con_revision(REVISION_CON_CLAVE)), [])
+        self.assertEqual(comprobar_tc18(self.con_revision(REVISION_CON_CLAVE)), [])
+
+    def test_tkt062_ca07_esc02_tc18_el_motivo_lleva_la_ruta_completa_y_empieza_por_lee_secrets(self):
+        """CA-7 esc. 2 · TC62-28 · TC-18 — rechazo: el envoltorio antepone `ruta: ` al motivo sin prefijo, así que los mutantes de
+        TKT-009 siguen recibiendo `f"{ruta}: lee secrets…"`; un secreto en `ci.yml` da exactamente un problema."""
+        con_secreto = PruebasDeMutantesDeTC18.CI_VALIDO + "      - run: echo\n        env:\n          X: ${{ secrets.X }}\n"
+        self.assertEqual(
+            comprobar_sin_secrets_en_flujos({**self.base(), RUTA_CI: con_secreto}),
+            [f"{RUTA_CI}: {MOTIVO_DE_OTRO_FLUJO}"],
+        )
+        problemas = comprobar_sin_secrets_en_flujos(self.con_revision(sustituir(REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, "")))
+        self.assertEqual(problemas, [f"{RUTA_REVISION}: {MOTIVO_FUERA_DE_LA_EXCEPCION}"])
+
+    def test_tkt062_ca07_esc02_tc18_la_excepcion_se_acota_igual_que_en_tc22(self):
+        """CA-7 esc. 2 · TC62-28 · TC-18 — rechazo: la línea permitida movida al `env:`, un segundo secreto, `secrets: inherit` en la revisión,
+        o el mismo texto válido bajo otro nombre, dejan TC-18 en rojo con la ruta completa del archivo."""
+        en_el_env = sustituir(
+            sustituir(REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, ""),
+            LINEA_DEL_PROMPT,
+            LINEA_DEL_PROMPT + "        env:\n          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n",
+        )
+        segundo = sustituir(
+            REVISION_CON_CLAVE, LINEA_DEL_PROMPT, LINEA_DEL_PROMPT + "        env:\n          OTRA: ${{ secrets.OTRA }}\n"
+        )
+        con_inherit = sustituir(REVISION_CON_CLAVE, "    timeout-minutes: 10\n", "    timeout-minutes: 10\n    secrets: inherit\n")
+        casos = {
+            "la línea permitida en el env del paso": (self.con_revision(en_el_env), f"{RUTA_REVISION}: {MOTIVO_FUERA_DE_LA_EXCEPCION}"),
+            "un segundo secreto": (self.con_revision(segundo), f"{RUTA_REVISION}: {MOTIVO_FUERA_DE_LA_EXCEPCION}"),
+            "secrets: inherit además del uso permitido": (self.con_revision(con_inherit), f"{RUTA_REVISION}: {MOTIVO_FUERA_DE_LA_EXCEPCION}"),
+            "el texto válido bajo otro nombre": (
+                {**self.base(), ".github/workflows/otro.yml": REVISION_CON_CLAVE},
+                f".github/workflows/otro.yml: {MOTIVO_DE_OTRO_FLUJO}",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc18, casos)
+
+    def test_tkt062_ca07_esc03_tc18_la_clave_literal_falla(self):
+        """CA-7 esc. 3 · TC62-29 · RNF-07 · TC-18 — rechazo: la clave escrita en `anthropic_api_key:` en lugar del secreto deja TC-18 en rojo."""
+        literal = sustituir(REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, f"          anthropic_api_key: {CLAVE_ANTHROPIC_SINTETICA}\n")
+        problemas = comprobar_tc18(self.con_revision(literal))
+        self.assertEqual(problemas, [f"{RUTA_REVISION}: {MOTIVO_FUERA_DE_LA_EXCEPCION}"])
 
 
 class DefinicionSinExcepcionesEnElEscaneo(unittest.TestCase):

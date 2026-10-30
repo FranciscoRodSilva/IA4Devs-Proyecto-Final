@@ -46,6 +46,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-10-29 | [Política del verificador de escenarios: fase 2, retiro y lista de historias activas](20261029-politica-del-verificador-de-escenarios.md) | Aceptado | Testing, CI · completa [ADR-012](20260918-trazabilidad-escenario-test.md) |
 | 2026-10-29 | [Severidad en la auditoría de dependencias: el aviso de GitHub leído en OSV, con fallo cerrado](20261029-severidad-en-la-auditoria-de-dependencias.md) | Aceptado | CI, dependencias |
 | 2026-10-29 | [Vale para la prosa en español, con estilo propio mínimo en lugar del estilo Microsoft](20261029-vale-para-prosa-en-espanol.md) | Aceptado | Documentación, CI |
+| 2026-10-29 | [Revisión automatizada de pull requests en un flujo aparte, con una única excepción de secretos](20261029-revision-automatizada-de-pr-con-unica-excepcion-de-secretos.md) | Aceptado | CI, seguridad, flujo de revisión |
 | 2026-10-30 | [Protección de `Produccion` con una aprobación humana requerida y fusión con omisión de la persona dueña](20261030-proteccion-de-produccion-y-fusion-con-omision.md) | Aceptado | Repositorio, CI, flujo de fusión |
 
 ## Plantilla

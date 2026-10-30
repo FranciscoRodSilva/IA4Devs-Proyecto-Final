@@ -441,7 +441,7 @@ TKT-062 se ejecuta como dos tickets hermanos que comparten la spec y el diseño 
 | Ticket | Musts | Contenido | Líneas estimadas | Depende de | Filas del diseño |
 |---|---|---|---|---|---|
 | TKT-062a | M5, M8 y M11 en su parte | Etiqueta de origen obligatoria | ~490 (≈ 170 de código y documentación y ≈ 320 de pruebas) | TKT-009 (archivado) | A0 a A8 |
-| TKT-062b | M1 a M4, M6, M7, M9, M10, M8 y M11 en su parte, S1 | Revisión automatizada | ~920 (≈ 400 de código y documentación y ≈ 520 de pruebas) | TKT-062a | B1 a B8 |
+| TKT-062b | M1 a M4, M6, M7, M9, M10, M8 y M11 en su parte, S1 | Revisión automatizada | ~920 (≈ 400 de código y documentación y ≈ 520 de pruebas) | TKT-062a | B1 a B3b, B6 a B8 (B4 y B5 retiradas, ver `_index.md`) |
 
 Entre las dos fichas cubren los Musts M1 a M11 y el Should S1. M8 y M11 se reparten entre ambas, cada una con su parte.
 
@@ -475,9 +475,9 @@ Entre las dos fichas cubren los Musts M1 a M11 y el Should S1. M8 y M11 se repar
 - [ ] El ajuste del repositorio que impide a GitHub Actions aprobar PR está activo y se comprueba por API
 - [ ] Ensayo con un PR que viola a propósito un `float` en una firma de dominio y una ruta `async def`: las dos infracciones se comentan con su cita
 
-Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 y CA-R1 a CA-R4, y su parte de CA-9 y CA-12, como los reparte la partición de la spec.
+Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 y CA-R1 a CA-R4, y su parte de CA-9 y CA-12, como los reparte la partición de la spec. Recorte del 2026-10-30: B4 y B5 retiradas y los criterios de `sdd/tickets/tkt-062b/_index.md` recortados; el registro vigente es ese índice.
 
-**Cierra cuando.** B8 en verde, con la evidencia de B4 y B5 en su `impl.md`.
+**Cierra cuando.** B8 en verde. B4 y B5 quedaron retiradas por el recorte del 2026-10-30; el registro vigente es `sdd/tickets/tkt-062b/_index.md`.
 
 **Non-goals** — No aprueba, no fusiona ni empuja commits, como el ticket paraguas. No comenta en línea. No revisa los PR de bifurcaciones ni los de Dependabot. No bloquea nada, ni como comprobación requerida ni con un umbral de hallazgos.
 

@@ -76,6 +76,9 @@ GUARDA_DE_REVISION = (
     "github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository "
     "&& github.event.pull_request.user.login != 'dependabot[bot]'"
 )
+# TKT-062b · excepción nombrada de `secrets.` (diseño, «Constantes de la excepción nombrada»): la única lectura de un secreto
+# que admite el proyecto, y solo en `FLUJO_DE_REVISION`, dentro del `with:` del paso de `claude-code-action` del trabajo `revision`.
+USO_PERMITIDO_DEL_SECRETO = "anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}"
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -1529,15 +1532,69 @@ def _disparadores(texto: str) -> str:
     return ""
 
 
+LECTURA_DE_SECRETOS = re.compile(r"\bsecrets\s*(?:\.|\[|:)")
+ACCION_DE_REVISION = "anthropics/claude-code-action@"
+MOTIVO_DE_SECRETO_EN_OTRO_FLUJO = "lee secrets.; solo el flujo de revisión puede leer un secreto (ADR-028)"
+MOTIVO_DE_SECRETO_FUERA_DE_LA_EXCEPCION = (
+    "lee secrets. fuera de la excepción: el secreto solo se lee, una vez, en anthropic_api_key "
+    "del paso de claude-code-action del trabajo revision (ADR-028)"
+)
+
+
+def _lineas_del_with_de_la_accion(texto: str) -> list[str]:
+    """Hijos directos del `with:` de cada paso cuyo `uses:` empieza por `anthropics/claude-code-action@`, en el trabajo `revision`."""
+    bloque = extraer_trabajos(texto).get("revision")
+    if bloque is None:
+        return []
+    hijos: list[str] = []
+    for paso in pasos(bloque):
+        if not (valor_del_paso(paso, "uses") or "").startswith(ACCION_DE_REVISION):
+            continue
+        columna = _sangria(paso[0]) + 2
+        for k, linea in enumerate(paso):
+            if _sangria(linea) != columna or linea.strip() != "with:":
+                continue
+            cuerpo = []
+            for siguiente in paso[k + 1 :]:
+                if _sangria(siguiente) <= columna:
+                    break
+                cuerpo.append(siguiente)
+            if cuerpo:
+                directa = min(_sangria(c) for c in cuerpo)
+                hijos += [c for c in cuerpo if _sangria(c) == directa]
+    return hijos
+
+
+def motivos_de_secretos(nombre: str, texto: str) -> list[str]:
+    """TKT-062b · CA-7 · excepción nombrada de `secrets.`. `nombre` es el nombre base del archivo y solo decide si aplica la excepción.
+
+    Devuelve motivos sin prefijo de archivo, todos con `lee secrets.` al principio; cada envoltorio antepone el suyo. Fuera de
+    `FLUJO_DE_REVISION`, un motivo por línea que lee `secrets.`, `secrets[` o `secrets:`. En `FLUJO_DE_REVISION`, ninguno solo si hay
+    exactamente una línea, igual (sin espacios) a `USO_PERMITIDO_DEL_SECRETO` y dentro del `with:` de la acción en el trabajo
+    `revision`; con cero, con dos o más, o con una fuera de ese sitio, un motivo. El caso de cero líneas solo se evalúa sobre un
+    archivo que existe con ese nombre."""
+    lecturas = [linea for linea in sin_comentarios(texto).splitlines() if LECTURA_DE_SECRETOS.search(linea)]
+    if nombre != FLUJO_DE_REVISION:
+        return [MOTIVO_DE_SECRETO_EN_OTRO_FLUJO for _ in lecturas]
+    permitida = _normalizada(USO_PERMITIDO_DEL_SECRETO)
+    if (
+        len(lecturas) == 1
+        and _normalizada(lecturas[0]) == permitida
+        and any(_normalizada(hijo) == permitida for hijo in _lineas_del_with_de_la_accion(texto))
+    ):
+        return []
+    return [MOTIVO_DE_SECRETO_FUERA_DE_LA_EXCEPCION]
+
+
 def comprobar_tc22(flujos: dict[str, str]) -> list[str]:
-    """CA-12 esc. 2 y CA-R3 esc. 1 · TC-22. Ni `pull_request_target` ni `secrets.` en ningún flujo; `ci.yml` usa `pull_request`."""
+    """CA-12 esc. 2, CA-7 y CA-R3 esc. 1 · TC-22. Ni `pull_request_target` en ningún flujo; `ci.yml` usa `pull_request`.
+    `secrets.` solo en `FLUJO_DE_REVISION` y solo como `USO_PERMITIDO_DEL_SECRETO` (véase `motivos_de_secretos`)."""
     problemas = []
     for nombre, texto in flujos.items():
         activo = sin_comentarios(texto)
         if re.search(r"\bpull_request_target\b", activo):
             problemas.append(f"{nombre}: usa pull_request_target, que corre con secretos sobre código de una bifurcación")
-        if re.search(r"\bsecrets\s*(?:\.|\[)", activo):
-            problemas.append(f"{nombre}: lee secrets.*; el pipeline no lee secretos (regla común 5)")
+        problemas += [f"{nombre}: {motivo}" for motivo in motivos_de_secretos(nombre, texto)]
     if "ci.yml" not in flujos:
         problemas.append("falta ci.yml entre los workflows")
     elif not re.search(r"(?<![\w-])pull_request(?![\w-])", _disparadores(flujos["ci.yml"])):
@@ -3667,6 +3724,235 @@ class DefinicionDeLasReglasComunesDeTodoFlujo(unittest.TestCase):
         self.assertIn("ci.yml", flujos)
         self.assertIn("enlaces.yml", flujos)
         self.assertEqual(comprobar_reglas_comunes_de_todo_flujo(flujos), [])
+
+
+# =========================================================================================================
+# TKT-062b · fila B2 · excepción nombrada de `secrets.` · TC62-28, TC62-29 y TC62-30
+# =========================================================================================================
+
+SHA_SINTETICO_DE_LA_ACCION = "0123456789abcdef0123456789abcdef01234567"
+PASO_REVISAR = "      - name: Revisar\n        run: echo revisar\n"
+LINEA_DE_LA_CLAVE = "          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n"
+LINEA_DEL_PROMPT = "          prompt: Revisa el PR\n"
+PASO_REVISAR_CON_CLAVE = (
+    "      - name: Revisar\n"
+    f"        uses: anthropics/claude-code-action@{SHA_SINTETICO_DE_LA_ACCION} # v1\n"
+    "        with:\n" + LINEA_DE_LA_CLAVE + LINEA_DEL_PROMPT
+)
+# `revision-ia.yml` sintético con el único uso permitido: la clave en `with:` del paso de la acción, en el trabajo `revision`.
+REVISION_CON_CLAVE = sustituir(REVISION_SINTETICA, PASO_REVISAR, PASO_REVISAR_CON_CLAVE)
+
+# Armada por concatenación: ningún escáner de secretos debe ver una credencial entera en este archivo.
+CLAVE_ANTHROPIC_SINTETICA = "sk-ant-" + "api03-" + "abcdefghijklmnopqrstuvwxyz0123456789"
+
+MOTIVO_DE_OTRO_FLUJO = "lee secrets.; solo el flujo de revisión puede leer un secreto (ADR-028)"
+MOTIVO_FUERA_DE_LA_EXCEPCION = (
+    "lee secrets. fuera de la excepción: el secreto solo se lee, una vez, en anthropic_api_key "
+    "del paso de claude-code-action del trabajo revision (ADR-028)"
+)
+
+FLUJOS_CON_CLAVE = {
+    "ci.yml": CI_A4,
+    "enlaces.yml": ENLACES_SINTETICO,
+    "etiqueta-origen.yml": ETIQUETA_SINTETICA,
+    FLUJO_DE_REVISION: REVISION_CON_CLAVE,
+}
+
+
+def _con_revision_ia(texto: str) -> dict[str, str]:
+    """Los flujos sintéticos válidos, con `revision-ia.yml` sustituido por `texto`."""
+    return {**FLUJOS_CON_CLAVE, FLUJO_DE_REVISION: texto}
+
+
+def _con_archivo(nombre: str, texto: str) -> dict[str, str]:
+    """Los flujos sintéticos válidos, con `nombre` (que no es el de revisión) sustituido por `texto`."""
+    return {**FLUJOS_CON_CLAVE, nombre: texto}
+
+
+def _sin_la_clave(texto: str = REVISION_CON_CLAVE) -> str:
+    return sustituir(texto, LINEA_DE_LA_CLAVE, "")
+
+
+class PruebasDeMutantesDeLaExcepcionDeSecrets(unittest.TestCase):
+    """TC62-28 a TC62-30 · CA-7. La excepción es una sola línea en un solo sitio; todo lo demás sigue en rojo. Los mutantes
+    son texto sintético: `revision-ia.yml` todavía no existe en el repositorio."""
+
+    def test_tkt062_ca07_esc01_la_constante_vale_lo_que_fija_el_diseno(self):
+        """CA-7 esc. 1 · TC62-27 — `USO_PERMITIDO_DEL_SECRETO` vale literalmente lo que fija el diseño, y es la línea del flujo sintético."""
+        self.assertEqual(USO_PERMITIDO_DEL_SECRETO, "anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}")
+        self.assertEqual(LINEA_DE_LA_CLAVE.strip(), USO_PERMITIDO_DEL_SECRETO)
+
+    def test_tkt062_ca07_esc01_mutantes_el_control_con_el_uso_permitido_pasa(self):
+        """CA-7 esc. 1 · TC62-28 (control) — `revision-ia.yml` con el uso permitido pasa `comprobar_tc22`, y las reglas comunes
+        siguen en verde; sin esto, un mutante «en rojo» podría estarlo por culpa del texto base."""
+        self.assertEqual(comprobar_tc22(FLUJOS_CON_CLAVE), [])
+        self.assertEqual(comprobar_reglas_comunes_de_todo_flujo(FLUJOS_CON_CLAVE), [])
+        self.assertEqual(motivos_de_secretos(FLUJO_DE_REVISION, REVISION_CON_CLAVE), [])
+
+    def test_tkt062_ca07_esc01_mutantes_el_control_admite_otros_espacios_y_comentarios(self):
+        """CA-7 esc. 1 · TC62-28 (control) — la línea permitida con otros espacios sigue siendo la permitida, y un comentario que cita
+        `secrets.` no cuenta como lectura."""
+        con_espacios = sustituir(REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, "          anthropic_api_key:    ${{  secrets.ANTHROPIC_API_KEY  }}\n")
+        comentada = sustituir(REVISION_CON_CLAVE, LINEA_DEL_PROMPT, LINEA_DEL_PROMPT + "          # api_key: ${{ secrets.OTRA }}\n")
+        con_comentario_final = sustituir(
+            REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, LINEA_DE_LA_CLAVE.rstrip("\n") + " # la única lectura\n"
+        )
+        for descripcion, texto in {
+            "con otros espacios": con_espacios,
+            "con una línea comentada que cita secrets.": comentada,
+            "con un comentario al final de la línea": con_comentario_final,
+        }.items():
+            with self.subTest(control=descripcion):
+                self.assertEqual(comprobar_tc22(_con_revision_ia(texto)), [])
+                self.assertEqual(motivos_de_secretos(FLUJO_DE_REVISION, texto), [])
+
+    def test_tkt062_ca07_esc01_mientras_revision_ia_no_existe_el_caso_de_cero_lineas_no_se_aplica(self):
+        """CA-7 esc. 1 · TC62-28 — sin `revision-ia.yml` entre los flujos (entre B2 y B3a), ninguna lectura de secretos y TC-22 en verde:
+        el caso de cero líneas solo se evalúa sobre un archivo que existe con ese nombre."""
+        sin_revision = {k: v for k, v in FLUJOS_CON_CLAVE.items() if k != FLUJO_DE_REVISION}
+        self.assertEqual(comprobar_tc22(sin_revision), [])
+
+    def test_tkt062_ca07_esc02_un_secreto_fuera_de_la_excepcion_falla(self):
+        """CA-7 esc. 2 · TC62-28 · RNF-07 — rechazo: un secreto en `ci.yml`, `enlaces.yml` o `etiqueta-origen.yml`, un segundo secreto,
+        ninguno, `secrets.GITHUB_TOKEN`, el secreto en `publicar` o en un `env:`, o `secrets: inherit` dejan TC-22 en rojo con el archivo y el motivo."""
+        ci_con_secreto = mutar(CI_A4, "backend", PASO_MYPY, "      - run: uv run mypy .\n        env:\n          TOKEN: ${{ secrets.TOKEN }}\n")
+        enlaces_con_secreto = ENLACES_SINTETICO + "      - run: echo ${{ secrets.X }}\n"
+        etiqueta_linea = "          ETIQUETAS: ${{ toJSON(github.event.pull_request.labels.*.name) }}\n"
+        etiqueta_con_secreto = sustituir(ETIQUETA_SINTETICA, etiqueta_linea, etiqueta_linea + "          TOKEN: ${{ secrets.TOKEN }}\n")
+        etiqueta_con_el_uso_permitido = sustituir(ETIQUETA_SINTETICA, etiqueta_linea, etiqueta_linea + LINEA_DE_LA_CLAVE)
+        casos_de_otros_archivos = {
+            "secreto en ci.yml": ("ci.yml", ci_con_secreto),
+            "secreto en enlaces.yml": ("enlaces.yml", enlaces_con_secreto),
+            "secreto en etiqueta-origen.yml": ("etiqueta-origen.yml", etiqueta_con_secreto),
+            "el uso permitido copiado en etiqueta-origen.yml (la excepción es del archivo)": ("etiqueta-origen.yml", etiqueta_con_el_uso_permitido),
+            "secrets: inherit en enlaces.yml": ("enlaces.yml", ENLACES_SINTETICO + "    secrets: inherit\n"),
+            "secrets['X'] en ci.yml": ("ci.yml", sustituir(ci_con_secreto, "secrets.TOKEN", "secrets['TOKEN']")),
+        }
+        for descripcion, (nombre, texto) in casos_de_otros_archivos.items():
+            with self.subTest(mutante=descripcion):
+                _exigir_rojo(self, comprobar_tc22, _con_archivo(nombre, texto), f"{nombre}: {MOTIVO_DE_OTRO_FLUJO}")
+
+        con_linea = lambda nueva: sustituir(REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, nueva)  # noqa: E731
+        en_el_env = sustituir(
+            _sin_la_clave(),
+            LINEA_DEL_PROMPT,
+            LINEA_DEL_PROMPT + "        env:\n          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n",
+        )
+        en_publicar = sustituir(
+            _sin_la_clave(), "        run: echo publicar\n", "        run: echo publicar\n        with:\n" + LINEA_DE_LA_CLAVE
+        )
+        paso_en_publicar = sustituir(
+            sustituir(REVISION_CON_CLAVE, PASO_REVISAR_CON_CLAVE, PASO_REVISAR),
+            "      - name: Publicar\n        run: echo publicar\n",
+            PASO_REVISAR_CON_CLAVE.replace("Revisar", "Publicar"),
+        )
+        casos_de_revision = {
+            "un segundo secreto en el env del paso": sustituir(
+                REVISION_CON_CLAVE, LINEA_DEL_PROMPT, LINEA_DEL_PROMPT + "        env:\n          OTRA: ${{ secrets.OTRA }}\n"
+            ),
+            "el uso permitido dos veces": con_linea(LINEA_DE_LA_CLAVE + LINEA_DE_LA_CLAVE),
+            "ningún secreto (clave quitada)": _sin_la_clave(),
+            "secrets.GITHUB_TOKEN en lugar de la clave": con_linea("          anthropic_api_key: ${{ secrets.GITHUB_TOKEN }}\n"),
+            "secrets.GITHUB_TOKEN además de la clave": con_linea(LINEA_DE_LA_CLAVE + "          github_token: ${{ secrets.GITHUB_TOKEN }}\n"),
+            "la línea permitida en el env del paso": en_el_env,
+            "la línea permitida en el with de un paso de publicar": en_publicar,
+            "el paso de la acción movido al trabajo publicar": paso_en_publicar,
+            "el secreto bajo otra clave del with": con_linea("          github_token: ${{ secrets.ANTHROPIC_API_KEY }}\n"),
+            "otro nombre de secreto": con_linea("          anthropic_api_key: ${{ secrets.OTRA_CLAVE }}\n"),
+            "el secreto con corchetes": con_linea("          anthropic_api_key: ${{ secrets['ANTHROPIC_API_KEY'] }}\n"),
+            "el secreto entre comillas": con_linea('          anthropic_api_key: "${{ secrets.ANTHROPIC_API_KEY }}"\n'),
+            "la línea permitida en un paso que no es la acción": sustituir(
+                REVISION_CON_CLAVE, "uses: anthropics/claude-code-action@", "uses: otros/claude-code-action@"
+            ),
+            "la acción es un nombre que solo contiene el de claude-code-action": sustituir(
+                REVISION_CON_CLAVE, "uses: anthropics/claude-code-action@", "uses: otros/anthropics/claude-code-action@"
+            ),
+            "la acción es otra con el mismo prefijo de nombre": sustituir(
+                REVISION_CON_CLAVE, "uses: anthropics/claude-code-action@", "uses: anthropics/claude-code-action-bifurcada@"
+            ),
+            "la línea permitida bajo un with anidado en el env del paso": sustituir(
+                _sin_la_clave(),
+                LINEA_DEL_PROMPT,
+                LINEA_DEL_PROMPT
+                + "        env:\n          with:\n            anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n",
+            ),
+            "secrets: inherit además del uso permitido": sustituir(
+                REVISION_CON_CLAVE, "    timeout-minutes: 10\n", "    timeout-minutes: 10\n    secrets: inherit\n"
+            ),
+        }
+        for descripcion, texto in casos_de_revision.items():
+            with self.subTest(mutante=descripcion):
+                problemas = _exigir_rojo(self, comprobar_tc22, _con_revision_ia(texto), f"{FLUJO_DE_REVISION}: {MOTIVO_FUERA_DE_LA_EXCEPCION}")
+                self.assertTrue(all(p.startswith(f"{FLUJO_DE_REVISION}: lee secrets.") for p in problemas), problemas)
+
+    def test_tkt062_ca07_esc02_los_motivos_no_llevan_prefijo_y_empiezan_por_lee_secrets(self):
+        """CA-7 esc. 2 · TC62-28 — `motivos_de_secretos` devuelve el motivo exacto, sin el nombre del archivo, uno por línea fuera de
+        la revisión; así cada envoltorio antepone el suyo y los mutantes de TKT-009 siguen esperando «lee secrets»."""
+        dos_lecturas = "      - run: echo ${{ secrets.A }}\n      - run: echo ${{ secrets.B }}\n"
+        self.assertEqual(
+            motivos_de_secretos("ci.yml", CI_A4 + dos_lecturas), [MOTIVO_DE_OTRO_FLUJO, MOTIVO_DE_OTRO_FLUJO]
+        )
+        self.assertEqual(motivos_de_secretos("ci.yml", CI_A4), [])
+        self.assertEqual(motivos_de_secretos(FLUJO_DE_REVISION, _sin_la_clave()), [MOTIVO_FUERA_DE_LA_EXCEPCION])
+        self.assertEqual(
+            motivos_de_secretos(FLUJO_DE_REVISION, REVISION_CON_CLAVE.replace(LINEA_DE_LA_CLAVE, LINEA_DE_LA_CLAVE * 2)),
+            [MOTIVO_FUERA_DE_LA_EXCEPCION],
+        )
+        for nombre, texto in {
+            "ci.yml": CI_A4 + dos_lecturas,
+            FLUJO_DE_REVISION: _sin_la_clave(),
+            "enlaces.yml": ENLACES_SINTETICO + "    secrets: inherit\n",
+        }.items():
+            with self.subTest(nombre=nombre):
+                motivos = motivos_de_secretos(nombre, texto)
+                self.assertNotEqual(motivos, [])
+                self.assertTrue(all(m.startswith("lee secrets.") for m in motivos), motivos)
+                self.assertFalse(any(nombre in m for m in motivos), motivos)
+
+    def test_tkt062_ca07_esc02_la_excepcion_la_decide_el_nombre_base_del_archivo(self):
+        """CA-7 esc. 2 · TC62-28 — el mismo texto válido de revisión, bajo otro nombre, es rojo; y con una ruta completa en lugar del nombre base
+        tampoco se aplica la excepción (el envoltorio de TC-18 debe pasar `os.path.basename(ruta)`)."""
+        self.assertEqual(motivos_de_secretos("otro.yml", REVISION_CON_CLAVE), [MOTIVO_DE_OTRO_FLUJO])
+        self.assertEqual(motivos_de_secretos(".github/workflows/" + FLUJO_DE_REVISION, REVISION_CON_CLAVE), [MOTIVO_DE_OTRO_FLUJO])
+        _exigir_rojo(self, comprobar_tc22, _con_archivo("otro.yml", REVISION_CON_CLAVE), f"otro.yml: {MOTIVO_DE_OTRO_FLUJO}")
+
+    def test_tkt062_ca07_esc03_la_clave_literal_falla(self):
+        """CA-7 esc. 3 · TC62-29 · RNF-07 — rechazo: `anthropic_api_key:` con un literal en lugar del secreto deja TC-22 en rojo, porque la
+        excepción exige exactamente una lectura de `secrets.` en ese sitio y el literal la sustituye por ninguna."""
+        literal = sustituir(
+            REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, f"          anthropic_api_key: {CLAVE_ANTHROPIC_SINTETICA}\n"
+        )
+        literal_entre_comillas = sustituir(
+            REVISION_CON_CLAVE, LINEA_DE_LA_CLAVE, f'          anthropic_api_key: "{CLAVE_ANTHROPIC_SINTETICA}"\n'
+        )
+        casos = {
+            "anthropic_api_key con la clave escrita": literal,
+            "anthropic_api_key con la clave escrita entre comillas": literal_entre_comillas,
+        }
+        for descripcion, texto in casos.items():
+            with self.subTest(mutante=descripcion):
+                problemas = _exigir_rojo(self, comprobar_tc22, _con_revision_ia(texto), f"{FLUJO_DE_REVISION}: {MOTIVO_FUERA_DE_LA_EXCEPCION}")
+                self.assertEqual(len(problemas), 1, problemas)
+                self.assertNotIn(CLAVE_ANTHROPIC_SINTETICA, problemas[0], "el motivo no debe repetir la credencial")
+
+    def test_tkt062_ca07_esc04_pull_request_target_sigue_prohibido(self):
+        """CA-7 esc. 4 · CA-2 esc. 2 · TC62-30 — rechazo: `pull_request_target` en `revision-ia.yml` o en `etiqueta-origen.yml` deja TC-22 en rojo,
+        y la excepción de `secrets.` no lo ampara: en la revisión es el único problema, no se suma ni se oculta."""
+        en_revision = sustituir(REVISION_CON_CLAVE, "on:\n  pull_request:\n", "on:\n  pull_request_target:\n")
+        en_revision_ademas = sustituir(REVISION_CON_CLAVE, "on:\n  pull_request:\n", "on:\n  pull_request:\n  pull_request_target:\n")
+        en_etiqueta = sustituir(ETIQUETA_SINTETICA, "on:\n  pull_request:\n", "on:\n  pull_request_target:\n")
+        en_etiqueta_ademas = sustituir(ETIQUETA_SINTETICA, "on:\n  pull_request:\n", "on:\n  pull_request:\n  pull_request_target:\n")
+        casos = {
+            "revision-ia.yml con pull_request_target en lugar de pull_request": (FLUJO_DE_REVISION, en_revision),
+            "revision-ia.yml con pull_request_target además de pull_request": (FLUJO_DE_REVISION, en_revision_ademas),
+            "etiqueta-origen.yml con pull_request_target en lugar de pull_request": ("etiqueta-origen.yml", en_etiqueta),
+            "etiqueta-origen.yml con pull_request_target además de pull_request": ("etiqueta-origen.yml", en_etiqueta_ademas),
+        }
+        for descripcion, (nombre, texto) in casos.items():
+            with self.subTest(mutante=descripcion):
+                problemas = _exigir_rojo(self, comprobar_tc22, _con_archivo(nombre, texto), f"{nombre}: usa pull_request_target")
+                self.assertEqual(len(problemas), 1, problemas)
+                self.assertTrue(problemas[0].startswith(f"{nombre}: usa pull_request_target"), problemas)
 
 
 if __name__ == "__main__":

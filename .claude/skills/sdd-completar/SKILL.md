@@ -60,6 +60,7 @@ Despacha **`git-entrega`** en modo cierre. La fusión no la hace un subagente: l
 
 ### 5a · Commit, push y PR
 
+- Antes de abrir el PR, invoca la skill `code-review` sobre la rama (CLAUDE.md, «Convenciones de código»): los hallazgos se resuelven o se anotan en el cuerpo del PR, y el resultado consta en el resumen que ve la persona.
 - Revisa el diff: ningún secreto, ningún archivo fuera de alcance, ningún artefacto temporal. El escaneo se repite en cada commit, también en los del ciclo de corrección.
 - Commit con el formato del proyecto. La línea de atribución la fija el orquestador en el encargo; `git-entrega` nunca escribe la de su propio modelo.
 - Push de la rama del ticket, nunca de `Produccion`.
@@ -95,8 +96,9 @@ Con el sí, el orquestador ejecuta **él mismo**, en el hilo principal, el proce
 1. Comprueba las precondiciones y se detiene si falla cualquiera: PR abierto, de este repositorio, de la persona autenticada y no de ensayo, SHA de cabeza igual al comprobado, exactamente una etiqueta de origen y las diez comprobaciones requeridas en `pass`.
 2. Deja en el PR una revisión de comentario atada a ese SHA que cita la aprobación y dice que se hizo sobre un resumen, no sobre el diff completo, porque GitHub no deja aprobar el propio PR.
 3. Fusiona con `gh pr merge --admin --merge --match-head-commit`, de modo que el servidor rechaza la fusión si la cabeza cambió. Si la base es la rama de otro ticket y no `Produccion`, no hay protección y no usa `--admin`.
-4. Deja el comentario de registro: si la base es `Produccion`, es el de la **Fusión con omisión**, con la frase «fusionado con omisión de la protección»; si la base es la rama de otro ticket, va sin esa frase. Lleva la fecha, el número del PR, la etiqueta de origen, el enlace a la revisión en el PR y el enlace a la ejecución con las diez comprobaciones requeridas en verde. Los enlaces se obtienen y comprueban antes de fusionar; un enlace que falte aborta sin tocar `Produccion`.
-5. Vuelve a `Produccion`, la actualiza con `--ff-only` y borra la rama del ticket, en local y en el remoto, salvo que haya PR apilados abiertos sobre ella.
+4. Si el PR fusionado añade `.github/workflows/revision-ia.yml` y el repositorio no tiene el secreto `ANTHROPIC_API_KEY` (`gh secret list`), ejecuta `gh workflow disable revision-ia.yml` justo después de fusionar, para que ningún PR siguiente muestre una ejecución en rojo (ADR-028, «Estado de la activación»), y lo anota en el comentario de registro del paso siguiente.
+5. Deja el comentario de registro: si la base es `Produccion`, es el de la **Fusión con omisión**, con la frase «fusionado con omisión de la protección»; si la base es la rama de otro ticket, va sin esa frase. Lleva la fecha, el número del PR, la etiqueta de origen, el enlace a la revisión en el PR y el enlace a la ejecución con las diez comprobaciones requeridas en verde. Los enlaces se obtienen y comprueban antes de fusionar; un enlace que falte aborta sin tocar `Produccion`.
+6. Vuelve a `Produccion`, la actualiza con `--ff-only` y borra la rama del ticket, en local y en el remoto, salvo que haya PR apilados abiertos sobre ella.
 
 ## Paso 6 · Reportar
 

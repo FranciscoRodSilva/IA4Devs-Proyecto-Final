@@ -27,7 +27,7 @@ Lo que ya está decidido no se rediseña. Las fuentes son:
 | Auditoría de dependencias y secretos | `RNF-07`, `RNF-08` del [PRD](../../docs/01-descripcion-producto.md): `pip-audit` y `npm audit` que **fallan** ante severidad alta, Dependabot, escaneo de secretos de GitHub |
 | Compose local, testcontainers e imagen | [`conv-docker`](../skills/conv-docker/SKILL.md), [ADR-008](../../docs/adr/20260918-despliegue-single-tenant.md) |
 | Superficie de seguridad | [`conv-seguridad`](../skills/conv-seguridad/SKILL.md) |
-| La revisión automatizada de PR | `TKT-062`: flujo **aparte**, que comenta y nunca bloquea |
+| La revisión automatizada de PR | `TKT-062`: `revision-ia.yml`, flujo **aparte**, que comenta y nunca bloquea; inactiva hasta que haya clave de API |
 
 **Una herramienta que el stack no nombra no entra por iniciativa tuya.** Si crees que hace falta un escáner de imágenes, un SAST o una firma de artefactos que el [stack](../../docs/06-stack-tecnologico.md) no recoge, lo propones en tu reporte como candidato a ADR. No lo añades al pipeline: ampliar la cadena de herramientas es una decisión con dueño humano.
 
@@ -51,7 +51,7 @@ Prácticas de higiene que ningún documento del proyecto escribe todavía. Van m
 - ‡ **Acciones fijadas por SHA completo**, con la versión en un comentario. Una etiqueta se mueve bajo los pies; un SHA no.
 - ‡ **Nada de `pull_request_target`** que haga *checkout* del código del PR. Ejecuta código ajeno con los secretos del repositorio.
 - ‡ **Ninguna interpolación de datos del evento en `run:`** —título del PR, nombre de la rama, cuerpo de un comentario—. Pásalos por variable de entorno: interpolados son inyección de órdenes.
-- **Secretos solo en GitHub Secrets**, nunca en el *workflow*, en un valor por omisión ni en la salida de un paso. Los tests no necesitan secretos reales: testcontainers levanta PostgreSQL y MinIO con credenciales efímeras.
+- **Secretos solo en GitHub Secrets**, nunca en el *workflow*, en un valor por omisión ni en la salida de un paso. Los tests no necesitan secretos reales: testcontainers levanta PostgreSQL y MinIO con credenciales efímeras. La única excepción es `ANTHROPIC_API_KEY` en `revision-ia.yml` (ADR-028).
 - **Instalación reproducible**: `uv sync --frozen` y `npm ci`. Un pipeline que resuelve versiones en cada corrida prueba algo distinto cada vez.
 - **Las compuertas fallan, no avisan.** Nivel de aviso en local, nivel de error en CI (`TKT-009`). Un `continue-on-error` sobre una compuerta de seguridad es una compuerta desactivada.
 - **Los tests en CI son los mismos que en local**: testcontainers, `alembic upgrade head`, rol de aplicación. Nunca un servicio de PostgreSQL configurado de otra forma ni SQLite para acelerar.
@@ -80,7 +80,7 @@ Context7 es obligatorio para la sintaxis de GitHub Actions, Dependabot y Docker 
 - [ ] Cada compuerta nueva con su evidencia en rojo y en verde
 - [ ] Ninguna violación de prueba commiteada
 - [ ] `permissions:` mínimos y acciones fijadas por SHA
-- [ ] Ningún secreto en *workflows*, imagen, Compose ni salida de pasos
+- [ ] Ningún secreto en *workflows*, imagen, Compose ni salida de pasos, salvo `ANTHROPIC_API_KEY`, que solo lee el paso del trabajo `revision` de `revision-ia.yml` (ADR-028)
 - [ ] `pip-audit` y `npm audit` limpios, o cada CVE abierto justificado por escrito
 - [ ] Ninguna herramienta que el stack no nombre, salvo propuesta explícita en el reporte
 - [ ] Nada adelantado de `TKT-058` ni de otro ticket
