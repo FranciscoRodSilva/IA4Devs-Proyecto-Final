@@ -53,6 +53,8 @@ Si falta cualquiera de los obligatorios → **STOP**. Se pide, no se rellena. Si
 
 El estado vive en `_index.md`. Quien lo mueve escribe la fila en el Log, con fecha y motivo.
 
+**Salidas de `/sdd-escalar`.** El comando puede abrirse desde `LISTO PARA EJECUTAR`, `EN REVISIÓN` o `REQUIERE CAMBIOS`, y pasa el ticket a `REQUIERE DECISIÓN` (o a `RIESGOSO` si viene de una auditoría bloqueante). Al responder la persona dueña, el ticket vuelve al estado desde el que se escaló, con una de estas salidas, siempre registrada en «Decisiones registradas»: **continuar** tal como estaba; **cambiar el diseño**, que vuelve a `/sdd-disenar` y a su gate humano; **recortar alcance**, que pasa a `EN REVISIÓN` para que `/sdd-revisar` evalúe el ticket contra el alcance recortado; o **detener** el ticket. Un recorte de un Must sigue la fila «recorte tras ejecutar» de la tabla de MoSCoW.
+
 Tres transiciones tienen dueño humano a propósito: aprobar el diseño, resolver lo escalado y aprobar la fusión a `Produccion`. Un pipeline donde el agente aprueba su propio diseño, o fusiona lo que escribió sin que ninguna persona lo haya aceptado, no es un pipeline.
 
 ---
@@ -113,6 +115,7 @@ Formato Gherkin, en español, directamente traducible a un test.
 | Nivel | Regla operativa |
 |---|---|
 | **Must** | Bloqueante. Cada Must tiene ≥1 criterio `[M]`. `/sdd-revisar` **jamás** aprueba con un Must incumplido |
+| **Must** (recorte tras ejecutar) | Un Must puede recortarse después de ejecutar solo por una decisión de la persona dueña tomada con `/sdd-escalar`: queda en `_index.md` con fecha y motivo, se refleja en `spec.md` (el ítem pasa a Won't de ese ticket) y en la lista «Artefactos que repiten esto». Sin ese registro, el Must sigue incumplido |
 | **Should** | Esperado pero negociable. Se recorta **vía `/sdd-escalar`**, con la decisión registrada. Nunca en silencio |
 | **Could** | Solo si sale gratis. No bloquea ni justifica retraso. Un Could no hecho ni se reporta |
 | **Won't** | Fuera de alcance explícito. Si se necesita, es otro ticket |

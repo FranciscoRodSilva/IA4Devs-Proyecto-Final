@@ -67,6 +67,8 @@ A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE C
 - `REQUIERE CAMBIOS` → **`corrector-revision`** (`haiku` por omisión) con los hallazgos, literales. Aplica eso y nada más: no refactoriza de paso, no mejora lo que nadie señaló.
 - Reauditar. Cada hallazgo se reclasifica `Resuelto` / `Persiste` / `Nuevo` por su identificador.
 - **Máximo 3 ciclos.** Al tercero con hallazgos críticos o mayores vivos → `REQUIERE DECISIÓN` → `/sdd-escalar`.
+- **Criterio de parada para la redacción.** Las secciones de cierre (`Verificación final`, `Resultado`, resúmenes de corrección) se generan copiando la salida real de los comandos, sin reformularla, y el auditor las compara con esa salida. Cada hallazgo trae el **texto literal esperado** y el corrector lo copia sin reformular. Tras el segundo ciclo, un hallazgo que solo afecte a la redacción de una sección de cierre no abre una tercera reauditoría: lo resuelve el orquestador con la salida real, lo anota en el log de estados y se lo comunica a la persona dueña. Un hallazgo sobre código, un criterio o un contrato sí obliga a reauditar.
+- **La reauditoría recibe el informe previo literal**, con sus identificadores, para poder reclasificar cada hallazgo. Sin el informe previo, un auditor no puede decir `Resuelto`, `Persiste` o `Nuevo` y encuentra menudencias nuevas en cada ciclo.
 - `RIESGOSO` o `BLOQUEAR` → **`corrector-revision` no actúa**. Estado `RIESGOSO` → `/sdd-escalar`.
 
 ## Paso 5 · Veredicto de aprobación

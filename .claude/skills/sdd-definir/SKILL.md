@@ -38,6 +38,8 @@ No avances sin la evidencia de la anterior. Si el usuario dio todo en el primer 
 
 **Nunca generes la spec con el Must sin validar.**
 
+**Pregunta obligatoria sobre costos, en la fase 2.** ¿El ticket depende de un servicio externo de pago, de una cuenta o de una clave de API? Si sí, la persona dueña confirma el presupuesto **antes del gate** y la spec lo registra como supuesto abierto con su disparador de recorte (qué se recorta si no hay presupuesto). En TKT-062b se asumió una clave de API de pago y solo se supo que no había presupuesto al llegar a la fila B4, con todo ya construido.
+
 ## Paso 3 · Escribir la spec
 
 Desde [`sdd/plantillas/spec.md`](../../../sdd/plantillas/spec.md), en `sdd/tickets/tkt-xxx/spec.md`.

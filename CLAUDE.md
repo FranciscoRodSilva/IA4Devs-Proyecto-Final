@@ -144,7 +144,8 @@ python -m unittest discover -s tools/tests -v   # pruebas de tools/
 - **No guardes archivos en el disco del servidor ni en una columna de PostgreSQL**, ni los sirvas a través de una ruta del API. Las tres opciones están descartadas con su porqué en [ADR-016](docs/adr/20261001-almacenamiento-de-objetos.md).
 - **No interpretes el XML del CFDI.** Se guarda, no se concilia. Conciliarlo contra la orden de compra son reglas de negocio que el PRD no tiene.
 - **No cierres una orden de compra con saldo pendiente.** El faltante se reprograma; la orden solo se cierra al entregarse completa.
-- **No inventes reglas de negocio.** Si algo no está en el PRD, pregunta. Lo que se asume se marca `(asumido)` y se escala.
+- **No asumas nada.** Toda duda se le pregunta a la persona dueña antes de actuar, con tu recomendación, para que decida con criterio: qué ves, qué opciones hay, qué recomiendas y por qué. Vale para el alcance, las reglas de negocio, el presupuesto, los permisos, las herramientas y cualquier dato que no esté escrito o que no hayas comprobado. No rellenes el hueco con un supuesto razonable ni sigas «mientras tanto». Lo que la persona confirma como supuesto se marca `(asumido)`; lo que no confirmó no entra.
+- **No inventes reglas de negocio.** Si algo no está en el PRD, pregunta (ver la regla anterior).
 - **No amplíes el alcance de un ticket.** Cada uno declara sus *non-goals*; respétalos.
 
 ## Cómo se trabaja: el pipeline SDD

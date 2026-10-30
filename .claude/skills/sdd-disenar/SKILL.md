@@ -37,6 +37,8 @@ Lo que gobierna el diseño:
 
 **Context7 es obligatorio** al diseñar contra FastAPI, SQLAlchemy 2.0, Pydantic v2, React 19 o TanStack. El conocimiento del modelo puede estar desactualizado y estas librerías cambian.
 
+**Toda afirmación sobre lo que permite o rechaza una herramienta, un permiso o un límite lleva un experimento previo.** Cada una dice qué comando la comprueba y quién lo ejecuta. Si no se puede ejecutar al diseñar, se marca `(sin ejecutar)` y la primera fila de la ejecución la comprueba antes de construir nada encima. Vale para una biblioteca (se prueba con los literales de la spec, por ejemplo los usuarios de los escenarios) y también para los permisos y las denegaciones del propio toolkit, como las reglas de herramientas de un agente: en TKT-062b se dio por válido que `Read(./**)` impedía leer el entorno del proceso y lo refutó la auditoría de seguridad. Una afirmación sin ejecutar nunca se presenta como hecho.
+
 ## Paso 2 · Impacto
 
 Despacha **`revisor-impacto`**. Lista todo lo que depende de lo que se va a tocar, y comprueba explícitamente que **ningún módulo hable con otro por fuera de su interfaz de aplicación publicada**. Si encuentra una frontera cruzada que el diseño necesita → rediseñar o escalar; no documentarla como excepción.

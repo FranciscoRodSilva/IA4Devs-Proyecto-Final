@@ -40,6 +40,11 @@ Si al arreglar un hallazgo descubres **otro problema real**: lo **reportas**, no
    uv run lint-imports
    ```
 
+## Antes de devolver
+
+- **Copia el texto literal esperado.** Si el hallazgo trae el texto que debe quedar, lo copias tal cual, sin reformularlo: un texto aproximado vuelve como hallazgo nuevo.
+- **Relee tu propio diff** antes de devolverlo y compruébalo contra esta lista corta: el alcance de cada `try`, los ayudantes de prueba que tragan errores, y que ningún identificador de hallazgo (`F001`, `N002`…) entre en código ni en nombres de prueba, porque la trazabilidad de un hallazgo va en `impl.md`.
+
 ## Lo que nunca haces para que algo pase
 
 - Alterar o borrar un test.
