@@ -90,9 +90,21 @@ LEE_SECRETOS = re.compile(r"\bsecrets\s*[.\[:]")
 
 
 def _tipos_de_pull_request(disparadores: str) -> list[str] | None:
-    """Los `types:` del disparador `pull_request` (en lista de flujo `[a, b]` o en lista de bloque), o None si no declara `types:`."""
+    """Los `types:` del disparador `pull_request` (en lista de flujo `[a, b]` o en lista de bloque), o None si no declara `types:`.
+
+    Solo mira el sub-bloque de `pull_request`: desde su línea hasta la siguiente clave del mismo nivel de sangría o menor. Un
+    `types:` bajo otro disparador (`schedule`, `workflow_dispatch`...) no cuenta, ni cuando va antes ni cuando va después."""
     lineas = disparadores.splitlines()
-    for k, linea in enumerate(lineas):
+    inicio = next((k for k, linea in enumerate(lineas) if re.match(r"^\s*pull_request\s*:", linea)), None)
+    if inicio is None:
+        return None
+    sangria = len(lineas[inicio]) - len(lineas[inicio].lstrip())
+    bloque: list[str] = []
+    for linea in lineas[inicio + 1 :]:
+        if linea.strip() and len(linea) - len(linea.lstrip()) <= sangria:
+            break  # la siguiente clave del mismo nivel: termina el sub-bloque de `pull_request`
+        bloque.append(linea)
+    for k, linea in enumerate(bloque):
         encontrada = re.match(r"^(\s*)types:\s*(.*)$", linea)
         if not encontrada:
             continue
@@ -100,7 +112,7 @@ def _tipos_de_pull_request(disparadores: str) -> list[str] | None:
         if resto.startswith("["):
             return [t.strip().strip("\"'") for t in resto.strip("[]").split(",") if t.strip()]
         elementos = []
-        for siguiente in lineas[k + 1 :]:
+        for siguiente in bloque[k + 1 :]:
             elemento = re.match(r"^\s*-\s+(.*)$", siguiente)
             if not elemento:
                 break
@@ -236,6 +248,36 @@ class PruebasDeMutantesDelFlujoDeEtiqueta(unittest.TestCase):
             ),
         }
         exigir_rojo_en_todos(self, comprobar_flujo_de_etiqueta, casos)
+
+    def test_tkt062_ca06_esc04_mutantes_types_bajo_otro_disparador_no_cuenta(self):
+        """CA-6 esc. 4 · TC62-06 — `types:` bajo `schedule` o `workflow_dispatch`, con `pull_request` sin `types:`, es rojo: los cinco tipos
+        tienen que estar en el sub-bloque de `pull_request`, no en cualquier parte del `on:`."""
+        con_pull_request = "  pull_request:\n    types: [opened, reopened, synchronize, labeled, unlabeled]\n"
+        ajenos = "    types: [opened, reopened, synchronize, labeled, unlabeled]\n"
+        casos = {
+            "types bajo workflow_dispatch, después de pull_request": sustituir(
+                ETIQUETA_SINTETICA, con_pull_request, "  pull_request:\n  workflow_dispatch:\n" + ajenos
+            ),
+            "types bajo schedule, antes de pull_request": sustituir(
+                ETIQUETA_SINTETICA, con_pull_request, "  schedule:\n" + ajenos + "  pull_request:\n"
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_flujo_de_etiqueta, casos, "no declara `types:`")
+
+    def test_tkt062_ca06_esc04_mutantes_types_de_otro_disparador_no_estorba(self):
+        """CA-6 esc. 4 · TC62-06 (control) — un `types:` ajeno antes o después de `pull_request` no se confunde con el suyo: el flujo válido sigue pasando."""
+        con_pull_request = "  pull_request:\n    types: [opened, reopened, synchronize, labeled, unlabeled]\n"
+        casos = {
+            "types ajenos antes": sustituir(
+                ETIQUETA_SINTETICA, con_pull_request, "  workflow_dispatch:\n    types: [edited]\n" + con_pull_request
+            ),
+            "types ajenos después": sustituir(
+                ETIQUETA_SINTETICA, con_pull_request, con_pull_request + "  schedule:\n    types: [edited]\n"
+            ),
+        }
+        for descripcion, texto in casos.items():
+            with self.subTest(control=descripcion):
+                self.assertEqual(comprobar_flujo_de_etiqueta(texto), [])
 
     def test_tkt062_ca06_esc04_mutantes_los_permisos_son_solo_contents_read(self):
         """CA-6 esc. 4 · TC62-06 — sin `permissions:`, con `contents: write` o con `pull-requests: write` de más es rojo."""
@@ -432,6 +474,19 @@ class PruebasDeMutantesDelFlujoDeEtiqueta(unittest.TestCase):
             ),
         }
         exigir_rojo_en_todos(self, comprobar_ci_no_se_relanza_al_etiquetar, casos, "etiquetar o editar relanzaría")
+
+    def test_tkt062_ca06_esc04_mutantes_types_de_otro_disparador_no_relanzan_ci(self):
+        """CA-6 esc. 4 · TC62-07 — `labeled` en un `types:` de otro disparador de `ci.yml` no es del `pull_request`: no es un falso rojo."""
+        casos = {
+            "pull_request sin types y types ajenos después": "name: CI\n\non:\n  pull_request:\n  workflow_dispatch:\n    types: [labeled]\n\npermissions:\n  contents: read\n",
+            "types ajenos antes de pull_request sin types": "name: CI\n\non:\n  schedule:\n    types: [unlabeled, edited]\n  pull_request:\n\npermissions:\n  contents: read\n",
+            "pull_request con types ok y types ajenos después": CI_QUE_SE_RELANZA_AL_ETIQUETAR.replace(
+                "\npermissions:", "  schedule:\n    types: [labeled]\n\npermissions:"
+            ),
+        }
+        for descripcion, texto in casos.items():
+            with self.subTest(control=descripcion):
+                self.assertEqual(comprobar_ci_no_se_relanza_al_etiquetar(texto), [])
 
     def test_tkt062_ca06_esc04_mutantes_un_comentario_no_cuenta_como_un_type_de_ci(self):
         """CA-6 esc. 4 · TC62-07 — `labeled` solo en un comentario no relanza `ci.yml`: no es un falso rojo."""
@@ -659,9 +714,9 @@ def _requisitos_de_documentacion() -> dict[str, list[tuple[str, bool]]]:
             ("dice que el cierre nunca va por empuje directo", "empuje directo" in skill_n),
         ],
         ".claude/agents/git-entrega.md": [
-            ("las líneas de origen del PR (:83) listan los cuatro orígenes: faltan " + _origenes_que_faltan(agente), _lista_los_cuatro(agente)),
-            ("la entrega (:109) ya no fija la etiqueta de origen `agent`", re.search(r"etiqueta de origen `agent`", agente) is None),
-            ("la entrega (:109) dice «una de las cuatro»", "una de las cuatro" in agente_n),
+            ("las líneas de origen del PR listan los cuatro orígenes: faltan " + _origenes_que_faltan(agente), _lista_los_cuatro(agente)),
+            ("la entrega ya no fija la etiqueta de origen `agent`", re.search(r"etiqueta de origen `agent`", agente) is None),
+            ("la entrega dice «una de las cuatro»", "una de las cuatro" in agente_n),
         ],
         "sdd/00-propuesta-toolkit.md": [
             ("existe la fila de git-entrega", bool(fila_git_entrega)),

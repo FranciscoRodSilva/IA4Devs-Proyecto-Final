@@ -8,7 +8,8 @@ del evento llegan por variable de entorno y nunca se interpolan en una orden del
 Códigos de salida:
     0  hay exactamente una etiqueta de origen.
     1  no hay ninguna, o hay más de una.
-    2  `ETIQUETAS` falta o no es una lista JSON de cadenas (fallo cerrado).
+    2  `ETIQUETAS` falta, no es una lista JSON de cadenas o está tan anidada que su análisis desborda la
+       recursión (fallo cerrado).
 
 Uso, desde la raíz del repositorio:
     ETIQUETAS='["agent"]' python tools/etiqueta_origen.py
@@ -50,7 +51,7 @@ def _leer_etiquetas(texto: str | None) -> list[str] | None:
         return None
     try:
         valor = json.loads(texto)
-    except ValueError:
+    except (ValueError, RecursionError):
         return None
     if isinstance(valor, list) and all(isinstance(elemento, str) for elemento in valor):
         return valor

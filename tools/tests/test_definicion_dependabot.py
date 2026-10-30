@@ -200,13 +200,17 @@ def comprobar_tc15(texto: str) -> list[str]:
 # ---------------------------------------------------------------------------------------------------------
 
 ETIQUETAS_ESPERADAS = ["agent"]
+ESCALAR_EN_LABELS = ("<escalar>",)  # lo que devuelve `etiquetas_de_entrada` si `labels:` lleva un valor que no es una lista
 
 
 def etiquetas_de_entrada(entrada: list[str]) -> list[str] | None:
     """Los elementos de `labels:` en la columna de claves de la entrada, sin comillas ni vacíos; `None` si la clave no está.
 
     Admite la forma en línea (`labels: ["agent"]`) y la de bloque (`- "agent"`, con la lista más sangrada o al mismo nivel
-    que la clave). `labels:` sin elementos, o con una cadena vacía, da la lista vacía: no es lo mismo que no declararla."""
+    que la clave). `labels:` sin elementos, o con una cadena vacía, da la lista vacía: no es lo mismo que no declararla.
+
+    Un valor en la misma línea que no es una lista en línea (que empiece por `[` y termine en `]`), como `labels: agent` o
+    `labels: "agent"`, es un escalar: Dependabot lo rechaza, así que devuelve `ESCALAR_EN_LABELS`, que nunca es `["agent"]`."""
     columna = _columna_de_claves(entrada)
     for k, linea in enumerate(entrada):
         encontrada = re.match(rf"^ {{{columna}}}labels:[ \t]*(.*)$", linea)
@@ -214,7 +218,9 @@ def etiquetas_de_entrada(entrada: list[str]) -> list[str] | None:
             continue
         resto = encontrada.group(1).strip()
         if resto:
-            elementos = [_desquillar(t) for t in resto.strip("[]").split(",")]
+            if not (resto.startswith("[") and resto.endswith("]")):
+                return list(ESCALAR_EN_LABELS)
+            elementos = [_desquillar(t) for t in resto[1:-1].split(",")]
             return [t for t in elementos if t]
         elementos = []
         for siguiente in entrada[k + 1 :]:
@@ -802,16 +808,14 @@ class DefinicionDeDependabot(unittest.TestCase):
     """Fila B4 sobre `.github/dependabot.yml`. Sin el archivo, falla; no se salta."""
 
     def test_tc15_dependabot_declara_uv_npm_dos_veces_y_github_actions_semanales(self):
-        """RNF-08 · CA-11 esc. 1 · TC-15 — versión 2 y cuatro entradas semanales: uv (o pip) en /backend, npm en /frontend, npm en /.github/mermaid y github-actions en /."""
+        """RNF-08 · CA-11 esc. 1 · TC-15 y TKT-062a · CA-R4 esc. 1 · TC62-R4 — versión 2 y cuatro entradas semanales: uv (o pip) en /backend,
+        npm en /frontend, npm en /.github/mermaid y github-actions en /. El archivo real ya lleva `labels:` en las cuatro, así que este
+        mismo caso es la regresión de TC-15 con `labels:` presente."""
         self.assertEqual(comprobar_tc15(_leer_dependabot(self)), [])
 
     def test_tkt062_ca06_esc05_dependabot_etiqueta_agent_en_sus_cuatro_entradas(self):
         """TKT-062a · CA-6 esc. 5 · TC62-08 — las cuatro entradas de `dependabot.yml` declaran `labels: ["agent"]`, y solo esa."""
         self.assertEqual(comprobar_tc62_08(_leer_dependabot(self)), [])
-
-    def test_tkt062_car4_esc01_tc15_sigue_en_verde_sobre_el_dependabot_real(self):
-        """TKT-062a · CA-R4 esc. 1 · TC62-R4 — `dependabot.yml` real cumple TC-15 (cuatro apartados, semanales, sin opciones prohibidas), lleve o no `labels:`."""
-        self.assertEqual(comprobar_tc15(_leer_dependabot(self)), [])
 
 
 class PruebasDeMutantesDeTC62_08(unittest.TestCase):
@@ -879,7 +883,7 @@ class PruebasDeMutantesDeTC62_08(unittest.TestCase):
         exigir_rojo_en_todos(self, comprobar_tc62_08, casos)
 
     def test_tkt062_ca06_esc05_mutantes_una_etiqueta_que_no_es_solo_agent(self):
-        """TKT-062a · CA-6 esc. 5 · TC62-08 — rechazo: otra etiqueta, una de más, la capitalización distinta, una repetida o `labels` vacía fallan con el dato real."""
+        """TKT-062a · CA-6 esc. 5 · TC62-08 — rechazo: otra etiqueta, una de más, la capitalización distinta, una repetida, `labels` vacía o un escalar en lugar de una lista fallan con el dato real."""
         agent = ETIQUETA_AGENT
         casos = {
             "labels: dependencies": (
@@ -929,6 +933,18 @@ class PruebasDeMutantesDeTC62_08(unittest.TestCase):
             "una etiqueta parecida": (
                 con_etiquetas(agent, agent, agent, '    labels:\n      - "agents"\n'),
                 "github-actions /: labels debe ser ['agent'] y es ['agents']",
+            ),
+            'labels: "agent" (escalar entre comillas)': (
+                con_etiquetas('    labels: "agent"\n', agent, agent, agent),
+                "uv /backend: labels debe ser ['agent'] y es ['<escalar>']",
+            ),
+            "labels: agent (escalar sin comillas)": (
+                con_etiquetas(agent, agent, "    labels: agent\n", agent),
+                "npm /.github/mermaid: labels debe ser ['agent'] y es ['<escalar>']",
+            ),
+            "labels: [agent (lista en línea sin cerrar)": (
+                con_etiquetas(agent, "    labels: [agent\n", agent, agent),
+                "npm /frontend: labels debe ser ['agent'] y es ['<escalar>']",
             ),
         }
         exigir_rojo_en_todos(self, comprobar_tc62_08, casos)
