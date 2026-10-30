@@ -80,7 +80,7 @@ A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE C
 **Bloqueos duros.** No emitas `LISTO PARA PR` si:
 
 - algún test falla sin justificación registrada;
-- algún criterio `[M]` no tiene cobertura de test verificada;
+- algún criterio `[M]` no tiene cobertura de test verificada. Quedan fuera los que solo pueden verificarse con el pipeline de un PR real (por ejemplo, «los nueve trabajos de `ci.yml` en verde»): se anotan en `impl.md` como «se verifica en `/sdd-completar`» y ese comando no fusiona sin esa evidencia. Este comando no abre PR;
 - no hay **ningún test de rechazo** para una regla implicada;
 - hay ruta crítica sin mutación probada ni justificación;
 - cualquier auditor quedó en `REQUIERE CAMBIOS` o `RIESGOSO`;

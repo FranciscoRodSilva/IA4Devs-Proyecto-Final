@@ -86,7 +86,7 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
 
 **Los tests se escriben antes que el código, con TDD.** Por cada fila del diseño, el ciclo rojo → verde → refactor ([metodología §16](sdd/metodologia.md#16--el-ciclo-tdd)): primero el test que nombra el escenario, en rojo y por la razón esperada; después el código mínimo que lo pone en verde; después la limpieza con la suite en verde. Quien escribe el código no toca los tests. Un test de rechazo comprueba el contrato de error completo —regla, cifras y acciones—, no solo el código de estado.
 
-**Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `human`, `human+copilot`, `agent` o `agent+human-review`, según quién escribió el código. La comprobación requerida «Etiqueta de origen» (flujo `etiqueta-origen.yml`) exige exactamente una a todas las personas, la administradora del repositorio incluida. La administradora puede fusionar con `--admin` sin la aprobación humana requerida, pero solo con las diez comprobaciones requeridas en verde, y «Etiqueta de origen» es una de ellas ([convenciones §6](docs/convenciones.md#6-definition-of-done-por-tipo-de-trabajo)).
+**Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `human`, `human+copilot`, `agent` o `agent+human-review`, según quién escribió el código. La comprobación requerida «Etiqueta de origen» (flujo `etiqueta-origen.yml`) exige exactamente una a todas las personas, la administradora del repositorio incluida. **Hay un solo PR por ticket y lo abre, vigila y fusiona `/sdd-completar`**: nadie ejecuta a mano comandos de Git ni de `gh` del flujo de entrega, salvo los ensayos de TKT-062b. La fusión a `Produccion` es con `--admin`, que omite en el servidor todos los requisitos de la protección; que se omita solo la aprobación humana depende de que `git-entrega` compruebe antes las diez comprobaciones requeridas, y solo se fusiona después de tu aprobación explícita en la sesión ([convenciones §6](docs/convenciones.md#6-definition-of-done-por-tipo-de-trabajo)). Esas guardas son convención del agente, no un bloqueo del servidor.
 
 **El esquema y el código hablan español**, el del [glosario](docs/glosario.md). Tablas en `snake_case` singular.
 
@@ -157,11 +157,11 @@ El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de co
 | `/sdd-disenar TKT-xxx` | Plan técnico: qué capa, qué archivos, en qué orden, cómo se verifica cada paso | `design.md` |
 | `/sdd-ejecutar TKT-xxx` | Ciclo TDD rojo → verde → refactor por cada fila del diseño, eligiendo el modelo de cada despacho. Admite `--lote` sobre un rango | `impl.md` |
 | `/sdd-revisar TKT-xxx` | Verifica criterio por criterio, corre la suite, despacha las auditorías, cierra el ciclo de corrección | veredictos |
-| `/sdd-completar TKT-xxx` | Delta del sistema, aprendizajes, documentación y PR | `delta.md`, PR |
+| `/sdd-completar TKT-xxx` | Delta del sistema, aprendizajes, documentación, y abre, vigila y fusiona el único PR del ticket tras tu aprobación | `delta.md`, PR fusionado |
 | `/sdd-avance` | Qué está hecho, qué falta, qué está esperando una decisión | — |
 | `/sdd-escalar TKT-xxx` | Pausa y pide la decisión que no le corresponde al agente | — |
 
-**Dos transiciones tienen dueño humano:** aprobar el diseño y resolver lo escalado. Ningún agente las mueve.
+**Tres transiciones tienen dueño humano:** aprobar el diseño, resolver lo escalado y aprobar la fusión a `Produccion`. Ningún agente las mueve.
 
 Los agentes especializados viven en [`.claude/agents/`](.claude/agents/) y las convenciones por stack en [`.claude/skills/conv-*`](.claude/skills/). Cada agente carga **solo** las convenciones de su capa.
 

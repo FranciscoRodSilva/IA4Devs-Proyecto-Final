@@ -102,7 +102,7 @@ Cinco comandos de pipeline y dos de soporte, como se pidió. Cada uno con su gat
 | `/sdd-disenar TKT-xxx` | Tras aprobar la spec | Plan técnico: qué capa toca, qué archivos, en qué orden, cómo se verifica cada paso. Corre la escalera de decisión por objeto. Pasada adversarial obligatoria. | Fuerza pensar antes de codear; evita retrabajo | `design.md` |
 | `/sdd-ejecutar TKT-xxx` | Tras aprobar el design | Despacha a los desarrolladores y testers que el design exija. Los tests nacen con el código. Cierra con auditorías. | Los tests nacen con el código; después nadie los escribe | `impl.md` |
 | `/sdd-revisar TKT-xxx` | Tras la implementación | Verifica criterio por criterio, corre la suite, despacha los auditores, ejecuta el ciclo de corrección. | Nadie aprueba su propio código | `impl.md` + veredictos |
-| `/sdd-completar TKT-xxx` | Tras revisión aprobada | Genera el delta (añadido / modificado / eliminado), archiva aprendizajes, actualiza la documentación afectada, prepara el PR. | Sin cierre formal, el conocimiento del ticket desaparece | `delta.md`, PR |
+| `/sdd-completar TKT-xxx` | Tras revisión aprobada | Genera el delta (añadido / modificado / eliminado), archiva aprendizajes, actualiza la documentación afectada, abre el único PR del ticket, espera sus diez comprobaciones y, con la aprobación explícita de la persona dueña, lo fusiona a `Produccion`. | Sin cierre formal, el conocimiento del ticket desaparece | `delta.md`, PR fusionado |
 
 ### Los dos de soporte
 
@@ -127,7 +127,7 @@ Ese último es la traducción directa de la regla del proyecto: **no inventes re
 | `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` |
 | `REQUIERE DECISIÓN` · `RIESGOSO` | estado previo | **el usuario** |
 
-Dos transiciones tienen dueño humano a propósito. Un pipeline donde el agente aprueba su propio diseño no es un pipeline, es un monólogo.
+Tres transiciones tienen dueño humano a propósito: aprobar el diseño, resolver lo escalado y aprobar la fusión a `Produccion`. Un pipeline donde el agente aprueba su propio diseño, o fusiona sin que ninguna persona lo haya aceptado, no es un pipeline, es un monólogo.
 
 ---
 
@@ -284,7 +284,7 @@ Ninguno de estos modifica archivos. Emiten veredicto con evidencia citable —ar
 
 | Agente | Cuándo | Qué hace | Por qué existe | Fase |
 |---|---|---|---|---|
-| `git-entrega` | Al abrir y al cerrar un ticket | Crea o verifica la rama, revisa que no entren secretos ni archivos fuera de alcance, commitea con el formato del proyecto, abre el PR enlazado al ticket y marca el origen del PR con una de las cuatro etiquetas (`human`, `human+copilot`, `agent`, `agent+human-review`), que dice quién escribió el código y no cambia al aprobar. | El repositorio tiene su formato de rama y su atribución; y el origen del PR es una métrica declarada del proyecto | A |
+| `git-entrega` | Al abrir y al cerrar un ticket | Crea o verifica la rama, revisa que no entren secretos ni archivos fuera de alcance, commitea con el formato del proyecto, abre el único PR del ticket, espera sus comprobaciones y, con la aprobación explícita de la persona dueña, lo fusiona; y marca el origen del PR con una de las cuatro etiquetas (`human`, `human+copilot`, `agent`, `agent+human-review`), que dice quién escribió el código y no cambia al aprobar. | El repositorio tiene su formato de rama y su atribución; y el origen del PR es una métrica declarada del proyecto | A |
 | `ingeniero-devsecops` | Se toca el pipeline, la imagen, el Compose, las dependencias o la gestión de secretos | Mantiene las compuertas —Ruff, mypy, import-linter, pip-audit, npm audit, pytest con testcontainers, markdownlint, Vale, lychee, los verificadores propios—, Dependabot y el escaneo de secretos; endurece los *workflows* (permisos mínimos, acciones fijadas por SHA) y la imagen. Cada compuerta nace demostrando que falla ante su violación. Sustituye al `ingeniero-ci` previsto. | Un guardrail que no corre en CI es una recomendación, y un pipeline mal endurecido es la puerta de entrada a todos los tickets a la vez | A |
 | `meta-sdd` | Al completar cada ticket | Agrupa las observaciones de `_evolucion.md` por tema, detecta patrones repetidos ≥3 y **propone** mejoras al toolkit. Nunca las aplica solo. | Sin revisión del proceso, el toolkit se fosiliza y deja de reflejar la realidad | A |
 | `generador-onboarding` | Alguien nuevo, o módulo desconocido | Recorrido pedagógico de un módulo: qué hace, cómo fluye, dónde están los riesgos. | El onboarding sin guía cuesta tiempo de todo el equipo | B |

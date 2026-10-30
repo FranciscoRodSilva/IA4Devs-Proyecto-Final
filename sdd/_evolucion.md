@@ -150,6 +150,7 @@
 | 2026-10-30 | TKT-062a | `agente` | Una corrección del orquestador para F003 («salvo la administradora, solo con las diez comprobaciones en verde») introdujo una excepción imposible (F008). Las instrucciones aproximadas al corrector producen hallazgos nuevos en la reauditoría | Media |
 | 2026-10-30 | TKT-062a | `convención` | Los cierres de ticket se empujaban directo a `Produccion` y se saltaron la CI: el de TKT-009d dejó un fallo de Vale que bloqueó la siguiente ronda de documentación. Resuelto por la regla «todo entra por PR» | Media |
 | 2026-10-30 | TKT-062a | `comando` | Los procedimientos para la persona dueña no dicen en qué intérprete se ejecuta cada uno y en PowerShell fallaron todos. Conviene que cada bloque indique «Git Bash» y defina `REPO` en la primera línea | Baja |
+| 2026-10-30 | TKT-062a | `comando` | El proceso de entrega generaba dos pull requests por ticket (uno con el código antes de completar y otro con el cierre) y obligaba a la persona dueña a ejecutar a mano la revisión, la fusión y el comentario de registro en Git Bash. La causa fue la combinación de tres reglas: el PR lo abría una persona, un criterio `[M]` exigía el pipeline de un PR real antes de completar, y el cierre no podía empujarse directo. Resuelto el 2026-10-30: `/sdd-completar` abre, vigila y fusiona un solo PR por ticket y `git-entrega` ejecuta los comandos tras la aprobación explícita de la persona dueña | Alta |
 
 Temas en uso: `plantilla` · `agente` · `comando` · `guardrail` · `convención` · `documentación` · `contexto` · `herramienta` · `modelo`.
 
