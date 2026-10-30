@@ -86,7 +86,7 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
 
 **Los tests se escriben antes que el código, con TDD.** Por cada fila del diseño, el ciclo rojo → verde → refactor ([metodología §16](sdd/metodologia.md#16--el-ciclo-tdd)): primero el test que nombra el escenario, en rojo y por la razón esperada; después el código mínimo que lo pone en verde; después la limpieza con la suite en verde. Quien escribe el código no toca los tests. Un test de rechazo comprueba el contrato de error completo —regla, cifras y acciones—, no solo el código de estado.
 
-**Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `agent` o `agent+human-review`.
+**Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `human`, `human+copilot`, `agent` o `agent+human-review`, según quién escribió el código. La comprobación requerida `etiqueta-origen.yml` («Etiqueta de origen») exige exactamente una.
 
 **El esquema y el código hablan español**, el del [glosario](docs/glosario.md). Tablas en `snake_case` singular.
 

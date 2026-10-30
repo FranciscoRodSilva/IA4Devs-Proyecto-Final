@@ -49,9 +49,23 @@ Las pruebas de `verificar_docs.py` usan solo la biblioteca estándar y se ejecut
 
 El pipeline las corre en el trabajo `herramientas`, con `unittest` y sin `-v`, y falla si la salida contiene `skipped=`: una prueba saltada no cuenta como verde. Sin `-v`, `unittest` no imprime los docstrings, así que un docstring que contenga `skipped=` no provoca un falso rojo.
 
-`test_definicion_ci.py` comprueba la definición de `.github/workflows/ci.yml`: que cada compuerta esté en su trabajo, en el orden que exige el criterio, con sus comandos, permisos y disparadores. Lee el texto del flujo con expresiones regulares, porque la biblioteca estándar no trae analizador de YAML. El fijado de las acciones por SHA no lo comprueba este archivo: lo revisa `zizmor`, que sí analiza los flujos. Se ejecuta desde la raíz con `python -m unittest tools.tests.test_definicion_ci -v`.
+`test_definicion_ci.py` comprueba la definición de `.github/workflows/ci.yml`: que cada compuerta esté en su trabajo, en el orden que exige el criterio, con sus comandos, permisos y disparadores. Además aplica a **todos** los flujos de `.github/workflows/` las reglas comunes del pipeline: el corredor y el tiempo máximo, que ninguna compuerta se desactive, que ningún `run:` interpole `${{ }}` y que cada tubería declare `shell: bash`. Así, un flujo nuevo como `etiqueta-origen.yml` no queda fuera de esas reglas por no estar en `ci.yml`. Lee el texto del flujo con expresiones regulares, porque la biblioteca estándar no trae analizador de YAML. El fijado de las acciones por SHA no lo comprueba este archivo: lo revisa `zizmor`, que sí analiza los flujos. Se ejecuta desde la raíz con `python -m unittest tools.tests.test_definicion_ci -v`.
 
 `test_definicion_documentacion.py` comprueba los pasos de documentación del trabajo `documentacion` de ese mismo flujo y el detector semanal `.github/workflows/enlaces.yml`: el orden de los pasos, la versión fijada de cada herramienta, las guardas y que `lychee` use la misma configuración en ambos flujos. Se ejecuta desde la raíz con `python -m unittest tools.tests.test_definicion_documentacion -v`.
+
+`test_etiqueta_origen.py` prueba `tools/etiqueta_origen.py` sin tocar la red, el entorno real ni el sistema de archivos: `main` recibe el entorno por parámetro. Cubre los casos TC62-01 a TC62-05 del plan de pruebas de TKT-062a y los mutantes que deben caer en esa tabla. Se ejecuta con `python -m unittest tools.tests.test_etiqueta_origen -v`.
+
+`test_definicion_etiqueta.py` comprueba lo que declara `.github/workflows/etiqueta-origen.yml`: los eventos que lo disparan, el nombre del trabajo «Etiqueta de origen» que exige la protección de `Produccion`, que ese trabajo no tenga `if:`, el checkout fijado por SHA y el paso que llama a `etiqueta_origen.py`. También comprueba que los documentos que describen la etiqueta la describen, con las cuatro etiquetas y la comprobación requerida (TC62-38). Se ejecuta con `python -m unittest tools.tests.test_definicion_etiqueta -v`.
+
+## `etiqueta_origen.py`
+
+```bash
+ETIQUETAS='["agent"]' python tools/etiqueta_origen.py
+```
+
+Es el guion de la comprobación requerida «Etiqueta de origen», que corre en `.github/workflows/etiqueta-origen.yml` (TKT-062a). Lee la variable `ETIQUETAS`, la lista JSON con los nombres de etiqueta del PR, y acepta solo si el PR lleva exactamente una de las cuatro etiquetas de origen: `human`, `human+copilot`, `agent` y `agent+human-review`. La coincidencia es exacta: mayúsculas, espacios y variantes no cuentan.
+
+Sale con `0` si hay exactamente una, con `1` si no hay ninguna o hay más de una, y con `2` si `ETIQUETAS` falta o no es una lista de cadenas. El fallo es cerrado: ante una entrada dudosa, la comprobación no pasa. Usa solo la biblioteca estándar. Los datos del evento llegan por variable de entorno y nunca se interpolan en una orden del flujo de trabajo.
 
 ## `extraer_mermaid.py`
 

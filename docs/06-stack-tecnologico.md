@@ -481,7 +481,7 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 
 ### Integración continua
 
-**GitHub Actions**, en `.github/workflows/ci.yml`, disparado por `pull_request` y con `permissions: contents: read` por omisión. Cada trabajo corre en `ubuntu-24.04` con su tiempo máximo, y los que no dependen de otro corren en paralelo. Los trabajos que hoy existen son estos:
+**GitHub Actions**. El pipeline está en `.github/workflows/ci.yml`, disparado por `pull_request` y con `permissions: contents: read` por omisión. Junto a él hay dos flujos aparte: `enlaces.yml`, el detector semanal de enlaces que se describe más abajo, y `etiqueta-origen.yml`, la comprobación de la etiqueta de origen del PR. Esta última es comprobación requerida de `Produccion` ([convenciones §11](convenciones.md#11-métricas-honestas)) y vive fuera de `ci.yml` para que etiquetar un PR no relance los nueve trabajos. Cada trabajo de `ci.yml` corre en `ubuntu-24.04` con su tiempo máximo, y los que no dependen de otro corren en paralelo. Los trabajos que hoy existen son estos:
 
 - **`backend`**: `ruff format --check`, `ruff check`, `mypy`, `verificar_float` y `pytest` contra PostgreSQL real, levantado con testcontainers. La cobertura se mide con `pytest-cov` y sale por el registro; el informe `cobertura.xml` y el `pytest.xml` se suben como artefacto `backend-pruebas`, con catorce días de retención, y la subida falla si no hay ningún archivo que subir. **La cobertura no tiene umbral**: `pytest-cov` la mide y no falla por debajo de ningún porcentaje. Fijar un mínimo es otro ticket, con una base medida.
 - **`fronteras`**: `lint-imports`, el contrato de fronteras de [ADR del 2026-10-17](adr/20261017-interfaz-publicada-y-contrato-de-fronteras.md).

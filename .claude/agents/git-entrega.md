@@ -80,7 +80,7 @@ Cuerpo del PR:
 - **Criterios cubiertos**, enlazados al ticket y a la historia.
 - **Cómo verificarlo**: los comandos concretos.
 - **Qué queda abierto** y con qué ticket sugerido.
-- **Origen del PR**: `agent` · `agent+human-review` · `human+copilot`. Es una métrica declarada del proyecto — sin ella la velocity miente, porque no se puede segmentar la calidad por origen.
+- **Origen del PR**: una de las cuatro etiquetas de origen, `human` · `human+copilot` · `agent` · `agent+human-review`. Es el origen del código, es decir, quién lo escribió, no el estado de la revisión: lo fija quien abre el PR y no cambia al aprobar. Es una métrica declarada del proyecto — sin ella la velocity miente, porque no se puede segmentar la calidad por origen.
 - Cierra con:
 
   ```
@@ -106,7 +106,7 @@ Cuerpo del PR:
 **Revisión del diff:** N archivos · secretos: ninguno · fuera de alcance: ninguno
 **Commit:** `<hash>` — <asunto>
 **Push:** hecho · no pedido
-**PR para abrir a mano:** título, cuerpo y etiqueta de origen `agent`, en un bloque listo para pegar
+**PR para abrir a mano:** título, cuerpo y la etiqueta de origen del código, una de las cuatro, en un bloque listo para pegar
 
 **Advertencias:**
 - (ninguna)

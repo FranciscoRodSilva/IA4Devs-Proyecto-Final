@@ -247,6 +247,8 @@ Una única DoD para todo es un anti-patrón: demasiado genérica para guiar y de
 - [ ] ADR creado si la investigación cierra una decisión
 - [ ] Decisión explícita: continuar, pivotar o cancelar
 
+**Cambios a `Produccion`.** Todo cambio a `Produccion` entra por un PR, también los cierres de ticket: el delta, el archivo del ticket y el registro de evolución viajan dentro del PR del propio ticket, nunca como empuje directo. Con una sola persona con permiso de escritura, la revisión humana es la revisión que la persona dueña deja en el PR como comentario, y la protección de `Produccion` se aplica con `enforce_admins: false`. Así, la persona dueña puede fusionar con la omisión de la protección (`gh pr merge --admin`) solo cuando todas las comprobaciones requeridas están en verde, y registra esa fusión con omisión de la protección en un comentario del PR: fecha, número del PR, etiqueta de origen, enlace a su revisión y enlace a la ejecución de las comprobaciones. Ningún bloqueo técnico impide que se haga de otra forma, por eso esta regla es una convención del proyecto.
+
 ---
 
 ## 7. Estimación
@@ -350,7 +352,7 @@ Aplica desde el momento en que haya código.
 
 **Velocity sirve para planificar, nunca como indicador de rendimiento.** Con IA es trivial inflarla llenando el sprint de historias generadas y completadas con mínimo aporte humano: la velocidad sube y el valor entregado no necesariamente.
 
-**Marcar el origen de cada PR** — `human`, `human+copilot`, `agent`, `agent+human-review` — y reportar la calidad segmentada por origen. Si los PR de agentes tienen tres veces más defectos, la velocity total está mintiendo.
+**Marcar el origen de cada PR** — `human`, `human+copilot`, `agent`, `agent+human-review` — y reportar la calidad segmentada por origen. La etiqueta es el **origen del código**: dice quién escribió el código, no el estado de la revisión. La fija quien abre el PR y **no cambia al aprobar**, porque la revisión humana es obligatoria en todo PR. El flujo `etiqueta-origen.yml` exige que cada PR lleve exactamente una de las cuatro, y su comprobación «Etiqueta de origen» es requerida en `Produccion`. Todo cambio a `Produccion` entra por un PR, también los cierres de ticket: la regla completa, con la fusión con omisión de la protección, está en §6. Si los PR de agentes tienen tres veces más defectos, la velocity total está mintiendo.
 
 **Para medir productividad real, mirar outcomes**: frecuencia de despliegue, lead time, tiempo de recuperación, tasa de fallos en cambios. No story points.
 
