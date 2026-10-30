@@ -9,7 +9,7 @@ El delta no repite la implementación: declara **qué cambió en el sistema** re
 | Qué | Dónde | Para qué |
 |---|---|---|
 | Configuración de `markdownlint-cli2` | `.markdownlint-cli2.jsonc` | Fijar el alcance y las reglas de Markdown. Ninguna regla está apagada |
-| Configuración de `Vale` con estilo propio mínimo | `.vale.ini`, `.vale/styles/Cimenta/Vocabulario.yml` y `.vale/styles/config/vocabularies/Cimenta/accept.txt` | Detectar errores de vocabulario del glosario (por ejemplo «tablaroka» por «tablaroca») y aceptar sus términos propios sin falsos errores |
+| Configuración de `Vale` con estilo propio mínimo | `.vale.ini`, `.vale/styles/Cimenta/Vocabulario.yml` y `.vale/styles/config/vocabularies/Cimenta/accept.txt` | Detectar errores de vocabulario del glosario (por ejemplo `tablaroka` por «tablaroca») y aceptar sus términos propios sin falsos errores |
 | Configuración de `lychee` | `lychee.toml` | Comprobar enlaces internos y externos. Las anclas las sigue comprobando `verificar_docs.py`; se excluyen `cimenta.test` y `medium.com` |
 | Configuración de `mermaid-cli` | `.github/puppeteer-config.json`, `.github/mermaid/package.json` y `.github/mermaid/package-lock.json` | Validar la sintaxis de los diagramas en el corredor, con la versión 12.0.0 fijada por lockfile |
 | Pasos de calidad documental en el trabajo `documentacion` | `.github/workflows/ci.yml` | Ejecutar en cada pull request, en orden y cada uno con `if: ${{ !cancelled() }}`, `verificar_docs.py`, `markdownlint-cli2`, `Vale`, `lychee` y `mermaid-cli`. Un fallo pone en rojo el paso con archivo y línea |
@@ -63,7 +63,7 @@ El delta no repite la implementación: declara **qué cambió en el sistema** re
 **Contexto:** `Vale` nunca se había ejecutado sobre unas 37,000 líneas de Markdown en español, y su estilo estándar es en inglés.
 **Opciones consideradas:** el estilo Microsoft, la ortografía española con Hunspell y no usar `Vale`.
 **Decisión:** un estilo propio mínimo con el vocabulario del glosario y la detección de repeticiones. El estilo Microsoft está escrito para el inglés y marcaría casi cada frase; Hunspell marcaría cada término técnico tomado del inglés (*pipeline*, *endpoint*); con solo `markdownlint-cli2` no habría compuerta sobre la terminología ni la repetición.
-**Evidencia:** TC-60 y TC-61 (ejecuciones locales sobre «tablaroka» y los términos del glosario) y la ronda 1 del ensayo, donde `Vale` marca `Cimenta.Vocabulario` en `docs/convenciones.md:400`.
+**Evidencia:** TC-60 y TC-61 (ejecuciones locales sobre `tablaroka` y los términos del glosario) y la ronda 1 del ensayo, donde `Vale` marca `Cimenta.Vocabulario` en `docs/convenciones.md:400`.
 **Consecuencias:** el paquete `vale` de PyPI descarga el binario oficial sin hash en la primera ejecución, y `npx` resuelve las dependencias transitivas de `markdownlint-cli2` sin lockfile. Ambos son costes aceptados `(asumido)` de prioridad baja.
 
 → Creado: [`docs/adr/20261029-vale-para-prosa-en-espanol.md`](../../../docs/adr/20261029-vale-para-prosa-en-espanol.md), con su entrada en el índice. Es la decisión 26.
