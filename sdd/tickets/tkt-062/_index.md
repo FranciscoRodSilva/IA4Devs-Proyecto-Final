@@ -59,10 +59,10 @@ Todas del 2026-10-29, tomadas por la persona responsable del proyecto al escalar
 
 Decisiones del gate de diseño, 2026-10-29, de la persona responsable del proyecto:
 
-- **D-2.** Sin segunda persona con escritura: la protección de `Produccion` se aplica con `enforce_admins: false`, la persona dueña fusiona con el bypass de administración y lo registra en el `delta.md` de cada ticket. La demostración de `CA-11` no cambia: `gh pr merge` sin `--admin` respeta la protección.
+- **D-2.** Sin segunda persona con escritura: la protección de `Produccion` se aplica con `enforce_admins: false`, la persona dueña fusiona con el bypass de administración y registra esa fusión en un comentario del PR, justo después de fusionar, porque `delta.md` se escribe antes de fusionar. La demostración de `CA-11` no cambia: `gh pr merge` sin `--admin` respeta la protección.
 - **D-1 y D-3.** Se acepta el riesgo residual de la clave, con las cinco mitigaciones del diseño y una clave dedicada, en su propio workspace de Anthropic, con tope de gasto mensual que fija la persona dueña.
 - **I-1 a I-3.** Se aceptan las tres: el comentario lo publica un trabajo aparte, es un solo comentario con `archivo:línea` en lugar de comentarios en línea (se corrige convenciones §12), y `secrets.` sigue prohibido en todo flujo salvo el de revisión.
-- **Partición.** Se parte en TKT-062a (etiqueta de origen) y TKT-062b (revisión), con orden de fusión a → b. Falta ejecutar la partición cuando se apruebe el diseño.
+- **Partición.** Se parte en TKT-062a (etiqueta de origen) y TKT-062b (revisión), con orden de fusión a → b. La partición se ejecutó el 2026-10-29: existen `sdd/tickets/tkt-062a/` y `sdd/tickets/tkt-062b/`, cada una con su `_index.md` y su `spec.md`.
 
 ## Tickets futuros sugeridos
 

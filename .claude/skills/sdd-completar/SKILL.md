@@ -55,7 +55,7 @@ Despacha **`git-entrega`** en modo cierre:
 
 Cuerpo del PR: qué, por qué, criterios cubiertos y cómo verificarlo.
 
-**Fusión con omisión.** Si la fusión será con omisión de la protección de `Produccion`, la persona dueña deja un comentario del PR justo después de fusionar, con la fecha, el número del PR, la etiqueta de origen, el enlace a su revisión y el enlace a la ejecución con las comprobaciones requeridas en verde. El cierre viaja dentro del PR del ticket: nunca por empuje directo a `Produccion`.
+**Fusión con omisión.** Si la fusión será con omisión de la protección de `Produccion`, la persona dueña deja un comentario del PR justo después de fusionar, con la frase «fusionado con omisión de la protección», la fecha, el número del PR, la etiqueta de origen, el enlace a su revisión en el PR y el enlace a la ejecución con las diez comprobaciones requeridas en verde. El cierre viaja dentro del PR del ticket: nunca por empuje directo a `Produccion`.
 
 ## Paso 5 · Archivar
 
