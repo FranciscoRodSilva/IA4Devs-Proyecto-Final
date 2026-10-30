@@ -415,13 +415,13 @@ La decisión sobre la prosa en español y su motivo están en el [ADR del 2026-1
 **Criterios técnicos**
 
 - [ ] Flujo propio, separado del pipeline de TKT-009, que se dispara al abrir un PR, al empujar a él y al sacarlo de borrador; los borradores no se revisan
-- [ ] El token del flujo tiene permiso de **lectura** sobre el contenido y de **escritura solo sobre comentarios del PR**: sin escritura sobre el contenido no puede empujar commits, y sin permiso de revisión no puede aprobar aunque lo intente
-- [ ] La rama `Produccion` exige **al menos una aprobación humana** y el pipeline de TKT-009 en verde. La revisión automatizada **no** es una comprobación requerida: si falla o tarda, el PR no se bloquea
+- [ ] El token del flujo tiene permiso de **lectura** sobre el contenido y de **escritura solo sobre comentarios del PR**: sin escritura sobre el contenido no puede empujar commits, y el ajuste del repositorio que impide a GitHub Actions aprobar PR lo impide aunque lo intente
+- [ ] La rama `Produccion` exige **al menos una aprobación humana** y el pipeline de TKT-009 en verde. Esto vale para todas las personas salvo la administradora del repositorio, que con `enforce_admins: false` puede fusionar con `--admin` sin esa aprobación; esa omisión solo es legítima con las diez comprobaciones requeridas en verde ([convenciones §6](convenciones.md#6-definition-of-done-por-tipo-de-trabajo)). La revisión automatizada **no** es una comprobación requerida: si falla o tarda, el PR no se bloquea
 - [ ] Las instrucciones de revisión viven versionadas en el repositorio y remiten a `CLAUDE.md` en lugar de copiarlo: una copia divergiría al primer cambio de las reglas
 - [ ] La revisión busca lo que un linter no ve, y **la lista de qué busca es una sola: la de [convenciones §12](convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)**. Las instrucciones de revisión remiten a ella en lugar de copiarla, igual que a `CLAUDE.md`, y este ticket no mantiene otra
 - [ ] **Cada hallazgo cita lo que incumple** —la regla de `CLAUDE.md`, el `RN-xx`, el invariante o el *non-goal* del ticket—; un comentario sin cita no se publica. Es lo que separa una revisión de una opinión
 - [ ] El PR enlaza su ticket (`TKT-0XX` en el título o en el cuerpo); si no lo hace, es el primer hallazgo, porque sin ticket no hay *non-goals* contra los que revisar
-- [ ] **Etiqueta de origen** obligatoria —`human`, `human+copilot`, `agent`, `agent+human-review`—, comprobada por una verificación mecánica, no por la IA: el PR sin exactamente una etiqueta no se puede fusionar. Es la base del [seguimiento honesto de la velocidad](#seguimiento-honesto-de-la-velocidad)
+- [ ] **Etiqueta de origen** obligatoria —`human`, `human+copilot`, `agent`, `agent+human-review`—, comprobada por una verificación mecánica, no por la IA: el PR sin exactamente una etiqueta no pasa la comprobación requerida. La administradora puede fusionar con `--admin` porque `enforce_admins: false`; que no lo haga sin las diez comprobaciones en verde, la de la etiqueta incluida, es una convención del proyecto ([convenciones §6](convenciones.md#6-definition-of-done-por-tipo-de-trabajo)). Es la base del [seguimiento honesto de la velocidad](#seguimiento-honesto-de-la-velocidad)
 - [ ] La clave de API vive en los secretos del repositorio, nunca en el flujo, y el flujo **no se ejecuta sobre PR que vienen de bifurcaciones**: un secreto expuesto a código ajeno es un secreto publicado (`RNF-07`)
 - [ ] Turnos y tiempo de la revisión acotados en la configuración **(asumido: los valores se fijan con el primer mes de uso real)**
 - [ ] Se prueba con un PR de ensayo que viola a propósito dos reglas —un `float` en una firma de dominio y una ruta `async def`— y se verifica que **las dos** se comentan con su cita y que el PR sigue sin poder fusionarse sin aprobación humana
@@ -431,6 +431,55 @@ La decisión sobre la prosa en español y su motivo están en el [ADR del 2026-1
 > **Viaja con TKT-009 y no después** porque la etiqueta de origen tiene que estar desde los primeros PR de funcionalidad: sin ella, la comparación de defectos entre PR de agente y PR humanos no tiene línea base.
 
 **Non-goals** — No aprueba, no fusiona, no empuja commits ni propone correcciones aplicables con un clic. No sustituye a Ruff, mypy ni `import-linter`: lo que se comprueba mecánicamente lo comprueba el pipeline. No mide la calidad segmentada por etiqueta: eso se reporta al cerrar cada sprint.
+
+#### Partición en dos tickets hermanos
+
+TKT-062 se ejecuta como dos tickets hermanos que comparten la spec y el diseño de [`sdd/tickets/tkt-062/`](../sdd/tickets/tkt-062/_index.md). El diseño aprobado el 2026-10-29 suma unas 1,410 líneas escritas a mano, más de tres veces el tope de unas 400 por cambio que fija la metodología, y la persona responsable aprobó partirlo en dos en ese mismo gate. TKT-062 queda como ticket paraguas: conserva la spec y el diseño comunes y se cierra cuando se cierran los dos tickets.
+
+**El orden de fusión es fijo: a → b.** 062b usa la protección de `Produccion` que aplica 062a, la comprobación «Etiqueta de origen» que corre en sus PR y las constantes de la guarda de revisión, que nacen en 062a. La rama de 062b se crea desde `Produccion` con 062a ya fusionado.
+
+| Ticket | Musts | Contenido | Líneas estimadas | Depende de | Filas del diseño |
+|---|---|---|---|---|---|
+| TKT-062a | M5, M8 y M11 en su parte | Etiqueta de origen obligatoria | ~490 (≈ 170 de código y documentación y ≈ 320 de pruebas) | TKT-009 (archivado) | A0 a A8 |
+| TKT-062b | M1 a M4, M6, M7, M9, M10, M8 y M11 en su parte, S1 | Revisión automatizada | ~920 (≈ 400 de código y documentación y ≈ 520 de pruebas) | TKT-062a | B1 a B8 |
+
+Entre las dos fichas cubren los Musts M1 a M11 y el Should S1. M8 y M11 se reparten entre ambas, cada una con su parte.
+
+##### TKT-062a · Etiqueta de origen obligatoria
+
+**Qué hace.** Exige una etiqueta de origen en cada pull request —`human`, `human+copilot`, `agent` o `agent+human-review`— mediante el flujo propio `etiqueta-origen.yml`, que ejecuta un script de la biblioteca estándar sin IA y sin secretos. Esa comprobación es requerida en `Produccion`, junto con el pipeline de TKT-009. Crea las cuatro etiquetas en el repositorio, añade la etiqueta `agent` a los PR de Dependabot y establece la regla de que todo cambio a `Produccion` entra por un PR, también los cierres de ticket.
+
+- [ ] Flujo `etiqueta-origen.yml`, con el disparador `synchronize`, que falla sin exactamente una etiqueta de origen. Su trabajo se llama «Etiqueta de origen», que es el contexto que exige la protección. `ci.yml` no cambia
+- [ ] `tools/etiqueta_origen.py` en la biblioteca estándar: con ninguna etiqueta de origen o con dos falla, con una pasa, y el mensaje nombra las etiquetas halladas
+- [ ] Las cuatro etiquetas existen en el repositorio y las cuatro entradas de `.github/dependabot.yml` añaden `labels:` con `agent`
+- [ ] Protección de `Produccion` con el pipeline y «Etiqueta de origen» como comprobaciones requeridas, con `enforce_admins: false`, y con la lista de colaboradores como evidencia
+- [ ] La regla «todo entra por PR» figura en §6 y §11 de las convenciones, con su porqué, y en los documentos del toolkit que listan los orígenes
+- [ ] Las reglas comunes de TKT-009 se aplican a todo flujo de `.github/workflows/`, con la única excepción nombrada de la guarda de revisión que nace aquí y se usa en TKT-062b
+
+**Cierra cuando.** A8 en verde, con la evidencia de A5 y A6 en su `impl.md`.
+
+**Non-goals** — No revisa el contenido del PR, ni con IA ni con reglas: solo cuenta etiquetas. No toca `ci.yml`, porque un `labeled` allí relanzaría los nueve trabajos. No mide la velocidad por etiqueta: eso se reporta al cerrar cada sprint.
+
+##### TKT-062b · Revisión automatizada
+
+**Qué hace.** Añade el flujo `revision-ia.yml`, que ejecuta `anthropics/claude-code-action` sobre el PR con una clave de API dedicada y con un token que solo lee, de modo que el trabajo que ejecuta el modelo no tiene permiso de escritura. Un trabajo aparte, sin secreto y sobre la rama base, publica un único comentario tras filtrar los hallazgos que no traen una cita válida o que contienen algo con forma de clave (`tools/publicar_revision.py`). Incluye las instrucciones versionadas en `.claude/revision-pr.md`, la excepción nombrada que permite leer `secrets.` solo en ese flujo, el ADR-028 y los PR de ensayo.
+
+- [ ] Flujo que se dispara al abrir o reabrir un PR, al empujar a él y al sacarlo de borrador, y que no revisa los borradores
+- [ ] La guarda del trabajo excluye las bifurcaciones y los PR de Dependabot, que no reciben secretos
+- [ ] El trabajo que lee el PR tiene `contents: read` y `pull-requests: read`, ninguna herramienta de escritura y lectura acotada al árbol de trabajo. El trabajo `publicar` tiene `pull-requests: write` y no tiene el secreto
+- [ ] Los dos trabajos hacen checkout de la rama base, no del PR. `.claude/revision-pr.md` enlaza `CLAUDE.md` y convenciones §12 en lugar de copiarlos
+- [ ] Un hallazgo sin cita válida, o con algo con forma de clave, no se publica. El título y el cuerpo del PR entran por variable de entorno, nunca interpolados en `run:`
+- [ ] El PR sin ticket y el que toca `docs/api/openapi.yaml` reciben sus dos hallazgos mecánicos
+- [ ] `ANTHROPIC_API_KEY` se lee una sola vez, en un único paso, con el tope de gasto mensual que fija la persona dueña y que queda en `impl.md`. Si se agota, el PR queda sin comentario y no se bloquea nada
+- [ ] Se publica un único comentario por ejecución, con el SHA revisado, y no comentarios en línea
+- [ ] El ajuste del repositorio que impide a GitHub Actions aprobar PR está activo y se comprueba por API
+- [ ] Ensayo con un PR que viola a propósito un `float` en una firma de dominio y una ruta `async def`: las dos infracciones se comentan con su cita
+
+Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 y CA-R1 a CA-R4, y su parte de CA-9 y CA-12, como los reparte la partición de la spec.
+
+**Cierra cuando.** B8 en verde, con la evidencia de B4 y B5 en su `impl.md`.
+
+**Non-goals** — No aprueba, no fusiona ni empuja commits, como el ticket paraguas. No comenta en línea. No revisa los PR de bifurcaciones ni los de Dependabot. No bloquea nada, ni como comprobación requerida ni con un umbral de hallazgos.
 
 ---
 

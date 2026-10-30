@@ -6,6 +6,8 @@ TKT-009b · fila B4. Comprueban lo que el repositorio *declara*, no lo que GitHu
   semanales: `uv` (o `pip`, la sustitución que el diseño permite si GitHub rechaza `uv`) en `/backend`,
   `npm` en `/frontend`, `npm` en `/.github/mermaid` (el lock de mermaid-cli, que audita el trabajo `dependencias`,
   RNF-08) y `github-actions` en `/`.
+* TC62-08 (TKT-062a, `CA-6` esc. 5): las cuatro entradas llevan `labels:` con exactamente `["agent"]`, para que los PR
+  de Dependabot pasen la comprobación «Etiqueta de origen». TC62-R4 (`CA-R4`): TC-15 sigue en verde con `labels:` presente.
 * TC-18 (`CA-11` esc. 3 y `CA-R3`), rechazo estático: el diseño **no crea ninguna excepción** para las contraseñas
   de desarrollo de `.env.example` (segunda interpretación señalada en el gate). Por eso no existe
   `.github/secret_scanning.yml`, ningún `paths-ignore` ni otra lista de exclusión de `.github/` cita `.env.example`
@@ -190,6 +192,65 @@ def comprobar_tc15(texto: str) -> list[str]:
         candidatas = [(et, d) for et, ecos, d in ENTRADAS_ESPERADAS if ecosistema in ecos]
         etiqueta = next((et for et, d in candidatas if d == directorio), candidatas[0][0])
         problemas.append(f"hay más de una entrada de {etiqueta}; debe haber exactamente una")
+    return problemas
+
+
+# ---------------------------------------------------------------------------------------------------------
+# TC62-08: la etiqueta `agent` en las cuatro entradas (TKT-062a)
+# ---------------------------------------------------------------------------------------------------------
+
+ETIQUETAS_ESPERADAS = ["agent"]
+ESCALAR_EN_LABELS = ("<escalar>",)  # lo que devuelve `etiquetas_de_entrada` si `labels:` lleva un valor que no es una lista
+
+
+def etiquetas_de_entrada(entrada: list[str]) -> list[str] | None:
+    """Los elementos de `labels:` en la columna de claves de la entrada, sin comillas ni vacíos; `None` si la clave no está.
+
+    Admite la forma en línea (`labels: ["agent"]`) y la de bloque (`- "agent"`, con la lista más sangrada o al mismo nivel
+    que la clave). `labels:` sin elementos, o con una cadena vacía, da la lista vacía: no es lo mismo que no declararla.
+
+    Un valor en la misma línea que no es una lista en línea (que empiece por `[` y termine en `]`), como `labels: agent` o
+    `labels: "agent"`, es un escalar: Dependabot lo rechaza, así que devuelve `ESCALAR_EN_LABELS`, que nunca es `["agent"]`."""
+    columna = _columna_de_claves(entrada)
+    for k, linea in enumerate(entrada):
+        encontrada = re.match(rf"^ {{{columna}}}labels:[ \t]*(.*)$", linea)
+        if not encontrada:
+            continue
+        resto = encontrada.group(1).strip()
+        if resto:
+            if not (resto.startswith("[") and resto.endswith("]")):
+                return list(ESCALAR_EN_LABELS)
+            elementos = [_desquillar(t) for t in resto[1:-1].split(",")]
+            return [t for t in elementos if t]
+        elementos = []
+        for siguiente in entrada[k + 1 :]:
+            es_elemento = siguiente.lstrip().startswith("- ")
+            if _sangria(siguiente) > columna or (_sangria(siguiente) == columna and es_elemento):
+                if es_elemento:
+                    elementos.append(_desquillar(siguiente.lstrip()[2:]))
+            else:
+                break
+        return [t for t in elementos if t]
+    return None
+
+
+def comprobar_tc62_08(texto: str) -> list[str]:
+    """`CA-6` esc. 5 · TC62-08. Cada una de las cuatro entradas de `updates:` declara `labels:` con exactamente `["agent"]`:
+    ni otra etiqueta, ni etiquetas de más, ni la clave ausente o vacía, ni `Agent` con otra capitalización."""
+    entradas = entradas_de_updates(texto)
+    problemas: list[str] = []
+    if len(entradas) != len(ENTRADAS_ESPERADAS):
+        problemas.append(
+            f"debe declarar exactamente cuatro entradas en `updates:` y declara {len(entradas)}"
+        )
+    for entrada in entradas:
+        ecosistema = escalar_de_entrada(entrada, "package-ecosystem")
+        directorio = escalar_de_entrada(entrada, "directory")
+        etiquetas = etiquetas_de_entrada(entrada)
+        if etiquetas != ETIQUETAS_ESPERADAS:
+            problemas.append(
+                f"{ecosistema} {directorio}: labels debe ser {ETIQUETAS_ESPERADAS!r} y es {etiquetas!r}"
+            )
     return problemas
 
 
@@ -404,6 +465,19 @@ ENTRADA_ACTIONS = """\
 """
 CABECERA = "# Actualizaciones semanales de dependencias.\nversion: 2\nupdates:\n"
 DEPENDABOT_VALIDO = CABECERA + ENTRADA_UV + ENTRADA_NPM + ENTRADA_MERMAID + ENTRADA_ACTIONS
+
+
+ETIQUETA_AGENT = '    labels:\n      - "agent"\n'
+
+
+def con_etiquetas(*bloques: str) -> str:
+    """`DEPENDABOT_VALIDO` con un bloque de `labels:` (texto ya sangrado, o cadena vacía) tras cada una de las cuatro entradas."""
+    assert len(bloques) == 4, "un bloque por entrada: uv, npm, npm de mermaid y github-actions"
+    entradas = (ENTRADA_UV, ENTRADA_NPM, ENTRADA_MERMAID, ENTRADA_ACTIONS)
+    return CABECERA + "".join(e + b for e, b in zip(entradas, bloques, strict=True))
+
+
+DEPENDABOT_CON_ETIQUETA = con_etiquetas(*[ETIQUETA_AGENT] * 4)
 
 
 def comentada(entrada: str) -> str:
@@ -734,8 +808,203 @@ class DefinicionDeDependabot(unittest.TestCase):
     """Fila B4 sobre `.github/dependabot.yml`. Sin el archivo, falla; no se salta."""
 
     def test_tc15_dependabot_declara_uv_npm_dos_veces_y_github_actions_semanales(self):
-        """RNF-08 · CA-11 esc. 1 · TC-15 — versión 2 y cuatro entradas semanales: uv (o pip) en /backend, npm en /frontend, npm en /.github/mermaid y github-actions en /."""
+        """RNF-08 · CA-11 esc. 1 · TC-15 y TKT-062a · CA-R4 esc. 1 · TC62-R4 — versión 2 y cuatro entradas semanales: uv (o pip) en /backend,
+        npm en /frontend, npm en /.github/mermaid y github-actions en /. El archivo real ya lleva `labels:` en las cuatro, así que este
+        mismo caso es la regresión de TC-15 con `labels:` presente."""
         self.assertEqual(comprobar_tc15(_leer_dependabot(self)), [])
+
+    def test_tkt062_ca06_esc05_dependabot_etiqueta_agent_en_sus_cuatro_entradas(self):
+        """TKT-062a · CA-6 esc. 5 · TC62-08 — las cuatro entradas de `dependabot.yml` declaran `labels: ["agent"]`, y solo esa."""
+        self.assertEqual(comprobar_tc62_08(_leer_dependabot(self)), [])
+
+
+class PruebasDeMutantesDeTC62_08(unittest.TestCase):
+    """TC62-08 sobre texto sintético: su verde es el de la comprobación, no el de `dependabot.yml`."""
+
+    def test_tkt062_ca06_esc05_mutantes_el_texto_con_las_cuatro_etiquetas_pasa(self):
+        """TKT-062a · CA-6 esc. 5 · TC62-08 — control positivo: la base con `labels: ["agent"]` en las cuatro entradas cumple."""
+        self.assertEqual(comprobar_tc62_08(DEPENDABOT_CON_ETIQUETA), [])
+
+    def test_tkt062_ca06_esc05_mutantes_formas_equivalentes_validas_siguen_en_verde(self):
+        """TKT-062a · CA-6 esc. 5 · TC62-08 — control: la forma en línea, las comillas simples o ninguna, la lista al mismo nivel que la clave y los comentarios no rompen el caso."""
+        validos = {
+            "en línea": con_etiquetas(*['    labels: ["agent"]\n'] * 4),
+            "en línea sin comillas": con_etiquetas(*["    labels: [agent]\n"] * 4),
+            "comillas simples": con_etiquetas(*["    labels:\n      - 'agent'\n"] * 4),
+            "sin comillas": con_etiquetas(*["    labels:\n      - agent\n"] * 4),
+            "lista al mismo nivel que la clave": con_etiquetas(*["    labels:\n    - agent\n"] * 4),
+            "con comentario al final": con_etiquetas(
+                *['    labels:\n      - "agent"  # el origen del PR\n'] * 4
+            ),
+            "con una etiqueta comentada": con_etiquetas(
+                *['    labels:\n      - "agent"\n      # - "dependencies"\n'] * 4
+            ),
+            "labels antes que schedule": sustituir(
+                DEPENDABOT_CON_ETIQUETA,
+                '  - package-ecosystem: "github-actions"\n    directory: "/"\n    schedule:\n      interval: "weekly"\n    labels:\n      - "agent"\n',
+                '  - package-ecosystem: "github-actions"\n    directory: "/"\n    labels:\n      - "agent"\n    schedule:\n      interval: "weekly"\n',
+            ),
+        }
+        for descripcion, texto in validos.items():
+            with self.subTest(valido=descripcion):
+                self.assertEqual(comprobar_tc62_08(texto), [])
+
+    def test_tkt062_ca06_esc05_mutantes_una_entrada_sin_labels(self):
+        """TKT-062a · CA-6 esc. 5 · TC62-08 — rechazo: cualquiera de las cuatro sin `labels:` falla y nombra cuál."""
+        agent = ETIQUETA_AGENT
+        casos = {
+            "uv sin labels": (
+                con_etiquetas("", agent, agent, agent),
+                "uv /backend: labels debe ser ['agent'] y es None",
+            ),
+            "npm sin labels": (
+                con_etiquetas(agent, "", agent, agent),
+                "npm /frontend: labels debe ser ['agent'] y es None",
+            ),
+            "npm de mermaid sin labels": (
+                con_etiquetas(agent, agent, "", agent),
+                "npm /.github/mermaid: labels debe ser ['agent'] y es None",
+            ),
+            "github-actions sin labels": (
+                con_etiquetas(agent, agent, agent, ""),
+                "github-actions /: labels debe ser ['agent'] y es None",
+            ),
+            "ninguna con labels (el dependabot.yml de antes)": (
+                DEPENDABOT_VALIDO,
+                "uv /backend: labels debe ser ['agent'] y es None",
+            ),
+            "labels comentada": (
+                con_etiquetas(
+                    '    # labels:\n    #   - "agent"\n', agent, agent, agent
+                ),
+                "uv /backend: labels debe ser ['agent'] y es None",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc62_08, casos)
+
+    def test_tkt062_ca06_esc05_mutantes_una_etiqueta_que_no_es_solo_agent(self):
+        """TKT-062a · CA-6 esc. 5 · TC62-08 — rechazo: otra etiqueta, una de más, la capitalización distinta, una repetida, `labels` vacía o un escalar en lugar de una lista fallan con el dato real."""
+        agent = ETIQUETA_AGENT
+        casos = {
+            "labels: dependencies": (
+                con_etiquetas('    labels:\n      - "dependencies"\n', agent, agent, agent),
+                "uv /backend: labels debe ser ['agent'] y es ['dependencies']",
+            ),
+            "labels: agent y dependencies": (
+                con_etiquetas(
+                    agent, agent, agent, '    labels:\n      - "agent"\n      - "dependencies"\n'
+                ),
+                "github-actions /: labels debe ser ['agent'] y es ['agent', 'dependencies']",
+            ),
+            "labels: dependencies y agent (otro orden)": (
+                con_etiquetas(
+                    agent, '    labels:\n      - "dependencies"\n      - "agent"\n', agent, agent
+                ),
+                "npm /frontend: labels debe ser ['agent'] y es ['dependencies', 'agent']",
+            ),
+            "labels vacío en bloque": (
+                con_etiquetas(agent, agent, "    labels:\n", agent),
+                "npm /.github/mermaid: labels debe ser ['agent'] y es []",
+            ),
+            "labels vacío en línea": (
+                con_etiquetas("    labels: []\n", agent, agent, agent),
+                "uv /backend: labels debe ser ['agent'] y es []",
+            ),
+            "labels con cadena vacía": (
+                con_etiquetas(agent, agent, agent, '    labels:\n      - ""\n'),
+                "github-actions /: labels debe ser ['agent'] y es []",
+            ),
+            'labels: ["Agent"]': (
+                con_etiquetas(agent, '    labels:\n      - "Agent"\n', agent, agent),
+                "npm /frontend: labels debe ser ['agent'] y es ['Agent']",
+            ),
+            'labels: ["AGENT"] en línea': (
+                con_etiquetas(agent, agent, '    labels: ["AGENT"]\n', agent),
+                "npm /.github/mermaid: labels debe ser ['agent'] y es ['AGENT']",
+            ),
+            "agent repetida": (
+                con_etiquetas('    labels:\n      - "agent"\n      - "agent"\n', agent, agent, agent),
+                "uv /backend: labels debe ser ['agent'] y es ['agent', 'agent']",
+            ),
+            "agent con espacio": (
+                con_etiquetas(agent, agent, agent, '    labels: ["agent "]\n'),
+                "github-actions /: labels debe ser ['agent'] y es ['agent ']",
+            ),
+            "una etiqueta parecida": (
+                con_etiquetas(agent, agent, agent, '    labels:\n      - "agents"\n'),
+                "github-actions /: labels debe ser ['agent'] y es ['agents']",
+            ),
+            'labels: "agent" (escalar entre comillas)': (
+                con_etiquetas('    labels: "agent"\n', agent, agent, agent),
+                "uv /backend: labels debe ser ['agent'] y es ['<escalar>']",
+            ),
+            "labels: agent (escalar sin comillas)": (
+                con_etiquetas(agent, agent, "    labels: agent\n", agent),
+                "npm /.github/mermaid: labels debe ser ['agent'] y es ['<escalar>']",
+            ),
+            "labels: [agent (lista en línea sin cerrar)": (
+                con_etiquetas(agent, "    labels: [agent\n", agent, agent),
+                "npm /frontend: labels debe ser ['agent'] y es ['<escalar>']",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc62_08, casos)
+
+    def test_tkt062_ca06_esc05_mutantes_el_numero_de_entradas_sigue_siendo_cuatro(self):
+        """TKT-062a · CA-6 esc. 5 · TC62-08 — rechazo: una quinta entrada, aunque lleve la etiqueta, o solo tres, no pasan por vacuidad."""
+        casos = {
+            "una quinta entrada": (
+                DEPENDABOT_CON_ETIQUETA
+                + '  - package-ecosystem: "docker"\n    directory: "/"\n    schedule:\n      interval: "weekly"\n'
+                + ETIQUETA_AGENT,
+                "exactamente cuatro entradas",
+            ),
+            "solo tres entradas": (
+                DEPENDABOT_CON_ETIQUETA.replace(ENTRADA_MERMAID + ETIQUETA_AGENT, ""),
+                "exactamente cuatro entradas",
+            ),
+            "sin updates": (CABECERA, "exactamente cuatro entradas"),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc62_08, casos)
+
+
+class PruebasDeRegresionDeTC15ConEtiqueta(unittest.TestCase):
+    """TC62-R4 sobre texto sintético: `labels:` no rompe TC-15 y no deja pasar sus mutantes."""
+
+    def test_tkt062_car4_esc01_tc15_sigue_en_verde_con_labels_agent_en_las_cuatro_entradas(self):
+        """TKT-062a · CA-R4 esc. 1 · TC62-R4 — la base con `labels: ["agent"]` en las cuatro entradas sigue cumpliendo TC-15: cuatro apartados, semanales."""
+        self.assertEqual(comprobar_tc15(DEPENDABOT_CON_ETIQUETA), [])
+
+    def test_tkt062_car4_esc01_tc15_sigue_en_verde_con_labels_en_linea_o_de_bloque(self):
+        """TKT-062a · CA-R4 esc. 1 · TC62-R4 — `labels:` en línea, en bloque, vacía o con otras etiquetas no cambia el veredicto de TC-15 (eso es asunto de TC62-08)."""
+        for descripcion, texto in {
+            "en línea": con_etiquetas(*['    labels: ["agent"]\n'] * 4),
+            "con otra etiqueta": con_etiquetas(*['    labels:\n      - "dependencies"\n'] * 4),
+            "vacía": con_etiquetas(*["    labels: []\n"] * 4),
+        }.items():
+            with self.subTest(valido=descripcion):
+                self.assertEqual(comprobar_tc15(texto), [])
+
+    def test_tkt062_car4_esc01_tc15_sigue_rechazando_con_labels_presente(self):
+        """TKT-062a · CA-R4 esc. 1 · TC62-R4 — con `labels:` en las cuatro entradas, TC-15 sigue en rojo ante una entrada que falta, un intervalo distinto y una quinta entrada."""
+        casos = {
+            "sin la entrada de mermaid": (
+                DEPENDABOT_CON_ETIQUETA.replace(ENTRADA_MERMAID + ETIQUETA_AGENT, ""),
+                "exactamente cuatro entradas",
+            ),
+            "github-actions diaria": (
+                DEPENDABOT_CON_ETIQUETA.replace(
+                    ENTRADA_ACTIONS, ENTRADA_ACTIONS.replace("weekly", "daily")
+                ),
+                "github-actions: schedule.interval debe ser 'weekly' y es 'daily'",
+            ),
+            "una quinta entrada": (
+                DEPENDABOT_CON_ETIQUETA
+                + '  - package-ecosystem: "docker"\n    directory: "/"\n    schedule:\n      interval: "weekly"\n'
+                + ETIQUETA_AGENT,
+                "exactamente cuatro entradas",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_tc15, casos)
 
 
 class PruebasDeMutantesDeTC18(unittest.TestCase):

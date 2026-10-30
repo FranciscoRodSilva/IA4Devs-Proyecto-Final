@@ -11,7 +11,7 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
 4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 26 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 27 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
@@ -86,7 +86,7 @@ def test_hdu002_esc04_requisicion_excede_importe_presupuestado(...):
 
 **Los tests se escriben antes que el código, con TDD.** Por cada fila del diseño, el ciclo rojo → verde → refactor ([metodología §16](sdd/metodologia.md#16--el-ciclo-tdd)): primero el test que nombra el escenario, en rojo y por la razón esperada; después el código mínimo que lo pone en verde; después la limpieza con la suite en verde. Quien escribe el código no toca los tests. Un test de rechazo comprueba el contrato de error completo —regla, cifras y acciones—, no solo el código de estado.
 
-**Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `agent` o `agent+human-review`.
+**Tu PR lo revisa primero otro agente** ([convenciones §12](docs/convenciones.md#12-la-ia-en-el-ciclo-de-desarrollo)) y después una persona. La revisión automática comenta y no aprueba. Etiqueta el PR con su origen: `human`, `human+copilot`, `agent` o `agent+human-review`, según quién escribió el código. La comprobación requerida «Etiqueta de origen» (flujo `etiqueta-origen.yml`) exige exactamente una a todas las personas, la administradora del repositorio incluida. La administradora puede fusionar con `--admin` sin la aprobación humana requerida, pero solo con las diez comprobaciones requeridas en verde, y «Etiqueta de origen» es una de ellas ([convenciones §6](docs/convenciones.md#6-definition-of-done-por-tipo-de-trabajo)).
 
 **El esquema y el código hablan español**, el del [glosario](docs/glosario.md). Tablas en `snake_case` singular.
 

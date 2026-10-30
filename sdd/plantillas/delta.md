@@ -67,5 +67,7 @@ Fricción del **proceso**, no del producto: qué costó más de lo que debía, q
 ## Pull request
 
 **Título:** `TKT-xxx · <título>`
-**Origen:** `agent` · `agent+human-review` · `human+copilot`
+**Origen:** `human` · `human+copilot` · `agent` · `agent+human-review`. Es el origen del código, es decir, quién lo escribió, no el estado de la revisión: lo fija quien abre el PR y no cambia al aprobar.
 **Cuerpo:** qué, por qué, criterios cubiertos, cómo verificarlo.
+
+**Fusión con omisión:** solo si esta fusión será con omisión de la protección de `Produccion`. El registro no va en este archivo, porque `delta.md` se escribe antes de fusionar. Va en un comentario del PR que la persona dueña deja justo después de `gh pr merge --admin`, con la frase «fusionado con omisión de la protección», la fecha, el número del PR, la etiqueta de origen, el enlace a su revisión en el PR y el enlace a la ejecución con las diez comprobaciones requeridas en verde. El cierre viaja dentro del PR del ticket: nunca se empuja directamente a `Produccion`.

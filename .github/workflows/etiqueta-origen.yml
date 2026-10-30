@@ -1,0 +1,25 @@
+# TKT-062a · Comprobación requerida de la rama Produccion: exige exactamente una etiqueta de origen en el PR.
+# `synchronize` es obligatorio: sin él, un push al PR deja la comprobación esperando para siempre.
+# `labeled` y `unlabeled` viven aquí y no en ci.yml, para que etiquetar no relance los nueve trabajos del pipeline.
+name: Etiqueta de origen
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  etiqueta:
+    name: Etiqueta de origen
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Exactamente una etiqueta de origen
+        env:
+          ETIQUETAS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: python3 tools/etiqueta_origen.py

@@ -51,9 +51,11 @@ Despacha **`git-entrega`** en modo cierre:
 - Commit con el formato del proyecto, incluida la línea de atribución.
 - Push, solo si el usuario lo pidió.
 - **Prepara el PR, no lo abre.** El PR lo abre una persona a mano en GitHub: `git-entrega` entrega el título, el cuerpo y la etiqueta de origen listos para pegar.
-- **Marca el origen del PR**: `agent` o `agent+human-review`. Es una métrica declarada del proyecto — sin ella la velocity miente.
+- **Marca el origen del PR** con una de las cuatro etiquetas: `human`, `human+copilot`, `agent` o `agent+human-review`. Es el origen del código, es decir, quién lo escribió, no el estado de la revisión, y no cambia al aprobar. Es una métrica declarada del proyecto — sin ella la velocity miente.
 
 Cuerpo del PR: qué, por qué, criterios cubiertos y cómo verificarlo.
+
+**Fusión con omisión.** Si la fusión será con omisión de la protección de `Produccion`, la persona dueña deja un comentario del PR justo después de fusionar, con la frase «fusionado con omisión de la protección», la fecha, el número del PR, la etiqueta de origen, el enlace a su revisión en el PR y el enlace a la ejecución con las diez comprobaciones requeridas en verde. El cierre viaja dentro del PR del ticket: nunca por empuje directo a `Produccion`.
 
 ## Paso 5 · Archivar
 
