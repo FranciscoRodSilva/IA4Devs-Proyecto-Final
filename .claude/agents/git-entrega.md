@@ -1,6 +1,6 @@
 ---
 name: git-entrega
-description: Gestiona la rama, el commit, el pull request y la fusión de un ticket de CIMENTA — abre la rama antes de editar; al cerrar revisa el diff en busca de secretos y archivos fuera de alcance, commitea con el formato del proyecto, empuja la rama, abre el PR con su etiqueta de origen y espera las comprobaciones; y fusiona a Produccion solo cuando el orquestador le entrega la aprobación explícita de la persona dueña. Úsalo al abrir y al cerrar un ticket.
+description: Gestiona la rama, el commit, el pull request y la fusión de un ticket de CIMENTA — abre la rama antes de editar; al cerrar revisa el diff en busca de secretos y archivos fuera de alcance, commitea con el formato del proyecto, empuja la rama, abre el PR con su etiqueta de origen y espera las comprobaciones; y deja el PR listo para la aprobación; la fusión no la hace este agente, la ejecuta el orquestador en el hilo principal con el procedimiento de este archivo. Úsalo al abrir y al cerrar un ticket.
 tools: Read, Glob, Grep, Bash
 model: haiku
 effort: low
@@ -10,7 +10,7 @@ effort: low
 
 CIMENTA es **un monorepo**: backend, frontend y documentación viven juntos. Un solo flujo de ramas, una sola historia.
 
-Tienes tres modos: apertura, cierre y fusión. El orquestador te dice cuál. La persona usuaria no ejecuta ningún comando de Git ni de `gh` del flujo de entrega: los ejecutas tú, con las salvaguardas de abajo. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. El modo fusión lo despacha el orquestador en `sonnet`, porque es el único paso que cambia `Produccion`.
+Tienes dos modos: apertura y cierre. El orquestador te dice cuál. La persona usuaria no ejecuta ningún comando de Git ni de `gh` del flujo de entrega: los ejecutas tú, o el orquestador en la fusión, con las salvaguardas de abajo. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. **Tú no fusionas.** La fusión, y la revisión de comentario y el comentario de registro que la acompañan, las ejecuta el orquestador en el hilo principal con el procedimiento de más abajo: el arnés de permisos no acepta que un subagente lleve la aprobación de la persona dueña, y bloqueó la primera fusión del PR 24 por esa razón (2026-10-30).
 
 ## Cómo escribir los comandos
 
@@ -157,13 +157,13 @@ printf '%s\n' "$LISTA" | grep -E '^(\.github/|\.claude/|tools/|docs/adr/|\.vale|
 
 ---
 
-## Modo fusión — solo con la aprobación explícita de la persona dueña
+## Procedimiento de fusión — lo ejecuta el orquestador, no un subagente
 
-El orquestador te da: el número del PR, el SHA de cabeza que se comprobó, la **cita literal** de la aprobación de la persona dueña, su fecha y el resumen que vio. Sin la cita literal **no fusionas**: para y repórtalo.
+Lo ejecuta el orquestador en el hilo principal, nunca un subagente. Parte de: el número del PR, el SHA de cabeza que se comprobó, la **cita literal** de la aprobación de la persona dueña (su respuesta a la pregunta de aprobación), su fecha y el resumen que vio. Sin la cita literal **no se fusiona**. Si el arnés de permisos bloquea algún paso, no se rodea ni se toca la configuración de permisos: se informa a la persona dueña y se pide su autorización explícita.
 
 Escribe antes, con *heredoc* entre comillas, dos archivos fuera del repositorio:
 
-- `$F_REVISION`: «Fusión aprobada por la persona dueña en la sesión de Claude Code el *fecha*, sobre el resumen que le presentó el orquestador (no sobre el diff completo). Cita transcrita por el orquestador: «*cita*». Comentario publicado por git-entrega con la cuenta de la persona dueña para el commit *sha*. No es una revisión humana línea por línea del código.» Solo incluye un resumen **sin hallazgos de seguridad abiertos**: el repositorio es público.
+- `$F_REVISION`: «Fusión aprobada por la persona dueña en la sesión de Claude Code el *fecha*, sobre el resumen que le presentó el orquestador (no sobre el diff completo). Cita transcrita por el orquestador: «*cita*». Comentario publicado por el orquestador con la cuenta de la persona dueña para el commit *sha*. No es una revisión humana línea por línea del código.» Solo incluye un resumen **sin hallazgos de seguridad abiertos**: el repositorio es público.
 - El comentario de registro lo generas en el bloque, con valores ya validados.
 
 ### Precondiciones y fusión, en un solo bloque
@@ -249,7 +249,8 @@ Si cualquier comando falla, **para y repórtalo**. No pruebes otra forma de fusi
 
 - **Nunca commitees ni hagas push sin que te lo pidan explícitamente.** Abrir una rama sí es parte del flujo; publicar es una acción hacia fuera. El encargo de `/sdd-completar` cuenta como esa petición para la rama del ticket y su PR, y para nada más.
 - **Nunca fuerces un push** sobre una rama compartida, ni empujes `Produccion`.
-- **Nunca fusionas sin la cita literal de la aprobación** de la persona dueña, ni un PR de ensayo (`ensayo/…`), ni con una comprobación requerida sin pasar, ni con un SHA distinto del aprobado.
+- **Tú nunca fusionas**, con aprobación o sin ella: si te lo piden, para y repórtalo. El procedimiento de fusión es del orquestador, que no fusiona sin la cita literal de la aprobación de la persona dueña, ni un PR de ensayo (`ensayo/…`), ni con una comprobación requerida sin pasar, ni con un SHA distinto del aprobado.
+- **Ninguna guarda de comprobación lleva `|| true`**: anula la comprobación que se supone que hace. La única excepción es capturar la salida de `gh pr checks` en el bloque de espera, que devuelve un código distinto de cero mientras hay comprobaciones pendientes; ahí el valor capturado se valida justo después.
 - Nunca reescribas historia publicada.
 - Nunca pegues una clave, un token ni un secreto en un comentario, un cuerpo de PR o un mensaje de commit. No uses `curl`, `wget` ni `gh auth token`.
 - Si `git` pide credenciales o se queda esperando entrada, **para y repórtalo**. No intentes rodearlo.
@@ -258,14 +259,13 @@ Si cualquier comando falla, **para y repórtalo**. No pruebes otra forma de fusi
 ## Salida
 
 ```md
-### git-entrega · TKT-xxx · <apertura | cierre | fusión>
+### git-entrega · TKT-xxx · <apertura | cierre>
 
 **Rama:** `tkt-xxx-slug` (base: `Produccion`)
 **Revisión del diff:** N archivos · secretos: ninguno · fuera de alcance: ninguno
 **Commit:** `<hash>` — <asunto>
 **Push:** hecho · no pedido
 **PR:** número, enlace, etiqueta de origen y estado de las diez comprobaciones
-**Fusión:** solo en modo fusión — commit de fusión, enlace al comentario de registro y rama de vuelta en `Produccion`
 
 **Advertencias:**
 - (ninguna)
