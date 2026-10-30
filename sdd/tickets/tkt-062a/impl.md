@@ -268,11 +268,11 @@ Ninguna fila subió ni bajó de modelo, y ninguna tocó `opus`. Todas las filas 
 | Criterio | Nivel | Estado | Evidencia |
 |---|---|---|---|
 | `CA-6` esc. 1 a 4 | `[M]` | Cumplido | TC62-01 a TC62-07; rondas R0a y R1 |
-| `CA-6` esc. 5 (Dependabot) | `[M]` | Cumplido en el archivo; **pendiente en vivo** | TC62-08. GitHub lee `dependabot.yml` solo de la rama por omisión, así que el PR de Dependabot etiquetado solo se observa tras fusionar |
+| `CA-6` esc. 5 (Dependabot) | `[M]` | Cumplido | TC62-08 y, en vivo, el PR #22 de Dependabot, abierto el 2026-10-30 a las 15:20 UTC, un minuto después de fusionar el PR #21: llegó con la etiqueta `agent` y su «Etiqueta de origen» pasó (`actions/runs/41079825775` y `41079826718`) |
 | `CA-9` en lo suyo | `[M]` | Cumplido | Evidencia de A5 con fecha |
 | `CA-12` en lo suyo | `[M]` | Cumplido | TC62-38 |
 | `CA-R1`, `CA-R2` | `[M]` | Cumplido | TC62-R1, TC62-09 |
-| `CA-R4` | `[M]` | **Parcial** | TC62-R4 en verde; los nueve trabajos de `ci.yml` en verde se verifican en el PR real del ticket |
+| `CA-R4` | `[M]` | Cumplido | TC62-R4 y, en el PR #21, las diez comprobaciones requeridas en verde sobre `425ecc6`: los nueve trabajos de `ci.yml` (`actions/runs/41078521858`) y «Etiqueta de origen» (`actions/runs/41078522089`). El PR se fusionó el 2026-10-30 como `b2fd8f7` |
 
 ## Auditorías
 
@@ -302,6 +302,7 @@ Ninguna fila subió ni bajó de modelo, y ninguna tocó `opus`. Todas las filas 
 | F104 | `auditor-codigo` | Menor | `tools/tests/test_definicion_dependabot.py` | `labels: "agent"` (escalar) pasaba como lista; Dependabot exige una secuencia | Resuelto: la rama en línea exige corchetes y hay mutantes escalares, verificado en la reauditoría |
 | F105 | `auditor-codigo` | Menor | `tools/tests/test_definicion_etiqueta.py` | `_tipos_de_pull_request` leía `types:` de cualquier disparador: falso verde si estaba bajo `schedule` | Resuelto: se acota al sub-bloque de `pull_request`, con tres pruebas nuevas, verificado en la reauditoría |
 | F106 | `auditor-codigo` | Menor | `tools/tests/test_definicion_dependabot.py`, `test_definicion_etiqueta.py` | Una prueba duplicaba la de TC-15 y los textos llevaban números de línea de otros archivos | Resuelto: se eliminó la duplicada, TC62-R4 conserva tres pruebas con nombre, y se quitaron los números de línea, verificado en la reauditoría |
+| F107 | `auditor-codigo` | Menor | `tools/tests/test_etiqueta_origen.py` | La prueba del guion como proceso decodificaba con la codificación del intérprete padre mientras el hijo corría con `-I`, que ignora `PYTHONUTF8`: con `PYTHONUTF8=1` en Python 3.14 fallaban dos pruebas con tilde | Resuelto: el hijo se lanza con `-X utf8` y `encoding="utf-8"`; 14 pruebas OK en las tres configuraciones |
 | F201 | `auditor-seguridad` | Media | `docs/05-tickets-trabajo.md:424` | La frase de la administradora presentaba como garantía técnica lo que con `enforce_admins: false` es una convención | Resuelto y verificado en la reauditoría |
 | F202 | `auditor-seguridad` | Media | esta tabla de «Hallazgos fuera de alcance» y `design.md:318` | El riesgo de que un PR altere `etiqueta_origen.py` constaba como Baja con `CODEOWNERS` como mitigación; con una sola persona con escritura no mitiga nada y la mitigación real es la lectura del diff por la dueña | Resuelto y verificado en la reauditoría |
 | F203 a F205 | `auditor-seguridad` | Baja | Dependabot, ajustes del repositorio y `zizmor` | `agent` mezcla bots y agentes en la métrica (F203); `sha_pinning_required` está en `false` (F204); las 2 supresiones de `zizmor` son avisos de la persona *pedantic* (F205) | Observaciones aceptadas, sin bloqueo |
@@ -309,6 +310,9 @@ Ninguna fila subió ni bajó de modelo, y ninguna tocó `opus`. Todas las filas 
 | F302 | `auditor-docs` | Mayor | `docs/adr/` | La decisión `D-2` (protección de `Produccion` con `enforce_admins: false` y fusión con omisión) tenía opciones descartadas y no tenía ADR | Resuelto con [ADR-027](../../../docs/adr/20261030-proteccion-de-produccion-y-fusion-con-omision.md), decidida por la persona responsable el 2026-10-29 (`D-2`) y registrada el 2026-10-30; la revisión por IA de TKT-062b pasa a ADR-028 y el recuento a 27 decisiones, verificado en la reauditoría |
 | F303 a F305 | `auditor-docs` | Menor | `docs/05-tickets-trabajo.md:446` y `:478`, `CLAUDE.md:89` | La frase «sin repetir» de las fichas contradecía el reparto de M8 y M11 (F303); la ficha de 062b omitía su parte de `CA-9` y `CA-12` (F304); `CLAUDE.md` llamaba «comprobación requerida» al archivo y no al trabajo «Etiqueta de origen» (F305) | Resueltos y verificados en la reauditoría |
 | F306, F307 | `auditor-docs` | Observación | Informe de la auditoría de documentación | Observaciones sin bloqueo | Aceptado |
+| F401 | `auditor-docs` | Mayor | `docs/adr/20261030-proteccion-de-produccion-y-fusion-con-omision.md` | El ADR-027 atribuía a la persona que decidió alternativas que nadie documentó (una cuenta bot y «recomendaba el diseño») y, en la segunda pasada, un motivo de descarte que ninguna fuente respaldaba | Resuelto: opción del bot eliminada, opción (a) limitada a «sin segunda persona» y tres inferencias marcadas `(asumido)`; verificado en la reauditoría final |
+| F402 | `auditor-docs` | Menor | ADR-027 e `impl.md` | La fecha de la decisión constaba como 2026-10-30 en un sitio y 2026-10-29 en otros | Resuelto: decidida el 2026-10-29 (`D-2`) y registrada el 2026-10-30 |
+| F403 | `auditor-docs` | Menor | `sdd/tickets/tkt-062a/impl.md` | Las cifras de la suite, los documentos y el tamaño de las pruebas estaban desfasadas | Resuelto: 398 pruebas, 57 nuevas sobre la base de 341, 171 documentos y las líneas actuales |
 
 **Desviación de tamaño (F005).** El diseño estimó unas 490 líneas para esta parte, con 320 de pruebas. El diff trae unas 1,700 líneas netas de pruebas (cuenta del árbol actual, con los cambios sin commitear): `test_definicion_etiqueta.py` 743, `test_etiqueta_origen.py` 275, `test_definicion_ci.py` +421 y `test_definicion_dependabot.py` +270. Es cobertura de mutantes de las compuertas, no alcance añadido, pero el criterio «cabe en una sesión» de la spec ya no se cumple por tamaño. Conviene ajustar la estimación de las pruebas de fundación en la siguiente partición.
 
@@ -342,19 +346,19 @@ Cierre de `/sdd-revisar` el 2026-10-30.
 | Criterio | Nivel | Resultado | Evidencia |
 |---|---|---|---|
 | `CA-6` esc. 1 a 4 | `[M]` | Cumplido | TC62-01 a TC62-07; rondas R0a y R1 del PR #20 |
-| `CA-6` esc. 5 (Dependabot) | `[M]` | Cumplido en el archivo; **se observa en vivo tras fusionar** | TC62-08. GitHub lee `dependabot.yml` solo de la rama por omisión |
+| `CA-6` esc. 5 (Dependabot) | `[M]` | Cumplido | TC62-08 y, en vivo, el PR #22 de Dependabot, abierto el 2026-10-30 a las 15:20 UTC, un minuto después de fusionar el PR #21: llegó con la etiqueta `agent` y su «Etiqueta de origen» pasó (`actions/runs/41079825775` y `41079826718`) |
 | `CA-9` en lo suyo | `[M]` | Cumplido | Evidencia de A5 con salidas |
 | `CA-12` en lo suyo | `[M]` | Cumplido | TC62-38 |
 | `CA-R1`, `CA-R2` | `[M]` | Cumplido | TC62-R1, TC62-09 |
-| `CA-R4` | `[M]` | Primera mitad cumplida; **los nueve trabajos de `ci.yml` en verde se verifican en el PR real** | TC62-R4; en el PR de ensayo ocho de los nueve terminaron en verde y «Documentación» falló por los tres hallazgos ya corregidos |
+| `CA-R4` | `[M]` | Cumplido | TC62-R4 y, en el PR #21, las diez comprobaciones requeridas en verde sobre `425ecc6`: los nueve trabajos de `ci.yml` (`actions/runs/41078521858`) y «Etiqueta de origen» (`actions/runs/41078522089`). El PR se fusionó el 2026-10-30 como `b2fd8f7` |
 
 **Suite ejecutada por el orquestador.** 398 pruebas de `tools/` en verde, `verificar_docs.py` sin problemas, `verificar_escenarios.py` sin faltantes, `zizmor` sin hallazgos, `lint-imports` con 15 contratos intactos, Vale sin salida y markdownlint con 0 incidencias.
 
 **Desviaciones.** Registradas en «Ajustes respecto al design»: el orden del mensaje de dos etiquetas, la exigencia retirada de `CLAUDE.md`, la excepción de alcance sobre `tkt-009d/delta.md`, la desviación de tamaño de las pruebas (F005), el ADR-027 añadido por F302 y la renumeración de la revisión por IA de TKT-062b a ADR-028.
 
-**Condición para cerrar el ticket.** Este ticket queda `LISTO PARA PR` con una condición que `/sdd-completar` debe comprobar antes de archivarlo: el PR real de TKT-062a tiene que mostrar los nueve trabajos de `ci.yml` y «Etiqueta de origen» en verde (`CA-R4`), y su fusión es la primera con omisión de la protección, con el comentario de registro descrito en el ADR-027. `CA-6` esc. 5 se observará con el primer PR de Dependabot posterior a la fusión.
+**Condición para cerrar el ticket: cumplida el 2026-10-30.** El PR #21 mostró los nueve trabajos de `ci.yml` y «Etiqueta de origen» en verde antes de fusionarse, con la revisión de comentario de la persona dueña y el comentario de registro de la primera fusión con omisión de la protección (ADR-027). `CA-6` esc. 5 se observó con el primer PR de Dependabot posterior a la fusión, el #22.
 
-- [x] Todos los criterios `[M]` de esta parte cumplidos con evidencia, con las dos comprobaciones en vivo descritas arriba como condición del cierre
+- [x] Todos los criterios `[M]` de esta parte cumplidos con evidencia, incluidas las dos comprobaciones en vivo `CA-R4` y `CA-6` esc. 5
 - [x] Ciclo TDD completo en cada fila con código: rojo antes de verde, ningún test editado por un desarrollador
 - [x] Suite en verde, con la salida pegada arriba
 - [x] Al menos un test de rechazo por regla implicada
