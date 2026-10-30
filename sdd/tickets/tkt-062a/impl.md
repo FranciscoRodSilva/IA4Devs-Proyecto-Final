@@ -62,7 +62,7 @@ No se tocó nada de `backend/`, `frontend/` ni `docs/api/openapi.yaml`.
 | TC62-08 | `test_tkt062_ca06_esc05_dependabot_etiqueta_agent_en_sus_cuatro_entradas` | feliz | `CA-6` | FALLA | PASA |
 | TC62-09 | `test_tkt062_car2_esc01_reglas_comunes_en_todo_flujo` | **rechazo** | `CA-R2` | PASA (rojo por mutantes) | PASA |
 | TC62-R1 | `test_tkt062_car1_esc01_tc13_y_las_reglas_siguen_en_verde_con_el_flujo_de_etiqueta_presente` | regresión | `CA-R1` | FALLA | PASA |
-| TC62-R4 | `test_tkt062_car4_esc01_tc15_sigue_en_verde_sobre_el_dependabot_real` | regresión | `CA-R4` | PASA | PASA |
+| TC62-R4 | `test_tc15_dependabot_declara_uv_npm_dos_veces_y_github_actions_semanales` y la clase `PruebasDeRegresionDeTC15ConEtiqueta` | regresión | `CA-R4` | PASA | PASA |
 | TC62-38 | `test_tkt062_ca12_esc01_la_documentacion_de_062a_describe_la_etiqueta` | feliz | `CA-12` | FALLA (8 archivos) | PASA |
 
 TC62-09 y TC62-R4 nacen en verde sobre el repositorio real, como dice el diseño: el repositorio ya cumplía las reglas, y su rojo lo dan los mutantes sintéticos. Hay además los casos adicionales que el tester añadió: tres etiquetas, una variante junto a una válida, y las clases de mutantes de TC62-06, TC62-08, TC62-09 y de la regresión de TC-15.
@@ -157,7 +157,7 @@ python -m unittest discover -s tools/tests                      Ran 388 tests in
 
 ```text
 test_tkt062_ca12_esc01_la_documentacion_de_062a_describe_la_etiqueta ... ok
-python -m unittest discover -s tools/tests   Ran 389 tests in 15.027s   OK
+python -m unittest discover -s tools/tests   Ran 398 tests in 15.027s   OK
 python tools/verificar_docs.py               ✓ Sin problemas.
 ```
 
@@ -165,15 +165,17 @@ python tools/verificar_docs.py               ✓ Sin problemas.
 
 ### Evidencia de ejecución al cerrar (fila A8)
 
+Las cifras de esta sección (389 pruebas, 170 documentos) fueron la evidencia al cerrar A8; tras el ciclo de corrección de `/sdd-revisar` la suite es de 398 pruebas y el verificador analiza 171 documentos.
+
 Docker no interviene: este ticket no tiene pruebas de integración ni toca `backend/`.
 
 ```text
 python -m unittest discover -s tools/tests
-Ran 389 tests in 21.308s
+Ran 398 tests in 21.308s
 OK
 
 python tools/verificar_docs.py
-Documentos analizados: 170 · enlaces relativos 1415 · anclas internas 640
+Documentos analizados: 171 · enlaces relativos 1421 · anclas internas 640
 ✓ Sin problemas.
 
 uvx zizmor@1.31.1 --offline .github/workflows
@@ -186,11 +188,11 @@ npx --yes markdownlint-cli2@0.24.0 "docs/**/*.md" "sdd/**/*.md" README.md CLAUDE
 Summary: 0 issues in 0 files
 ```
 
-**Recuento frente a la línea base.** Con un `worktree` de `origin/Produccion` (2e192df) se ejecutaron 341 pruebas, con 3 fallos solo de entorno: `uv` intentaba compilar `pyyaml` en un directorio sin entorno de backend. En el repositorio real esos mismos tests pasan. Ahora hay 389: **48 pruebas nuevas**. Las líneas añadidas con `skip`, `skipTest`, `expectedFailure`, `xfail` o `.only` en `tools/tests` son cero.
+**Recuento frente a la línea base.** Con un `worktree` de `origin/Produccion` (2e192df) se ejecutaron 341 pruebas, con 3 fallos solo de entorno: `uv` intentaba compilar `pyyaml` en un directorio sin entorno de backend. En el repositorio real esos mismos tests pasan. Ahora hay 398: **57 pruebas nuevas**. Las líneas añadidas con `skip`, `skipTest`, `expectedFailure`, `xfail` o `.only` en `tools/tests` son cero.
 
 **Las dos supresiones de `zizmor`.** Son avisos `concurrency-limits` de la persona *pedantic*, uno en `ci.yml` y otro en `etiqueta-origen.yml`. El pipeline usa la persona por omisión, que no los muestra, y `concurrency` es un *Won't* de TKT-062.
 
-**Mutación sobre el flujo real.** Quitar `unlabeled` de `types`, o renombrar el trabajo a `Etiqueta`, hace caer `test_tkt062_ca06_esc04_el_flujo_de_etiqueta_se_relanza_al_etiquetar`. El archivo se restauró con el mismo SHA256 y la suite volvió a 389 en verde. Las dos mutaciones las atrapa el mismo test del archivo real; los mutantes sintéticos de TC62-06 cubren cada variante sobre la función comprobadora.
+**Mutación sobre el flujo real.** Quitar `unlabeled` de `types`, o renombrar el trabajo a `Etiqueta`, hace caer `test_tkt062_ca06_esc04_el_flujo_de_etiqueta_se_relanza_al_etiquetar`. El archivo se restauró con el mismo SHA256 y la suite volvió a 398 en verde. Las dos mutaciones las atrapa el mismo test del archivo real; los mutantes sintéticos de TC62-06 cubren cada variante sobre la función comprobadora.
 
 ### Evidencia de la fila A5 (ajustes del repositorio, aplicados por la persona dueña)
 
@@ -278,9 +280,9 @@ Ninguna fila subió ni bajó de modelo, y ninguna tocó `opus`. Todas las filas 
 |---|---|---|---|
 | `auditor-arquitectura` | `APROBADO` en la reauditoría final, tras dos veces `REQUIERE CAMBIOS` | 4 Menores, todos resueltos (F008 nació de la corrección de F003), y observaciones sin bloqueo | 3 de 3 |
 | `auditor-sql` | No aplica | No hay esquema ni consulta | — |
-| `auditor-codigo` | Pendiente de `/sdd-revisar` | — | — |
-| `auditor-seguridad` | Pendiente de `/sdd-revisar` | — | — |
-| `auditor-docs` | Pendiente de `/sdd-revisar` | — | — |
+| `auditor-codigo` | `APROBADO` en la reauditoría del ciclo 2 de `/sdd-revisar` | F101 (Mayor) y F102 a F107 (Menores), todos resueltos y reproducidos; una observación sin bloqueo | 2 de 3 |
+| `auditor-seguridad` | `APROBADO` en la reauditoría del ciclo 1 de `/sdd-revisar` | F201 y F202 (Medias) resueltos; F203 a F205 y dos observaciones de matiz aceptadas | 1 de 3 |
+| `auditor-docs` | `APROBADO` en la reauditoría final, ciclo 3 de `/sdd-revisar` | F301, F302 y F401 (Mayores) y F303 a F305, F402 y F403 (Menores), todos resueltos; F306 y F307 observaciones | 3 de 3 |
 
 ### Hallazgos y su resolución
 
@@ -291,21 +293,34 @@ Ninguna fila subió ni bajó de modelo, y ninguna tocó `opus`. Todas las filas 
 | F003 | `auditor-arquitectura` | Menor | `docs/05-tickets-trabajo.md`, `CLAUDE.md` | «No se puede fusionar» sin el matiz de la administradora con `enforce_admins: false` | Resuelto |
 | F008 | `auditor-arquitectura` | Menor | `CLAUDE.md:89`, `docs/05-tickets-trabajo.md:419` y `:424` | La corrección de F003 introdujo una excepción imposible: la administradora «salvo… solo con las diez comprobaciones en verde», cuando «Etiqueta de origen» es una de las diez. La omisión con `--admin` cubre solo la aprobación humana | Resuelto |
 | F004 | `auditor-arquitectura` | Observación | `docs/convenciones.md` §6 | El párrafo «Cambios a `Produccion`» quedó al final de la sección | Aceptado, véase «Ajustes» |
-| F005 | `auditor-arquitectura` | Observación | `tools/tests/` | Unas 1,540 líneas de pruebas frente a las 320 estimadas | Aceptado, véase abajo |
+| F005 | `auditor-arquitectura` | Observación | `tools/tests/` | Unas 1,700 líneas de pruebas frente a las 320 estimadas | Aceptado, véase abajo |
 | F006 | `auditor-arquitectura` | Observación | `tkt-009d/delta.md` | Un cambio de otro ticket en el diff | Se commitea aparte |
 | F007 | `auditor-arquitectura` | Observación | `etiqueta-origen.yml` | El flujo apareció modificado un instante | Causa: la mutación del tester corría en paralelo con la auditoría. El árbol volvió limpio |
+| F101 | `auditor-codigo` | Mayor | `tools/tests/test_etiqueta_origen.py` | Ninguna prueba ejecutaba el guion como proceso: sobrevivían `sys.exit(main())` por `main()` (el control fallaba abierto) y `os.environ` por `{}` (siempre salía con 2) | Resuelto: cuatro pruebas con `subprocess`; ambos mutantes mueren, verificado en la reauditoría |
+| F102 | `auditor-codigo` | Menor | `tools/etiqueta_origen.py` | `except ValueError` no capturaba `RecursionError`: un JSON anidado 100.000 veces salía con traceback y código 1 en vez de 2 | Resuelto: rojo con una prueba y verde con `except (ValueError, RecursionError)`, verificado en la reauditoría |
+| F103 | `auditor-codigo` | Menor | `tools/tests/test_etiqueta_origen.py` | La etiqueta repetida no tenía prueba; un mutante que contara repeticiones sobrevivía | Resuelto: dos pruebas y el docstring fija que las repetidas cuentan una vez, verificado en la reauditoría |
+| F104 | `auditor-codigo` | Menor | `tools/tests/test_definicion_dependabot.py` | `labels: "agent"` (escalar) pasaba como lista; Dependabot exige una secuencia | Resuelto: la rama en línea exige corchetes y hay mutantes escalares, verificado en la reauditoría |
+| F105 | `auditor-codigo` | Menor | `tools/tests/test_definicion_etiqueta.py` | `_tipos_de_pull_request` leía `types:` de cualquier disparador: falso verde si estaba bajo `schedule` | Resuelto: se acota al sub-bloque de `pull_request`, con tres pruebas nuevas, verificado en la reauditoría |
+| F106 | `auditor-codigo` | Menor | `tools/tests/test_definicion_dependabot.py`, `test_definicion_etiqueta.py` | Una prueba duplicaba la de TC-15 y los textos llevaban números de línea de otros archivos | Resuelto: se eliminó la duplicada, TC62-R4 conserva tres pruebas con nombre, y se quitaron los números de línea, verificado en la reauditoría |
+| F201 | `auditor-seguridad` | Media | `docs/05-tickets-trabajo.md:424` | La frase de la administradora presentaba como garantía técnica lo que con `enforce_admins: false` es una convención | Resuelto y verificado en la reauditoría |
+| F202 | `auditor-seguridad` | Media | esta tabla de «Hallazgos fuera de alcance» y `design.md:318` | El riesgo de que un PR altere `etiqueta_origen.py` constaba como Baja con `CODEOWNERS` como mitigación; con una sola persona con escritura no mitiga nada y la mitigación real es la lectura del diff por la dueña | Resuelto y verificado en la reauditoría |
+| F203 a F205 | `auditor-seguridad` | Baja | Dependabot, ajustes del repositorio y `zizmor` | `agent` mezcla bots y agentes en la métrica (F203); `sha_pinning_required` está en `false` (F204); las 2 supresiones de `zizmor` son avisos de la persona *pedantic* (F205) | Observaciones aceptadas, sin bloqueo |
+| F301 | `auditor-docs` | Mayor | `docs/05-tickets-trabajo.md:424` | Misma frase de la administradora que F201 | Resuelto y verificado en la reauditoría |
+| F302 | `auditor-docs` | Mayor | `docs/adr/` | La decisión `D-2` (protección de `Produccion` con `enforce_admins: false` y fusión con omisión) tenía opciones descartadas y no tenía ADR | Resuelto con [ADR-027](../../../docs/adr/20261030-proteccion-de-produccion-y-fusion-con-omision.md), decidida por la persona responsable el 2026-10-29 (`D-2`) y registrada el 2026-10-30; la revisión por IA de TKT-062b pasa a ADR-028 y el recuento a 27 decisiones, verificado en la reauditoría |
+| F303 a F305 | `auditor-docs` | Menor | `docs/05-tickets-trabajo.md:446` y `:478`, `CLAUDE.md:89` | La frase «sin repetir» de las fichas contradecía el reparto de M8 y M11 (F303); la ficha de 062b omitía su parte de `CA-9` y `CA-12` (F304); `CLAUDE.md` llamaba «comprobación requerida» al archivo y no al trabajo «Etiqueta de origen» (F305) | Resueltos y verificados en la reauditoría |
+| F306, F307 | `auditor-docs` | Observación | Informe de la auditoría de documentación | Observaciones sin bloqueo | Aceptado |
 
-**Desviación de tamaño (F005).** El diseño estimó unas 490 líneas para esta parte, con 320 de pruebas. El diff trae unas 1,540 líneas de pruebas: `test_definicion_etiqueta.py` 688, `test_etiqueta_origen.py` 177, `test_definicion_ci.py` +422 y `test_definicion_dependabot.py` +253. Es cobertura de mutantes de las compuertas, no alcance añadido, pero el criterio «cabe en una sesión» de la spec ya no se cumple por tamaño. Conviene ajustar la estimación de las pruebas de fundación en la siguiente partición.
+**Desviación de tamaño (F005).** El diseño estimó unas 490 líneas para esta parte, con 320 de pruebas. El diff trae unas 1,700 líneas netas de pruebas (cuenta del árbol actual, con los cambios sin commitear): `test_definicion_etiqueta.py` 743, `test_etiqueta_origen.py` 275, `test_definicion_ci.py` +421 y `test_definicion_dependabot.py` +270. Es cobertura de mutantes de las compuertas, no alcance añadido, pero el criterio «cabe en una sesión» de la spec ya no se cumple por tamaño. Conviene ajustar la estimación de las pruebas de fundación en la siguiente partición.
 
 ## Hallazgos fuera de alcance
 
 | Archivo | Observación | Prioridad |
 |---|---|---|
-| `.github/workflows/etiqueta-origen.yml` | El checkout es el del PR: un PR puede alterar `etiqueta_origen.py` para pasar. Aceptado en el diseño; la mitigación estructural es `CODEOWNERS` | Baja, ticket futuro ya sugerido |
+| `.github/workflows/etiqueta-origen.yml` | El checkout es el del PR: un PR puede alterar `tools/etiqueta_origen.py` (o el workflow, o añadir otro trabajo llamado «Etiqueta de origen») y la comprobación pasa. Aceptado en el diseño. Contra terceros (bifurcaciones) el riesgo es bajo, porque no pueden fusionar; frente a quien tiene escritura, la mitigación real es solo la lectura del diff por la dueña, porque con una sola persona con escritura y `enforce_admins: false` `CODEOWNERS` no aporta nada: se autoaprobaría u omitiría la revisión | Baja |
 | `.github/workflows/etiqueta-origen.yml` | Sin `concurrency`, dos ejecuciones sobre el mismo SHA pueden terminar en desorden | Baja, ticket futuro ya sugerido |
 | `sdd/tickets/tkt-009d/delta.md` | Los commits de cierre de ticket empujados directo a `Produccion` se saltaron la CI y dejaron un fallo de Vale. Desde la protección de la rama, el cierre viaja dentro del PR | Resuelto por la regla «todo entra por PR» |
 | Repositorio | GitHub avisa de 2 vulnerabilidades de severidad baja en la rama por defecto | Baja, revisar en Dependabot |
-| `docs/05-tickets-trabajo.md` | La frase «no se puede fusionar, tampoco si lo fusiona la administradora» suena a bloqueo técnico, y con `enforce_admins: false` es una convención del proyecto, como dicen convenciones §6 y el diseño. Observación O2 de la reauditoría final | Baja, afinar la redacción en una limpieza posterior |
+| `docs/05-tickets-trabajo.md` | La frase «no se puede fusionar, tampoco si lo fusiona la administradora» suena a bloqueo técnico, y con `enforce_admins: false` es una convención del proyecto, como dicen convenciones §6 y el diseño. Observación O2 de la reauditoría final | Resuelto por F201 y F301 |
 
 ## Documentación actualizada
 
@@ -318,17 +333,34 @@ Ninguna fila subió ni bajó de modelo, y ninguna tocó `opus`. Todas las filas 
 | `tools/README.md` | `etiqueta_origen.py`, sus pruebas y las reglas comunes sobre todo flujo |
 | `sdd/plantillas/delta.md`, `sdd-completar/SKILL.md`, `git-entrega.md`, `00-propuesta-toolkit.md` | Las cuatro etiquetas y el bloque «Fusión con omisión» |
 
-`python tools/verificar_docs.py` → `✓ Sin problemas.` (170 documentos).
+`python tools/verificar_docs.py` → `✓ Sin problemas.` (171 documentos).
 
 ## Verificación final
 
-- [x] Todos los criterios `[M]` de esta parte cumplidos con evidencia, salvo `CA-6` esc. 5 en vivo y la segunda mitad de `CA-R4`, que dependen del PR real y de la fusión
+Cierre de `/sdd-revisar` el 2026-10-30.
+
+| Criterio | Nivel | Resultado | Evidencia |
+|---|---|---|---|
+| `CA-6` esc. 1 a 4 | `[M]` | Cumplido | TC62-01 a TC62-07; rondas R0a y R1 del PR #20 |
+| `CA-6` esc. 5 (Dependabot) | `[M]` | Cumplido en el archivo; **se observa en vivo tras fusionar** | TC62-08. GitHub lee `dependabot.yml` solo de la rama por omisión |
+| `CA-9` en lo suyo | `[M]` | Cumplido | Evidencia de A5 con salidas |
+| `CA-12` en lo suyo | `[M]` | Cumplido | TC62-38 |
+| `CA-R1`, `CA-R2` | `[M]` | Cumplido | TC62-R1, TC62-09 |
+| `CA-R4` | `[M]` | Primera mitad cumplida; **los nueve trabajos de `ci.yml` en verde se verifican en el PR real** | TC62-R4; en el PR de ensayo ocho de los nueve terminaron en verde y «Documentación» falló por los tres hallazgos ya corregidos |
+
+**Suite ejecutada por el orquestador.** 398 pruebas de `tools/` en verde, `verificar_docs.py` sin problemas, `verificar_escenarios.py` sin faltantes, `zizmor` sin hallazgos, `lint-imports` con 15 contratos intactos, Vale sin salida y markdownlint con 0 incidencias.
+
+**Desviaciones.** Registradas en «Ajustes respecto al design»: el orden del mensaje de dos etiquetas, la exigencia retirada de `CLAUDE.md`, la excepción de alcance sobre `tkt-009d/delta.md`, la desviación de tamaño de las pruebas (F005), el ADR-027 añadido por F302 y la renumeración de la revisión por IA de TKT-062b a ADR-028.
+
+**Condición para cerrar el ticket.** Este ticket queda `LISTO PARA PR` con una condición que `/sdd-completar` debe comprobar antes de archivarlo: el PR real de TKT-062a tiene que mostrar los nueve trabajos de `ci.yml` y «Etiqueta de origen» en verde (`CA-R4`), y su fusión es la primera con omisión de la protección, con el comentario de registro descrito en el ADR-027. `CA-6` esc. 5 se observará con el primer PR de Dependabot posterior a la fusión.
+
+- [x] Todos los criterios `[M]` de esta parte cumplidos con evidencia, con las dos comprobaciones en vivo descritas arriba como condición del cierre
 - [x] Ciclo TDD completo en cada fila con código: rojo antes de verde, ningún test editado por un desarrollador
 - [x] Suite en verde, con la salida pegada arriba
 - [x] Al menos un test de rechazo por regla implicada
 - [x] Mutación en las compuertas críticas
-- [ ] Todas las auditorías `APROBADO` (arquitectura `APROBADO`; las demás, en `/sdd-revisar`)
+- [x] Todas las auditorías `APROBADO` (arquitectura, código, seguridad y documentación; SQL no aplica)
 - [x] Sin hallazgo crítico o mayor pendiente
 - [x] Documentación afectada actualizada en este mismo cambio
-- [x] `ruff`, `mypy` y `lint-imports` no aplican: no hay código de `backend/` en el diff
+- [x] `ruff`, `mypy` y `lint-imports` no aplican a `backend/` porque no hay código de `backend/` en el diff
 - [x] Rama correcta y sin secretos en el diff

@@ -4,7 +4,7 @@
 
 ## Estado
 
-EN REVISIÓN
+LISTO PARA PR
 
 ## Ficha
 
@@ -37,6 +37,7 @@ EN REVISIÓN
 |---|---|---|---|---|
 | 2026-10-29 | — | `LISTO PARA EJECUTAR` | partición de TKT-062 | Nace del gate de diseño de TKT-062, aprobado por la persona responsable del proyecto. Spec repartida: M5, su parte de M8 y de M11; `CA-6`, su parte de `CA-9` y `CA-12`, `CA-R1`, `CA-R2` y `CA-R4`. Primera parte en fusionar |
 | 2026-10-30 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Filas A0 a A8 hechas: ciclo TDD en A2, A3, A4 y A7, ajustes del repositorio de A5 aplicados y verificados, ensayo A6 (rondas R0a y R1) con el PR #20 cerrado sin fusionar. 389 pruebas de `tools/` en verde, 48 nuevas. `auditor-arquitectura` `APROBADO` tras tres ciclos (F001 a F003 y F008, Menores). Pendientes para `/sdd-revisar`: las auditorías de código, seguridad y documentación, `CA-6` esc. 5 en vivo y la segunda mitad de `CA-R4`. Detalle en [impl.md](impl.md) |
+| 2026-10-30 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite ejecutada por el orquestador: 398 pruebas de `tools/`, `verificar_docs.py`, `verificar_escenarios.py`, `zizmor`, `lint-imports`, Vale y markdownlint en verde. Cuatro auditorías `APROBADO` (arquitectura en 3 ciclos, código en 2, seguridad en 1, documentación en 3; SQL no aplica). Hallazgos: F101 (Mayor) y F102 a F107 de código, F201 y F202 de seguridad, F301, F302 y F401 (Mayores) y F303 a F305, F402 y F403 de documentación, todos resueltos. D-2 pasó a [ADR-027](../../../docs/adr/20261030-proteccion-de-produccion-y-fusion-con-omision.md) y la revisión por IA de 062b a ADR-028. **Condición para `/sdd-completar`:** el PR real debe mostrar los nueve trabajos de `ci.yml` y «Etiqueta de origen» en verde (`CA-R4`); `CA-6` esc. 5 se observa con el primer PR de Dependabot tras fusionar. Detalle en [impl.md](impl.md) |
 
 ## Decisiones registradas
 
