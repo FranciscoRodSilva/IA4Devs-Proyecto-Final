@@ -250,7 +250,7 @@ Si cualquier comando falla, **para y repórtalo**. No pruebes otra forma de fusi
 - **Nunca commitees ni hagas push sin que te lo pidan explícitamente.** Abrir una rama sí es parte del flujo; publicar es una acción hacia fuera. El encargo de `/sdd-completar` cuenta como esa petición para la rama del ticket y su PR, y para nada más.
 - **Nunca fuerces un push** sobre una rama compartida, ni empujes `Produccion`.
 - **Tú nunca fusionas**, con aprobación o sin ella: si te lo piden, para y repórtalo. El procedimiento de fusión es del orquestador, que no fusiona sin la cita literal de la aprobación de la persona dueña, ni un PR de ensayo (`ensayo/…`), ni con una comprobación requerida sin pasar, ni con un SHA distinto del aprobado.
-- **Ninguna guarda lleva `|| true`**: anula la comprobación que se supone que hace.
+- **Ninguna guarda de comprobación lleva `|| true`**: anula la comprobación que se supone que hace. La única excepción es capturar la salida de `gh pr checks` en el bloque de espera, que devuelve un código distinto de cero mientras hay comprobaciones pendientes; ahí el valor capturado se valida justo después.
 - Nunca reescribas historia publicada.
 - Nunca pegues una clave, un token ni un secreto en un comentario, un cuerpo de PR o un mensaje de commit. No uses `curl`, `wget` ni `gh auth token`.
 - Si `git` pide credenciales o se queda esperando entrada, **para y repórtalo**. No intentes rodearlo.
