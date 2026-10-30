@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash, PowerShell, Agent, Skill
 
 Cierra el ticket. Sin cierre formal, el conocimiento del ticket desaparece.
 
-**Este comando es el único punto del pipeline que abre y fusiona un pull request.** Hay **un solo PR por ticket**, con el código, el delta, el archivo del ticket y el registro de evolución dentro. Ni `/sdd-ejecutar` ni `/sdd-revisar` abren PR, y la persona usuaria no ejecuta ningún comando de `gh` ni de Git del flujo de entrega: lo hace `git-entrega`. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. La única intervención humana es una pregunta, antes de fusionar.
+**Este comando es el único punto del pipeline que abre y fusiona un pull request.** Hay **un solo PR por ticket**, con el código, el delta, el archivo del ticket y el registro de evolución dentro. Ni `/sdd-ejecutar` ni `/sdd-revisar` abren PR, y la persona usuaria no ejecuta ningún comando de `gh` ni de Git del flujo de entrega: los ejecuta `git-entrega` y, en la fusión, el orquestador. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. La única intervención humana es una pregunta, antes de fusionar.
 
 ## Paso 0 · Gate — si falla, STOP
 
@@ -56,7 +56,7 @@ Esto se hace **antes** del commit, para que viaje dentro del PR:
 
 ## Paso 5 · Entrega: un PR por ticket
 
-Despacha **`git-entrega`** en modo cierre, y después en modo fusión. Invocar `/sdd-completar` autoriza el commit, el push **de la rama del ticket** y la apertura de su PR. No autoriza fusionar: eso exige el paso 5d.
+Despacha **`git-entrega`** en modo cierre. La fusión no la hace un subagente: la ejecuta el orquestador en el hilo principal (paso 5e). Invocar `/sdd-completar` autoriza el commit, el push **de la rama del ticket** y la apertura de su PR. No autoriza fusionar: eso exige el paso 5d.
 
 ### 5a · Commit, push y PR
 
@@ -90,7 +90,7 @@ Cuando las diez comprobaciones están en verde, el orquestador presenta a la per
 
 ### 5e · Fusión y registro
 
-Con el sí, el orquestador despacha **`git-entrega`** en modo fusión, **en `sonnet`**, pasándole el número del PR, el SHA de cabeza que se comprobó, la cita literal de la aprobación y el resumen que vio la persona. `git-entrega`:
+Con el sí, el orquestador ejecuta **él mismo**, en el hilo principal, el procedimiento de fusión de [`git-entrega.md`](../../agents/git-entrega.md), con el número del PR, el SHA de cabeza que se comprobó, la cita literal de la aprobación y el resumen que vio la persona. **No lo delega en un subagente:** el arnés de permisos no acepta que un subagente lleve la aprobación de la persona dueña, y bloqueó la primera fusión del PR 24 por esa razón (2026-10-30). Si el arnés bloquea la fusión, no se rodea ni se toca la configuración de permisos: se informa a la persona dueña y se pide su autorización explícita. El procedimiento:
 
 1. Comprueba las precondiciones y se detiene si falla cualquiera: PR abierto, de este repositorio, de la persona autenticada y no de ensayo, SHA de cabeza igual al comprobado, exactamente una etiqueta de origen y las diez comprobaciones requeridas en `pass`.
 2. Deja en el PR una revisión de comentario atada a ese SHA que cita la aprobación y dice que se hizo sobre un resumen, no sobre el diff completo, porque GitHub no deja aprobar el propio PR.
@@ -111,3 +111,4 @@ Tras la fusión: qué se añadió al sistema, qué contrato público cambió, qu
 5. Una comprobación requerida sigue en rojo tras 3 ciclos de corrección → `/sdd-escalar`.
 6. La persona dueña no aprueba, o no contesta → no fusionar: el PR queda abierto, `_index.md` vuelve a `LISTO PARA PR` y se informa.
 7. Un PR de ensayo nunca se fusiona.
+8. El arnés de permisos bloquea la fusión → no se rodea: se informa y se pide la autorización explícita de la persona dueña.

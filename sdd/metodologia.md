@@ -232,7 +232,7 @@ El modelo se elige por la **naturaleza de la tarea**, no por su importancia. Pag
 | `desarrollador-sql` | `haiku` | medio | Igual, y el auditor revisa lo que produce |
 | `desarrollador-aplicacion` · `desarrollador-api` · `desarrollador-react` | `haiku` | medio | Igual: ponen en verde los tests de su capa siguiendo un diseño sin decisiones pendientes |
 | `corrector-revision` | `haiku` | medio | Aplica hallazgos ya diagnosticados por otro, con archivo y línea |
-| `git-entrega` | `haiku` | bajo | Ramas, diff, commit, PR y comprobaciones. La fusión se despacha en `sonnet`. Mecánico y verificable por comando |
+| `git-entrega` | `haiku` | bajo | Ramas, diff, commit, PR y comprobaciones. No fusiona: la fusión la ejecuta el orquestador en el hilo principal. Mecánico y verificable por comando |
 
 `opus` es la versión más reciente de Opus —hoy Opus 5.5— y queda **reservado a definir y diseñar**. Ningún agente de ejecución, prueba o auditoría sube a `opus`.
 
