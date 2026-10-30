@@ -57,6 +57,10 @@ El pipeline las corre en el trabajo `herramientas`, con `unittest` y sin `-v`, y
 
 `test_definicion_etiqueta.py` comprueba lo que declara `.github/workflows/etiqueta-origen.yml`: los eventos que lo disparan, el nombre del trabajo «Etiqueta de origen» que exige la protección de `Produccion`, que ese trabajo no tenga `if:`, el checkout fijado por SHA y el paso que llama a `etiqueta_origen.py`. También comprueba que los documentos que describen la etiqueta la describen, con las cuatro etiquetas y la comprobación requerida (TC62-38). Se ejecuta con `python -m unittest tools.tests.test_definicion_etiqueta -v`.
 
+`test_publicar_revision.py` prueba `tools/publicar_revision.py` sin red ni entorno real: `main` recibe el entorno por parámetro y escribe en una carpeta temporal. Cubre qué hallazgos se publican, cuáles se descartan por no citar ni por traer una clave, y el fallo cerrado ante una entrada inválida. Se ejecuta con `python -m unittest tools.tests.test_publicar_revision -v`.
+
+`test_definicion_revision.py` comprueba lo que declara `.github/workflows/revision-ia.yml`: que la revisión no está en `ci.yml`, los disparadores y la guarda que excluye borradores, bifurcaciones y Dependabot, los permisos mínimos, un modelo sin herramientas de escritura y sin `Bash`, con `/proc` y `/sys` denegados, y la única lectura de `ANTHROPIC_API_KEY`. También comprueba que las instrucciones de `.claude/revision-pr.md` remiten a las convenciones y no copian sus puntos ni las reglas de `CLAUDE.md`, y que los documentos describen la revisión. Se ejecuta con `python -m unittest tools.tests.test_definicion_revision -v`.
+
 ## `etiqueta_origen.py`
 
 ```bash
@@ -66,6 +70,17 @@ ETIQUETAS='["agent"]' python tools/etiqueta_origen.py
 Es el guion de la comprobación requerida «Etiqueta de origen», que corre en `.github/workflows/etiqueta-origen.yml` (TKT-062a). Lee la variable `ETIQUETAS`, la lista JSON con los nombres de etiqueta del PR, y acepta solo si el PR lleva exactamente una de las cuatro etiquetas de origen: `human`, `human+copilot`, `agent` y `agent+human-review`. La coincidencia es exacta: mayúsculas, espacios y variantes no cuentan.
 
 Sale con `0` si hay exactamente una, con `1` si no hay ninguna o hay más de una, y con `2` si `ETIQUETAS` falta o no es una lista de cadenas. El fallo es cerrado: ante una entrada dudosa, la comprobación no pasa. Usa solo la biblioteca estándar. Los datos del evento llegan por variable de entorno y nunca se interpolan en una orden del flujo de trabajo.
+
+## `publicar_revision.py`
+
+```bash
+: > archivos.txt
+HALLAZGOS='{"hallazgos": []}' python tools/publicar_revision.py --archivos archivos.txt --salida comentario.md
+```
+
+Es el filtro de la revisión automatizada de PR (TKT-062b), que corre en el trabajo `publicar` de [`revision-ia.yml`](../.github/workflows/revision-ia.yml). **Está inactivo** hasta que se active ese flujo. Sin clave de API, queda inactivo una vez deshabilitado en GitHub; hasta entonces falla sin clave y no bloquea nada ([ADR-028, «Estado de la activación»](../docs/adr/20261029-revision-automatizada-de-pr-con-unica-excepcion-de-secretos.md#estado-de-la-activación)). Lee del entorno `HALLAZGOS`, la salida estructurada del modelo, y también `TITULO`, `CUERPO` y `CABEZA`; por línea de órdenes, `--archivos` (un nombre de archivo del PR por línea) y `--salida`. Publica solo los hallazgos que traen una cita de la lista de [convenciones §12](../docs/convenciones.md#qué-revisa-la-revisión-automatizada-de-pr) y ninguna cadena con forma de clave de API, ni siquiera escrita con separadores, mayúsculas o partida entre campos; la cita debe ser entera una de las formas válidas, sin texto alrededor. El registro nombra cada descartado por `archivo:linea` solo si no contiene una clave y su `archivo` es uno de los del PR; en cualquier otro caso lo nombra por `[archivo omitido]:linea`, y nunca imprime su texto ni su cita. A esos hallazgos les antepone dos mecánicos que no dependen del modelo: el PR sin ticket y el PR que modifica el borrador OpenAPI.
+
+Sale con `0` si escribió el comentario. Sale con `2` si `HALLAZGOS` falta o es inválido, o si falta el archivo de `--archivos`; en ese caso no escribe `--salida`, es decir, el fallo es cerrado. Usa solo la biblioteca estándar, y los datos del evento llegan por variable de entorno, nunca interpolados en una orden del flujo.
 
 ## `extraer_mermaid.py`
 

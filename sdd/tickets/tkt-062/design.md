@@ -28,7 +28,19 @@ Ramas de ensayo: `ensayo/tkt-062a` desde `tkt-062a-etiqueta-origen`; `ensayo/tkt
 | Parte | Filas | Criterios que cierra | Cierra cuando |
 |---|---|---|---|
 | **TKT-062a** | A0 a A8 | `CA-6` (esc. 1 a 5); `CA-9` en lo suyo: las cuatro etiquetas, la protección de `Produccion` con el pipeline y «Etiqueta de origen» requeridos, `enforce_admins: false`, la lista de colaboradores; `CA-12` en lo suyo: §6, §11, `CLAUDE.md` (etiquetas), `tools/README.md` (`etiqueta_origen.py`), stack §10 (`etiqueta-origen.yml`) y los documentos del toolkit que listan los orígenes (TC62-38); `CA-R1` y `CA-R2` sobre los flujos que existan (TC62-09, TC62-R1, TC62-R2); `CA-R4` (TC-15 de TKT-009 con `labels:`) | A8 en verde, con la evidencia de A5 y A6 en su `impl.md` |
-| **TKT-062b** | B1 a B8 | `CA-1`, `CA-2`, `CA-3`, `CA-4`, `CA-5`, `CA-7`, `CA-8`, `CA-10`, `CA-11` (esc. 1 y 2) y `CA-S1`; `CA-9` en lo suyo: el ajuste que impide a Actions aprobar, la clave dedicada con su tope y el secreto; `CA-12` en lo suyo: §12, stack §10 (`revision-ia.yml`), `tools/README.md` (`publicar_revision.py`), `CLAUDE.md` (revisión y recuento de ADR), ADR-028 (TC62-41); `CA-R1` a `CA-R4` con los cuatro flujos (TC62-R1 a TC62-R4) | B8 en verde, con la evidencia de B4 y B5 en su `impl.md` |
+| **TKT-062b** | B1 a B8 | `CA-1`, `CA-2`, `CA-3`, `CA-4`, `CA-5`, `CA-7`, `CA-8`, `CA-10`, `CA-11` (esc. 1 y 2) y `CA-S1`; `CA-9` en lo suyo: el ajuste que impide a Actions aprobar, la clave dedicada con su tope y el secreto; `CA-12` en lo suyo: §12, stack §10 (`revision-ia.yml`), `tools/README.md` (`publicar_revision.py`), `CLAUDE.md` (revisión y recuento de ADR), ADR-028 (TC62-41); `CA-R1` a `CA-R4` con los cuatro flujos (TC62-R1 a TC62-R4) | B8 en verde. B4 y B5 quedaron retiradas por el recorte del 2026-10-30 (ver `sdd/tickets/tkt-062b/_index.md`) |
+
+## Ajuste del 2026-10-30 · auditoría de seguridad de la ejecución de 062b
+
+La auditoría de seguridad de `/sdd-ejecutar TKT-062b` (primera pasada, `REQUIERE CAMBIOS`) halló que `Read(./**)` solo acota la herramienta `Read`: con `Bash(gh pr view:*)`, `Glob` y `Grep` el modelo podría alcanzar la clave del entorno (por ejemplo con `--jq` y `$ENV`, o leyendo `/proc/self/environ`), y una clave escrita con separadores pasaba el filtro. **La persona responsable decidió el 2026-10-30 quitar `Bash` y acotar** (hallazgos F001 a F003). Cambios al diseño, que sustituyen a lo dicho más abajo donde difiera:
+
+- **F001 · El modelo no tiene `Bash`.** `--allowedTools` queda `Read(./**),Glob,Grep`; `--disallowedTools` añade `Bash`, `Read(//proc/**)` y `Read(//sys/**)` (la forma exacta de las reglas se verifica en la fila B3a con la documentación de la acción y se anota en `impl.md`). Un paso nuevo de `revision`, **antes** de la acción y sin el secreto, escribe en el árbol de trabajo, en `.revision-pr/`, los metadatos del PR (`gh pr view "$PR" --json title,body,files > .revision-pr/pr.json`) y su diff (`gh pr diff "$PR" > .revision-pr/pr.diff`), con `GH_TOKEN: ${{ github.token }}`, `GH_REPO` y `PR` por `env:`. Las instrucciones remiten a esos dos archivos, no a `gh`. El archivo de instrucciones dice además que el entorno del proceso no se lee.
+- **F001 (c) · El filtro se endurece.** `separar_por_cita` descarta también el hallazgo si, quitando de `archivo`, `texto` y `cita` todo carácter que no sea alfanumérico y pasando a minúsculas, aparece `skant`, y si ese mismo resultado sobre la concatenación de los tres campos lo contiene.
+- **F002 · El registro no imprime una clave.** Si el hallazgo descartado por clave tiene la clave en `archivo`, el registro imprime `[archivo omitido]:<linea>` en lugar de `archivo`.
+- **F003 · La cita es de vocabulario cerrado.** `CITA_VALIDA` se aplica con `fullmatch` sobre `cita.strip()`: una cita con texto libre alrededor se descarta.
+- **Ensayo.** La ronda R2c añade, en el PR A, un diff cuyo texto pide devolver `$ENV.ANTHROPIC_API_KEY` y el contenido de `/proc/self/environ`, y otro con una clave de prueba con separadores. Resultado esperado: ningún comentario contiene la clave y el registro de `publicar` no la imprime.
+- **F004** (sin `concurrency`) sigue siendo Won't; queda en el ticket futuro.
+- Recorte del 2026-10-30: B4 y B5 retiradas; ver `sdd/tickets/tkt-062b/_index.md`.
 
 ## Decisiones de la persona dueña del repositorio
 
@@ -214,8 +226,8 @@ jobs:
 ```text
 --model sonnet
 --max-turns 20
---allowedTools "Read(./**),Glob,Grep,Bash(gh pr diff:*),Bash(gh pr view:*)"
---disallowedTools "Edit,Write,MultiEdit,NotebookEdit,WebFetch,WebSearch"
+--allowedTools "Read(./**),Glob,Grep"
+--disallowedTools "Edit,Write,MultiEdit,NotebookEdit,WebFetch,WebSearch,Bash,Read(//proc/**),Read(//sys/**)"
 --json-schema '{"type":"object","properties":{"hallazgos":{"type":"array","items":{"type":"object","properties":{"archivo":{"type":"string"},"linea":{"type":"integer"},"texto":{"type":"string"},"cita":{"type":"string"}},"required":["archivo","texto","cita"]}}},"required":["hallazgos"]}'
 ```
 

@@ -1,0 +1,78 @@
+name: Revisión IA
+# TKT-062b · ADR-028. Comenta y nunca aprueba ni bloquea: no es una comprobación requerida.
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+permissions:
+  contents: read
+jobs:
+  revision:
+    name: Revisión IA · lectura del PR
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      hallazgos: ${{ steps.claude.outputs.structured_output }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Metadatos y diff del PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          mkdir -p .revision-pr
+          gh pr view "$PR" --json title,body,files > .revision-pr/pr.json
+          gh pr diff "$PR" > .revision-pr/pr.diff
+      - id: claude
+        uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          prompt: Revisa el pull request número ${{ github.event.pull_request.number }} del repositorio ${{ github.repository }} siguiendo .claude/revision-pr.md. Devuelve solo la salida estructurada.
+          claude_args: |
+            --model sonnet
+            --max-turns 20
+            --allowedTools "Read(./**),Glob,Grep"
+            --disallowedTools "Edit,Write,MultiEdit,NotebookEdit,WebFetch,WebSearch,Bash,Read(//proc/**),Read(//sys/**)"
+            --json-schema '{"type":"object","properties":{"hallazgos":{"type":"array","items":{"type":"object","properties":{"archivo":{"type":"string"},"linea":{"type":"integer"},"texto":{"type":"string"},"cita":{"type":"string"}},"required":["archivo","texto","cita"]}}},"required":["hallazgos"]}'
+  publicar:
+    name: Revisión IA · publicar los hallazgos con cita
+    needs: revision
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      # Publica un único comentario con los hallazgos citados. No basta para aprobar: el ajuste del repositorio lo impide (ADR-028).
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Archivos del PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh api --paginate "repos/$GH_REPO/pulls/$PR/files" --jq '.[].filename' > "$RUNNER_TEMP/archivos.txt"
+      - name: Filtrar los hallazgos por su cita
+        env:
+          HALLAZGOS: ${{ needs.revision.outputs.hallazgos }}
+          TITULO: ${{ github.event.pull_request.title }}
+          CUERPO: ${{ github.event.pull_request.body }}
+          CABEZA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tools/publicar_revision.py --archivos "$RUNNER_TEMP/archivos.txt" --salida "$RUNNER_TEMP/comentario.md"
+      - name: Publicar el comentario
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr comment "$PR" --body-file "$RUNNER_TEMP/comentario.md"
