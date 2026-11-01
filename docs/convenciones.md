@@ -52,7 +52,7 @@ IA4Devs-Proyecto-Final/
 ├── .claude/                        Agentes, skills, hooks y comandos del pipeline SDD
 ├── .editorconfig                   Codificación y finales de línea por tipo de archivo
 ├── .gitattributes                  Normalización de finales de línea: LF en el repositorio
-├── .env.example                    Plantilla de variables de entorno con valores de desarrollo evidentes; `.env` no se versiona
+├── .env.example                    Plantilla de variables de entorno, sin contraseñas: cada persona las define en su `.env`, que no se versiona
 ├── compose.yaml                    PostgreSQL local (TKT-003); MinIO llega con TKT-059
 ├── README.md                       Índice + ficha del proyecto. Nunca contenido extenso
 ├── llms.txt                        Mapa del proyecto para agentes IA

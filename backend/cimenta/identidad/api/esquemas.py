@@ -19,7 +19,8 @@ from contrato_error import Rol
 
 
 def forma_de_correo(valor: str) -> str:
-    """CA-5: valida la forma y devuelve el valor tal como se escribió (CA-2: `intento_acceso` lo guarda así).
+    """CA-5: valida la forma y devuelve el valor tal como se escribió. El correo se normaliza
+    después, en el caso de uso, y `intento_acceso` guarda la forma normalizada desde TKT-057 (D-4).
 
     Decisión del usuario: se valida con `email_validator` sin comprobar la entrega y en modo de
     entorno de pruebas, porque `pydantic.networks.validate_email` rechaza dominios reservados como

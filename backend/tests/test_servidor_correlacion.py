@@ -17,6 +17,7 @@ import asyncio
 import importlib
 import io
 import json
+import secrets
 import uuid
 from collections.abc import MutableMapping
 from datetime import datetime
@@ -46,7 +47,10 @@ def aplicacion_de_prueba() -> tuple[FastAPI, io.StringIO]:
     """Aplicación de la fábrica con sus rutas de prueba y el registro capturado."""
     fabrica = importlib.import_module("servidor.fabrica")
     registro = io.StringIO()
-    aplicacion: FastAPI = fabrica.crear_aplicacion(destino_registro=registro)
+    aplicacion: FastAPI = fabrica.crear_aplicacion(
+        destino_registro=registro,
+        entorno={"CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16)},
+    )
     router = APIRouter(prefix="/prueba")
     router.add_api_route("/ok", ruta_ok, methods=["GET", "POST"])
     router.add_api_route("/exige-nombre", ruta_exige_nombre, methods=["POST"])

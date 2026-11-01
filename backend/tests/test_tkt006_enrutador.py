@@ -6,8 +6,8 @@ las rutas cuya cadena **no** contiene `sesion_vigente` con una lista cerrada de 
 `GET /api/v1/sesion/csrf` y `POST /api/v1/sesion`. Una ruta nueva sin protección rompe la prueba y
 la nombra; quitar una entrada de la lista, también.
 
-Sin Docker (`CA-R4`). La aplicación es `crear_aplicacion(destino_registro=..., entorno={})` y no
-recibe motor: el motor del rol de aplicación es perezoso, así que construirla no abre conexión. Cada
+Sin Docker (`CA-R4`). La aplicación es `crear_aplicacion(destino_registro=..., entorno=...)`, con solo la
+contraseña del rol de aplicación en el entorno (RNF-07, TKT-057), y no recibe motor: el motor del rol de aplicación es perezoso, así que construirla no abre conexión. Cada
 caso borra del entorno las variables `CIMENTA_DB_*` antes de construirla: si una ruta de las que aquí
 se ejercen intentara crear el motor, `leer_variable` lanzaría y la respuesta sería `500`.
 
@@ -29,6 +29,7 @@ import inspect
 import io
 import os
 import re
+import secrets
 import uuid
 from collections.abc import Callable, Iterable, Iterator
 from http.cookies import Morsel, SimpleCookie
@@ -95,7 +96,10 @@ def construir_aplicacion(monkeypatch: pytest.MonkeyPatch) -> FastAPI:
         monkeypatch.delenv(nombre)
     from servidor.fabrica import crear_aplicacion
 
-    return crear_aplicacion(destino_registro=io.StringIO(), entorno={})
+    return crear_aplicacion(
+        destino_registro=io.StringIO(),
+        entorno={"CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16)},
+    )
 
 
 def cliente_de(aplicacion: FastAPI) -> TestClient:
@@ -725,7 +729,8 @@ def test_tkt006_ca13_la_interfaz_publica_exigir_rol_y_evaluar_resolucion() -> No
 
     Un módulo solo habla con otro por su interfaz publicada: si estos nombres no están en `__all__` y
     como atributos del módulo, TKT-020, TKT-021 y TKT-026 tendrían que importar de `api/` o de `dominio/`
-    y romperían el contrato de fronteras. `__all__` es exactamente el de seis nombres del diseño.
+    y romperían el contrato de fronteras. `__all__` es exactamente el de siete nombres del diseño: los
+    seis de TKT-006 y `verificar_origen` de TKT-057.
     """
     import cimenta.identidad.interfaz as interfaz
     from cimenta.identidad.api import dependencias
@@ -740,6 +745,7 @@ def test_tkt006_ca13_la_interfaz_publica_exigir_rol_y_evaluar_resolucion() -> No
         "evaluar_resolucion",
         "ResultadoResolucion",
         "MotivoNegacion",
+        "verificar_origen",
     }
     assert all(hasattr(interfaz, nombre) for nombre in interfaz.__all__)
     assert interfaz.exigir_rol is dependencias.exigir_rol
@@ -751,7 +757,7 @@ def test_tkt006_ca13_la_interfaz_publica_exigir_rol_y_evaluar_resolucion() -> No
 
 
 def test_tkt006_ca13_la_interfaz_se_importa_con_asterisco_y_se_documenta() -> None:
-    """CA-13 · M12 — `from cimenta.identidad.interfaz import *` entrega los seis nombres, y el docstring dice cómo usarlos.
+    """CA-13 · M12 — `from cimenta.identidad.interfaz import *` entrega los siete nombres, y el docstring dice cómo usarlos.
 
     El docstring nombra `exigir_rol`, `evaluar_resolucion` y `AUTO_RESOLUCION`: es la guía de quien
     escriba la siguiente ruta protegida o resuelva una solicitud (TKT-026).

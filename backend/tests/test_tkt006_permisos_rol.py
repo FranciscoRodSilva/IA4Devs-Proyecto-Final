@@ -49,6 +49,9 @@ RUTA_COMPRAS_O_DIRECCION = "/api/v1/prueba/compras-o-direccion"
 RUTA_DE_ROLES = "/api/v1/prueba/roles"
 RUTA_CON_TRANSACCION = "/api/v1/prueba/direccion-con-transaccion"
 COOKIE_SESION = "cimenta_sesion"
+COOKIE_CSRF = "cimenta_csrf"
+CABECERA_CSRF = "X-CSRF-Token"
+TOKEN_CSRF = "token-csrf-de-la-prueba"
 CORREO_DE_ANA = "ana@cimenta.test"
 CONTRASENA_DE_ANA = "Clave-Correcta-1"
 CORREO_DE_LUIS = "luis@cimenta.test"
@@ -162,17 +165,28 @@ def exigir_error_de_sesion(respuesta: Respuesta, motivo: str) -> None:
 def iniciar_por_http(
     cliente: TestClient, correo: str = CORREO_DE_ANA, contrasena: str = CONTRASENA_DE_ANA
 ) -> uuid.UUID:
-    """Abre una sesión con `POST /api/v1/sesion`, devuelve el id de la cookie y vacía el almacén del cliente."""
+    """Abre una sesión con `POST /api/v1/sesion`, devuelve el id de la cookie y vacía el almacén del cliente.
+
+    Envía el par de token CSRF que exige TKT-057 y lee `cimenta_sesion` por nombre entre los `Set-Cookie`
+    (la respuesta puede traer más de uno).
+    """
     respuesta = cliente.post(
         RUTA_SESION,
         json={"email": correo, "contrasena": contrasena},
-        headers={"User-Agent": AGENTE_USUARIO},
+        headers={
+            "User-Agent": AGENTE_USUARIO,
+            "Cookie": f"{COOKIE_CSRF}={TOKEN_CSRF}",
+            CABECERA_CSRF: TOKEN_CSRF,
+        },
     )
     assert respuesta.status_code == 200, respuesta.text
-    galleta: SimpleCookie = SimpleCookie()
-    galleta.load(respuesta.headers["set-cookie"])
     cliente.cookies.clear()
-    return uuid.UUID(galleta[COOKIE_SESION].value)
+    for cabecera in respuesta.headers.get_list("set-cookie"):
+        galleta: SimpleCookie = SimpleCookie()
+        galleta.load(cabecera)
+        if COOKIE_SESION in galleta:
+            return uuid.UUID(galleta[COOKIE_SESION].value)
+    pytest.fail(f"La respuesta no fija {COOKIE_SESION}: {respuesta.headers.get_list('set-cookie')}")
 
 
 def con_cookie(valor: object) -> dict[str, str]:
@@ -950,7 +964,12 @@ def test_tkt006_ca12_sesion_caducada_o_revocada_en_ruta_con_rol_es_401_sin_bitac
     if estado == "caducada":
         reloj_de_prueba.avanzar(timedelta(minutes=31))
     else:
-        assert cliente.post(RUTA_CIERRE, headers=con_cookie(sesion_id)).status_code == 204
+        # El cierre exige el par de token CSRF desde TKT-057; la cookie de sesión va en la misma cabecera.
+        con_par_csrf = {
+            "Cookie": f"{COOKIE_SESION}={sesion_id}; cimenta_csrf=token-csrf-de-la-prueba",
+            "X-CSRF-Token": "token-csrf-de-la-prueba",
+        }
+        assert cliente.post(RUTA_CIERRE, headers=con_par_csrf).status_code == 204
 
     respuesta = cliente.get(RUTA_DIRECCION, headers=con_cookie(sesion_id))
 
@@ -979,7 +998,9 @@ def test_tkt006_ca12_credenciales_erroneas_y_ruta_con_rol_sin_cookie_no_asientan
     sembrar_usuario(CORREO_DE_ANA, CONTRASENA_DE_ANA, roles=("RESIDENTE",))
 
     inicio = cliente.post(
-        RUTA_SESION, json={"email": CORREO_DE_ANA, "contrasena": "Clave-Equivocada-9"}
+        RUTA_SESION,
+        json={"email": CORREO_DE_ANA, "contrasena": "Clave-Equivocada-9"},
+        headers={"Cookie": f"{COOKIE_CSRF}={TOKEN_CSRF}", CABECERA_CSRF: TOKEN_CSRF},
     )
     consulta = cliente.get(RUTA_DIRECCION)
 

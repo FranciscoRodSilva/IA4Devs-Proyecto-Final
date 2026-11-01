@@ -297,8 +297,8 @@ Esto es lo que descarta el JWT y también la cookie firmada sin estado, que es e
 | Riesgo | Herramienta | Nota |
 |---|---|---|
 | **CSRF** | Token de doble envío verificado en todo método que muta estado | `SameSite=Lax` ya frena el formulario cruzado, pero no es defensa en profundidad y **no basta como único control**. Se elige `Lax` y no `Strict` a propósito: con `Strict`, abrir un enlace a una requisición desde el correo no manda la cookie y el usuario aparece desconectado sin entender por qué |
-| **Fuerza bruta sobre el acceso** | `slowapi` por origen, más bloqueo temporal por cuenta tras `N` intentos, registrado en `intento_acceso` | Argon2 encarece cada intento **para el servidor también**: sin límite, el inicio de sesión es el punto más barato de tumbar de todo el sistema |
-| **Cabeceras ausentes** | Middleware propio: `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy` | Son quince líneas. El artefacto único sirve la SPA y la API desde el mismo origen, así que una política restrictiva es viable sin excepciones |
+| **Fuerza bruta sobre el acceso** | Recuento de fallos por origen y por cuenta sobre `intento_acceso`, con bloqueo temporal: 5 fallos por cuenta y 20 por origen en 15 minutos, configurables. Sin `slowapi`: el recuento vive en la base y no en la memoria de un proceso ([ADR del límite de intentos](adr/20261030-limite-de-intentos-sobre-intento-acceso.md)) | Argon2 encarece cada intento **para el servidor también**: sin límite, el inicio de sesión es el punto más barato de tumbar de todo el sistema |
+| **Cabeceras ausentes** | Middleware propio: `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy`, y `Cache-Control: no-store` en la API (`TKT-057`) | Son quince líneas. El artefacto único sirve la SPA y la API desde el mismo origen, así que una política restrictiva es viable sin excepciones |
 | **Una ruta nueva que nace sin proteger** | Comprobación de rol en `api/` en **todas** las rutas, con una prueba que recorre el enrutador y falla si alguna queda sin dependencia de autenticación | TKT-006 ya lo pide en prosa; la prueba lo convierte en algo que no se puede olvidar al añadir la ruta número 41 |
 
 ### 6.3. Archivos y secretos
@@ -316,7 +316,7 @@ openpyxl parsea un ZIP que viene de fuera. En modo `read_only` el consumo es aco
 
 **Un archivo subido no se borra: se anula**, con autor y motivo, y el objeto permanece. Es el principio del libro mayor aplicado a la evidencia, y `RNF-19` lo complementa exigiendo que el **hash** de lo adjuntado quede asentado en la bitácora: sin él, *"se adjuntó esta foto"* es una referencia, no una prueba.
 
-**Los secretos se leen del entorno** con `pydantic-settings`, que además valida que estén presentes al arrancar. Un despliegue al que le falta la credencial de base de datos o la semilla del token CSRF tiene que **no arrancar**, no arrancar con un valor por omisión. En el repositorio vive `.env.example` con las claves y sin los valores.
+**Los secretos se leen del entorno** con `pydantic-settings`, que además valida que estén presentes al arrancar. La única variable obligatoria del servidor es `CIMENTA_DB_CONTRASENA_APLICACION`, la contraseña del rol de aplicación: un despliegue al que le falta tiene que **no arrancar**, no arrancar con un valor por omisión. El token CSRF no necesita semilla (el doble envío compara la cookie con la cabecera), así que no hay ningún otro secreto que definir para la frontera HTTP. En el repositorio vive `.env.example` con las claves y sin los valores.
 
 ### 6.4. Dependencias
 
@@ -329,7 +329,7 @@ openpyxl parsea un ZIP que viene de fuera. En modo `read_only` el consumo es aco
 - **Lock de `mermaid-cli`.** `npm audit --audit-level=high` sobre `.github/mermaid/`, en el paso «Auditar el lock de mermaid-cli» del trabajo `dependencias`, con el mismo umbral que el frontend: falla con `high` y `critical`, e informa `moderate` y `low` sin fallar.
 - **Excepciones.** Una vulnerabilidad de Python se acepta solo con `--ignore-vuln <ID>` en el paso de `pip-audit` del trabajo `dependencias`, con un comentario que nombre quién la decidió, su motivo y la fecha de revisión. No hay ninguna al arrancar. Para npm no hay lista de excepciones: un aviso alto se corrige actualizando o se escala por escrito; no se ignora con una bandera.
 
-**Credenciales de desarrollo de `.env.example`.** Las contraseñas `solo-desarrollo-*` del archivo y la del usuario de prueba de TKT-008b no tienen excepción en el escaneo de secretos: no hay archivo de exclusión ni `paths-ignore`, porque una exclusión por ruta dejaría sin escanear cualquier otro secreto que alguien pegara en ese archivo. Si una alerta genérica marcara alguno de esos valores, se descarta **esa alerta concreta** como «usada en pruebas», citando esta nota. La nota es la documentación de la excepción. El criterio [CA-11](../sdd/tickets/tkt-009/spec.md) pedía una excepción declarada; esta forma es una reinterpretación `(asumido)`, que se señaló en el gate del diseño.
+**Credenciales de desarrollo.** `.env.example` ya no contiene contraseñas: las tres claves de los roles van vacías, y quien clona el repositorio las genera (`TKT-057`). La del usuario de prueba de TKT-008b no tiene excepción en el escaneo de secretos: no hay archivo de exclusión ni `paths-ignore`, porque una exclusión por ruta dejaría sin escanear cualquier otro secreto que alguien pegara en ese archivo. Si una alerta genérica marcara ese valor, se descarta **esa alerta concreta** como «usada en pruebas», citando esta nota. La nota es la documentación de la excepción. El criterio [CA-11](../sdd/tickets/tkt-009/spec.md) pedía una excepción declarada; esta forma es una reinterpretación `(asumido)`, que se señaló en el gate del diseño.
 
 Es lo más barato de toda esta sección y responde a un riesgo propio de este proyecto: buena parte del código lo escriben agentes, y un agente añade una dependencia con la misma facilidad con la que escribe una función. Nadie va a auditar ese árbol a mano.
 
@@ -348,7 +348,7 @@ La tabla cubre los **diecinueve** requisitos no funcionales, no solo los de segu
 | `RNF-01` sesión revocable | Prueba: desactivar un usuario con sesión abierta y comprobar que la siguiente petición responde `401` | ✅ |
 | `RNF-02` credencial no legible | Prueba sobre las banderas de la cookie en la respuesta de inicio de sesión | ✅ |
 | `RNF-03` derivación lenta | Prueba: el hash almacenado empieza por `$argon2id$` y no es el texto original | ✅ |
-| `RNF-04` límite de intentos | Prueba: `N+1` intentos fallidos y el siguiente responde bloqueado, con asiento en `intento_acceso` | ✅ |
+| `RNF-04` límite de intentos | Prueba: cinco fallos y el sexto bloqueado, con asiento en `intento_acceso` | ✅ |
 | `RNF-05` CSRF | Prueba: petición que muta estado sin token, rechazada | ✅ |
 | `RNF-06` archivos | Pruebas: un `.svg` renombrado a `.jpg` se rechaza por su tipo **real**; un tamaño excedido se rechaza; la URL de lectura caduca; la respuesta de un PDF lleva `Content-Disposition: attachment` | ✅ |
 | `RNF-07` secretos | La aplicación no arranca sin las variables obligatorias · escaneo de secretos del repositorio | ✅ |
@@ -563,7 +563,7 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Ejecución síncrona ([ADR-013](adr/20260919-sqlalchemy-sincrono.md)) | `Session` de SQLAlchemy · rutas `def` | ✅ test que recorre el enrutador y falla si alguna ruta es `async def` |
 | Ninguna espera indefinida (`RNF-16`) | `lock_timeout` y `statement_timeout` en el rol de aplicación | ✅ test: transacción que retiene el bloqueo → la segunda vence y devuelve el contrato de error |
 | `analitica` solo lee | Rol de PostgreSQL de solo `SELECT` | ✅ test: un `INSERT` con ese rol falla a nivel de motor |
-| Seguridad de la frontera (`RNF-01`…`RNF-09`) | pwdlib · sesión en tabla · CSRF · slowapi · cabeceras · pip-audit | ✅ nueve de nueve, [§6.6](#66-qué-se-comprueba-solo) |
+| Seguridad de la frontera (`RNF-01`…`RNF-09`) | pwdlib · sesión en tabla · CSRF · recuento de intentos en base · cabeceras · pip-audit | ✅ nueve de nueve, [§6.6](#66-qué-se-comprueba-solo) |
 | Recuperabilidad (`RNF-10`, `RNF-11`) | PostgreSQL gestionado con recuperación a punto en el tiempo | ❌ ensayo trimestral con testigo |
 | Captura sin conexión ([ADR-015](adr/20260919-captura-diferida-sin-conexion.md)) | Service worker · caché persistida · cola en IndexedDB · sincronización idempotente por los mismos casos de uso | ✅ test de encolado, sincronización, no duplicación y rechazo por regla |
 | Archivos fuera de la base ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)) | `boto3` sobre S3 · URL prefirmadas · MinIO en testcontainers · tipo leído de los bytes | ✅ test de firma, caducidad, tipo falsificado y hash que no coincide |

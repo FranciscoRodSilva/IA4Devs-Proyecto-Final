@@ -48,6 +48,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-10-29 | [Vale para la prosa en español, con estilo propio mínimo en lugar del estilo Microsoft](20261029-vale-para-prosa-en-espanol.md) | Aceptado | Documentación, CI |
 | 2026-10-29 | [Revisión automatizada de pull requests en un flujo aparte, con una única excepción de secretos](20261029-revision-automatizada-de-pr-con-unica-excepcion-de-secretos.md) | Aceptado | CI, seguridad, flujo de revisión |
 | 2026-10-30 | [Protección de `Produccion` con una aprobación humana requerida y fusión con omisión de la persona dueña](20261030-proteccion-de-produccion-y-fusion-con-omision.md) | Aceptado | Repositorio, CI, flujo de fusión |
+| 2026-10-30 | [El límite de intentos se cuenta sobre `intento_acceso`, con una marca de credenciales verificadas](20261030-limite-de-intentos-sobre-intento-acceso.md) | Aceptado | Identidad, API, base de datos |
 
 ## Plantilla
 

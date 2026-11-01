@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import functools
 import io
+import secrets
 import threading
 import time
 import uuid
@@ -58,6 +59,8 @@ ENTORNO_DE_PRUEBA = {
     "CIMENTA_ARGON2_TIEMPO": "1",
     "CIMENTA_ARGON2_MEMORIA_KIB": "8192",
     "CIMENTA_ARGON2_PARALELISMO": "1",
+    # RNF-07 (TKT-057): `crear_aplicacion` exige la contraseña del rol de aplicación; nunca conecta.
+    "CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16),
 }
 CORREO_DE_ANA = "ana@cimenta.test"
 CONTRASENA_DE_ANA = "Clave-Correcta-1"
@@ -945,6 +948,9 @@ CABECERA = "X-Correlacion-Id"
 RUTA_SESION = "/api/v1/sesion"
 RUTA_DE_PRUEBA_ROLES = "/api/v1/prueba/roles"
 COOKIE_SESION = "cimenta_sesion"
+COOKIE_CSRF = "cimenta_csrf"
+CABECERA_CSRF = "X-CSRF-Token"
+TOKEN_CSRF = "token-csrf-de-la-prueba"
 CLAVES_DE_USUARIO_ACTUAL = {"id", "nombre", "email", "roles", "sesion"}
 CLAVES_DE_ERROR_DE_SESION = {"tipo", "motivo", "mensaje", "correlacion_id"}
 Respuesta = Any
@@ -985,17 +991,28 @@ def sin_correlacion(cuerpo: dict[str, Any]) -> dict[str, Any]:
 def iniciar_por_http(
     cliente: TestClient, correo: str = CORREO_DE_ANA, contrasena: str = CONTRASENA_DE_ANA
 ) -> uuid.UUID:
-    """Abre una sesión con `POST /api/v1/sesion`, devuelve el id de la cookie y vacía el almacén del cliente."""
+    """Abre una sesión con `POST /api/v1/sesion`, devuelve el id de la cookie y vacía el almacén del cliente.
+
+    Envía el par de token CSRF que exige TKT-057 y lee `cimenta_sesion` por nombre entre los `Set-Cookie`
+    (la respuesta puede traer más de uno).
+    """
     respuesta = cliente.post(
         RUTA_SESION,
         json={"email": correo, "contrasena": contrasena},
-        headers={"User-Agent": AGENTE_USUARIO},
+        headers={
+            "User-Agent": AGENTE_USUARIO,
+            "Cookie": f"{COOKIE_CSRF}={TOKEN_CSRF}",
+            CABECERA_CSRF: TOKEN_CSRF,
+        },
     )
     assert respuesta.status_code == 200, respuesta.text
-    galleta: SimpleCookie = SimpleCookie()
-    galleta.load(respuesta.headers["set-cookie"])
     cliente.cookies.clear()
-    return uuid.UUID(galleta[COOKIE_SESION].value)
+    for cabecera in respuesta.headers.get_list("set-cookie"):
+        galleta: SimpleCookie = SimpleCookie()
+        galleta.load(cabecera)
+        if COOKIE_SESION in galleta:
+            return uuid.UUID(galleta[COOKIE_SESION].value)
+    pytest.fail(f"La respuesta no fija {COOKIE_SESION}: {respuesta.headers.get_list('set-cookie')}")
 
 
 def con_cookie(valor: object) -> dict[str, str]:

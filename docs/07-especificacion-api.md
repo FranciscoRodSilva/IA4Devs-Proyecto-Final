@@ -104,7 +104,9 @@ La frontera que más importa es la de `409` y `422`, y se decide con una pregunt
 
 **Todo método que muta estado exige además el token de doble envío** (`RNF-05`): la cookie `cimenta_csrf`, legible desde JavaScript, y la cabecera `X-CSRF-Token` con el mismo valor. En el YAML es el esquema `csrf`, declarado en cada `POST`, `PUT`, `PATCH` y `DELETE` —se comprueba por programa que no falta en ninguno—. Sin token, o con uno distinto, `403` con `motivo: ORIGEN_NO_VERIFICADO`.
 
-El inicio de sesión también muta estado, y por eso hay una ruta previa, `GET /sesion/csrf`, que fija la cookie y devuelve el token antes de que exista sesión. El token se rota al iniciar y al cerrar sesión. TKT-006 emite el token; la rotación y la verificación llegan con TKT-057.
+El inicio de sesión también muta estado, y por eso hay una ruta previa, `GET /sesion/csrf`, que fija la cookie y devuelve el token antes de que exista sesión. La verificación la hace la dependencia `verificar_origen`, que se evalúa después de `sesion_vigente`: sin sesión responde `401` antes de mirar el token. `POST /sesion`, que no tiene sesión, usa `credenciales_con_origen_verificado`, que valida el cuerpo antes que el token: un cuerpo inválido responde `422` y no asienta intento. Toda ruta que muta declara `verificar_origen` antes que `exigir_rol`. El token se rota al iniciar y al cerrar sesión: la respuesta fija una cookie `cimenta_csrf` nueva, y el cliente la usa desde entonces (`TKT-057`).
+
+**Límite de intentos (`RNF-04`).** Cada intento de inicio de sesión se asienta en `intento_acceso`. Cuentan como fallos solo los que llegaron a verificar credenciales y fallaron; un rechazo por bloqueo o por token ausente no cuenta nunca. Sean `U` el umbral (5 fallos por cuenta y 20 por origen) y `M` la ventana, que es también la duración del bloqueo (15 minutos): se dispara un bloqueo cuando hay `U` fallos dentro de una ventana de `M`, y dura `M` desde el fallo que lo dispara. Un éxito reinicia el recuento de la cuenta, pero no el del origen. Los tres valores se configuran con `CIMENTA_LIMITE_FALLOS_CUENTA`, `CIMENTA_LIMITE_FALLOS_ORIGEN` y `CIMENTA_LIMITE_MINUTOS`. El `429` lleva `Retry-After` con los segundos que faltan, y responde igual si el bloqueo es por cuenta o por origen. La decisión y su porqué están en el [ADR del límite de intentos](adr/20261030-limite-de-intentos-sobre-intento-acceso.md).
 
 ### 2.6. Idempotencia
 
@@ -254,7 +256,7 @@ Base `/api/v1`. **Roles**: DG Dirección General · DP Director de Proyectos · 
 | `GET` | `/sesion/csrf` | sin sesión | — | — | TKT-006, TKT-057 |
 | `POST` | `/sesion` | sin sesión | — | — | TKT-006, TKT-057 |
 | `GET` | `/sesion` | Todos | — | — | TKT-006 |
-| `POST` | `/sesion/cierre` | Todos | — | — | TKT-006 |
+| `POST` | `/sesion/cierre` | Todos | — | — | TKT-006, TKT-057 |
 
 ### 4.2. `presupuesto`
 

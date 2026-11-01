@@ -27,7 +27,7 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 28 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 29 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`tools/`](tools/README.md) | Verificadores de la documentación y del pipeline: enlaces, anclas, identificadores, conteos, diagramas y escenarios sin test |
@@ -42,20 +42,20 @@
 
 La Entrega 2 construye el hilo vertical por tickets con el pipeline SDD. Hoy están archivados los de la fundación: estructura del repositorio, esqueleto del backend, PostgreSQL con identidad, tipos base decimales, contrato de error, autenticación por rol, bitácora y el cliente web (andamiaje, inicio de sesión con armazón por rol, y componentes reutilizables).
 
-**Lo que funciona de extremo a extremo:** iniciar y cerrar sesión. El cliente React llama al API de FastAPI, que valida la contraseña con Argon2id contra PostgreSQL y guarda la sesión en la tabla `sesion`. Tras iniciar sesión aparece el armazón con la navegación del rol. Las pantallas de negocio de la fase 1 llegan con los tickets siguientes, así que sus rutas son marcadores. El límite de intentos y la verificación CSRF (TKT-057) y los usuarios reales (TKT-010) aún no existen: **esta versión es solo para pruebas locales**.
+**Lo que funciona de extremo a extremo:** iniciar y cerrar sesión. El cliente React llama al API de FastAPI, que valida la contraseña con Argon2id contra PostgreSQL y guarda la sesión en la tabla `sesion`. Tras iniciar sesión aparece el armazón con la navegación del rol. Las pantallas de negocio de la fase 1 llegan con los tickets siguientes, así que sus rutas son marcadores. El límite de intentos, la verificación CSRF y las cabeceras de seguridad están desde TKT-057. Los usuarios reales (TKT-010) aún no existen: **esta versión es solo para pruebas locales**.
 
 ### Cómo ejecutar el proyecto
 
 **Requisitos:** Git, [uv](https://docs.astral.sh/uv/), Node.js 24, Docker Desktop y Chromium o Firefox. El detalle y las versiones están en [`docs/arranque-local.md`](docs/arranque-local.md).
 
-**1. Variables de entorno y base de datos.** Desde la raíz del repositorio:
+**1. Variables de entorno y base de datos.** Desde la raíz del repositorio, se copia la plantilla, se definen las tres contraseñas de la base y se levanta PostgreSQL. Cada contraseña se genera con `python -c "import secrets; print(secrets.token_urlsafe(24))"`, que imprime un valor por ejecución:
 
 ```bash
 cp .env.example .env
 docker compose up -d db
 ```
 
-`.env.example` solo trae valores de desarrollo y las credenciales del usuario de prueba. No hay ningún secreto real en el repositorio, y `.env` está ignorado por git.
+`.env.example` no trae contraseñas: las de los tres roles van vacías a propósito, y la aplicación no arranca sin la de aplicación (`CIMENTA_DB_CONTRASENA_APLICACION`). Sí trae las credenciales del usuario de prueba, que existen solo en la base local. No hay ningún secreto real en el repositorio, y `.env` está ignorado por git. El detalle está en [`docs/arranque-local.md`](docs/arranque-local.md).
 
 **2. Backend.** Desde `backend/`:
 
@@ -85,7 +85,7 @@ Es idempotente: si el usuario ya existe, le restablece la contraseña.
 uv run --env-file ../.env fastapi dev
 ```
 
-Queda en `http://127.0.0.1:8000`, con el contrato publicado en `/docs`.
+Queda en `http://127.0.0.1:8000`, con el contrato publicado en `/openapi.json` (la página de Swagger en `/docs` no se pinta con la política de contenido de TKT-057).
 
 **5. Arrancar el cliente.** Desde `frontend/`, en otra terminal:
 

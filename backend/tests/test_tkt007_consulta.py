@@ -24,6 +24,7 @@ import functools
 import importlib
 import io
 import json
+import secrets
 import uuid
 from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
@@ -637,7 +638,10 @@ def test_tkt007_ca06_asiento_leido_completo(
 def test_tkt007_ca06_la_consulta_no_es_una_ruta() -> None:
     """TC-55 · CA-6 esc. 6 — la consulta se publica por la interfaz y ninguna ruta HTTP la monta todavía."""
     fabrica = importlib.import_module("servidor.fabrica")
-    aplicacion = fabrica.crear_aplicacion(destino_registro=io.StringIO())
+    aplicacion = fabrica.crear_aplicacion(
+        destino_registro=io.StringIO(),
+        entorno={"CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16)},
+    )
 
     rutas_api = [ruta.path for ruta in rutas_de(aplicacion.routes)]
     todas_las_rutas = [str(getattr(ruta, "path", "")) for ruta in aplicacion.routes]

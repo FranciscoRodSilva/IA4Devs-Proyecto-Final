@@ -27,7 +27,7 @@ Recibes una fila de `design.md` y los tests que el tester ya dejó **en rojo** (
 Lee su entrada en el borrador: `operationId`, `x-tickets`, `x-roles`, `x-reglas`, `x-escenarios` y los rechazos que enumera.
 
 1. **`def`, nunca `async def`.** Es la trampa número uno de este stack ([ADR-013](../../docs/adr/20260919-sqlalchemy-sincrono.md)).
-2. **Sesión y rol.** Toda ruta depende de `sesion_vigente`, salvo `GET /api/v1/sesion/csrf` y `POST /api/v1/sesion`. Si la operación tiene `x-roles`, `dependencies=[Depends(exigir_rol(...))]` con esos roles, importado de `cimenta.identidad.interfaz`. Los parámetros con `Depends` se escriben con `Annotated`.
+2. **Sesión y rol.** Toda ruta depende de `sesion_vigente`, salvo `GET /api/v1/sesion/csrf` y `POST /api/v1/sesion`. Toda ruta que muta (`POST`, `PUT`, `PATCH`, `DELETE`) declara `verificar_origen` antes que `exigir_rol`; `POST /api/v1/sesion` usa `credenciales_con_origen_verificado` en su lugar. Si la operación tiene `x-roles`, `dependencies=[Depends(exigir_rol(...))]` con esos roles, importado de `cimenta.identidad.interfaz`. Los parámetros con `Depends` se escriben con `Annotated`.
 3. **Asignación a la obra.** Un `obra_id` recibido se contrasta con las obras del usuario de la sesión antes de llamar al caso de uso. Comprobar solo el rol deja abierto el IDOR.
 4. **DTO de entrada y de salida distintos.** `model_config = ConfigDict(from_attributes=True)`, `model_validate`, `model_dump`.
 5. **Dinero como cadena.** Un campo de `tipos_base` se declara con `Annotated[Dinero, PlainValidator(...)]` y una función que rechaza con `ValueError` lo que no sea cadena. Ningún `PlainSerializer(float)`.
@@ -49,7 +49,7 @@ Context7 es obligatorio al escribir contra FastAPI y Pydantic v2.
 - [ ] Los tests de la fila, que recibiste en rojo, están en verde; la suite previa sigue en verde
 - [ ] Ningún test modificado por ti
 - [ ] Ninguna ruta `async def`
-- [ ] Cada ruta con `sesion_vigente` y, si la operación tiene `x-roles`, con `exigir_rol`
+- [ ] Cada ruta con `sesion_vigente` y, si la operación tiene `x-roles`, con `exigir_rol`; cada ruta que muta con `verificar_origen` antes que `exigir_rol`
 - [ ] `obra_id` contrastado contra las obras asignadas
 - [ ] Ruta, método, códigos y esquemas idénticos al borrador OpenAPI
 - [ ] Ningún importe serializado como número

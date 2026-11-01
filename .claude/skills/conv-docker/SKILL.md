@@ -38,7 +38,7 @@ uv run --env-file ../.env alembic upgrade head   # desde backend/, el esquema si
 ```
 
 - ‡ La versión de cada imagen se **fija** con su etiqueta exacta. `latest` cambia bajo los pies y rompe la reproducibilidad del arranque que exige `TKT-001`.
-- Credenciales por variables del `.env`, que **no** se versiona; el `.env.example` sí, con valores de desarrollo evidentes (`RNF-07`).
+- Credenciales por variables del `.env`, que **no** se versiona; el `.env.example` sí, pero sin contraseñas: las de los roles van vacías y cada persona las genera (`RNF-07`).
 - ‡ Puertos publicados solo a `127.0.0.1`. Un PostgreSQL de desarrollo con contraseña trivial abierto a la red local es una base expuesta.
 
 > **(asumido) · nombres de los servicios y el bucket inicial.** `CLAUDE.md` usa `db` para PostgreSQL; el nombre `minio` y la creación del bucket en el arranque local no están escritos en ningún documento. Lo razonable es un servicio de una sola ejecución con el cliente `mc` que cree el bucket, o que lo cree la aplicación al arrancar en `entorno = local`. **Quien implemente `TKT-059` decide y lo documenta**; no lo des por cerrado desde otro ticket.

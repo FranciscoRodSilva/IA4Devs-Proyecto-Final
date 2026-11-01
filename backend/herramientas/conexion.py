@@ -38,19 +38,25 @@ def url_migracion() -> URL:
     )
 
 
-def url_aplicacion() -> URL:
-    """URL del rol de aplicación, igual que url_migracion con su propia contraseña."""
+def url_aplicacion(contrasena: str | None = None) -> URL:
+    """URL del rol de aplicación, igual que url_migracion con su propia contraseña. Sin `contrasena`
+    la lee de `CIMENTA_DB_CONTRASENA_APLICACION`, como antes; la fábrica pasa la que cargó sus ajustes."""
     return URL.create(
         "postgresql+psycopg",
         username=ROL_APLICACION,
-        password=leer_variable("CIMENTA_DB_CONTRASENA_APLICACION"),
+        password=(
+            contrasena
+            if contrasena is not None
+            else leer_variable("CIMENTA_DB_CONTRASENA_APLICACION")
+        ),
         host=leer_variable("CIMENTA_DB_HOST"),
         port=int(leer_variable("CIMENTA_DB_PUERTO")),
         database=leer_variable("CIMENTA_DB_NOMBRE"),
     )
 
 
-def crear_motor_aplicacion() -> Engine:
+def crear_motor_aplicacion(contrasena: str | None = None) -> Engine:
     """Motor síncrono del rol de aplicación (ADR-013). create_engine no conecta: la primera conexión
-    se abre con la primera consulta. Quien lo necesite perezoso lo envuelve en functools.cache."""
-    return create_engine(url_aplicacion(), pool_pre_ping=True)
+    se abre con la primera consulta. Quien lo necesite perezoso lo envuelve en functools.cache.
+    `contrasena` se pasa a `url_aplicacion`; sin ella se lee de la variable."""
+    return create_engine(url_aplicacion(contrasena), pool_pre_ping=True)

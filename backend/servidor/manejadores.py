@@ -22,6 +22,7 @@ from contrato_error import (
     NoEncontrado,
     ValidacionRechazada,
 )
+from servidor.cabeceras import cabeceras_para_ruta
 from servidor.correlacion import CABECERA_CORRELACION
 
 _UBICACIONES = frozenset({"body", "query", "path", "header", "cookie"})
@@ -132,13 +133,19 @@ def manejar_http(request: Request, exc: Exception) -> Response:
 def manejar_error_no_controlado(request: Request, exc: Exception) -> JSONResponse:
     """CA-10, S1: ni traza, ni texto, ni nombre de la excepción; la traza la registra el middleware.
 
-    Este manejador queda fuera del middleware de correlación, así que pone él mismo la cabecera.
+    Este manejador queda fuera de los middleware (RNF-05 · RNF-06), así que pone él mismo la
+    correlación y las cabeceras de seguridad de la ruta.
     """
     correlacion_id = _correlacion(request)
+    fijas = getattr(request.app.state, "cabeceras_seguridad", ())
+    cabeceras = {
+        CABECERA_CORRELACION: correlacion_id,
+        **dict(cabeceras_para_ruta(request.url.path, fijas)),
+    }
     return JSONResponse(
         {"mensaje": MENSAJE_ERROR_NO_CONTROLADO, "correlacion_id": correlacion_id},
         status_code=500,
-        headers={CABECERA_CORRELACION: correlacion_id},
+        headers=cabeceras,
     )
 
 

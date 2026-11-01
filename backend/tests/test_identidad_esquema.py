@@ -72,6 +72,7 @@ COLUMNAS_ESPERADAS: dict[str, set[tuple[str, str, str]]] = {
         ("email", TEXTO, NO),
         ("usuario_id", UUID, SI),
         ("exitoso", BOOLEANO, NO),
+        ("credenciales_verificadas", BOOLEANO, NO),
         ("ocurrido_en", CON_ZONA, NO),
         ("origen_ip", TEXTO, SI),
     },
@@ -179,7 +180,8 @@ def test_tkt003_ca03_esc03_intento_con_correo_inexistente(
     identificador = uuid.uuid4()
     with conectar("aplicacion", base_de_prueba) as aplicacion:
         aplicacion.execute(
-            "INSERT INTO intento_acceso (id, email, usuario_id, exitoso) VALUES (%s, %s, NULL, false)",
+            "INSERT INTO intento_acceso (id, email, usuario_id, exitoso, credenciales_verificadas) "
+            "VALUES (%s, %s, NULL, false, true)",
             (identificador, CORREO_NADIE),
         )
         fila = aplicacion.execute(
@@ -274,8 +276,8 @@ CLAVES_FORANEAS_RESTANTES = {
     ),
     "fk_intento_acceso_usuario_id": (
         "intento_acceso",
-        "INSERT INTO intento_acceso (id, email, usuario_id, exitoso) "
-        "VALUES (%(id)s, 'luis@cimenta.test', %(ajeno)s, false)",
+        "INSERT INTO intento_acceso (id, email, usuario_id, exitoso, credenciales_verificadas) "
+        "VALUES (%(id)s, 'luis@cimenta.test', %(ajeno)s, false, true)",
     ),
 }
 

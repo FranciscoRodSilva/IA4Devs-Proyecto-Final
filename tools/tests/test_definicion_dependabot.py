@@ -11,8 +11,8 @@ TKT-009b · fila B4. Comprueban lo que el repositorio *declara*, no lo que GitHu
 * TC-18 (`CA-11` esc. 3 y `CA-R3`), rechazo estático: el diseño **no crea ninguna excepción** para las contraseñas
   de desarrollo de `.env.example` (segunda interpretación señalada en el gate). Por eso no existe
   `.github/secret_scanning.yml`, ningún `paths-ignore` ni otra lista de exclusión de `.github/` cita `.env.example`
-  (ni `.env*`) y ningún workflow lee `secrets.`. Además, `.env.example` solo lleva valores `solo-desarrollo-*` o
-  las credenciales de prueba declaradas, de modo que no hay nada que excusar.
+  (ni `.env*`) y ningún workflow lee `secrets.`. Además, `.env.example` deja vacías sus claves de contraseña y solo
+  admite credenciales de prueba declaradas, de modo que no hay nada que excusar.
 * TC-16 y TC-17 (el escaneo de secretos y la protección de empuje activos, y el empuje con un token revocado) son
   manuales: son ajustes del repositorio y ninguna prueba estática los ve. No están aquí.
 
@@ -378,8 +378,8 @@ PREFIJO_DE_DESARROLLO = "solo-desarrollo-"
 
 
 def comprobar_env_example(texto: str) -> list[str]:
-    """RNF-07 · `CA-11` esc. 3. Toda clave sensible lleva un valor `solo-desarrollo-*` o es una credencial de prueba declarada
-    (`CIMENTA_PRUEBA_*`, con un comentario que diga PRUEBA); ningún valor tiene forma de credencial real."""
+    """RNF-07 · `CA-11` esc. 3. Toda clave sensible va vacía, con un valor `solo-desarrollo-*` o como credencial de prueba
+    declarada (`CIMENTA_PRUEBA_*`, con un comentario que diga PRUEBA); ningún valor tiene forma de credencial real."""
     problemas = []
     hay_prueba = False
     for linea in texto.splitlines():
