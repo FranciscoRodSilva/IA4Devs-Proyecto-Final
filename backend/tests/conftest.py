@@ -18,7 +18,8 @@ import uuid
 from collections.abc import Callable, Iterator, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
@@ -509,3 +510,415 @@ def cliente(aplicacion_identidad: FastAPI) -> Iterator[TestClient]:
         aplicacion_identidad, base_url="https://testserver", raise_server_exceptions=False
     ) as cliente_http:
         yield cliente_http
+
+
+# ----------------------------------------------------------------------------- TKT-011
+# `DatosPresupuesto` es una fábrica, no una fixture `autouse`. Cada método inserta una fila
+# válida con los valores mínimos, con el rol de aplicación, y devuelve su `id`. Las pruebas de
+# rechazo sobrescriben el argumento que quieren romper y dejan el resto válido.
+
+
+class DatosPresupuesto:
+    """Fábrica de filas del módulo `presupuesto`: `empresa`, `obra`, `tipo_partida`, `insumo`,
+    `nivel`, `area`, `partida`, `concepto`, `precio_insumo`, `apu`, `apu_insumo` y `apu_cargo`.
+
+    Cuando una fila necesita un padre que la prueba no pasó, la fábrica crea el padre con una clave
+    única (`nivel` y `concepto` crean su propia obra; `partida`, su propio tipo de partida), para que
+    dos llamadas seguidas no choquen con una restricción `UNIQUE`.
+
+    Los importes y los porcentajes se pasan como `Decimal` construido desde cadena, nunca desde
+    `float`. Un argumento que vale `None` en una columna con valor por omisión de la base
+    (`empresa.dias_semana_laboral`) omite la columna del `INSERT` para que la base lo decida.
+    """
+
+    def __init__(self, conexion: psycopg.Connection[tuple[Any, ...]]) -> None:
+        self._conexion = conexion
+        self._contador = 0
+
+    def _insertar(self, tabla: str, valores: dict[str, Any]) -> uuid.UUID:
+        identificador = uuid.uuid4()
+        columnas = {"id": identificador, **valores}
+        consulta = sql.SQL("INSERT INTO {} ({}) VALUES ({})").format(
+            sql.Identifier(tabla),
+            sql.SQL(", ").join(sql.Identifier(columna) for columna in columnas),
+            sql.SQL(", ").join(sql.Placeholder() for _ in columnas),
+        )
+        self._conexion.execute(consulta, list(columnas.values()))
+        return identificador
+
+    def usuario(self, correo: str | None = None) -> uuid.UUID:
+        """Un usuario activo con `password_hash = 'hash-de-prueba'`; el correo es único por llamada."""
+        self._contador += 1
+        return self._insertar(
+            "usuario",
+            {
+                "nombre": "Usuario de prueba",
+                "email": correo or f"usuario{self._contador}-{uuid.uuid4().hex[:8]}@cimenta.test",
+                "password_hash": "hash-de-prueba",
+            },
+        )
+
+    def empresa(
+        self,
+        *,
+        nombre: str = "Constructora de prueba",
+        rfc: str = "CPR010101AB1",
+        activa: bool = True,
+        dias_semana_laboral: int | None = None,
+    ) -> uuid.UUID:
+        valores: dict[str, Any] = {"nombre": nombre, "rfc": rfc, "activa": activa}
+        if dias_semana_laboral is not None:
+            valores["dias_semana_laboral"] = dias_semana_laboral
+        return self._insertar("empresa", valores)
+
+    def obra(
+        self,
+        *,
+        codigo: str = "AP-058-25",
+        empresa_id: uuid.UUID | None = None,
+        creado_por_id: uuid.UUID | None = None,
+        tipo_contrato: str = "PRECIO_ALZADO_MAXIMO_GARANTIZADO",
+        estado: str = "PLANEACION",
+        retencion_destajo_pct: Decimal = Decimal("0.050000"),
+        fondo_garantia_pct: Decimal = Decimal("0.050000"),
+        umbral_alerta_pct: Decimal | None = None,
+        iva_acreditable: bool = True,
+    ) -> uuid.UUID:
+        """Una obra válida. Sin `empresa_id` o `creado_por_id` crea la empresa o el usuario que falta."""
+        return self._insertar(
+            "obra",
+            {
+                "empresa_id": empresa_id if empresa_id is not None else self.empresa(),
+                "codigo": codigo,
+                "nombre": f"Obra {codigo}",
+                "domicilio": "Calle de prueba 1",
+                "tipo_contrato": tipo_contrato,
+                "retencion_destajo_pct": retencion_destajo_pct,
+                "fondo_garantia_pct": fondo_garantia_pct,
+                "iva_acreditable": iva_acreditable,
+                "umbral_alerta_pct": umbral_alerta_pct,
+                "estado": estado,
+                "creado_por_id": creado_por_id if creado_por_id is not None else self.usuario(),
+            },
+        )
+
+    def tipo_partida(self, *, clave: str = "MUROS", nombre: str = "Muros") -> uuid.UUID:
+        return self._insertar("tipo_partida", {"clave": clave, "nombre": nombre})
+
+    def insumo(
+        self,
+        *,
+        codigo: str = "INS-001",
+        descripcion: str = "Placa de yeso de 1/2 pulgada",
+        tipo: str = "MATERIAL",
+        unidad: str = "PZA",
+        activo: bool = True,
+        creado_en_importacion: bool = False,
+    ) -> uuid.UUID:
+        return self._insertar(
+            "insumo",
+            {
+                "codigo": codigo,
+                "descripcion": descripcion,
+                "tipo": tipo,
+                "unidad": unidad,
+                "activo": activo,
+                "creado_en_importacion": creado_en_importacion,
+            },
+        )
+
+    def _obra_nueva(self) -> uuid.UUID:
+        """Una obra con un código que no choca con el de otra obra de la misma prueba."""
+        return self.obra(codigo=f"OB-{uuid.uuid4().hex[:8]}")
+
+    def nivel(
+        self, *, obra_id: uuid.UUID | None = None, nombre: str = "Planta baja", orden: int = 1
+    ) -> uuid.UUID:
+        """Un nivel. Sin `obra_id` crea la obra que le falta."""
+        return self._insertar(
+            "nivel",
+            {
+                "obra_id": obra_id if obra_id is not None else self._obra_nueva(),
+                "nombre": nombre,
+                "orden": orden,
+            },
+        )
+
+    def area(
+        self,
+        *,
+        nivel_id: uuid.UUID | None = None,
+        nombre: str = "Sala",
+        tipo_unidad: str = "M2",
+    ) -> uuid.UUID:
+        """Un área. Sin `nivel_id` crea el nivel (y su obra) que le falta."""
+        return self._insertar(
+            "area",
+            {
+                "nivel_id": nivel_id if nivel_id is not None else self.nivel(),
+                "nombre": nombre,
+                "tipo_unidad": tipo_unidad,
+            },
+        )
+
+    def partida(
+        self,
+        *,
+        area_id: uuid.UUID | None = None,
+        tipo_partida_id: uuid.UUID | None = None,
+        orden: int = 1,
+    ) -> uuid.UUID:
+        """Una partida. Sin `area_id` crea el área que le falta; sin tipo, uno con clave única."""
+        return self._insertar(
+            "partida",
+            {
+                "area_id": area_id if area_id is not None else self.area(),
+                "tipo_partida_id": (
+                    tipo_partida_id
+                    if tipo_partida_id is not None
+                    else self.tipo_partida(clave=f"TP-{uuid.uuid4().hex[:8]}")
+                ),
+                "orden": orden,
+            },
+        )
+
+    def concepto(
+        self,
+        *,
+        obra_id: uuid.UUID | None = None,
+        partida_id: uuid.UUID | None = None,
+        codigo: str = "620001",
+        descripcion: str = "Muro de tablaroca a dos caras",
+        unidad: str = "M2",
+        cantidad: Decimal = Decimal("100.0000"),
+        precio_unitario: Decimal = Decimal("250.0000"),
+        importe: Decimal = Decimal("25000.0000"),
+    ) -> uuid.UUID:
+        """Un concepto. Sin `obra_id` crea la obra; sin `partida_id`, nivel, área y partida de esa obra."""
+        obra = obra_id if obra_id is not None else self._obra_nueva()
+        partida = (
+            partida_id
+            if partida_id is not None
+            else self.partida(area_id=self.area(nivel_id=self.nivel(obra_id=obra)))
+        )
+        return self._insertar(
+            "concepto",
+            {
+                "obra_id": obra,
+                "partida_id": partida,
+                "codigo": codigo,
+                "descripcion": descripcion,
+                "unidad": unidad,
+                "cantidad": cantidad,
+                "precio_unitario": precio_unitario,
+                "importe": importe,
+            },
+        )
+
+    def _insumo_nuevo(self) -> uuid.UUID:
+        """Un insumo con un código que no choca con el de otro insumo de la misma prueba."""
+        return self.insumo(codigo=f"INS-{uuid.uuid4().hex[:8]}")
+
+    def precio_insumo(
+        self,
+        *,
+        insumo_id: uuid.UUID | None = None,
+        obra_id: uuid.UUID | None = None,
+        costo_unitario: Decimal = Decimal("85.0000"),
+        vigente_desde: date = date(2026, 10, 1),
+        vigente_hasta: date | None = None,
+    ) -> uuid.UUID:
+        """Un precio de insumo. Sin `insumo_id` crea el insumo; sin `obra_id` es un precio general."""
+        return self._insertar(
+            "precio_insumo",
+            {
+                "insumo_id": insumo_id if insumo_id is not None else self._insumo_nuevo(),
+                "obra_id": obra_id,
+                "costo_unitario": costo_unitario,
+                "vigente_desde": vigente_desde,
+                "vigente_hasta": vigente_hasta,
+            },
+        )
+
+    def apu(
+        self,
+        *,
+        concepto_id: uuid.UUID | None = None,
+        fecha_analisis: date = date(2026, 10, 1),
+        analista: str = "Analista de prueba",
+        costo_material: Decimal = Decimal("100.0000"),
+        costo_mano_obra: Decimal = Decimal("50.0000"),
+        costo_directo: Decimal = Decimal("150.0000"),
+        total_cargos: Decimal = Decimal("0.0000"),
+        total_indirectos: Decimal = Decimal("0.0000"),
+        precio_unitario: Decimal = Decimal("150.0000"),
+    ) -> uuid.UUID:
+        """Un análisis de precio unitario. Sin `concepto_id` crea el concepto que le falta."""
+        return self._insertar(
+            "apu",
+            {
+                "concepto_id": concepto_id if concepto_id is not None else self.concepto(),
+                "fecha_analisis": fecha_analisis,
+                "analista": analista,
+                "costo_material": costo_material,
+                "costo_mano_obra": costo_mano_obra,
+                "costo_directo": costo_directo,
+                "total_cargos": total_cargos,
+                "total_indirectos": total_indirectos,
+                "precio_unitario": precio_unitario,
+            },
+        )
+
+    def apu_insumo(
+        self,
+        *,
+        apu_id: uuid.UUID | None = None,
+        insumo_id: uuid.UUID | None = None,
+        costo_unitario: Decimal = Decimal("100.0000"),
+        rendimiento: Decimal = Decimal("1.000000"),
+        cargo: Decimal = Decimal("100.0000"),
+    ) -> uuid.UUID:
+        """Un insumo dentro de un APU. Sin `apu_id` o `insumo_id` crea el que falta."""
+        return self._insertar(
+            "apu_insumo",
+            {
+                "apu_id": apu_id if apu_id is not None else self.apu(),
+                "insumo_id": insumo_id if insumo_id is not None else self._insumo_nuevo(),
+                "costo_unitario": costo_unitario,
+                "rendimiento": rendimiento,
+                "cargo": cargo,
+            },
+        )
+
+    def apu_cargo(
+        self,
+        *,
+        apu_id: uuid.UUID | None = None,
+        tipo: str = "IVA",
+        porcentaje: Decimal = Decimal("0.160000"),
+        base_calculo: Decimal = Decimal("150.0000"),
+        importe: Decimal = Decimal("24.0000"),
+    ) -> uuid.UUID:
+        """Un cargo de APU. Sin `apu_id` crea el APU que le falta."""
+        return self._insertar(
+            "apu_cargo",
+            {
+                "apu_id": apu_id if apu_id is not None else self.apu(),
+                "tipo": tipo,
+                "porcentaje": porcentaje,
+                "base_calculo": base_calculo,
+                "importe": importe,
+            },
+        )
+
+
+@pytest.fixture
+def datos_presupuesto(base_de_prueba: str, conectar: Conectar) -> DatosPresupuesto:
+    """La fábrica de filas de `presupuesto`, conectada como `cimenta_aplicacion` sobre `base_de_prueba`."""
+    return DatosPresupuesto(conectar("aplicacion", base_de_prueba))
+
+
+# ----------------------------------------------------------------------------- estructura de 0006
+# La estructura que el diseño fija para `0006`, tabla por tabla, con las «Restricciones CHECK» y
+# «Unicidad e índices». La leen TC-02 de la suite de estructura y TC-17 de la de regresión, por la
+# fixture `estructura_esperada`, para que haya una sola fuente. `p`, `f`, `u` y `c` llevan el
+# nombre de la restricción. `i` es un índice que no respalda ninguna restricción y lleva el par
+# (nombre del índice, columna indexada). Los índices de las claves primarias y de las únicas
+# llevan el nombre de la restricción y no están en `i`.
+ESTRUCTURA_ESPERADA: dict[str, dict[str, tuple[Any, ...]]] = {
+    "empresa": {"p": ("pk_empresa",)},
+    "obra": {
+        "p": ("pk_obra",),
+        "f": ("fk_obra_empresa_id", "fk_obra_creado_por_id", "fk_obra_actualizado_por_id"),
+        "u": ("uq_obra_codigo",),
+        "c": (
+            "ck_obra_tipo_contrato",
+            "ck_obra_estado",
+            "ck_obra_retencion_destajo_pct_rango",
+            "ck_obra_fondo_garantia_pct_rango",
+            "ck_obra_umbral_alerta_pct_no_negativo",
+        ),
+    },
+    "tipo_partida": {"p": ("pk_tipo_partida",), "u": ("uq_tipo_partida_clave",)},
+    "insumo": {
+        "p": ("pk_insumo",),
+        "u": ("uq_insumo_codigo",),
+        "c": ("ck_insumo_tipo", "ck_insumo_unidad"),
+    },
+    "nivel": {
+        "p": ("pk_nivel",),
+        "f": ("fk_nivel_obra_id",),
+        "i": (("ix_nivel_obra_id", "obra_id"),),
+    },
+    "area": {
+        "p": ("pk_area",),
+        "f": ("fk_area_nivel_id",),
+        "i": (("ix_area_nivel_id", "nivel_id"),),
+    },
+    "partida": {
+        "p": ("pk_partida",),
+        "f": ("fk_partida_area_id", "fk_partida_tipo_partida_id"),
+        "i": (("ix_partida_area_id", "area_id"),),
+    },
+    "concepto": {
+        "p": ("pk_concepto",),
+        "f": ("fk_concepto_obra_id", "fk_concepto_partida_id"),
+        "u": ("uq_concepto_obra_id_codigo",),
+        "c": (
+            "ck_concepto_unidad",
+            "ck_concepto_cantidad_no_negativo",
+            "ck_concepto_precio_unitario_no_negativo",
+            "ck_concepto_importe_no_negativo",
+        ),
+        "i": (("ix_concepto_partida_id", "partida_id"),),
+    },
+    "precio_insumo": {
+        "p": ("pk_precio_insumo",),
+        "f": ("fk_precio_insumo_insumo_id", "fk_precio_insumo_obra_id"),
+        "c": ("ck_precio_insumo_costo_unitario_no_negativo",),
+        "i": (("ix_precio_insumo_insumo_id", "insumo_id"),),
+    },
+    "apu": {
+        "p": ("pk_apu",),
+        "f": ("fk_apu_concepto_id",),
+        "c": (
+            "ck_apu_costo_material_no_negativo",
+            "ck_apu_costo_mano_obra_no_negativo",
+            "ck_apu_costo_directo_no_negativo",
+            "ck_apu_total_cargos_no_negativo",
+            "ck_apu_total_indirectos_no_negativo",
+            "ck_apu_precio_unitario_no_negativo",
+        ),
+        "i": (("ix_apu_concepto_id", "concepto_id"),),
+    },
+    "apu_insumo": {
+        "p": ("pk_apu_insumo",),
+        "f": ("fk_apu_insumo_apu_id", "fk_apu_insumo_insumo_id"),
+        "c": (
+            "ck_apu_insumo_costo_unitario_no_negativo",
+            "ck_apu_insumo_rendimiento_no_negativo",
+            "ck_apu_insumo_cargo_no_negativo",
+        ),
+        "i": (("ix_apu_insumo_apu_id", "apu_id"),),
+    },
+    "apu_cargo": {
+        "p": ("pk_apu_cargo",),
+        "f": ("fk_apu_cargo_apu_id",),
+        "c": (
+            "ck_apu_cargo_tipo",
+            "ck_apu_cargo_porcentaje_no_negativo",
+            "ck_apu_cargo_base_calculo_no_negativo",
+            "ck_apu_cargo_importe_no_negativo",
+        ),
+        "i": (("ix_apu_cargo_apu_id", "apu_id"),),
+    },
+}
+
+
+@pytest.fixture
+def estructura_esperada() -> dict[str, dict[str, tuple[Any, ...]]]:
+    """`ESTRUCTURA_ESPERADA` con cada grupo ordenado, lista para compararla con el catálogo."""
+    return {
+        tabla: {tipo: tuple(sorted(valores)) for tipo, valores in por_tipo.items()}
+        for tabla, por_tipo in ESTRUCTURA_ESPERADA.items()
+    }

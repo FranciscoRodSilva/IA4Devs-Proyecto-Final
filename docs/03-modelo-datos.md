@@ -49,12 +49,12 @@ Cinco decisiones que atraviesan todo el esquema:
 |---|---|
 | **Nombres** | `snake_case`, tablas en singular, en español. El esquema habla el idioma del [glosario](glosario.md) |
 | **Clave primaria** | `id UUID` generado por la aplicación. Evita colisiones al importar y no filtra volumen de negocio |
-| **Claves foráneas** | `<entidad>_id`, con restricción declarada **dentro del módulo**. Una referencia que cruza a otro módulo cuyo dueño no es un ancestro en el grafo, o que es polimórfica, es un **identificador lógico sin clave foránea** y la valida el caso de uso por la interfaz publicada. Son exactamente estas: `archivo.referencia_id`, `movimiento_inventario.referencia_id`, `archivo.obra_id`, `bitacora.obra_id`, `orden_compra.proveedor_id`, `entrada_almacen.proveedor_id`, `importacion.archivo_id` y `entrada_renglon.solicitud_autorizacion_id` —esta última, aunque `compras` sí es ancestro de `almacen`, porque lo que la hace válida no es que la fila exista sino su estado, su renglón y su cantidad, que solo comprueba la interfaz de `compras`— ([§13](#13-invariantes-en-base-de-datos)). La excepción en sentido contrario es `bitacora.usuario_id`: lleva clave foránea a `usuario` aunque `identidad` no sea ancestro de `auditoria`, porque es una garantía del esquema —ningún asiento sin actor real— y no una dependencia de código: `auditoria` sigue sin importar `identidad` (TKT-007). |
+| **Claves foráneas** | `<entidad>_id`, con restricción declarada **dentro del módulo**. Una referencia que cruza a otro módulo cuyo dueño no es un ancestro en el grafo, o que es polimórfica, es un **identificador lógico sin clave foránea** y la valida el caso de uso por la interfaz publicada. Son exactamente estas: `archivo.referencia_id`, `movimiento_inventario.referencia_id`, `archivo.obra_id`, `bitacora.obra_id`, `orden_compra.proveedor_id`, `entrada_almacen.proveedor_id`, `importacion.archivo_id` y `entrada_renglon.solicitud_autorizacion_id` —esta última, aunque `compras` sí es ancestro de `almacen`, porque lo que la hace válida no es que la fila exista sino su estado, su renglón y su cantidad, que solo comprueba la interfaz de `compras`— ([§13](#13-invariantes-en-base-de-datos)). La excepción en sentido contrario es `bitacora.usuario_id`: lleva clave foránea a `usuario` aunque `identidad` no sea ancestro de `auditoria`, porque es una garantía del esquema —ningún asiento sin actor real— y no una dependencia de código: `auditoria` sigue sin importar `identidad` (TKT-007). Las claves foráneas de `presupuesto` no se borran en cascada: llevan `ON DELETE RESTRICT`. Borrar un padre con hijos responde `23001` (`restrict_violation`); el `23503` es el de insertar un hijo sin padre. |
 | **Permisos** | Tres roles de PostgreSQL —migración, aplicación y solo lectura—: la migración inicial crea los de aplicación y de solo lectura, el de migración lo crea el entorno, y los permisos por omisión se fijan con `ALTER DEFAULT PRIVILEGES`; cada migración de módulo **revoca** lo que su tabla no admite y lo prueba con el rol de aplicación ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)) |
-| **Enumeraciones** | Tipos `ENUM` de PostgreSQL cuando el conjunto es cerrado y estable; tabla de catálogo cuando el cliente puede ampliarlo |
-| **Columnas de auditoría** | `creado_en`, `creado_por_id`, `actualizado_en`, `actualizado_por_id` en toda tabla transaccional. En identidad las llevan `usuario` y `usuario_rol`, con `creado_por_id` y `actualizado_por_id` nulos permitidos porque la siembra y el primer usuario no tienen autor; `rol`, `sesion` e `intento_acceso` no las llevan. |
+| **Enumeraciones** | Un conjunto cerrado se declara como `CHECK (columna IN (…))` con nombre `ck_<tabla>_<columna>`, sobre una columna `text NOT NULL`. Se elige `CHECK` y no `ENUM` porque el rechazo debe nombrar la restricción infractora y un `ENUM` responde sin ese nombre ([ADR-030](adr/20261101-catalogos-cerrados-por-check.md)). `accion_bitacora` conserva su `ENUM` como excepción histórica. Una tabla de catálogo se usa cuando el cliente puede ampliar el conjunto. En los diagramas, `enum` nombra un conjunto cerrado y no el tipo físico |
+| **Columnas de auditoría** | `creado_en`, `creado_por_id`, `actualizado_en`, `actualizado_por_id` en toda tabla transaccional, salvo donde el modelo o el borrador de la API no las usan (PA-T11 de TKT-011). En identidad las llevan `usuario` y `usuario_rol`, con `creado_por_id` y `actualizado_por_id` nulos permitidos porque la siembra y el primer usuario no tienen autor; `rol`, `sesion` e `intento_acceso` no las llevan. |
 | **Borrado** | Lógico (`activo BOOLEAN`) en catálogos. **Prohibido** en tablas de movimiento: se corrige con un movimiento de signo contrario |
-| **Importes** | `NUMERIC(18,4)` |
+| **Importes** | `NUMERIC(18,4)`; los importes dentro del APU, por unidad del concepto, van a escala de precio `NUMERIC(14,4)` |
 | **Precios y cantidades** | `NUMERIC(14,4)` |
 | **Rendimientos** | `NUMERIC(18,6)` |
 | **Porcentajes** | `NUMERIC(9,6)` — `0.050000` es 5 % |
@@ -113,7 +113,7 @@ erDiagram
     AREA ||--o{ PARTIDA : "agrupa trabajo en"
     TIPO_PARTIDA ||--o{ PARTIDA : "clasifica"
     PARTIDA ||--o{ CONCEPTO : "contiene"
-    CONCEPTO ||--|| APU : "se costea con"
+    CONCEPTO ||--|| APU : "se costea con · un APU por concepto, sostenido por el caso de uso"
     APU ||--o{ APU_INSUMO : "desglosa"
     APU ||--o{ APU_CARGO : "aplica"
     INSUMO ||--o{ APU_INSUMO : "participa en"
@@ -124,7 +124,7 @@ erDiagram
         string nombre "Constructora Celsius"
         string rfc
         boolean activa
-        smallint dias_semana_laboral "NOT NULL DEFAULT 6 · divisor del salario · PA-22"
+        smallint dias_semana_laboral "NOT NULL DEFAULT 6 · divisor del salario · PA-22 · la crea TKT-011a (PA-T2 de TKT-011)"
     }
     OBRA {
         uuid id PK
@@ -138,6 +138,10 @@ erDiagram
         boolean iva_acreditable "RN-25 · PA-05"
         numeric umbral_alerta_pct "F7.3 · separa AMARILLO de ROJO · PA-18"
         enum estado "PLANEACION|ACTIVA|SUSPENDIDA|CERRADA"
+        timestamptz creado_en "NOT NULL · DEFAULT now()"
+        uuid creado_por_id FK "NOT NULL"
+        timestamptz actualizado_en "nulo hasta el primer cambio"
+        uuid actualizado_por_id FK "nulo hasta el primer cambio"
     }
     NIVEL {
         uuid id PK
@@ -168,7 +172,7 @@ erDiagram
         uuid partida_id FK
         string codigo "620001 · único por obra"
         text descripcion
-        string unidad "M2|ML|PZA · CHECK contra el catálogo"
+        string unidad "M2|ML|PZA|KG|CAJA|SACO|ROLLO|JORNAL · CHECK contra el catálogo"
         numeric cantidad
         numeric precio_unitario
         numeric importe "cantidad × P.U."
@@ -178,7 +182,7 @@ erDiagram
         string codigo UK "ULTRALIGHT-1/2"
         text descripcion
         enum tipo "MATERIAL|MANO_OBRA|HERRAMIENTA|CONSUMIBLE"
-        string unidad "PZA|CAJA|SACO|ROLLO|KG|JORNAL · CHECK contra el catálogo"
+        string unidad "M2|ML|PZA|KG|CAJA|SACO|ROLLO|JORNAL · CHECK contra el catálogo"
         boolean activo
         boolean creado_en_importacion "nació al confirmar una importación"
     }
@@ -192,7 +196,7 @@ erDiagram
     }
     APU {
         uuid id PK
-        uuid concepto_id FK "único · 1:1 con concepto"
+        uuid concepto_id FK "un APU por concepto · sin UNIQUE: lo sostiene el caso de uso (PA-T3 de TKT-011)"
         date fecha_analisis
         string analista
         numeric costo_material
@@ -226,9 +230,9 @@ erDiagram
 
 *El insumo sí es global.* Un tablero de yeso Ultra Light es el mismo material en todas las obras; lo que cambia es su precio. Por eso el precio vive en `precio_insumo` con vigencia, no como columna del insumo. Esa tabla es la que hace posible F7.4: detectar que un insumo clave subió y recalcular el costo proyectado.
 
-*`concepto.obra_id` está denormalizado.* Es derivable subiendo cuatro niveles, pero aparece en casi toda consulta de costo. Se mantiene coherente con una restricción que verifica que coincide con el `obra_id` alcanzable por la jerarquía.
+*`concepto.obra_id` está denormalizado.* Es derivable subiendo cuatro niveles, pero aparece en casi toda consulta de costo. La base no verifica que coincida con el `obra_id` alcanzable por la jerarquía: esa coherencia la sostiene hoy el caso de uso que escribe el concepto. Una restricción que la garantice en el motor queda como ticket futuro sugerido, junto con la unicidad 1:1 del APU y la versión de la línea base (`PA-T3` de TKT-011).
 
-*`empresa` existe con una sola fila y nadie filtra por ella.* Es deliberado y lo razona [ADR-008](adr/20260918-despliegue-single-tenant.md): cada despliegue atiende a una empresa, pero `obra.empresa_id` está desde el día uno porque añadir la columna después obligaría a migrar cada tabla, cada consulta y cada índice. La fila se carga con los datos semilla, antes de que exista ninguna obra: con la clave foránea obligatoria, dar de alta una obra sin empresa sembrada falla.
+*`empresa` existe con una sola fila y nadie filtra por ella.* Es deliberado y lo razona [ADR-008](adr/20260918-despliegue-single-tenant.md): cada despliegue atiende a una empresa, pero `obra.empresa_id` está desde el día uno porque añadir la columna después obligaría a migrar cada tabla, cada consulta y cada índice. La fila se carga con los datos semilla, antes de que exista ninguna obra: con la clave foránea obligatoria, dar de alta una obra sin empresa sembrada falla. La columna `empresa.dias_semana_laboral` (`SMALLINT NOT NULL DEFAULT 6`) la crea TKT-011a y no la altera ningún otro módulo: TKT-049 solo la consume (`PA-T2`).
 
 **Tres columnas pequeñas con un motivo cada una.** `obra.umbral_alerta_pct` es el umbral de `F7.3`, un `Porcentaje` que separa el `AMARILLO` del `ROJO` del semáforo; la alerta sale con `ROJO`. Si es nulo, toda desviación positiva es `ROJO` (`PA-18`, resuelta el 2026-10-17; el corte está en [§15](#15-la-consulta-del-semáforo)). `insumo.creado_en_importacion` marca el insumo que nació al confirmar una importación, para que el catálogo distinga lo dado de alta a mano de lo que trajo un Excel. Y `unidad`, en `concepto` y en `insumo`, lleva un `CHECK` contra el catálogo cerrado de unidades admitidas (`M2`, `ML`, `PZA`, `KG`, `CAJA`, `SACO`, `ROLLO`, `JORNAL`), el mismo que el borrador de la API declara como enum: una unidad desconocida se detiene en la importación con `UNIDAD_DESCONOCIDA` y, si alguien escribe por otra vía, en el motor (invariante 27).
 
@@ -1137,7 +1141,7 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 5 | Una sola línea base congelada vigente por obra | Índice único parcial `WHERE estado = 'CONGELADA'` | RN-01 |
 | 6 | Un presupuesto de control por línea base y tipo de partida | `UNIQUE (linea_base_id, tipo_partida_id)` | RN-03 |
 | 7 | El desglose de un pago agrupado suma el total | Restricción diferida verificada al confirmar | RN-14 |
-| 8 | Cantidades y precios no negativos | `CHECK (cantidad >= 0)`, `CHECK (costo_unitario >= 0)` | — |
+| 8 | Importes, precios, cantidades y rendimientos no negativos | `CHECK (<columna> >= 0)` con nombre `ck_<tabla>_<columna>_no_negativo` sobre cada importe, precio, cantidad y rendimiento del esquema. Los porcentajes de rango acotado llevan su propio `CHECK` (`PA-T5` de TKT-011) | — |
 | 9 | Una resolución de autorización exige motivo | `CHECK (estado = 'PENDIENTE' OR motivo_resolucion IS NOT NULL)` | RN-04 |
 | 10 | La bitácora no se modifica | Permisos: sin `UPDATE` ni `DELETE` para el rol de aplicación | RN-04 |
 | 11 | Un avance pagado está validado | Clave foránea compuesta que incluye el estado | RN-10 |
@@ -1191,7 +1195,7 @@ El invariante 14 merece una nota: es el único que necesita un disparador en lug
 
 Para que sirvan de algo, **las pruebas de integración se conectan con el rol de aplicación**, no con el propietario del esquema. Con el propietario, el `UPDATE` sobre la bitácora funcionaría y la prueba que lo intenta quedaría verde por no tener nada que verificar.
 
-**Hay una excepción deliberada, y es para aislar un mecanismo del otro.** Sobre `linea_base_concepto` el rol de aplicación ya no tiene `UPDATE` ni `DELETE`, así que con ese rol la prueba del disparador del invariante 14 quedaría verde por el permiso aunque el disparador no existiera. **La prueba del disparador se ejecuta con el rol de migración**, que sí tiene el privilegio, y verifica que es el disparador quien rechaza; la del permiso, con el rol de aplicación. Las dos pruebas, y la de `SELECT … FOR UPDATE` sobre `explosion_presupuesto` con el rol de aplicación, son de TKT-011, que crea esas tablas.
+**Hay una excepción deliberada, y es para aislar un mecanismo del otro.** Sobre `linea_base_concepto` el rol de aplicación ya no tiene `UPDATE` ni `DELETE`, así que con ese rol la prueba del disparador del invariante 14 quedaría verde por el permiso aunque el disparador no existiera. **La prueba del disparador se ejecuta con el rol de migración**, que sí tiene el privilegio, y verifica que es el disparador quien rechaza; la del permiso, con el rol de aplicación. Las dos pruebas, y la de `SELECT … FOR UPDATE` sobre `explosion_presupuesto` con el rol de aplicación, son de TKT-011b, que crea esas tablas.
 
 ---
 

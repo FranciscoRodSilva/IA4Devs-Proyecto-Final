@@ -237,7 +237,7 @@ def test_tkt057_ca08_las_filas_de_la_version_anterior_quedan_verificadas(
                 (identificador, CORREO_ANA, exitoso, ORIGEN),
             )
 
-    migrar(base_vacia)
+    migrar(base_vacia, REVISION_NUEVA)
     with conectar("aplicacion", base_vacia) as aplicacion:
         filas = aplicacion.execute(
             f"SELECT id, email, exitoso, {COLUMNA} FROM intento_acceso ORDER BY exitoso"
@@ -264,7 +264,7 @@ def test_tkt057_ca08_la_migracion_se_revierte_y_vuelve_a_subir(
     bajar a `0004` no queda ninguno de los cinco objetos, la tabla sigue y la versión es `0004`.
     Tras volver a subir, el catálogo es idéntico al de la primera vez.
     """
-    migrar(base_vacia)
+    migrar(base_vacia, REVISION_NUEVA)
     with conectar("migracion", base_vacia) as administrador:
         tras_subir = estado_de_v0005(administrador)
     assert tras_subir == ESTADO_SUBIDO, (
@@ -282,7 +282,7 @@ def test_tkt057_ca08_la_migracion_se_revierte_y_vuelve_a_subir(
     assert version == [(REVISION_ANTERIOR,)]
     assert tabla_sigue == (True,)
 
-    migrar(base_vacia)
+    migrar(base_vacia, REVISION_NUEVA)
     with conectar("migracion", base_vacia) as administrador:
         tras_resubir = estado_de_v0005(administrador)
         version_final = version_de_alembic(administrador)
