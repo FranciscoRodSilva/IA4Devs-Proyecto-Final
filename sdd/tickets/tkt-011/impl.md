@@ -56,7 +56,7 @@ Ejecutados el 2026-11-01 por `desarrollador-sql` contra un contenedor desechable
 | E-10 | Un identificador de 64 caracteres se trunca a 63 con aviso `42622` | Exactamente eso | Confirma |
 | E-11 | `(to_jsonb(NEW) - 'estado') IS DISTINCT FROM (to_jsonb(OLD) - 'estado')` es falso si solo cambia `estado` | Falso; verdadero con `numeric`, `timestamptz`, `uuid` y `text` | Confirma |
 
-**Clase del `SQLSTATE`.** Consultado el apéndice A de PostgreSQL con Context7: el estándar SQL reserva las clases que empiezan por 0 a 4 o por A a H. `CM001` empieza por `C`. PostgreSQL 18.6 solo usa las clases `P0` y `XX` entre las que empiezan por I a Z. La base acepta `CM001`, pero eso no lo hace seguro frente a una clase estándar futura. La persona dueña eligió `IN001` para TKT-011b.
+**Clase del `SQLSTATE`.** Consultado el apéndice A de PostgreSQL con Context7: el estándar SQL reserva las clases que empiezan por 0 a 4 o por una letra entre la A y la H. `CM001` empieza por `C`. PostgreSQL 18.6 solo usa las clases `P0` y `XX` entre las que empiezan por I a Z. La base acepta `CM001`, pero eso no lo hace seguro frente a una clase estándar futura. La persona dueña eligió `IN001` para TKT-011b.
 
 ## Pruebas
 

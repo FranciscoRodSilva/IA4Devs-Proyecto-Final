@@ -65,7 +65,7 @@ La clase del `SQLSTATE` del disparador de TKT-011b (`IN001`, elegida frente a `C
 |---|---|---|
 | `ON DELETE RESTRICT` responde `23001` al borrar un padre con hijos, no `23503`; el `23503` es el de insertar un hijo huérfano | Prueba de TC-02 en la fila A2 y experimento en un contenedor `postgres:18.6` | Pruebas de rechazo de TKT-011b, y la traducción a errores en TKT-012 a TKT-018 |
 | PostgreSQL 18 registra las restricciones `NOT NULL` en `pg_constraint` con nombre automático; hay que filtrar `contype <> 'n'` al comparar restricciones por nombre | Tests TC-16 y TC-17 | Cualquier prueba de catálogo del esquema |
-| El estándar SQL reserva las clases de `SQLSTATE` que empiezan por 0 a 4 o por A a H; las de la implementación empiezan por 5 a 9 o por I a Z, y PostgreSQL 18.6 solo usa `P0` y `XX` entre estas últimas | Apéndice A de la documentación de PostgreSQL, consultado con Context7 en la fila A0, y experimento E-4 | Cualquier `SQLSTATE` propio del proyecto |
+| El estándar SQL reserva las clases de `SQLSTATE` que empiezan por 0 a 4 o por una letra entre la A y la H; las de la implementación empiezan por 5 a 9 o por I a Z, y PostgreSQL 18.6 solo usa `P0` y `XX` entre estas últimas | Apéndice A de la documentación de PostgreSQL, consultado con Context7 en la fila A0, y experimento E-4 | Cualquier `SQLSTATE` propio del proyecto |
 | Con `--import-mode=importlib` un archivo de pruebas no puede importar de otro; lo compartido va en `conftest.py` | `ModuleNotFoundError` al probarlo en la corrección F004 | Estructuras esperadas compartidas entre pruebas |
 | `tools/verificar_docs.py` no comprueba el conteo de ADR; lo fija una prueba de `tools/tests` | Hallazgo H1 de `revisor-impacto` | Cualquier ticket que añada un ADR |
 
