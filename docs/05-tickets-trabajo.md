@@ -551,7 +551,9 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-003, TKT-059 |
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-003 |
+
+> **No depende de TKT-059.** Antes la lista incluía a TKT-059, y eso cerraba un ciclo (TKT-011, TKT-059, TKT-015, TKT-014, TKT-013 y de nuevo TKT-011), porque TKT-059 reutiliza el barrido que construye TKT-015. Ninguno de los dos esquemas necesita al otro: `importacion.archivo_id` es un identificador lógico sin clave foránea y `archivo.obra_id` también, para que ningún módulo cruce la frontera por el esquema ([modelo de datos §2](03-modelo-datos.md#2-convenciones)). Quien une `importacion` y `archivo` es TKT-018, que ya depende de TKT-059. Corte decidido por la persona dueña el 2026-11-01.
 
 **Criterios técnicos**
 
