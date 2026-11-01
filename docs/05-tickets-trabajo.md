@@ -135,7 +135,7 @@ Son los diez tickets originales, que suman ~35, más dos que nacieron de la revi
 - [ ] Convenciones del esquema aplicadas: identificadores UUID, columnas de auditoría, `TIMESTAMPTZ`
 - [ ] **Roles de PostgreSQL creados en la migración**, no a mano en el servidor: la migración crea los de aplicación y de solo lectura; el de migración (propietario) lo crea el entorno (`RNF-09`), con `ALTER DEFAULT PRIVILEGES` para que toda tabla nueva nazca con los permisos por omisión de cada rol. **Cada migración de módulo revoca** lo que sus tablas no admiten, con su prueba en el mismo cambio ([modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos))
 - [ ] El rol de aplicación **no** tiene `UPDATE` ni `DELETE` sobre `intento_acceso` — invariante 20
-- [ ] Las pruebas de permisos sobre `explosion_presupuesto` y `linea_base_concepto` —`SELECT … FOR UPDATE` con el rol de aplicación y el disparador del invariante 14— **no son de este ticket**: esas tablas las crea TKT-011, que es quien revoca y prueba. Aquí solo existen las tablas de identidad
+- [ ] Las pruebas de permisos sobre `explosion_presupuesto` y `linea_base_concepto` —`SELECT … FOR UPDATE` con el rol de aplicación y el disparador del invariante 14— **no son de este ticket**: esas tablas (`explosion_presupuesto`, `linea_base_concepto`) las crea TKT-011b, que es quien revoca y prueba. Aquí solo existen las tablas de identidad
 - [ ] El rol de solo lectura no tiene más que `SELECT` — invariante 21
 - [ ] `lock_timeout` y `statement_timeout` fijados **en el rol de aplicación** (`RNF-16`), de modo que apliquen aunque una ruta nueva no los pida
 - [ ] Los tests corren contra PostgreSQL, **no** contra SQLite, construyen el esquema con `alembic upgrade head` y **se conectan con el rol de aplicación**
@@ -487,11 +487,11 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 
 | | |
 |---|---|
-| **Tipo** | Fundación · **Talla** S · **Depende de** TKT-003, TKT-011 · **Sprint 2** |
+| **Tipo** | Fundación · **Talla** S · **Depende de** TKT-003, TKT-011a · **Sprint 2** |
 
 **Qué hace.** Carga un conjunto de datos de arranque con usuarios de cada rol y los catálogos base reales, para que el desarrollo y los tests trabajen sobre datos del cliente y no inventados.
 
-> **Va en el sprint 2 y no en el 1 porque las tablas que siembra no existen antes.** `empresa`, `tipo_partida` e `insumo` las crea TKT-011, que es del módulo `presupuesto`. Sembrar en el sprint 1 solo podría cargar usuarios y roles de acceso; los catálogos del cliente fallarían por tabla inexistente. El `rol_oficio` se siembra más tarde todavía, en TKT-042, junto a la tabla que lo contiene.
+> **Va en el sprint 2 y no en el 1 porque las tablas que siembra no existen antes.** `empresa`, `tipo_partida` e `insumo` las crea TKT-011a, que es del módulo `presupuesto`. Sembrar en el sprint 1 solo podría cargar usuarios y roles de acceso; los catálogos del cliente fallarían por tabla inexistente. El `rol_oficio` se siembra más tarde todavía, en TKT-042, junto a la tabla que lo contiene.
 
 **Criterios técnicos**
 
@@ -559,6 +559,8 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 
 - [ ] Tablas `empresa`, `obra`, `nivel`, `area`, `tipo_partida`, `partida`, `concepto`, `insumo`, `precio_insumo`, `apu`, `apu_insumo`, `apu_cargo`
 - [ ] `obra.empresa_id` es clave foránea **obligatoria** ([ADR-008](adr/20260918-despliegue-single-tenant.md)), aunque el despliegue sea de un solo inquilino y nadie filtre por ella
+- [ ] `obra.codigo` es único (`uq_obra_codigo`): dos obras con el mismo código se rechazan en la base (HDU-001 esc. 3)
+- [ ] `empresa.dias_semana_laboral` es `SMALLINT NOT NULL DEFAULT 6`, creada aquí (`PA-T2`) para que el módulo `personal` la consuma sin alterar una tabla de `presupuesto`
 - [ ] Tablas `linea_base`, `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`
 - [ ] Tablas `importacion`, `importacion_error`, `rendimiento_observado`, con `importacion.latido`, `importacion.progreso` y los tipos de error `PROCESO_INTERRUMPIDO` (`RNF-17`) y `SIN_CONCEPTOS` —hoja sin ninguna fila de concepto, HDU-001 esc. 27—
 - [ ] `importacion` **no** tiene columnas de nombre ni de URL del archivo: el Excel vive en `archivo` con `referencia_tipo = 'IMPORTACION'` ([modelo de datos §11](03-modelo-datos.md#11-importación)). `importacion.archivo_id` es un identificador lógico **sin clave foránea** —una clave entre tablas de dos módulos cruzaría la frontera por el esquema— y está en la lista cerrada de [modelo de datos §2](03-modelo-datos.md#2-convenciones). El caso de uso que crea la importación es de TKT-018
@@ -578,13 +580,22 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 
 **Non-goals** — No crea tablas de otros módulos.
 
+**Partición en dos tickets hermanos.** El diseño del ticket superó el tope de unas 400 líneas por cambio (unas 2,175 líneas en total), así que se reparte en dos tickets hermanos con un PR cada uno. TKT-011 queda como paraguas: conserva la especificación y el diseño, y se cierra cuando se cierran los dos hermanos. El orden de fusión es fijo: **TKT-011a, y después TKT-011b**. La rama de TKT-011b sale de `Produccion` con TKT-011a ya fusionado.
+
+| Ticket | Contenido | Migración | Depende de | Filas del diseño |
+|---|---|---|---|---|
+| TKT-011a | `empresa`, `obra`, `nivel`, `area`, `tipo_partida`, `partida`, `concepto`, `insumo`, `precio_insumo`, `apu`, `apu_insumo` y `apu_cargo`: estructura, catálogos y restricciones de dominio de esas doce tablas | `0006`, cuelga de `0005` | TKT-003 | A0 a A7 |
+| TKT-011b | `linea_base`, `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`, `importacion`, `importacion_error` y `rendimiento_observado`; los dos disparadores del invariante 14; la revocación de privilegios y la guarda de la bajada | `0007`, cuelga de `0006` | TKT-011a | B1 a B8 |
+
+Qué depende de cada mitad: TKT-010, TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo TKT-011a, porque apuntan a `empresa`, `obra`, `area`, `tipo_partida` o `insumo`. TKT-012 y TKT-013 necesitan TKT-011b; TKT-012 porque `Obra.linea_base_vigente_id` se lee de `linea_base` y su ficha exige el rechazo `OBRA_CON_HISTORIAL`. La línea de trazabilidad de TKT-039 también pasa a TKT-011b.
+
 ---
 
 ### TKT-012 · Alta y mantenimiento de obras
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-011, TKT-008 |
+| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-011b, TKT-008 |
 
 **Qué hace.** CRUD de obras con sus parámetros de negocio, incluida la baja protegida.
 
@@ -606,7 +617,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-011 |
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-011b |
 
 **Criterios técnicos**
 
@@ -750,7 +761,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-011 |
+| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-011a |
 
 **Criterios técnicos**
 
@@ -1328,7 +1339,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 - [ ] **El avance físico se divide entre el alcance**, no entre `SUM(avance.m2_contrato)`, y es `NULL` —no cero— mientras no haya nada validado (regla 12 de `CLAUDE.md`)
 - [ ] Función pura en `analitica/dominio` que calcula la desviación como `(ejercido + ejercido_simulado) − presupuestado × avance`, con **`ilustrativa: true`** si alguna de sus entradas es `SIMULADA`, y la propaga `NULL` si el avance es `NULL`: −$2,000 en verde (esc. 2), $30,000 en rojo por encima del umbral que declara el escenario (esc. 3), *sin avance medido* (esc. 9)
 - [ ] **Tres colores**, `VERDE`, `AMARILLO` y `ROJO` (`PA-18`, resuelta el 2026-10-17), y `SIN_AVANCE_MEDIDO` como **estado aparte, no un color**: sin avance validado no hay juicio. El corte es **(asumido, sin bloqueo)**: `VERDE` con desviación ≤ 0; `AMARILLO` con desviación > 0 y desviación relativa ≤ `obra.umbral_alerta_pct`; `ROJO` con relativa > umbral. Sin umbral configurado en la obra, toda desviación > 0 es `ROJO`. La desviación relativa se mide sobre `presupuestado × avance`
-- [ ] **La alerta sale con `ROJO`** (esc. 11, F7.3, TKT-011), y `AMARILLO` no alerta — esc. 16. **Una desviación ilustrativa no emite alerta**: con datos simulados no se alerta a nadie
+- [ ] **La alerta sale con `ROJO`** (esc. 11, F7.3, TKT-011a), y `AMARILLO` no alerta — esc. 16. **Una desviación ilustrativa no emite alerta**: con datos simulados no se alerta a nadie
 - [ ] **Dueño del test de HDU-006 esc. 16**: una partida con desviación positiva por debajo del umbral de la obra queda `AMARILLO` y sin alerta; en el mismo test, la misma partida sin umbral configurado queda `ROJO`
 - [ ] Solo cuenta el avance `VALIDADO` (esc. 10): lo garantiza el puerto y un test con avance capturado sin validar
 - [ ] Sin línea base congelada responde `409` `CONFLICTO` `SIN_LINEA_BASE_CONGELADA`, con la acción de ir a congelarla para quien puede hacerlo y **sin cifras** (esc. 8)
@@ -1528,7 +1539,7 @@ Es un bloque de catálogo sin reglas duras salvo `RN-13`, pero bloquea a las dos
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-003, TKT-011 |
+| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-003, TKT-011a |
 
 **Qué hace.** Crea las tablas del catálogo de personal con las restricciones que protegen los créditos y siembra el catálogo de roles de oficio del cliente, que nace aquí y no en TKT-010 porque su tabla no existe antes.
 
@@ -1634,7 +1645,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-011, TKT-042 |
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-011a, TKT-042 |
 
 **Qué hace.** Crea las tablas del módulo `avance` con las dos garantías de motor que lo sostienen —un avance pagado está validado y el alcance no se duplica— y expone la configuración de etapas de destajo por obra y tipo de partida (**PA-08**).
 
@@ -1761,7 +1772,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-042, TKT-011 |
+| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-042, TKT-011a |
 
 **Qué hace.** Crea las tablas de jornada, nómina, descuentos y pagos con las cuatro restricciones que hacen que la nómina cuadre por construcción.
 
@@ -1775,7 +1786,7 @@ Historia: [HDU-009](04-historias-usuario.md#hdu-009--nómina-semanal) · 13 SP
 - [ ] `jornada.obra_id NOT NULL` — invariante 1 —, `CHECK (fraccion_dia > 0 AND fraccion_dia <= 1)` y `CHECK (horas_extra >= 0)`
 - [ ] `jornada.cuadrilla_id` se guarda copiado del momento: es lo que mantiene la cuadrilla histórica de HDU-007 esc. 8
 - [ ] `CHECK (saldo_posterior >= 0)` sobre `descuento_nomina`
-- [ ] El parámetro `dias_semana_laboral`, con valor 6, en el sitio que declara el [modelo de datos §8](03-modelo-datos.md#8-personal-y-nómina) y **nunca como constante en el código** (`PA-22`, resuelta el 2026-10-17): es el divisor del salario semanal y el máximo de días de una semana
+- [ ] El parámetro `dias_semana_laboral`, con valor 6, en el sitio que declara el [modelo de datos §8](03-modelo-datos.md#8-personal-y-nómina) y **nunca como constante en el código** (`PA-22`, resuelta el 2026-10-17): es el divisor del salario semanal y el máximo de días de una semana. **Este ticket solo consume la columna**: `empresa.dias_semana_laboral` la crea TKT-011a (`PA-T2` de TKT-011), y este ticket no altera ninguna tabla de `presupuesto`
 - [ ] Índices `(empleado_id, fecha)` único, `(obra_id, fecha)` sobre `jornada` e `(obra_id)` sobre `imputacion_nomina_obra` ([§15](03-modelo-datos.md#índices-que-la-sostienen))
 
 **Non-goals** — No toca el esquema de personal (TKT-042) ni crea `modalidad_pago_semana` (TKT-053). No implementa ningún caso de uso.
@@ -1969,7 +1980,7 @@ La tabla cubre los escenarios cuyo test reparten varios tickets: los de este blo
 |---|---|---|
 | HDU-005 esc. 21 · 22 · fase 1 | TKT-035 | TKT-019, TKT-025, TKT-027, TKT-033, TKT-034, TKT-038 |
 | HDU-005 esc. 23 · fase 1 | TKT-036 | TKT-038 |
-| HDU-006 esc. 16 · fase 1 | TKT-039 | TKT-011, TKT-040, TKT-041 |
+| HDU-006 esc. 16 · fase 1 | TKT-039 | TKT-011b, TKT-040, TKT-041 |
 | HDU-002 esc. 14 | TKT-063 | TKT-064 |
 | HDU-005 esc. 15 · 16 · 17 · 18 | TKT-068 | TKT-063, TKT-064 |
 | HDU-005 esc. 19 · 20 | TKT-066 | TKT-059, TKT-065, TKT-067 |
@@ -2244,7 +2255,7 @@ El buffer no es pesimismo: los PR generados por agente exigen revisión más cui
 >
 > **La costura:** de TKT-059, el sprint 2 solo necesita la subida, la confirmación por hash y la validación de tipo. **La URL de descarga y el barrido de `PENDIENTE` caducados** pueden ir al sprint 4 sin que HDU-001 lo note, y dejan el 2 en ~19 y el 4 en ~13. El precio es declarado: hasta entonces, una subida abandonada deja una fila en `PENDIENTE` que nadie barre. No corrompe nada —la importación no arranca sin `DISPONIBLE`—, pero es una fila que miente sobre su estado, que es justo lo que el barrido existe para impedir.
 >
-> **TKT-010 no está en el sprint 1, y no por holgura sino por dependencia.** Los datos semilla cargan `empresa`, `tipo_partida` e `insumo`, tablas que crea TKT-011 en el sprint 2. Sembrarlas antes fallaría por tabla inexistente.
+> **TKT-010 no está en el sprint 1, y no por holgura sino por dependencia.** Los datos semilla cargan `empresa`, `tipo_partida` e `insumo`, tablas que crea TKT-011a en el sprint 2. Sembrarlas antes fallaría por tabla inexistente.
 >
 > **HDU-006 se reparte entre los sprints 4 y 5, y no es partir la historia por comodidad.** El escalón 2 de TKT-039, TKT-040 y TKT-041 necesita entradas reales, que llegan con TKT-035 en el sprint 5 y con ellas la implementación de `FuenteEjercido` por `almacen`; hasta entonces el ejercido es un *cero real*. La historia se da por terminada al cerrar el 5, con sus escenarios en verde salvo la parte de nómina del 7, que es de la fase 2; en el 4 se demuestra con el aviso de cifra parcial del escenario 6, que existe precisamente para eso.
 

@@ -1871,8 +1871,25 @@ DOCUMENTOS_DE_062B = (DOC_STACK, DOC_TOOLS, DOC_CLAUDE, DOC_CONVENCIONES, DOC_DE
 # Lo que 062b retira. La frase vieja del stack presentaba la revisión como uno de los «trabajos» que meten la IA en el pipeline.
 LA_REVISION_COMO_TRABAJO_DEL_PIPELINE = re.compile(r"dos trabajos mas|meten la ia en el pipeline")
 COMENTARIOS_EN_LINEA = re.compile(r"comentarios en linea")
-DECISIONES_VIEJAS = re.compile(r"\b(?:27|28) (?:decisiones|adrs)\b")
-DECISIONES_NUEVAS = re.compile(r"\b29 (?:decisiones|adrs)\b")
+CONTEO_DE_DECISIONES = re.compile(r"\b(\d+) (?:decisiones|adrs)\b")
+ADR_RUTA = os.path.join(RAIZ, "docs", "adr")
+UN_ADR = re.compile(r"^\d{8}-.+\.md$")
+
+
+def contar_adrs_del_repositorio() -> int:
+    """Número real de ADR: los archivos `AAAAMMDD-*.md` de `docs/adr/`, sin `README.md` ni `template.md`.
+
+    Los documentos citan este número («N decisiones», «N ADRs»); la prueba lo compara con el árbol y no con un literal, de modo que añadir
+    un ADR no obliga a editar la prueba, pero un documento que se quede con el conteo anterior sigue poniéndola en rojo.
+    """
+    return sum(1 for nombre in os.listdir(ADR_RUTA) if UN_ADR.match(nombre))
+
+
+def _conteos_citados(texto_normalizado: str) -> list[int]:
+    return [int(n) for n in CONTEO_DE_DECISIONES.findall(texto_normalizado)]
+
+
+ADRS_REALES = contar_adrs_del_repositorio()
 SCRIPT_DE_PUBLICAR = re.compile(r"(?<![\w.])publicar_revision\.py")
 FLUJO_DE_LA_REVISION = "revision-ia.yml"
 CLAVE_DEL_MODELO = "anthropic_api_key"
@@ -1890,8 +1907,10 @@ def _linea_que_contiene(texto: str, fragmento: str) -> str:
     return ""
 
 
-def comprobar_documentacion_de_revision(documentos: dict[str, str]) -> list[str]:
+def comprobar_documentacion_de_revision(documentos: dict[str, str], adrs: int) -> list[str]:
     """Devuelve las frases de la documentación de 062b que faltan. `documentos` es el texto crudo de cada archivo, por ruta.
+
+    `adrs` es el número de ADR que los documentos deben citar; la prueba del repositorio pasa el real, contado de `docs/adr/`.
 
     Función pura sobre texto: la prueba del repositorio le pasa los archivos reales y los mutantes le pasan texto sintético.
     Cada problema empieza por la ruta del archivo y dice la frase que falta, para que el mutante exija su razón.
@@ -1924,8 +1943,12 @@ def comprobar_documentacion_de_revision(documentos: dict[str, str]) -> list[str]
     exigir(DOC_CLAUDE, "falta la frase de Comandos sobre lo que corre en cada pull request", bool(parrafo_de_comandos))
     exigir(DOC_CLAUDE, "la frase de Comandos sobre lo que corre en cada pull request no nombra revision-ia.yml", FLUJO_DE_LA_REVISION in parrafo_de_comandos)
     lectura = _linea_que_contiene(claude, "docs/adr/")
-    exigir(DOC_CLAUDE, "la lista de lectura no dice «29 decisiones»", DECISIONES_NUEVAS.search(lectura) is not None)
-    exigir(DOC_CLAUDE, "sigue diciendo «27 decisiones» o «28 decisiones»", DECISIONES_VIEJAS.search(_normalizar_doc(claude)) is None)
+    exigir(DOC_CLAUDE, f"la lista de lectura no dice «{adrs} decisiones»", adrs in _conteos_citados(lectura))
+    exigir(
+        DOC_CLAUDE,
+        f"cita un conteo de decisiones distinto de {adrs}",
+        all(n == adrs for n in _conteos_citados(_normalizar_doc(claude))),
+    )
 
     convenciones = documentos[DOC_CONVENCIONES]
     s12 = _normalizar_doc(_seccion(convenciones, r"## 12\. "))
@@ -1954,13 +1977,13 @@ def comprobar_documentacion_de_revision(documentos: dict[str, str]) -> list[str]
     for archivo in (DOC_README, DOC_LLMS):
         linea = _linea_que_contiene(documentos[archivo], "docs/adr/readme.md")
         exigir(archivo, "falta la línea de las decisiones de arquitectura", bool(linea))
-        exigir(archivo, "la línea de las decisiones de arquitectura no dice «29 ADRs»", DECISIONES_NUEVAS.search(linea) is not None)
-        exigir(archivo, "sigue diciendo «27 ADRs» o «28 ADRs»", DECISIONES_VIEJAS.search(linea) is None)
+        exigir(archivo, f"la línea de las decisiones de arquitectura no dice «{adrs} ADRs»", adrs in _conteos_citados(linea))
+        exigir(archivo, f"cita un conteo de ADRs distinto de {adrs}", all(n == adrs for n in _conteos_citados(linea)))
 
     return problemas
 
 
-DOCUMENTOS_SINTETICOS = {
+_DOCUMENTOS_SINTETICOS_CON_MARCA = {
     DOC_STACK: """\
 ### Integración continua
 
@@ -1983,7 +2006,7 @@ Una pieza más del pipeline y una que vive aparte:
 lo que declara `revision-ia.yml`.
 """,
     DOC_CLAUDE: """\
-6. [`docs/adr/`](docs/adr/) — 29 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — @ADRS@ decisiones con su porqué
 
 Las comprobaciones de estas secciones corren en cada pull request, en [`ci.yml`](.github/workflows/ci.yml), y `revision-ia.yml` es un flujo
 aparte que no es comprobación requerida.
@@ -2009,8 +2032,12 @@ Corre en `revision-ia.yml` en dos trabajos. No revisa borradores, bifurcaciones 
 
 - [ ] Ningún secreto en *workflows*, imagen, Compose ni salida de pasos, salvo `ANTHROPIC_API_KEY` en `revision-ia.yml` (ADR-028)
 """,
-    DOC_README: "| [Decisiones de arquitectura](docs/adr/README.md) | 29 ADRs en formato MADR |\n",
-    DOC_LLMS: "- [Decisiones de arquitectura](docs/adr/README.md): 29 ADRs en formato MADR\n",
+    DOC_README: "| [Decisiones de arquitectura](docs/adr/README.md) | @ADRS@ ADRs en formato MADR |\n",
+    DOC_LLMS: "- [Decisiones de arquitectura](docs/adr/README.md): @ADRS@ ADRs en formato MADR\n",
+}
+# El conteo de los documentos válidos es el real: la marca se sustituye al construir, no se escribe un número.
+DOCUMENTOS_SINTETICOS = {
+    archivo: texto.replace("@ADRS@", str(ADRS_REALES)) for archivo, texto in _DOCUMENTOS_SINTETICOS_CON_MARCA.items()
 }
 
 
@@ -2025,7 +2052,7 @@ class MutantesDeLaDocumentacionDeRevision(unittest.TestCase):
     def test_tkt062_ca12_esc01_mutantes_el_control_valido_pasa(self):
         """CA-12 esc. 1 · TC62-41 — los documentos sintéticos válidos no producen ningún problema: sin esto, los mutantes serían vacuos."""
         self.assertEqual(set(DOCUMENTOS_SINTETICOS), set(DOCUMENTOS_DE_062B))
-        self.assertEqual(comprobar_documentacion_de_revision(DOCUMENTOS_SINTETICOS), [])
+        self.assertEqual(comprobar_documentacion_de_revision(DOCUMENTOS_SINTETICOS, ADRS_REALES), [])
 
     def test_tkt062_ca12_esc01_mutantes_la_documentacion_de_062b(self):
         """CA-12 esc. 1 · TC62-41 (rechazo) — quitar de cada documento lo que 062b añade, o dejar lo que retira, pone la comprobación en rojo."""
@@ -2058,9 +2085,9 @@ class MutantesDeLaDocumentacionDeRevision(unittest.TestCase):
                 _documentos_con(DOC_CLAUDE, ", y `revision-ia.yml` es un flujo\naparte que no es comprobación requerida", ""),
                 "no nombra revision-ia.yml",
             ),
-            "CLAUDE.md: «27 decisiones»": (
-                _documentos_con(DOC_CLAUDE, "29 decisiones", "27 decisiones"),
-                "la lista de lectura no dice «29 decisiones»",
+            "CLAUDE.md: dos decisiones menos que los ADR reales": (
+                _documentos_con(DOC_CLAUDE, f"{ADRS_REALES} decisiones", f"{ADRS_REALES - 2} decisiones"),
+                f"la lista de lectura no dice «{ADRS_REALES} decisiones»",
             ),
             "convenciones: «comentarios en línea» vuelve a la fila Mantenimiento": (
                 _documentos_con(DOC_CONVENCIONES, "deja un comentario con los hallazgos citados", "deja comentarios en línea"),
@@ -2082,22 +2109,48 @@ class MutantesDeLaDocumentacionDeRevision(unittest.TestCase):
                 _documentos_con(DOC_DEVSECOPS, ", salvo `ANTHROPIC_API_KEY` en `revision-ia.yml` (ADR-028)", ""),
                 "no nombra la excepción ANTHROPIC_API_KEY",
             ),
-            "README.md: «27 ADRs»": (_documentos_con(DOC_README, "29 ADRs", "27 ADRs"), "no dice «29 ADRs»"),
-            "llms.txt: «27 ADRs»": (_documentos_con(DOC_LLMS, "29 ADRs", "27 ADRs"), "no dice «29 ADRs»"),
-            "CLAUDE.md: «28 decisiones» (conteo previo a TKT-057)": (
-                _documentos_con(DOC_CLAUDE, "29 decisiones", "28 decisiones"),
-                "sigue diciendo «27 decisiones» o «28 decisiones»",
+            "README.md: dos ADR menos que los reales": (
+                _documentos_con(DOC_README, f"{ADRS_REALES} ADRs", f"{ADRS_REALES - 2} ADRs"),
+                f"no dice «{ADRS_REALES} ADRs»",
             ),
-            "README.md: «28 ADRs» (conteo previo a TKT-057)": (
-                _documentos_con(DOC_README, "29 ADRs", "28 ADRs"),
-                "sigue diciendo «27 ADRs» o «28 ADRs»",
+            "llms.txt: dos ADR menos que los reales": (
+                _documentos_con(DOC_LLMS, f"{ADRS_REALES} ADRs", f"{ADRS_REALES - 2} ADRs"),
+                f"no dice «{ADRS_REALES} ADRs»",
             ),
-            "llms.txt: «28 ADRs» (conteo previo a TKT-057)": (
-                _documentos_con(DOC_LLMS, "29 ADRs", "28 ADRs"),
-                "sigue diciendo «27 ADRs» o «28 ADRs»",
+            "CLAUDE.md: una decisión menos (el conteo previo a añadir un ADR)": (
+                _documentos_con(DOC_CLAUDE, f"{ADRS_REALES} decisiones", f"{ADRS_REALES - 1} decisiones"),
+                f"la lista de lectura no dice «{ADRS_REALES} decisiones»",
+            ),
+            "CLAUDE.md: una decisión más que los ADR reales": (
+                _documentos_con(DOC_CLAUDE, f"{ADRS_REALES} decisiones", f"{ADRS_REALES + 1} decisiones"),
+                f"la lista de lectura no dice «{ADRS_REALES} decisiones»",
+            ),
+            "CLAUDE.md: el conteo correcto en la lista de lectura y uno viejo en otro párrafo": (
+                _documentos_con(
+                    DOC_CLAUDE,
+                    "Las comprobaciones de estas secciones",
+                    f"Quedan {ADRS_REALES - 1} decisiones por revisar. Las comprobaciones de estas secciones",
+                ),
+                f"cita un conteo de decisiones distinto de {ADRS_REALES}",
+            ),
+            "README.md: un ADR menos (el conteo previo a añadir un ADR)": (
+                _documentos_con(DOC_README, f"{ADRS_REALES} ADRs", f"{ADRS_REALES - 1} ADRs"),
+                f"no dice «{ADRS_REALES} ADRs»",
+            ),
+            "llms.txt: un ADR menos (el conteo previo a añadir un ADR)": (
+                _documentos_con(DOC_LLMS, f"{ADRS_REALES} ADRs", f"{ADRS_REALES - 1} ADRs"),
+                f"no dice «{ADRS_REALES} ADRs»",
+            ),
+            "README.md: un ADR más que los reales": (
+                _documentos_con(DOC_README, f"{ADRS_REALES} ADRs", f"{ADRS_REALES + 1} ADRs"),
+                f"no dice «{ADRS_REALES} ADRs»",
+            ),
+            "llms.txt: un ADR más que los reales": (
+                _documentos_con(DOC_LLMS, f"{ADRS_REALES} ADRs", f"{ADRS_REALES + 1} ADRs"),
+                f"no dice «{ADRS_REALES} ADRs»",
             ),
         }
-        exigir_rojo_en_todos(self, comprobar_documentacion_de_revision, casos)
+        exigir_rojo_en_todos(self, lambda documentos: comprobar_documentacion_de_revision(documentos, ADRS_REALES), casos)
 
 
 class DocumentacionDeLaRevision(unittest.TestCase):
@@ -2105,11 +2158,11 @@ class DocumentacionDeLaRevision(unittest.TestCase):
 
     def test_tkt062_ca12_esc01_la_documentacion_de_062b_describe_la_revision(self):
         """CA-12 esc. 1 · TC62-41 — stack §10 nombra `revision-ia.yml` y deja de presentar la revisión como trabajo del pipeline; `tools/README.md`
-        describe `publicar_revision.py`; `CLAUDE.md` nombra `revision-ia.yml` y dice 29 decisiones; convenciones §12 ya no dice «comentarios en
+        describe `publicar_revision.py`; `CLAUDE.md` nombra `revision-ia.yml` y cita tantas decisiones como ADR hay en `docs/adr/`; convenciones §12 ya no dice «comentarios en
         línea» y describe cómo corre; `ingeniero-devsecops.md` nombra `revision-ia.yml` y la excepción de `ANTHROPIC_API_KEY`; `README.md` y
-        `llms.txt` dicen 29 ADRs."""
+        `llms.txt` citan ese mismo número de ADR."""
         documentos = {archivo: _leer_doc(archivo) for archivo in DOCUMENTOS_DE_062B}
-        problemas = comprobar_documentacion_de_revision(documentos)
+        problemas = comprobar_documentacion_de_revision(documentos, contar_adrs_del_repositorio())
         self.assertEqual(problemas, [], f"faltan {len(problemas)} frase(s): " + " | ".join(problemas))
 
 
