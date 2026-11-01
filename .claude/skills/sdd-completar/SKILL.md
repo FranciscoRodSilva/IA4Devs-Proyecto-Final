@@ -21,6 +21,8 @@ Cierra el ticket. Sin cierre formal, el conocimiento del ticket desaparece.
 
 Escribe `delta.md` desde [la plantilla](../../../sdd/plantillas/delta.md), con `design.md` e `impl.md` como insumos.
 
+Al escribirlo, **convierte en enlace** las menciones de texto plano a `delta.md` que dejan las plantillas: la fila «Delta» de la tabla de artefactos del hub (`_index.md`) y la cabecera «Siguiente» de `impl.md` pasan a ser enlaces relativos al propio `delta.md`, con el mismo formato que ya usan las filas de los demás artefactos. Las plantillas lo dejan en texto plano para que `verificar_docs.py` no falle desde `/sdd-definir` hasta aquí por un enlace a un archivo que aún no existe (patrón de ocho tickets en `sdd/_evolucion.md`); este paso lo cierra, y el verificador tiene que quedar en verde antes del paso 2.
+
 El delta **no repite la implementación**: declara qué cambió en el sistema — añadido, modificado, eliminado — para quien no siguió el ticket.
 
 - **Comportamiento observable nuevo**: lo que nota un usuario o un integrador. Si el ticket era un refactor, aquí pone «Ninguno», y eso es la prueba de que fue un refactor.

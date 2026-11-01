@@ -1,6 +1,6 @@
 # Impl · TKT-xxx · <título>
 
-> [← index](_index.md) | [← design](design.md) | Siguiente: [delta →](delta.md)
+> [← index](_index.md) | [← design](design.md) | Siguiente: `delta.md` (se enlaza en `/sdd-completar`)
 
 ## Qué se implementó
 

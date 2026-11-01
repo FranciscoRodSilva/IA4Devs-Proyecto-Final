@@ -28,7 +28,7 @@
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Pendiente |
 | Design | [design.md](design.md) | `/sdd-disenar` | Pendiente |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Pendiente |
-| Delta | [delta.md](delta.md) | `/sdd-completar` | Pendiente |
+| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
 
 ## Log de estados
 
