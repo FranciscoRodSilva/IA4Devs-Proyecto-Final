@@ -19,6 +19,8 @@ from sqlalchemy.engine import Engine
 
 from cimenta.identidad.api.montaje import montar_identidad
 from herramientas.conexion import crear_motor_aplicacion
+from servidor.ajustes import cargar_ajustes
+from servidor.cabeceras import MiddlewareCabecerasSeguridad, cabeceras_de_seguridad
 from servidor.correlacion import MiddlewareCorrelacion
 from servidor.manejadores import registrar_manejadores
 from servidor.registro import configurar_registro
@@ -31,16 +33,30 @@ def crear_aplicacion(
     reloj: Callable[[], datetime] | None = None,
     entorno: Mapping[str, str] | None = None,
 ) -> FastAPI:
-    """CA-14: depuración desactivada, para que un error nunca devuelva una traza al cliente."""
+    """CA-14: depuración desactivada, para que un error nunca devuelva una traza al cliente.
+
+    CA-15 · RNF-07: los ajustes van primero. Sin la contraseña de aplicación no se configura el
+    registro ni se construye ningún motor: la excepción `ConfiguracionInvalida` sale antes.
+    """
+    ajustes = cargar_ajustes(entorno)
     configurar_registro(destino_registro if destino_registro is not None else sys.stdout)
     aplicacion = FastAPI(title="CIMENTA", version="0.1.0", debug=False)
     registrar_manejadores(aplicacion)
+    # RNF-05 · RNF-06: el último `add_middleware` es el más externo. Cabeceras se registra antes,
+    # así que la correlación queda por fuera de ella.
+    cabeceras = cabeceras_de_seguridad(ajustes.almacen_origen)
+    aplicacion.state.cabeceras_seguridad = cabeceras
+    aplicacion.add_middleware(MiddlewareCabecerasSeguridad, cabeceras=cabeceras)
     aplicacion.add_middleware(MiddlewareCorrelacion)
     montar_identidad(
         aplicacion,
         proveedor_motor=(lambda: motor)
         if motor is not None
-        else functools.cache(crear_motor_aplicacion),
+        else functools.cache(
+            functools.partial(
+                crear_motor_aplicacion, ajustes.db_contrasena_aplicacion.get_secret_value()
+            )
+        ),
         reloj=reloj,
         entorno=os.environ if entorno is None else entorno,
     )

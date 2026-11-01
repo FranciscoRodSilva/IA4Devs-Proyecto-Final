@@ -28,6 +28,7 @@ import importlib
 import io
 import json
 import re
+import secrets
 import uuid
 from collections.abc import Callable
 from datetime import date
@@ -161,7 +162,10 @@ def aplicacion_de_prueba(
     """La aplicación de la fábrica con una ruta POST `def` por entrada y el registro capturado."""
     fabrica = importlib.import_module("servidor.fabrica")
     registro = io.StringIO()
-    aplicacion = fabrica.crear_aplicacion(destino_registro=registro)
+    aplicacion = fabrica.crear_aplicacion(
+        destino_registro=registro,
+        entorno={"CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16)},
+    )
     router = APIRouter(prefix="/prueba", dependencies=[Depends(fijar_roles_de_quien_llama)])
     for ruta, endpoint in rutas.items():
         router.add_api_route(ruta, endpoint, methods=["POST"])
@@ -1072,7 +1076,10 @@ def test_tkt005_ca13_un_manejador_por_familia() -> None:
     from starlette.exceptions import HTTPException as StarletteHTTPException
 
     fabrica = importlib.import_module("servidor.fabrica")
-    aplicacion = fabrica.crear_aplicacion(destino_registro=io.StringIO())
+    aplicacion = fabrica.crear_aplicacion(
+        destino_registro=io.StringIO(),
+        entorno={"CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16)},
+    )
     error_contrato = ce("ErrorContrato")
 
     propios = {

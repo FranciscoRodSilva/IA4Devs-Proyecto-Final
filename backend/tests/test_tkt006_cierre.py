@@ -2,8 +2,9 @@
 
 Cubre `CA-9` (TC-43 a TC-46 del diseño): cerrar revoca sin borrar, la sesión cerrada ya no sirve, cerrar
 sin sesión es `401 SIN_SESION` sin tocar ninguna fila y el rol de aplicación nunca emite un `DELETE`
-sobre `sesion` ni un `UPDATE` o `DELETE` sobre `intento_acceso`. No se envía token CSRF: exigirlo en
-`cerrar_sesion` es de TKT-057.
+sobre `sesion` ni un `UPDATE` o `DELETE` sobre `intento_acceso`. Los cierres que esperan `204` envían un
+par de token CSRF coincidente (`cerrar_con_token`): `cerrar_sesion` lo exige desde TKT-057. Los que
+esperan `401` no lo envían, porque la sesión se evalúa antes que el token.
 
 Cada rechazo comprueba el contrato de error completo: código `401`, `tipo` `SESION`, `motivo`, el
 `mensaje` literal del diseño, el conjunto exacto de claves (`tipo`, `motivo`, `mensaje`,
@@ -40,6 +41,9 @@ CABECERA = "X-Correlacion-Id"
 RUTA_SESION = "/api/v1/sesion"
 RUTA_CIERRE = "/api/v1/sesion/cierre"
 COOKIE_SESION = "cimenta_sesion"
+COOKIE_CSRF = "cimenta_csrf"
+CABECERA_CSRF = "X-CSRF-Token"
+TOKEN_CSRF = "token-csrf-de-la-prueba"
 CORREO_DE_ANA = "ana@cimenta.test"
 CONTRASENA_DE_ANA = "Clave-Correcta-1"
 CORREO_DE_LUIS = "luis@cimenta.test"
@@ -109,9 +113,30 @@ def con_cookie(valor: str) -> dict[str, str]:
     return {"Cookie": f"{COOKIE_SESION}={valor}"}
 
 
+def cerrar_con_token(cliente: TestClient, sesion_id: object | None = None) -> Respuesta:
+    """`POST /api/v1/sesion/cierre` con cookie `cimenta_csrf` y cabecera `X-CSRF-Token` coincidentes (TKT-057).
+
+    Sin `sesion_id` toma la cookie de sesión del almacén del cliente. La cabecera `Cookie` es explícita
+    para no depender de que el almacén tenga la cookie CSRF.
+    """
+    if sesion_id is None:
+        sesion_id = cliente.cookies.get(COOKIE_SESION)
+    return cliente.post(
+        RUTA_CIERRE,
+        headers={
+            "Cookie": f"{COOKIE_SESION}={sesion_id}; {COOKIE_CSRF}={TOKEN_CSRF}",
+            CABECERA_CSRF: TOKEN_CSRF,
+        },
+    )
+
+
 def iniciar(cliente: TestClient, correo: str, contrasena: str) -> uuid.UUID:
-    """Inicia sesión por HTTP (`POST /api/v1/sesion`) y devuelve el identificador de la cookie."""
-    respuesta = cliente.post(RUTA_SESION, json={"email": correo, "contrasena": contrasena})
+    """Inicia sesión por HTTP (`POST /api/v1/sesion`, con el par de token CSRF de TKT-057) y devuelve el identificador de la cookie."""
+    respuesta = cliente.post(
+        RUTA_SESION,
+        json={"email": correo, "contrasena": contrasena},
+        headers={"Cookie": f"{COOKIE_CSRF}={TOKEN_CSRF}", CABECERA_CSRF: TOKEN_CSRF},
+    )
     assert respuesta.status_code == 200, respuesta.text
     return uuid.UUID(una_cookie(respuesta, COOKIE_SESION).value)
 
@@ -173,7 +198,7 @@ def test_tkt006_ca09_cerrar_revoca_sin_borrar(
     sesion_id = iniciar(cliente, CORREO_DE_ANA, CONTRASENA_DE_ANA)
     reloj_de_prueba.avanzar(timedelta(minutes=3))
 
-    respuesta = cliente.post(RUTA_CIERRE)
+    respuesta = cerrar_con_token(cliente)
 
     assert respuesta.status_code == 204
     assert respuesta.content == b""
@@ -199,7 +224,7 @@ def test_tkt006_ca09_cerrar_expira_la_cookie_de_sesion(
     iniciar(cliente, CORREO_DE_ANA, CONTRASENA_DE_ANA)
     assert COOKIE_SESION in cliente.cookies
 
-    respuesta = cliente.post(RUTA_CIERRE)
+    respuesta = cerrar_con_token(cliente)
 
     cookie = una_cookie(respuesta, COOKIE_SESION)
     caduca_con_max_age = cookie["max-age"] == "0"
@@ -231,7 +256,7 @@ def test_tkt006_ca09_la_sesion_cerrada_ya_no_sirve(
     sembrar_usuario(CORREO_DE_ANA, CONTRASENA_DE_ANA, roles=ROLES_DE_ANA)
     sesion_id = iniciar(cliente, CORREO_DE_ANA, CONTRASENA_DE_ANA)
     reloj_de_prueba.avanzar(timedelta(minutes=3))
-    assert cliente.post(RUTA_CIERRE).status_code == 204
+    assert cerrar_con_token(cliente).status_code == 204
     cerrada_en = reloj_de_prueba.ahora
     ultima_actividad = fila_de_sesion(lector(), sesion_id)["ultima_actividad"]
     reloj_de_prueba.avanzar(timedelta(minutes=1))
@@ -257,7 +282,7 @@ def test_tkt006_ca09_cerrar_dos_veces_la_segunda_es_revocada(
     sembrar_usuario(CORREO_DE_ANA, CONTRASENA_DE_ANA, roles=ROLES_DE_ANA)
     sesion_id = iniciar(cliente, CORREO_DE_ANA, CONTRASENA_DE_ANA)
     reloj_de_prueba.avanzar(timedelta(minutes=3))
-    assert cliente.post(RUTA_CIERRE).status_code == 204
+    assert cerrar_con_token(cliente).status_code == 204
     primera_hora = reloj_de_prueba.ahora
     reloj_de_prueba.avanzar(timedelta(minutes=7))
 
@@ -282,7 +307,7 @@ def test_tkt006_ca09_cerrar_una_sesion_no_revoca_las_demas(
     cliente.cookies.clear()
     reloj_de_prueba.avanzar(timedelta(minutes=3))
 
-    respuesta = cliente.post(RUTA_CIERRE, headers=con_cookie(str(cerrada)))
+    respuesta = cerrar_con_token(cliente, cerrada)
 
     assert respuesta.status_code == 204
     lectura = lector()
@@ -379,7 +404,7 @@ def test_tkt006_ca09_sin_delete_sobre_sesion(
 
     iniciar(cliente, CORREO_DE_ANA, CONTRASENA_DE_ANA)
     assert cliente.get(RUTA_SESION).status_code == 200
-    assert cliente.post(RUTA_CIERRE).status_code == 204
+    assert cerrar_con_token(cliente).status_code == 204
 
     emitidas = "\n".join(sentencias)
     assert re.search(r"INSERT\s+INTO\s+sesion\b", emitidas, re.IGNORECASE)

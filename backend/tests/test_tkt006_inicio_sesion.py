@@ -162,7 +162,7 @@ def preparar_intento(escenario: str, sembrar_usuario: SembrarUsuario) -> Intento
 
 
 def rechazar(
-    contexto: ContextoIdentidad, intento: Intento, *, origen_ip: str | None = ORIGEN_IP
+    contexto: ContextoIdentidad, intento: Intento, *, origen_ip: str = ORIGEN_IP
 ) -> SesionInvalida:
     """Llama a `abrir_sesion` esperando un `401`; devuelve la excepción capturada."""
     from cimenta.identidad.aplicacion.sesiones import abrir_sesion
@@ -674,7 +674,7 @@ def test_tkt006_ca02_aplicacion_correo_sin_distinguir_mayusculas(
     sembrar_usuario: SembrarUsuario,
     lector: Callable[[], Conexion],
 ) -> None:
-    """CA-2 esc. 2 · PA-T10 — «Ana@Cimenta.TEST» abre la sesión del mismo usuario; el intento guarda lo escrito."""
+    """CA-2 esc. 2 · PA-T10 — «Ana@Cimenta.TEST» abre la sesión del mismo usuario; el intento guarda el correo en minúsculas (D-4)."""
     from cimenta.identidad.aplicacion.sesiones import abrir_sesion
 
     ana = sembrar_usuario(CORREO_DE_ANA, CONTRASENA_DE_ANA, roles=(ROL_DE_ANA,))
@@ -684,17 +684,17 @@ def test_tkt006_ca02_aplicacion_correo_sin_distinguir_mayusculas(
         contexto,
         correo_escrito="Ana@Cimenta.TEST",
         contrasena=CONTRASENA_DE_ANA,
-        origen_ip=None,
+        origen_ip=ORIGEN_IP,
         agente_usuario=None,
     )
 
     assert abierta.usuario_id == ana
     assert abierta.email == CORREO_DE_ANA
-    assert [fila["email"] for fila in intentos_guardados(lector())] == ["Ana@Cimenta.TEST"]
-    assert [fila["origen_ip"] for fila in intentos_guardados(lector())] == [None]
+    assert [fila["email"] for fila in intentos_guardados(lector())] == [CORREO_DE_ANA]
+    assert [fila["origen_ip"] for fila in intentos_guardados(lector())] == [ORIGEN_IP]
     assert [
         (fila["origen_ip"], fila["agente_usuario"]) for fila in sesiones_guardadas(lector())
-    ] == [(None, None)]
+    ] == [(ORIGEN_IP, None)]
 
 
 def test_tkt006_ca08_aplicacion_las_caducidades_salen_de_la_configuracion(
@@ -916,6 +916,9 @@ RAIZ = Path(__file__).resolve().parents[2]
 CABECERA = "X-Correlacion-Id"
 RUTA_SESION = "/api/v1/sesion"
 COOKIE_SESION = "cimenta_sesion"
+COOKIE_CSRF = "cimenta_csrf"
+CABECERA_CSRF = "X-CSRF-Token"
+TOKEN_CSRF = "token-csrf-de-la-prueba"
 CONTRASENA_SECRETA = "Clave-Secreta-987"
 CLAVES_DE_USUARIO_ACTUAL = {"id", "nombre", "email", "roles", "sesion"}
 CLAVES_DE_ERROR_DE_SESION = {"tipo", "motivo", "mensaje", "correlacion_id"}
@@ -963,11 +966,19 @@ def lineas_json(registro: io.StringIO) -> list[dict[str, Any]]:
 def iniciar_por_http(
     cliente: TestClient, correo: str, contrasena: str, *, agente: str = AGENTE_USUARIO
 ) -> Respuesta:
-    """`POST /api/v1/sesion` con las credenciales indicadas."""
+    """`POST /api/v1/sesion` con las credenciales indicadas y el par de token CSRF coincidente (TKT-057).
+
+    La cabecera `Cookie` es explícita para no depender de que el almacén del cliente tenga la cookie
+    `cimenta_csrf`; el inicio de sesión no usa ninguna otra cookie.
+    """
     return cliente.post(
         RUTA_SESION,
         json={"email": correo, "contrasena": contrasena},
-        headers={"User-Agent": agente},
+        headers={
+            "User-Agent": agente,
+            "Cookie": f"{COOKIE_CSRF}={TOKEN_CSRF}",
+            CABECERA_CSRF: TOKEN_CSRF,
+        },
     )
 
 
@@ -1041,7 +1052,7 @@ def test_tkt006_ca02_inicio_correcto_escribe_sesion_intento_y_ultimo_acceso(
 
     Leído con una conexión nueva. `sesion`: `creada_en` y `ultima_actividad` valen el reloj, `expira_en`
     más 12 horas, `revocada_en` nulo, el origen del cliente de pruebas y el agente de la petición.
-    `intento_acceso`: exitoso, con el usuario y el correo tal como se escribió.
+    `intento_acceso`: exitoso, con el usuario y el correo normalizado (minúsculas, D-4).
     """
     ana = sembrar_usuario(CORREO_DE_ANA, CONTRASENA_DE_ANA, roles=(ROL_DE_ANA,))
     reloj_de_prueba.avanzar(timedelta(minutes=7))
@@ -1118,9 +1129,9 @@ def test_tkt006_ca02_atributos_de_la_cookie_de_sesion(
 def test_tkt006_ca02_correo_sin_distinguir_mayusculas(
     cliente: TestClient, sembrar_usuario: SembrarUsuario, lector: Callable[[], Conexion]
 ) -> None:
-    """TC-22 · CA-2 esc. 2 · PA-T10 — «Ana@Cimenta.TEST» abre la sesión del mismo usuario y el intento guarda lo escrito.
+    """TC-22 · CA-2 esc. 2 · PA-T10 — «Ana@Cimenta.TEST» abre la sesión del mismo usuario y el intento guarda el correo en minúsculas (D-4).
 
-    El cuerpo devuelve el correo guardado, en minúsculas; `intento_acceso.email` conserva las mayúsculas.
+    El cuerpo devuelve el correo guardado, en minúsculas; `intento_acceso.email` también va en minúsculas (D-4).
     """
     ana = sembrar_usuario(CORREO_DE_ANA, CONTRASENA_DE_ANA, roles=(ROL_DE_ANA,))
 
@@ -1131,7 +1142,7 @@ def test_tkt006_ca02_correo_sin_distinguir_mayusculas(
     validar_contra("UsuarioActual", cuerpo)
     assert cuerpo["id"] == str(ana)
     assert cuerpo["email"] == CORREO_DE_ANA
-    assert [fila["email"] for fila in intentos_guardados(lector())] == ["Ana@Cimenta.TEST"]
+    assert [fila["email"] for fila in intentos_guardados(lector())] == [CORREO_DE_ANA]
 
 
 # --------------------------------------------------------------------------- TC-23
@@ -1398,6 +1409,7 @@ def test_tkt006_ca05_forma_invalida(
     sembrar_usuario(CORREO_DE_ANA, CONTRASENA_DE_ANA, roles=(ROL_DE_ANA,))
     contador = con_contador_en_la_aplicacion(aplicacion_identidad)
 
+    # Sin token a propósito (TKT-057, D-5): el cuerpo inválido responde 422 antes de mirar el par CSRF.
     respuesta = cliente.post(RUTA_SESION, json=enviado)
 
     assert respuesta.status_code == 422

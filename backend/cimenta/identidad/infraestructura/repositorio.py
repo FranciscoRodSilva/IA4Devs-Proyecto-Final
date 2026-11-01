@@ -11,7 +11,7 @@ import datetime as dt
 import uuid
 from dataclasses import dataclass
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import ColumnElement, func, insert, select, text, update
 from sqlalchemy.orm import Session
 
 from cimenta.identidad.infraestructura.modelos import (
@@ -85,19 +85,85 @@ def insertar_intento(
     email: str,
     usuario_id: uuid.UUID | None,
     exitoso: bool,
+    credenciales_verificadas: bool,
     ocurrido_en: dt.datetime,
     origen_ip: str | None,
 ) -> None:
-    """Añade un intento de acceso con el correo tal como se escribió, exista o no el usuario."""
+    """Añade un intento de acceso con el correo que le pasa quien llama, exista o no el usuario."""
     bd.execute(
         insert(IntentoAcceso).values(
             id=uuid.uuid4(),
             email=email,
             usuario_id=usuario_id,
             exitoso=exitoso,
+            credenciales_verificadas=credenciales_verificadas,
             ocurrido_en=ocurrido_en,
             origen_ip=origen_ip,
         )
+    )
+
+
+def bloquear_correo(bd: Session, correo: str) -> None:
+    """Toma un candado consultivo de transacción por correo, para serializar los intentos de uno mismo.
+
+    La clave es el correo tal como llega; normalizarlo es de quien llama. El candado se libera solo
+    al terminar la transacción.
+    """
+    bd.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:clave, 0))"),
+        {"clave": "intento_acceso:" + correo},
+    )
+
+
+def _fallos_verificados(
+    bd: Session, filtro: ColumnElement[bool], *, desde: dt.datetime, hasta: dt.datetime
+) -> list[dt.datetime]:
+    """Instantes de los fallos con credenciales verificadas que cumplen `filtro` en (desde, hasta], ascendentes."""
+    sentencia = (
+        select(IntentoAcceso.ocurrido_en)
+        .where(
+            filtro,
+            IntentoAcceso.exitoso.is_(False),
+            IntentoAcceso.credenciales_verificadas.is_(True),
+            IntentoAcceso.ocurrido_en > desde,
+            IntentoAcceso.ocurrido_en <= hasta,
+        )
+        .order_by(IntentoAcceso.ocurrido_en)
+    )
+    return list(bd.scalars(sentencia))
+
+
+def fallos_de_correo(
+    bd: Session, correo: str, *, desde: dt.datetime, hasta: dt.datetime
+) -> list[dt.datetime]:
+    """Instantes de los fallos con credenciales verificadas de ese correo en (desde, hasta], ascendentes."""
+    return _fallos_verificados(bd, IntentoAcceso.email == correo, desde=desde, hasta=hasta)
+
+
+def fallos_de_origen(
+    bd: Session, origen_ip: str, *, desde: dt.datetime, hasta: dt.datetime
+) -> list[dt.datetime]:
+    """Instantes de los fallos con credenciales verificadas de ese origen en (desde, hasta], ascendentes."""
+    return _fallos_verificados(bd, IntentoAcceso.origen_ip == origen_ip, desde=desde, hasta=hasta)
+
+
+def ultimo_exito_de_correo(bd: Session, correo: str, *, hasta: dt.datetime) -> dt.datetime | None:
+    """El instante del último acceso exitoso de ese correo hasta `hasta` inclusive, o None."""
+    sentencia = select(func.max(IntentoAcceso.ocurrido_en)).where(
+        IntentoAcceso.email == correo,
+        IntentoAcceso.exitoso.is_(True),
+        IntentoAcceso.ocurrido_en <= hasta,
+    )
+    return bd.execute(sentencia).scalar_one()
+
+
+def fijar_bloqueado_hasta(bd: Session, usuario_id: uuid.UUID, hasta: dt.datetime) -> None:
+    """Fija `bloqueado_hasta` sin tocar `actualizado_en`: no es un cambio de datos del usuario (asumido)."""
+    bd.execute(
+        update(Usuario)
+        .where(Usuario.id == usuario_id)
+        .values(bloqueado_hasta=hasta)
+        .execution_options(synchronize_session=False)
     )
 
 

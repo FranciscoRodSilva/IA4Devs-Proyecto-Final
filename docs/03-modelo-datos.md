@@ -926,9 +926,10 @@ erDiagram
     }
     INTENTO_ACCESO {
         uuid id PK
-        string email "tal como se escribió, aunque no exista"
+        string email "normalizado a minúsculas, aunque no exista"
         uuid usuario_id FK "nulo si el correo no corresponde a nadie"
         boolean exitoso
+        boolean credenciales_verificadas "falso si se rechazó antes de verificar la contraseña"
         timestamptz ocurrido_en
         string origen_ip
     }
@@ -989,7 +990,11 @@ Consecuencia operativa: una sesión se cierra escribiendo `revocada_en`, **nunca
 
 `RNF-04` exige limitar los intentos, y para limitarlos hay que contarlos. La tabla guarda todos los intentos, **también los que fallan por un correo que no existe**: son la forma habitual de sondear qué cuentas hay.
 
-**`usuario.bloqueado_hasta` es la decisión; `intento_acceso` es la evidencia.** Separarlas permite que el bloqueo se compruebe con una lectura de la fila del usuario, sin contar nada, y que el recuento viva en una tabla que crece y se purga sin tocar el catálogo de usuarios.
+**La decisión la toma el recuento sobre `intento_acceso`; `usuario.bloqueado_hasta` es un reflejo.** El límite de intentos cuenta los fallos recientes de la cuenta y del origen en la tabla y decide si hay bloqueo vigente. Para las cuentas reales, el caso de uso escribe además `bloqueado_hasta` con el instante en que vence, pero esa columna no decide nada: una fecha escrita en el usuario no bloquea por sí sola. Un correo que no corresponde a nadie no tiene fila de `usuario`, así que el recuento es el único mecanismo que cubre a todos los correos por igual. Esto también separa la evidencia de la decisión: la tabla crece y se purga sin tocar el catálogo de usuarios.
+
+**La columna `credenciales_verificadas` separa un fallo de un rechazo.** Un intento que falla porque la contraseña no coincide tiene `exitoso = false` y `credenciales_verificadas = true`: es el único que cuenta. Un intento rechazado antes de verificar, por un bloqueo vigente o por un token CSRF ausente en el inicio de sesión, lleva `credenciales_verificadas = false` y no cuenta nunca, ni alarga el bloqueo. Sin esa marca, una fila con `exitoso = false` no dice si la contraseña llegó a comprobarse, y el recuento tendría que reconstruir la cadena de bloqueos desde su principio. La columna no tiene `DEFAULT`: quien inserta un intento tiene que declarar si verificó las credenciales. La restricción `ck_intento_acceso_exito_verificado` exige además que todo éxito las lleve verificadas. Las filas anteriores a esa columna valen `true`, porque hasta entonces las credenciales siempre se verificaban.
+
+**El correo se guarda normalizado.** `intento_acceso.email` va en minúsculas, igual que `usuario.email`, para que `Ana@Cimenta.TEST` y `ana@cimenta.test` cuenten contra la misma cuenta y contra el mismo correo inexistente. Las filas anteriores a TKT-057 conservan el correo tal como se escribió, así que las consultas no las ven si tenían mayúsculas.
 
 > **El bloqueo es temporal y nunca permanente.** Una cuenta bloqueada para siempre por intentos fallidos es una denegación de servicio que cualquiera puede provocar contra el Director de Proyectos un viernes por la tarde.
 
@@ -1144,7 +1149,7 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 17 | El reparto de nómina entre obras suma el neto del renglón | Restricción diferida sobre `imputacion_nomina_obra` | RN-23 |
 | 18 | Una semana de nómina va de viernes a jueves | `CHECK (fecha_corte = fecha_inicio + 6 AND EXTRACT(DOW FROM fecha_corte) = 4)` | RN-23 |
 | 19 | El rendimiento congelado nunca se sobrescribe con el observado | Viven en tablas distintas: `explosion_presupuesto` y `rendimiento_observado` | RN-24 |
-| 20 | El registro de intentos de acceso no se altera desde la aplicación | Permisos: el rol de aplicación tiene `INSERT` y `SELECT` sobre `intento_acceso`, no `UPDATE` ni `DELETE` | `RNF-04` |
+| 20 | El registro de intentos de acceso no se altera desde la aplicación | Permisos: el rol de aplicación tiene `INSERT` y `SELECT` sobre `intento_acceso`, no `UPDATE` ni `DELETE`, y la restricción `ck_intento_acceso_exito_verificado` exige que un éxito lleve credenciales verificadas | `RNF-04` |
 | 21 | Las consultas de analítica no pueden escribir | Rol de PostgreSQL con solo `SELECT`, que es con el que `analitica` se conecta; sin acceso a `sesion` ni a `usuario.password_hash` | `RNF-09` |
 | 22 | El alcance de destajo es único por área y etapa: precargarlo dos veces duplicaría el denominador del avance | `UNIQUE (area_id, etapa_destajo_id)` sobre `alcance_destajo` | RN-21 |
 | 23 | Un archivo disponible tiene hash, tamaño y fecha de confirmación | `CHECK (estado <> 'DISPONIBLE' OR (hash_sha256 IS NOT NULL AND tamano_bytes IS NOT NULL AND confirmado_en IS NOT NULL))` | `RNF-19` |

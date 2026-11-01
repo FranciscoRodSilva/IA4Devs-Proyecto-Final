@@ -33,9 +33,15 @@ export const CABECERA_PROVISIONAL = [
 ].join("\n");
 
 const CODIGO_EXPORTACION = [
-  "import json, sys",
+  "import json, secrets, sys",
   "from servidor.fabrica import crear_aplicacion",
-  "esquema = crear_aplicacion(destino_registro=sys.stderr, entorno={}).openapi()",
+  "# Valor desechable: generado aquí, nunca conecta con ninguna base. Existe porque crear_aplicacion",
+  "# exige la contraseña de aplicación (RNF-07) aunque solo se exporte el OpenAPI.",
+  "contrasena_desechable = secrets.token_urlsafe(16)",
+  "esquema = crear_aplicacion(",
+  "    destino_registro=sys.stderr,",
+  "    entorno={'CIMENTA_DB_CONTRASENA_APLICACION': contrasena_desechable},",
+  ").openapi()",
   "sys.stdout.write(json.dumps(esquema, ensure_ascii=True))",
 ].join("\n");
 

@@ -91,7 +91,8 @@ def insertar_usuario(conexion: Conexion, email: str) -> uuid.UUID:
 def insertar_intento(conexion: Conexion, email: str, exitoso: bool = False) -> uuid.UUID:
     identificador = uuid.uuid4()
     conexion.execute(
-        "INSERT INTO intento_acceso (id, email, usuario_id, exitoso) VALUES (%s, %s, NULL, %s)",
+        "INSERT INTO intento_acceso (id, email, usuario_id, exitoso, credenciales_verificadas) "
+        "VALUES (%s, %s, NULL, %s, true)",
         (identificador, email, exitoso),
     )
     return identificador
@@ -161,7 +162,8 @@ def test_tkt003_ca06_esc01_aplicacion_registra_y_lee_intentos(
         usuario = insertar_usuario(aplicacion, CORREO_ANA)
         intento = uuid.uuid4()
         aplicacion.execute(
-            "INSERT INTO intento_acceso (id, email, usuario_id, exitoso) VALUES (%s, %s, %s, true)",
+            "INSERT INTO intento_acceso (id, email, usuario_id, exitoso, credenciales_verificadas) "
+            "VALUES (%s, %s, %s, true, true)",
             (intento, CORREO_ANA, usuario),
         )
         fila = aplicacion.execute(

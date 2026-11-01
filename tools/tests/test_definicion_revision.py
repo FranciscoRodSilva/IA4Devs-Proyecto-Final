@@ -1871,8 +1871,8 @@ DOCUMENTOS_DE_062B = (DOC_STACK, DOC_TOOLS, DOC_CLAUDE, DOC_CONVENCIONES, DOC_DE
 # Lo que 062b retira. La frase vieja del stack presentaba la revisión como uno de los «trabajos» que meten la IA en el pipeline.
 LA_REVISION_COMO_TRABAJO_DEL_PIPELINE = re.compile(r"dos trabajos mas|meten la ia en el pipeline")
 COMENTARIOS_EN_LINEA = re.compile(r"comentarios en linea")
-DECISIONES_VIEJAS = re.compile(r"\b27 (?:decisiones|adrs)\b")
-DECISIONES_NUEVAS = re.compile(r"\b28 (?:decisiones|adrs)\b")
+DECISIONES_VIEJAS = re.compile(r"\b(?:27|28) (?:decisiones|adrs)\b")
+DECISIONES_NUEVAS = re.compile(r"\b29 (?:decisiones|adrs)\b")
 SCRIPT_DE_PUBLICAR = re.compile(r"(?<![\w.])publicar_revision\.py")
 FLUJO_DE_LA_REVISION = "revision-ia.yml"
 CLAVE_DEL_MODELO = "anthropic_api_key"
@@ -1924,8 +1924,8 @@ def comprobar_documentacion_de_revision(documentos: dict[str, str]) -> list[str]
     exigir(DOC_CLAUDE, "falta la frase de Comandos sobre lo que corre en cada pull request", bool(parrafo_de_comandos))
     exigir(DOC_CLAUDE, "la frase de Comandos sobre lo que corre en cada pull request no nombra revision-ia.yml", FLUJO_DE_LA_REVISION in parrafo_de_comandos)
     lectura = _linea_que_contiene(claude, "docs/adr/")
-    exigir(DOC_CLAUDE, "la lista de lectura no dice «28 decisiones»", DECISIONES_NUEVAS.search(lectura) is not None)
-    exigir(DOC_CLAUDE, "sigue diciendo «27 decisiones»", DECISIONES_VIEJAS.search(_normalizar_doc(claude)) is None)
+    exigir(DOC_CLAUDE, "la lista de lectura no dice «29 decisiones»", DECISIONES_NUEVAS.search(lectura) is not None)
+    exigir(DOC_CLAUDE, "sigue diciendo «27 decisiones» o «28 decisiones»", DECISIONES_VIEJAS.search(_normalizar_doc(claude)) is None)
 
     convenciones = documentos[DOC_CONVENCIONES]
     s12 = _normalizar_doc(_seccion(convenciones, r"## 12\. "))
@@ -1954,8 +1954,8 @@ def comprobar_documentacion_de_revision(documentos: dict[str, str]) -> list[str]
     for archivo in (DOC_README, DOC_LLMS):
         linea = _linea_que_contiene(documentos[archivo], "docs/adr/readme.md")
         exigir(archivo, "falta la línea de las decisiones de arquitectura", bool(linea))
-        exigir(archivo, "la línea de las decisiones de arquitectura no dice «28 ADRs»", DECISIONES_NUEVAS.search(linea) is not None)
-        exigir(archivo, "sigue diciendo «27 ADRs»", DECISIONES_VIEJAS.search(linea) is None)
+        exigir(archivo, "la línea de las decisiones de arquitectura no dice «29 ADRs»", DECISIONES_NUEVAS.search(linea) is not None)
+        exigir(archivo, "sigue diciendo «27 ADRs» o «28 ADRs»", DECISIONES_VIEJAS.search(linea) is None)
 
     return problemas
 
@@ -1983,7 +1983,7 @@ Una pieza más del pipeline y una que vive aparte:
 lo que declara `revision-ia.yml`.
 """,
     DOC_CLAUDE: """\
-6. [`docs/adr/`](docs/adr/) — 28 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 29 decisiones con su porqué
 
 Las comprobaciones de estas secciones corren en cada pull request, en [`ci.yml`](.github/workflows/ci.yml), y `revision-ia.yml` es un flujo
 aparte que no es comprobación requerida.
@@ -2009,8 +2009,8 @@ Corre en `revision-ia.yml` en dos trabajos. No revisa borradores, bifurcaciones 
 
 - [ ] Ningún secreto en *workflows*, imagen, Compose ni salida de pasos, salvo `ANTHROPIC_API_KEY` en `revision-ia.yml` (ADR-028)
 """,
-    DOC_README: "| [Decisiones de arquitectura](docs/adr/README.md) | 28 ADRs en formato MADR |\n",
-    DOC_LLMS: "- [Decisiones de arquitectura](docs/adr/README.md): 28 ADRs en formato MADR\n",
+    DOC_README: "| [Decisiones de arquitectura](docs/adr/README.md) | 29 ADRs en formato MADR |\n",
+    DOC_LLMS: "- [Decisiones de arquitectura](docs/adr/README.md): 29 ADRs en formato MADR\n",
 }
 
 
@@ -2059,8 +2059,8 @@ class MutantesDeLaDocumentacionDeRevision(unittest.TestCase):
                 "no nombra revision-ia.yml",
             ),
             "CLAUDE.md: «27 decisiones»": (
-                _documentos_con(DOC_CLAUDE, "28 decisiones", "27 decisiones"),
-                "la lista de lectura no dice «28 decisiones»",
+                _documentos_con(DOC_CLAUDE, "29 decisiones", "27 decisiones"),
+                "la lista de lectura no dice «29 decisiones»",
             ),
             "convenciones: «comentarios en línea» vuelve a la fila Mantenimiento": (
                 _documentos_con(DOC_CONVENCIONES, "deja un comentario con los hallazgos citados", "deja comentarios en línea"),
@@ -2082,8 +2082,20 @@ class MutantesDeLaDocumentacionDeRevision(unittest.TestCase):
                 _documentos_con(DOC_DEVSECOPS, ", salvo `ANTHROPIC_API_KEY` en `revision-ia.yml` (ADR-028)", ""),
                 "no nombra la excepción ANTHROPIC_API_KEY",
             ),
-            "README.md: «27 ADRs»": (_documentos_con(DOC_README, "28 ADRs", "27 ADRs"), "no dice «28 ADRs»"),
-            "llms.txt: «27 ADRs»": (_documentos_con(DOC_LLMS, "28 ADRs", "27 ADRs"), "no dice «28 ADRs»"),
+            "README.md: «27 ADRs»": (_documentos_con(DOC_README, "29 ADRs", "27 ADRs"), "no dice «29 ADRs»"),
+            "llms.txt: «27 ADRs»": (_documentos_con(DOC_LLMS, "29 ADRs", "27 ADRs"), "no dice «29 ADRs»"),
+            "CLAUDE.md: «28 decisiones» (conteo previo a TKT-057)": (
+                _documentos_con(DOC_CLAUDE, "29 decisiones", "28 decisiones"),
+                "sigue diciendo «27 decisiones» o «28 decisiones»",
+            ),
+            "README.md: «28 ADRs» (conteo previo a TKT-057)": (
+                _documentos_con(DOC_README, "29 ADRs", "28 ADRs"),
+                "sigue diciendo «27 ADRs» o «28 ADRs»",
+            ),
+            "llms.txt: «28 ADRs» (conteo previo a TKT-057)": (
+                _documentos_con(DOC_LLMS, "29 ADRs", "28 ADRs"),
+                "sigue diciendo «27 ADRs» o «28 ADRs»",
+            ),
         }
         exigir_rojo_en_todos(self, comprobar_documentacion_de_revision, casos)
 
@@ -2093,9 +2105,9 @@ class DocumentacionDeLaRevision(unittest.TestCase):
 
     def test_tkt062_ca12_esc01_la_documentacion_de_062b_describe_la_revision(self):
         """CA-12 esc. 1 · TC62-41 — stack §10 nombra `revision-ia.yml` y deja de presentar la revisión como trabajo del pipeline; `tools/README.md`
-        describe `publicar_revision.py`; `CLAUDE.md` nombra `revision-ia.yml` y dice 28 decisiones; convenciones §12 ya no dice «comentarios en
+        describe `publicar_revision.py`; `CLAUDE.md` nombra `revision-ia.yml` y dice 29 decisiones; convenciones §12 ya no dice «comentarios en
         línea» y describe cómo corre; `ingeniero-devsecops.md` nombra `revision-ia.yml` y la excepción de `ANTHROPIC_API_KEY`; `README.md` y
-        `llms.txt` dicen 28 ADRs."""
+        `llms.txt` dicen 29 ADRs."""
         documentos = {archivo: _leer_doc(archivo) for archivo in DOCUMENTOS_DE_062B}
         problemas = comprobar_documentacion_de_revision(documentos)
         self.assertEqual(problemas, [], f"faltan {len(problemas)} frase(s): " + " | ".join(problemas))

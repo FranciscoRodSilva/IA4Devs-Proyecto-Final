@@ -52,7 +52,7 @@ Para arrancar la aplicación, aparte de la verificación y porque no termina por
 uv run --env-file ../.env fastapi dev
 ```
 
-`uv run --env-file ../.env fastapi dev` arranca la aplicación en `http://127.0.0.1:8000` con recarga automática; `/docs` muestra el contrato publicado. Sin el archivo de entorno la aplicación arranca, pero la primera ruta que necesita la base responde `500`. Cada petición deja una línea JSON en la salida estándar con su `correlacion_id`, el mismo que viaja en la cabecera `X-Correlacion-Id`.
+`uv run --env-file ../.env fastapi dev` arranca la aplicación en `http://127.0.0.1:8000` con recarga automática. `/openapi.json` publica el contrato. `/docs` ya no se pinta en el navegador: su página carga Swagger desde un CDN con un script en línea, y la política de contenido que aplica `TKT-057` lo bloquea, así que el contrato se consulta en `/openapi.json` o en el borrador. Sin `CIMENTA_DB_CONTRASENA_APLICACION` la aplicación no arranca: lanza `ConfiguracionInvalida`, el error nombra la variable y no muestra ningún valor. Cada petición deja una línea JSON en la salida estándar con su `correlacion_id`, el mismo que viaja en la cabecera `X-Correlacion-Id`.
 
 ## Base de datos
 
@@ -62,6 +62,10 @@ Desde la raíz del repositorio, se crea el archivo de variables a partir de la p
 cp .env.example .env
 docker compose up -d db
 ```
+
+Antes de levantar la base hay que rellenar en `.env` las tres contraseñas, `CIMENTA_DB_CONTRASENA_MIGRACION`, `CIMENTA_DB_CONTRASENA_APLICACION` y `CIMENTA_DB_CONTRASENA_LECTURA`, con valores propios y distintos entre sí. La plantilla las trae sin valor a propósito. Un valor válido se genera con `python -c "import secrets; print(secrets.token_urlsafe(24))"`, que imprime uno por ejecución. Compose se niega a arrancar la base mientras la de migración esté vacía, y el mensaje lo dice.
+
+Quien ya tiene un volumen de PostgreSQL creado con las contraseñas anteriores conserva su `.env` tal como está. La imagen usa la contraseña de migración solo al crear el volumen, así que cambiarla en el archivo no cambia la base. Para empezar de cero con contraseñas nuevas, `docker compose down -v` borra el volumen y hay que volver a migrar.
 
 `.env` no se versiona. Compose lee de él las contraseñas, y el backend lee de él la conexión. Después, desde `backend/`, se migra y se fijan las contraseñas de los roles de aplicación y de solo lectura:
 
@@ -90,7 +94,7 @@ npm run tipos:verificar
 
 `npm ci` instala desde `package-lock.json` y no modifica el archivo de bloqueo. Para añadir una dependencia se usa `npm install`, que sí lo modifica.
 
-`npm run tipos:generar` exporta el OpenAPI de FastAPI sin arrancar el servidor, ejecutando `uv run` en `backend/`, y genera `src/api/generado/`. Por eso necesita `uv` y `uv sync --locked --python 3.14` hecho en `backend/`. Los tipos del contrato de error salen del borrador y son provisionales: su archivo lo dice en la cabecera.
+`npm run tipos:generar` exporta el OpenAPI de FastAPI sin arrancar el servidor, ejecutando `uv run` en `backend/`, y genera `src/api/generado/`. Por eso necesita `uv` y `uv sync --locked --python 3.14` hecho en `backend/`. No necesita `.env`: el script pasa al servidor una contraseña aleatoria desechable que nunca conecta con ninguna base. Los tipos del contrato de error salen del borrador y son provisionales: su archivo lo dice en la cabecera.
 
 Con el backend en marcha en `127.0.0.1:8000`, `npm run dev` sirve el cliente en `http://localhost:5173` y reenvía `/api` al backend: la cookie de sesión viaja en el mismo origen. Ábrelo como `localhost`, no como `127.0.0.1`. El desarrollo local requiere Chromium o Firefox: la cookie de sesión es `Secure` y esos motores la aceptan en `http://localhost`. Chromium está comprobado por el humo de TKT-008b (3 de 3). Firefox lo admite según la especificación de *Secure Contexts* `(asumido, PA-T7)`, pero el humo no lo ha comprobado. Safari no lo admite `(asumido, PA-T7)`.
 
@@ -121,7 +125,7 @@ Para reproducir un trabajo en local, desde el directorio que indica cada fila:
 | `fronteras` | `lint-imports` | Desde `backend/`: `uv run lint-imports` |
 | `contrato-api` | Reservado para TKT-061 | Nada que reproducir todavía |
 | `frontend` | Lint, tipos, pruebas y `tipos:verificar` | Desde `backend/`, `uv sync --locked --python 3.14`; desde `frontend/`, los comandos de la sección Frontend |
-| `humo` | Recorrido de Playwright con la base migrada | Desde la raíz, `cp .env.example .env` y `docker compose up -d --wait db`; desde `backend/`, `uv sync --locked --python 3.14`; después, las secciones Base de datos y Frontend (con su `npx playwright install --with-deps chromium`) y, desde `frontend/`, `npm run e2e`. Necesita Docker |
+| `humo` | Recorrido de Playwright con la base migrada | Desde la raíz, `cp .env.example .env`, se generan las tres contraseñas de la sección Base de datos y después `docker compose up -d --wait db`. El pipeline genera las suyas en el propio trabajo, con `openssl rand`, y nunca las versiona; desde `backend/`, `uv sync --locked --python 3.14`; después, las secciones Base de datos y Frontend (con su `npx playwright install --with-deps chromium`) y, desde `frontend/`, `npm run e2e`. Necesita Docker |
 | `herramientas` | Pruebas de `tools/` con `unittest` y `verificar_escenarios.py` | Desde la raíz: `python -m unittest discover -s tools/tests`. La salida no debe contener `skipped=`, porque la guarda del pipeline falla si aparece. Después, `python tools/verificar_escenarios.py`; el pipeline le pasa además `--activas-base` con el `historias_activas.txt` de la base del PR, cuando la base lo tiene |
 | `workflows` | `zizmor` sobre los flujos | Desde la raíz: `uvx zizmor@1.31.1 --offline .github/workflows` |
 | `documentacion` | `verificar_docs.py`, `markdownlint-cli2`, Vale, `lychee` y `mermaid-cli` | Desde la raíz: `python tools/verificar_docs.py`. Los demás, en [Calidad de la documentación en local](#calidad-de-la-documentación-en-local) |
@@ -187,4 +191,4 @@ Iniciar sesión en local: no hay alta de usuarios todavía (`PA-T13` de TKT-006)
 
 Cuando un ticket se completa, su `/sdd-completar` quita la marca del comando que habilita en `CLAUDE.md`.
 
-Verificado en copia limpia el: 2026-10-27, en Windows 11, con Docker Engine 29.8.2 (Compose 5.6.0), PostgreSQL 18.6, uv 0.10.7, Python 3.14.3 (`--python 3.14`), Node v24.22.0 y npm 11.19.1. Backend: `uv sync --locked --python 3.14`, `ruff`, `mypy`, `lint-imports`, `verificar_float`, migraciones, contraseñas de roles y `pytest` (1138 pruebas). Frontend: `npm ci`, `lint`, `typecheck`, `test` (133), `tipos:verificar`, `build`, `npm run dev` con el backend en marcha y `npm run e2e` (3 de 3 en Chromium). El alcance es una copia limpia de `HEAD` de TKT-008a con los archivos de TKT-008b encima, que reutilizó la base de Compose existente.
+Verificado en copia limpia el: 2026-10-27, en Windows 11, antes de TKT-057 (las contraseñas sin valor, `CIMENTA_DB_CONTRASENA_APLICACION` y la política de contenido son posteriores y no están en esa verificación; se comprueban con un arranque local completo desde un `.env` recién copiado, fila 14 de [`sdd/tickets/tkt-057/design.md`](../sdd/tickets/tkt-057/design.md)), con Docker Engine 29.8.2 (Compose 5.6.0), PostgreSQL 18.6, uv 0.10.7, Python 3.14.3 (`--python 3.14`), Node v24.22.0 y npm 11.19.1. Backend: `uv sync --locked --python 3.14`, `ruff`, `mypy`, `lint-imports`, `verificar_float`, migraciones, contraseñas de roles y `pytest` (1138 pruebas). Frontend: `npm ci`, `lint`, `typecheck`, `test` (133), `tipos:verificar`, `build`, `npm run dev` con el backend en marcha y `npm run e2e` (3 de 3 en Chromium). El alcance es una copia limpia de `HEAD` de TKT-008a con los archivos de TKT-008b encima, que reutilizó la base de Compose existente.

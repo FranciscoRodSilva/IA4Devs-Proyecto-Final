@@ -1414,11 +1414,11 @@ Están separados de la Épica 0 a propósito. La fundación entrega *la capacida
 
 **Criterios técnicos**
 
-- [ ] Límite de intentos de acceso por origen y bloqueo **temporal** por cuenta tras `N` fallos, con cada intento asentado en `intento_acceso` (`RNF-04`)
+- [ ] Límite de intentos de acceso por origen y bloqueo **temporal** por cuenta tras 5 fallos en 15 minutos, configurable, con cada intento asentado en `intento_acceso` (`RNF-04`)
 - [ ] El bloqueo caduca solo: una cuenta bloqueada para siempre es una denegación de servicio que cualquiera puede provocar
 - [ ] Token de doble envío verificado en **todo** método que muta estado, con test de rechazo sin token (`RNF-05`). El rechazo anónimo va a `intento_acceso` y al registro técnico, no a la bitácora (TKT-006)
-- [ ] Cabeceras `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options` y `Referrer-Policy` en todas las respuestas (`RNF-05`)
-- [ ] La política de contenido admite en `img-src` y `media-src` el origen del almacén de objetos **y ningún otro** (regla 4 de [ADR-016](adr/20261001-almacenamiento-de-objetos.md), `RNF-06`). La validación de los archivos —tamaño, tipo leído de los bytes, nombre generado por el sistema, `Content-Disposition`— es de TKT-059
+- [ ] Cabeceras `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, `Referrer-Policy` en todas las respuestas, y `Cache-Control: no-store` en la API (`RNF-05`)
+- [ ] La política de contenido admite en `img-src`, `media-src` y `connect-src` el origen del almacén de objetos **y ningún otro** (regla 4 de [ADR-016](adr/20261001-almacenamiento-de-objetos.md), `RNF-06`). La validación de los archivos —tamaño, tipo leído de los bytes, nombre generado por el sistema, `Content-Disposition`— es de TKT-059
 - [ ] Configuración con `pydantic-settings`: **la aplicación no arranca** si falta un secreto obligatorio, y existe `.env.example` con las claves sin los valores (`RNF-07`)
 - [ ] Los nueve requisitos verificables de [stack §6.6](06-stack-tecnologico.md#66-qué-se-comprueba-solo) tienen su test y fallan el pipeline; el de `RNF-06` lo aporta TKT-059
 
@@ -1474,6 +1474,7 @@ Están separados de la Épica 0 a propósito. La fundación entrega *la capacida
 - [ ] Agregación de errores no controlados con Sentry o equivalente autoalojado, consumiendo el identificador de correlación que TKT-005 ya emite (`RNF-14`)
 - [ ] El registro técnico **no** escribe en `bitacora` ni al revés: son dos sitios porque son dos preguntas
 - [ ] Prueba de rendimiento del semáforo con volumen sembrado que falla el pipeline por encima de 2 s (`RNF-15`). En la fase 1 mide la consulta con las fuentes simuladas de TKT-060; desde el sprint 8 corre contra el adaptador real de TKT-069 ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md))
+- [ ] Política de retención y purga de `intento_acceso` con un rol distinto del de aplicación, y decisión del origen del cliente detrás del proxy (`PA-T5`, incluido IPv6 y la cubeta `desconocido`): condición para exponer el servicio
 
 > **Va en el sprint 6, el último de la fase 1, por una razón y no por comodidad:** dos de sus criterios no se pueden ejecutar antes. No se contrata una base gestionada para un sistema que aún no existe, y la prueba de rendimiento necesita el semáforo con todas sus columnas, que no está completo hasta el sprint 5. Lo que sí podía adelantarse —el registro estructurado— se adelantó a TKT-005.
 >

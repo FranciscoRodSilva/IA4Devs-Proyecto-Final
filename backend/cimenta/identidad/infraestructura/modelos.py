@@ -82,5 +82,6 @@ class IntentoAcceso(Base):
     email: Mapped[str] = mapped_column(Text)
     usuario_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("usuario.id"))
     exitoso: Mapped[bool] = mapped_column(Boolean)
+    credenciales_verificadas: Mapped[bool] = mapped_column(Boolean)
     ocurrido_en: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     origen_ip: Mapped[str | None] = mapped_column(Text)

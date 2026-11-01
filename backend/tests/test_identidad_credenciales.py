@@ -35,7 +35,7 @@ def _leer_env_example() -> dict[str, str]:
         texto = linea.strip()
         if texto and not texto.startswith("#") and "=" in texto:
             clave, valor = texto.split("=", 1)
-            pares[clave.strip()] = valor.strip()
+            pares[clave.strip()] = re.split(r"\s+#", valor, maxsplit=1)[0].strip()
     return pares
 
 
@@ -127,7 +127,7 @@ def test_tkt003_ca10_contrasena_vacia_se_rechaza(
 
 
 def test_tkt003_ca10_esc03_ningun_secreto_en_el_repositorio() -> None:
-    """TC-64 · CA-10 esc. 3 — ni la migración ni las herramientas ni Compose llevan una contraseña."""
+    """TC-64 · CA-10 esc. 3 · TKT-057 TC-66 — ni la migración ni las herramientas ni Compose llevan una contraseña."""
     revisados = [RAIZ / "compose.yaml"] + _archivos_de_texto(
         BACKEND / "migraciones", BACKEND / "herramientas", BACKEND / "tests"
     )
@@ -140,18 +140,18 @@ def test_tkt003_ca10_esc03_ningun_secreto_en_el_repositorio() -> None:
         for clave, valor in _leer_env_example().items()
         if clave.startswith("CIMENTA_DB_CONTRASENA_")
     ]
-    assert len(valores) == 3
-    assert all(valor.startswith(PREFIJO_DE_DESARROLLO) for valor in valores)
+    # TKT-057 (RNF-07): .env.example ya no trae contraseñas; las tres claves existen y están vacías.
+    assert valores == ["", "", ""]
 
     for ruta in revisados:
         texto = ruta.read_text(encoding="utf-8")
         assert cadena_prohibida not in texto, f"{ruta} fija una contraseña en el SQL"
-        for valor in valores:
-            assert valor not in texto, f"{ruta} contiene una contraseña de .env.example"
+        if BACKEND / "tests" not in ruta.parents:
+            assert PREFIJO_DE_DESARROLLO not in texto, f"{ruta} fija una contraseña de desarrollo"
 
 
 def test_tkt003_ca11_esc01_env_example_define_lo_que_se_usa() -> None:
-    """TC-65 · CA-11 esc. 1 — .env.example define exactamente las variables que el código lee."""
+    """TC-65 · CA-11 esc. 1 · TKT-057 TC-66 — .env.example define exactamente las variables que el código lee, las contraseñas vacías."""
     claves = _leer_env_example()
     de_conexion = {
         clave: valor for clave, valor in claves.items() if clave.startswith("CIMENTA_DB_")
@@ -162,7 +162,7 @@ def test_tkt003_ca11_esc01_env_example_define_lo_que_se_usa() -> None:
     assert de_conexion["CIMENTA_DB_PUERTO"] == "5432"
     assert de_conexion["CIMENTA_DB_NOMBRE"] == "cimenta"
     for clave in CLAVES_DE_CONEXION - {"CIMENTA_DB_HOST", "CIMENTA_DB_PUERTO", "CIMENTA_DB_NOMBRE"}:
-        assert de_conexion[clave].startswith(PREFIJO_DE_DESARROLLO), clave
+        assert de_conexion[clave] == "", clave  # TKT-057: sin contraseñas versionadas
 
     revisados = [RAIZ / "compose.yaml"] + _archivos_de_texto(
         BACKEND / "herramientas", BACKEND / "migraciones", patrones=("*.py", "*.mako")

@@ -38,7 +38,7 @@ export interface paths {
         put?: never;
         /**
          * Iniciar Sesion
-         * @description M2 · RNF-03: abre una sesión y fija la cookie opaca. Sin `max_age`: la caducidad la decide el servidor.
+         * @description M2 · RNF-03 · CA-12: abre una sesión, fija la cookie opaca y rota el token CSRF. Sin `max_age`: la caducidad la decide el servidor.
          */
         post: operations["iniciar_sesion"];
         delete?: never;
@@ -58,7 +58,7 @@ export interface paths {
         put?: never;
         /**
          * Cerrar Sesion
-         * @description M4: revoca la sesión (nunca la borra) y expira la cookie.
+         * @description M4 · CA-12: revoca la sesión (nunca la borra), expira la cookie y rota el token CSRF. Exige el par CSRF (CA-9).
          */
         post: operations["cerrar_sesion"];
         delete?: never;

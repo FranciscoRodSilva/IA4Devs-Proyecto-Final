@@ -49,6 +49,9 @@ ENTORNO_DE_PRUEBA = {
     "CIMENTA_ARGON2_TIEMPO": "1",
     "CIMENTA_ARGON2_MEMORIA_KIB": "8192",
     "CIMENTA_ARGON2_PARALELISMO": "1",
+    # RNF-07 (TKT-057): `crear_aplicacion` exige la contraseña del rol de aplicación. Aquí es un valor
+    # aleatorio que nunca conecta con nada: las pruebas pasan su propio motor.
+    "CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16),
 }
 INICIO_DEL_RELOJ = datetime(2026, 10, 21, 9, 0, tzinfo=UTC)
 

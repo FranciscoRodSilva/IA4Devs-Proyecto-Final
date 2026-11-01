@@ -19,6 +19,7 @@ import inspect
 import io
 import json
 import os
+import secrets
 import socket
 import subprocess
 import sys
@@ -58,10 +59,11 @@ FIXTURES_CON_BASE = {
     "credenciales",
 }
 
-# El proceso limpio no tiene ninguna variable `CIMENTA_DB_*`. Construye la aplicación con identidad
-# montada y atiende tres peticiones cuyo camino no necesita la base: una ruta que no existe, el
-# token CSRF y una consulta de sesión sin cookie. Si cualquiera intentara crear el motor,
-# `leer_variable` lanzaría y la respuesta sería 500 (CA-11 esc. 3 de TKT-005, reescrito por D-2 de TKT-006).
+# El proceso limpio solo tiene `CIMENTA_DB_CONTRASENA_APLICACION` (RNF-07, TKT-057): sin host, puerto
+# ni nombre de base. Construye la aplicación con identidad montada y atiende tres peticiones cuyo
+# camino no necesita la base: una ruta que no existe, el token CSRF y una consulta de sesión sin
+# cookie. Si cualquiera intentara crear el motor, `leer_variable` lanzaría y la respuesta sería 500
+# (CA-11 esc. 3 de TKT-005, reescrito por D-2 de TKT-006 y de nuevo por TKT-057, CA-R8).
 PROGRAMA_SIN_BASE = """
 import io
 import json
@@ -90,10 +92,18 @@ ENTORNO_SIN_BASE = {
     nombre: valor for nombre, valor in ENTORNO.items() if not nombre.startswith("CIMENTA_DB_")
 }
 
+# Desde TKT-057 (RNF-07) el servidor exige su contraseña de aplicación y ninguna otra variable de base.
+VARIABLE_CONTRASENA_APLICACION = "CIMENTA_DB_CONTRASENA_APLICACION"
+CONTRASENA_APLICACION = secrets.token_urlsafe(16)
+ENTORNO_CON_CONTRASENA = {**ENTORNO_SIN_BASE, VARIABLE_CONTRASENA_APLICACION: CONTRASENA_APLICACION}
+
 
 def aplicacion_de_la_fabrica() -> FastAPI:
     fabrica = importlib.import_module("servidor.fabrica")
-    aplicacion: FastAPI = fabrica.crear_aplicacion(destino_registro=io.StringIO())
+    aplicacion: FastAPI = fabrica.crear_aplicacion(
+        destino_registro=io.StringIO(),
+        entorno={VARIABLE_CONTRASENA_APLICACION: CONTRASENA_APLICACION},
+    )
     return aplicacion
 
 
@@ -138,17 +148,19 @@ def test_tkt005_ca14_la_aplicacion_no_esta_en_depuracion() -> None:
 
 
 def test_tkt005_ca11_el_camino_del_error_no_toca_la_base() -> None:
-    """TC-75 · CA-11 esc. 3 (asumido) · TKT-006 D-2 — sin `CIMENTA_DB_*`, el 404, el token CSRF y el 401 sin cookie no tocan la base.
+    """TC-75 · CA-11 esc. 3 (asumido) · TKT-006 D-2 · TKT-057 CA-R8 (TC-56) — con solo la contraseña de aplicación, el 404, el token CSRF y el 401 sin cookie no tocan la base.
 
-    Con `identidad` montada la aplicación sí importa SQLAlchemy al construirse: lo que este caso
-    protege ya no es qué módulos se cargan, sino que el camino del error y las dos rutas que no
-    necesitan sesión funcionan en un proceso sin ninguna variable de base. El motor es perezoso; si
-    cualquiera de las tres peticiones lo creara, `leer_variable` lanzaría y la respuesta sería 500.
+    Reescrito por TKT-057: ya no es «sin ninguna `CIMENTA_DB_*`» (eso contradice RNF-07, la
+    aplicación no arranca sin su contraseña) sino «solo con `CIMENTA_DB_CONTRASENA_APLICACION`», sin
+    host, puerto ni nombre de base. Con `identidad` montada la aplicación sí importa SQLAlchemy al
+    construirse: lo que este caso protege es que el camino del error y las dos rutas que no necesitan
+    sesión funcionan en ese proceso. El motor es perezoso; si cualquiera de las tres peticiones lo
+    creara, `leer_variable("CIMENTA_DB_HOST")` lanzaría y la respuesta sería 500.
     """
     proceso = subprocess.run(
         [sys.executable, "-c", PROGRAMA_SIN_BASE],
         cwd=BACKEND,
-        env=ENTORNO_SIN_BASE,
+        env=ENTORNO_CON_CONTRASENA,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -157,7 +169,8 @@ def test_tkt005_ca11_el_camino_del_error_no_toca_la_base() -> None:
 
     assert proceso.returncode == 0, proceso.stderr
     resultado = json.loads(proceso.stdout.strip().splitlines()[-1])
-    assert resultado["variables_de_base"] == []  # anti-verde vacío: el proceso no ve la base
+    # anti-verde vacío: el proceso tiene la contraseña de aplicación y nada más de la base
+    assert resultado["variables_de_base"] == [VARIABLE_CONTRASENA_APLICACION]
     assert resultado["estados"] == {"no_existe": 404, "csrf": 200, "sesion": 401}
     cuerpos = resultado["cuerpos"]
     assert cuerpos["no_existe"]["tipo"] == "NO_ENCONTRADO"
@@ -307,7 +320,7 @@ def terminar(proceso: subprocess.Popen[bytes]) -> None:
 def test_tkt005_ca12_comando_de_desarrollo_arranca() -> None:
     """TC-79 · CA-12 esc. 2 — `fastapi dev` desde backend/ queda escuchando y publica /openapi.json."""
     puerto = puerto_libre()
-    entorno = {**ENTORNO, "COLUMNS": "250"}
+    entorno = {**ENTORNO_CON_CONTRASENA, "COLUMNS": "250"}
     # `--no-reload` (asumido): el recargador crea procesos hijos que en Windows no se terminan
     # con el padre. La salida va a un archivo temporal: una tubería sin lector se llenaría.
     with tempfile.TemporaryFile() as salida:
@@ -338,16 +351,18 @@ def test_tkt005_ca12_comando_de_desarrollo_arranca() -> None:
 
 
 def test_tkt006_car4_fastapi_dev_sin_variables_de_base_publica_identidad() -> None:
-    """TKT-006 fila 7 · CA-R4 · D-2 — `fastapi dev` sin `CIMENTA_DB_*` arranca y publica las cuatro rutas y el esquema `sesion`.
+    """TKT-006 fila 7 · CA-R4 · D-2 · TKT-057 CA-R8 — `fastapi dev` con solo la contraseña de aplicación arranca y publica las cuatro rutas y el esquema `sesion`.
 
     Es el comando de desarrollo real, en un subproceso, con puerto libre y sin recargador, como
-    TC-79. El entorno no lleva ninguna variable de base: montar `identidad` no puede exigirla para
-    arrancar. `/openapi.json` debe listar las cuatro operaciones de identidad y declarar
+    TC-79. El entorno solo lleva `CIMENTA_DB_CONTRASENA_APLICACION` (RNF-07), sin host, puerto ni
+    nombre de base: montar `identidad` no puede exigirlos para arrancar. `/openapi.json` debe listar las cuatro operaciones de identidad y declarar
     `components.securitySchemes.sesion`.
     """
     puerto = puerto_libre()
-    entorno = {**ENTORNO_SIN_BASE, "COLUMNS": "250"}
-    assert not [nombre for nombre in entorno if nombre.startswith("CIMENTA_DB_")]
+    entorno = {**ENTORNO_CON_CONTRASENA, "COLUMNS": "250"}
+    assert [nombre for nombre in entorno if nombre.startswith("CIMENTA_DB_")] == [
+        VARIABLE_CONTRASENA_APLICACION
+    ]
     with tempfile.TemporaryFile() as salida:
         proceso = subprocess.Popen(
             [sys.executable, "-m", "fastapi", "dev", "--no-reload", "--port", str(puerto)],
@@ -400,7 +415,7 @@ def test_tkt005_ca14_uvicorn_real_no_imprime_el_secreto_de_una_excepcion() -> No
     """
     secreto = "S3cr3t" + "!"
     puerto = puerto_libre()
-    entorno = {**ENTORNO, "SECRETO_DE_PRUEBA": secreto, "PYTHONUNBUFFERED": "1"}
+    entorno = {**ENTORNO_CON_CONTRASENA, "SECRETO_DE_PRUEBA": secreto, "PYTHONUNBUFFERED": "1"}
     comando = [
         sys.executable,
         "-m",

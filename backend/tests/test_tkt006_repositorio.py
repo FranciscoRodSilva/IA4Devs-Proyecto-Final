@@ -255,10 +255,10 @@ def test_tkt006_ca04_buscar_credencial_devuelve_al_desactivado(
     assert credencial.activo is False
 
 
-def test_tkt006_ca03_insertar_intento_conserva_el_correo_tal_como_se_escribio(
+def test_tkt006_ca03_insertar_intento_guarda_el_correo_que_se_le_pasa(
     sesion_bd: Session, ana: uuid.UUID, lector: Callable[[], Conexion]
 ) -> None:
-    """TC-58 · CA-3 · M11 — el intento guarda el correo escrito y admite un usuario inexistente."""
+    """TC-58 · CA-3 · M11 — el intento guarda el correo que se le pasa, sin normalizarlo, y admite un usuario inexistente."""
     import cimenta.identidad.infraestructura.repositorio as repositorio
 
     repositorio.insertar_intento(
@@ -266,6 +266,7 @@ def test_tkt006_ca03_insertar_intento_conserva_el_correo_tal_como_se_escribio(
         email="Nadie@Cimenta.TEST",
         usuario_id=None,
         exitoso=False,
+        credenciales_verificadas=True,
         ocurrido_en=T0,
         origen_ip="10.0.0.7",
     )
@@ -274,6 +275,7 @@ def test_tkt006_ca03_insertar_intento_conserva_el_correo_tal_como_se_escribio(
         email=CORREO_DE_ANA,
         usuario_id=ana,
         exitoso=True,
+        credenciales_verificadas=True,
         ocurrido_en=T0 + timedelta(minutes=1),
         origen_ip=None,
     )
@@ -335,7 +337,13 @@ def test_tkt006_ca02_el_repositorio_no_confirma(
         agente_usuario=None,
     )
     repositorio.insertar_intento(
-        sesion_bd, email=CORREO_DE_ANA, usuario_id=ana, exitoso=True, ocurrido_en=T0, origen_ip=None
+        sesion_bd,
+        email=CORREO_DE_ANA,
+        usuario_id=ana,
+        exitoso=True,
+        credenciales_verificadas=True,
+        ocurrido_en=T0,
+        origen_ip=None,
     )
 
     # Dentro de la transacción de quien llama sí está escrito: sin esto, 0 y 0 no probarían nada.

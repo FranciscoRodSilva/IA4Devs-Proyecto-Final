@@ -122,6 +122,11 @@ paths:
         las dos únicas rutas sin sesión. Sus rechazos —credenciales inválidas o
         token CSRF ausente— son anónimos: van a `intento_acceso` y al registro
         técnico, **no a la bitácora**, que exige usuario autenticado.
+        El `422` va antes que el `403`: un cuerpo inválido responde `422` sin mirar
+        el token y no asienta intento. El `429` tiene el mismo cuerpo y el mismo
+        `Retry-After` tanto si salta el límite por cuenta como si salta el de origen,
+        para que la respuesta no revele cuál de los dos se alcanzó. Cada `200` rota la cookie
+        `cimenta_csrf` (ver `SetCookieSesionYCsrf`).
       security:
         - csrf: []
       x-roles: []
@@ -139,7 +144,7 @@ paths:
           description: Sesión abierta.
           headers:
             Set-Cookie:
-              $ref: '#/components/headers/SetCookieSesion'
+              $ref: '#/components/headers/SetCookieSesionYCsrf'
             X-Correlacion-Id:
               $ref: '#/components/headers/XCorrelacionId'
           content:
@@ -190,13 +195,15 @@ paths:
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, RESIDENTE, COMPRAS, ALMACEN, ADMINISTRACION]
       x-reglas: []
       x-escenarios: []
-      x-tickets: [TKT-006]
+      x-tickets: [TKT-006, TKT-057]
       responses:
         '204':
-          description: Sesión revocada. La cookie se expira en la respuesta.
+          description: >-
+            Sesión revocada. La respuesta expira la cookie `cimenta_sesion` y fija
+            una `cimenta_csrf` nueva (rotación del token CSRF, ver `SetCookieSesionYCsrf`).
           headers:
             Set-Cookie:
-              $ref: '#/components/headers/SetCookieSesion'
+              $ref: '#/components/headers/SetCookieSesionYCsrf'
         '401':
           $ref: '#/components/responses/NoAutenticado'
         '403':
@@ -3280,7 +3287,9 @@ components:
       description: >-
         Token de doble envío: debe coincidir con la cookie `cimenta_csrf`. Obligatorio
         en todo método que muta estado (`RNF-05`); sin él o distinto, `403`
-        `ORIGEN_NO_VERIFICADO`.
+        `ORIGEN_NO_VERIFICADO`. El token se rota al iniciar sesión y al cerrarla: la
+        respuesta fija una cookie `cimenta_csrf` nueva, que el cliente debe usar desde
+        entonces (`SetCookieSesionYCsrf`).
 
   headers:
     XCorrelacionId:
@@ -3299,8 +3308,15 @@ components:
       schema:
         type: integer
         minimum: 0
-    SetCookieSesion:
-      description: '`cimenta_sesion=<id opaco>; HttpOnly; Secure; SameSite=Lax; Path=/`'
+    SetCookieSesionYCsrf:
+      description: >-
+        Dos cookies, que van en `Set-Cookie` separadas. `cimenta_sesion=<id opaco>;
+        HttpOnly; Secure; SameSite=Lax; Path=/` abre la sesión en el `200` de
+        `iniciar_sesion` y la expira en el `204` de `cerrar_sesion`. `cimenta_csrf=<token>;
+        Secure; SameSite=Lax; Path=/` (sin `HttpOnly`) lleva un token nuevo en ambas
+        respuestas: la rotación del token CSRF (`TKT-057`) hace que el token que el
+        cliente tenía en memoria deje de valer, y las peticiones que mutan estado
+        deben usar el de la respuesta más reciente.
       schema:
         type: string
     SetCookieCsrf:
@@ -3494,7 +3510,12 @@ components:
                     regla: RN-05
                 correlacion_id: c3d4e5f6-a7b8-4901-8cde-f01234567890
     DemasiadosIntentos:
-      description: Límite de intentos de acceso por cuenta o por origen (`RNF-04`). El bloqueo es temporal.
+      description: >-
+        Límite de intentos de acceso por cuenta o por origen (`RNF-04`). El bloqueo es
+        temporal. Por omisión, 5 fallos por cuenta o 20 por origen dentro de 15 minutos,
+        y ese mismo lapso es la duración del bloqueo. Los tres valores se configuran con
+        `CIMENTA_LIMITE_FALLOS_CUENTA`, `CIMENTA_LIMITE_FALLOS_ORIGEN` y
+        `CIMENTA_LIMITE_MINUTOS`.
       headers:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'

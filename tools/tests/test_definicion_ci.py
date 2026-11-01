@@ -350,7 +350,8 @@ def comprobar_tc08(trabajos: dict[str, list[str]]) -> list[str]:
         "humo",
         trabajos,
         [
-            ("cp .env.example .env", r"\bcp \.env\.example \.env(?![\w.])", None),
+            # TKT-057 fila 14 · RNF-07: las tres contraseñas nacen en el trabajo, con `openssl rand -hex 24`, y se escriben en `.env`.
+            ("openssl rand -hex 24", r"\bopenssl rand -hex 24(?![\w-])", None),
             ("docker compose up -d --wait db", r"\bdocker compose up -d --wait db(?![\w-])", None),
             ("uv sync --locked --python 3.14", UV_SYNC, "backend"),
             ("alembic upgrade head", r"\buv run --env-file \.\./\.env alembic upgrade head(?![\w-])", "backend"),
@@ -368,8 +369,11 @@ def comprobar_tc08(trabajos: dict[str, list[str]]) -> list[str]:
         return problemas
     bloque = trabajos["humo"]
     lista = pasos(bloque)
-    # `.env.example` y `compose.yaml` viven en la raíz: ejecutados desde otro directorio, no encuentran nada.
-    for etiqueta in ("cp .env.example .env", "docker compose up -d --wait db"):
+    # TKT-057 · RNF-07: copiar `.env.example` tal cual dejaría contraseñas versionadas en el entorno del trabajo.
+    if any(re.search(r"\bcp\b[^\n]*\.env\.example", comando(paso)) for paso in lista):
+        problemas.append("'humo': un paso copia .env.example tal cual (cp .env.example .env); las contraseñas se generan en el trabajo")
+    # `.env.example`, `.env` y `compose.yaml` viven en la raíz: ejecutados desde otro directorio, no encuentran nada.
+    for etiqueta in ("openssl rand -hex 24", "docker compose up -d --wait db"):
         posicion = posiciones.get(etiqueta)
         if posicion is not None:
             real = directorio_del_paso(bloque, lista[posicion[0]])
@@ -867,7 +871,12 @@ HUMO_SINTETICO = """\
       - uses: actions/checkout@abc # v6
       - uses: astral-sh/setup-uv@abc # v10
       - uses: actions/setup-node@abc # v7
-      - run: cp .env.example .env
+      - name: Preparar el entorno con contraseñas de prueba generadas
+        run: |
+          grep -v '^CIMENTA_DB_CONTRASENA_' .env.example > .env
+          for rol in MIGRACION APLICACION LECTURA; do
+            echo "CIMENTA_DB_CONTRASENA_${rol}=$(openssl rand -hex 24)" >> .env
+          done
       - run: docker compose up -d --wait db
       - run: uv sync --locked --python 3.14
         working-directory: backend
@@ -892,7 +901,15 @@ HUMO_SINTETICO = """\
 
 CI_CON_HUMO = CI_SINTETICO_VALIDO + HUMO_SINTETICO
 
-PASO_CP_ENV = "      - run: cp .env.example .env\n"
+PASO_ENV = (
+    "      - name: Preparar el entorno con contraseñas de prueba generadas\n"
+    "        run: |\n"
+    "          grep -v '^CIMENTA_DB_CONTRASENA_' .env.example > .env\n"
+    "          for rol in MIGRACION APLICACION LECTURA; do\n"
+    '            echo "CIMENTA_DB_CONTRASENA_${rol}=$(openssl rand -hex 24)" >> .env\n'
+    "          done\n"
+)
+PASO_CP_ENV = "      - run: cp .env.example .env\n"  # el paso antiguo: ya no es válido y se usa como mutante
 PASO_COMPOSE = "      - run: docker compose up -d --wait db\n"
 PASO_ALEMBIC = "      - run: uv run --env-file ../.env alembic upgrade head\n        working-directory: backend\n"
 PASO_CONTRASENAS = "      - run: uv run --env-file ../.env python -m herramientas.contrasenas_roles\n        working-directory: backend\n"
@@ -927,10 +944,13 @@ class PruebasDeMutantesDelHumo(unittest.TestCase):
         base = CI_CON_HUMO
         casos = {
             "trabajo humo ausente": sustituir(base, "\n  humo:\n", "\n  recorrido:\n"),
-            "cp .env.example comentado": comentar(base, "humo", PASO_CP_ENV),
-            "cp .env.example movido a backend": mover(base, "humo", "backend", PASO_CP_ENV, "      - run: uv run mypy .\n"),
-            "cp .env.example después de compose": mutar(base, "humo", PASO_CP_ENV + PASO_COMPOSE, PASO_COMPOSE + PASO_CP_ENV),
-            "cp con directorio por omisión backend": mutar(
+            "contraseñas generadas comentado": comentar(base, "humo", PASO_ENV),
+            "contraseñas generadas movido a backend": mover(base, "humo", "backend", PASO_ENV, "      - run: uv run mypy .\n"),
+            "contraseñas generadas después de compose": mutar(base, "humo", PASO_ENV + PASO_COMPOSE, PASO_COMPOSE + PASO_ENV),
+            "contraseñas generadas con otra longitud": mutar(base, "humo", "openssl rand -hex 24", "openssl rand -hex 4"),
+            "cp .env.example en lugar de generar": mutar(base, "humo", PASO_ENV, PASO_CP_ENV),
+            "cp .env.example además de generar": mutar(base, "humo", PASO_ENV, PASO_CP_ENV + PASO_ENV),
+            "contraseñas generadas con directorio por omisión backend": mutar(
                 base, "humo", "    steps:\n      - uses: actions/checkout@abc # v6\n      - uses: astral-sh/setup-uv@abc # v10\n      - uses: actions/setup-node",
                 "    defaults:\n      run:\n        working-directory: backend\n    steps:\n      - uses: actions/checkout@abc # v6\n      - uses: astral-sh/setup-uv@abc # v10\n      - uses: actions/setup-node",
             ),
@@ -969,10 +989,13 @@ class PruebasDeMutantesDelHumo(unittest.TestCase):
         }
         fragmentos = {
             "trabajo humo ausente": "no existe el trabajo",
-            "cp .env.example comentado": "cp .env.example .env",
-            "cp .env.example movido a backend": "cp .env.example .env",
-            "cp .env.example después de compose": "docker compose up -d --wait db",
-            "cp con directorio por omisión backend": "cp .env.example .env",
+            "contraseñas generadas comentado": "openssl rand -hex 24",
+            "contraseñas generadas movido a backend": "openssl rand -hex 24",
+            "contraseñas generadas después de compose": "docker compose up -d --wait db",
+            "contraseñas generadas con otra longitud": "openssl rand -hex 24",
+            "cp .env.example en lugar de generar": "un paso copia .env.example tal cual",
+            "cp .env.example además de generar": "un paso copia .env.example tal cual",
+            "contraseñas generadas con directorio por omisión backend": "openssl rand -hex 24",
             "compose comentado": "docker compose up -d --wait db",
             "compose sin --wait": "docker compose up -d --wait db",
             "compose levanta otro servicio": "docker compose up -d --wait db",
@@ -1094,7 +1117,7 @@ class DefinicionDeCI(unittest.TestCase):
         self.assertEqual(comprobar_tc06(_trabajos_de_ci(self)), [])
 
     def test_tc08_humo_construye_el_entorno_corre_el_recorrido_y_sube_el_informe_si_falla(self):
-        """CA-5 esc. 1 · TC-08 — `humo`: cp .env.example, compose --wait db, sync, alembic, contraseñas, npm ci, playwright install, e2e con reporter html y upload-artifact `humo-playwright` con if: failure()."""
+        """CA-5 esc. 1 · TC-08 · TKT-057 CA-17 — `humo`: contraseñas generadas con openssl (nunca cp .env.example), compose --wait db, sync, alembic, contraseñas, npm ci, playwright install, e2e con reporter html y upload-artifact `humo-playwright` con if: failure()."""
         self.assertEqual(comprobar_tc08(_trabajos_de_ci(self)), [])
 
     def test_tc12_contrato_api_reservado_entre_backend_y_frontend_sin_cancelarse(self):
@@ -2314,7 +2337,7 @@ class PruebasDeMutantesDeLasCompuertas(unittest.TestCase):
                 ),
                 "`-k`",
             ),
-            "pytest en otro trabajo con filtro": (mutar(CI_CON_GUARDAS, "humo", PASO_CP_ENV, PASO_CP_ENV + "      - run: uv run pytest -k nada\n"), "'humo'"),
+            "pytest en otro trabajo con filtro": (mutar(CI_CON_GUARDAS, "humo", PASO_ENV, PASO_ENV + "      - run: uv run pytest -k nada\n"), "'humo'"),
             "pytest comentado": (comentar(CI_CON_GUARDAS, "backend", PASO_PYTEST_G), "pytest"),
             "pytest movido a fronteras": (mover(CI_CON_GUARDAS, "backend", "fronteras", PASO_PYTEST_G, "      - run: uv run lint-imports\n"), "'backend'"),
         }
