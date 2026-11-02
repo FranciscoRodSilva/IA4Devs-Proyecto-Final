@@ -27,7 +27,7 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 32 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 33 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`AGENTS.md`](AGENTS.md) | Entrada de Cursor: remite a `CLAUDE.md` y recoge lo que cambia al trabajar desde Cursor |
@@ -260,7 +260,7 @@ La revisión de LIDR del **2026-10-14** dio *luz amarilla: avanzar ajustando*. C
 | Tickets de trabajo | 69, todos detallados con criterios técnicos y *non-goals*, en 11 sprints: 7 de fase 1 y 4 de fase 2 |
 | Especificación de la API | 70 operaciones de fase 1 en el borrador OpenAPI 3.1, validado; las de fase 2, listadas con su ticket |
 | Wireframes | 10 pantallas del hilo vertical |
-| Decisiones de arquitectura (ADR) | 32 |
+| Decisiones de arquitectura (ADR) | 33 |
 
 Estas cifras las comprueba [`tools/verificar_docs.py`](tools/README.md) contra los documentos, salvo las de API, wireframes y ADR.
 

@@ -187,6 +187,9 @@
 | 2026-11-02 | TKT-010b | `agente` | Cada reauditoría encontró Menores nuevos de pruebas aunque se acotó con el informe previo: se agotaron los tres ciclos con un Menor vivo, resuelto sin reauditar | Media |
 | 2026-11-02 | TKT-010b | `convención` | Los `overrides` de `mypy` en modo estricto no incluyen `herramientas.*` ni `tests.*`, así que `uv run mypy .` es laxo para la herramienta nueva; `auditor-codigo` tuvo que ejecutar `--strict` aparte | Baja |
 | 2026-11-02 | TKT-010b | `documentación` | Una afirmación de documentación («`verificar_docs.py` comprueba las cifras») resultó falsa para la cifra de ADR del README; las cifras que no comprueba ningún verificador se desfasan en silencio | Media |
+| 2026-11-02 | TKT-013a | `convención` | Compartir datos de prueba entre módulos `test_*` con `from tests.test_*` o imports cruzados rompe `mypy .` (módulo duplicado); el soporte compartido quedó en `herramientas/soporte_tkt013.py` | Baja |
+| 2026-11-02 | TKT-013b | `herramienta` | `verificar_escenarios` TC-56 asumía `tests HDU 0` con todas las historias inactivas; TKT-013 añadió 47 tests `test_hdu001_esc*` que cuentan aunque la historia siga pendiente | Baja |
+| 2026-11-02 | TKT-013 | `agente` | Reauditoría acotada al informe previo más corrector-revisión cerraron mayores en dos ciclos sin agotar el tope de tres | Baja |
 
 Temas en uso: `plantilla` · `agente` · `comando` · `guardrail` · `convención` · `documentación` · `contexto` · `herramienta` · `modelo`.
 

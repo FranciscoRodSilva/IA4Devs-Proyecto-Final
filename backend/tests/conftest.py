@@ -1119,6 +1119,68 @@ def datos_presupuesto(base_de_prueba: str, conectar: Conectar) -> DatosPresupues
     return DatosPresupuesto(conectar("aplicacion", base_de_prueba))
 
 
+# ----------------------------------------------------------------------------- TKT-013
+# Libro sintético con openpyxl en tmp_path; archivos reales por variable de entorno (PA-T3).
+
+
+class LibroCatalogo:
+    """Construye un .xlsx en disco para pruebas del lector (TKT-013b)."""
+
+    def __init__(self, tmp_path: Path) -> None:
+        from openpyxl import Workbook
+
+        self._ruta = tmp_path / "catalogo_prueba.xlsx"
+        self._libro = Workbook()
+        hoja_default = self._libro.active
+        assert hoja_default is not None
+        self._libro.remove(hoja_default)
+
+    def nueva_hoja(self, nombre: str) -> None:
+        self._libro.create_sheet(nombre)
+
+    def escribir_fila(self, hoja: str, numero: int, valores: Sequence[Any]) -> None:
+        ws = self._libro[hoja]
+        for indice, valor in enumerate(valores, start=1):
+            ws.cell(row=numero, column=indice, value=valor)
+
+    def bytes(self) -> bytes:
+        self._libro.save(self._ruta)
+        return self._ruta.read_bytes()
+
+
+@pytest.fixture
+def libro_catalogo(tmp_path: Path) -> LibroCatalogo:
+    """Ayudante para armar libros .xlsx en el directorio temporal de la prueba."""
+    return LibroCatalogo(tmp_path)
+
+
+def _bytes_catalogo_real(variable: str, etiqueta: str) -> bytes:
+    ruta_texto = os.environ.get(variable)
+    if not ruta_texto:
+        pytest.skip(
+            f"{variable} no está definida: la prueba contra el archivo real se omite (PA-T3)"
+        )
+    ruta = Path(ruta_texto)
+    if not ruta.is_file():
+        pytest.skip(f"{variable}={ruta_texto!r} no existe: la prueba contra {etiqueta} se omite")
+    return ruta.read_bytes()
+
+
+@pytest.fixture
+def archivo_eniti() -> bytes:
+    """Bytes del catálogo ENITI (`CIMENTA_CATALOGO_ENITI`)."""
+    return _bytes_catalogo_real("CIMENTA_CATALOGO_ENITI", "ENITI")
+
+
+@pytest.fixture
+def archivo_union() -> bytes:
+    """Bytes del catálogo Union Square (`CIMENTA_CATALOGO_UNION`).
+
+    Debe apuntar al libro P.U. con la hoja `CATALOGO DE CONCEPTOS` (CA-7: `#REF!` en E/F).
+    """
+    return _bytes_catalogo_real("CIMENTA_CATALOGO_UNION", "Union Square")
+
+
 # ----------------------------------------------------------------------------- estructura de 0006
 # La estructura que el diseño fija para `0006`, tabla por tabla, con las «Restricciones CHECK» y
 # «Unicidad e índices». La leen TC-02 de la suite de estructura y TC-17 de la de regresión, por la

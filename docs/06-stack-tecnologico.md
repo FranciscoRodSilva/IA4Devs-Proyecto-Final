@@ -76,7 +76,7 @@ graph TB
 | **Base de datos** | PostgreSQL |
 | **Lectura de Excel** | openpyxl |
 | **Almacén de archivos** | Objetos compatibles con S3 vía `boto3` — Cloudflare R2 en producción, MinIO en local y tests |
-| **Tipo real de archivo** | `puremagic` sobre los bytes, nunca la extensión · `defusedxml` y apertura del ZIP para lo que no tiene firma legible |
+| **Tipo real de archivo** | `puremagic` sobre los bytes, nunca la extensión · `defusedxml` (declarada desde TKT-013b) y apertura del ZIP para lo que no tiene firma legible |
 | **Contraseñas y sesión** | pwdlib con Argon2id · sesión con estado en tabla |
 | **Configuración y secretos** | pydantic-settings, desde el entorno |
 | **Lenguaje frontend** | TypeScript |
@@ -206,6 +206,8 @@ Lo decisivo: en modo `data_only=True`, openpyxl devuelve el **valor en caché** 
 
 En modo `read_only=True` el consumo de memoria es acotado incluso con el archivo de 8 MB.
 
+La conversión de `float` a `Decimal` ocurre en la frontera de infraestructura con `Decimal(repr(f))`; ver [ADR-033](adr/20261102-lectura-posicional-del-catalogo.md).
+
 > **Alternativa si el rendimiento apremia:** `python-calamine` es sensiblemente más rápido por estar escrito en Rust, pero habría que comprobar que expone los errores de fórmula con el mismo detalle. No se adopta ahora porque la importación es una operación excepcional, no una de cada día, y porque openpyxl ya está probado contra los datos reales.
 
 ### 4.6. Los archivos no viven en PostgreSQL
@@ -220,7 +222,7 @@ En modo `read_only=True` el consumo de memoria es acotado incluso con el archivo
 
 > **Se elige `puremagic` y no `python-magic` por una razón de entorno, no de calidad.** `python-magic` es una envoltura sobre `libmagic`, una biblioteca nativa que en Linux viene con el sistema y **en Windows hay que instalar aparte, con un paquete distinto**. El desarrollo ocurre en Windows y el pipeline en Linux: una dependencia que se instala diferente en cada uno es un *"en mi máquina funciona"* esperando a ocurrir. `puremagic` es Python puro, no tiene binario detrás y reconoce de sobra la lista blanca de arriba.
 
-**Dos de la lista no tienen firma que leer, y eso cambia el código.** Un `.xlsx` es un ZIP —indistinguible de cualquier otro ZIP— y un `.xml` es texto sin firma ninguna. Para esos dos la comprobación es **estructural y no mágica**: abrir el ZIP y exigir la parte de libro de Excel en su `[Content_Types].xml`, y parsear el XML hasta la raíz con `defusedxml`. Si no abre, no entra.
+**Dos de la lista no tienen firma que leer, y eso cambia el código.** Un `.xlsx` es un ZIP —indistinguible de cualquier otro ZIP— y un `.xml` es texto sin firma ninguna. Para esos dos la comprobación es **estructural y no mágica**: abrir el ZIP y exigir la parte de libro de Excel en su `[Content_Types].xml`, y parsear el XML hasta la raíz con `defusedxml` (ya incorporada al bloqueo en TKT-013b para endurecer openpyxl). Si no abre, no entra.
 
 Importa más de lo que parece: el ZIP que pasa esa puerta es el que openpyxl va a abrir después, y un archivo construido a propósito es la vía más barata de agotar la memoria de un despliegue que es un solo proceso.
 
@@ -594,7 +596,7 @@ Las dos que no se verifican solas son las dos que dependen de un entorno que tod
 | **`SameSite=Strict` como único control de CSRF** | Mitiga, pero no es defensa en profundidad, y rompe los enlaces entrantes: abrir una requisición desde el correo no manda la cookie y el usuario aparece desconectado. Se usa `Lax` con token de doble envío |
 | **pytest-bdd** | Indirección de definiciones de pasos que hay que mantener; los agentes escriben pytest plano con más fiabilidad. La trazabilidad se consigue con convención de nombres y un verificador |
 | **Celery o cola externa** | La única operación pesada es la importación, que es excepcional. Umbral de reconsideración en ADR-001 |
-| **pandas para leer Excel** | Trae NumPy y convierte a flotante por omisión, que es exactamente lo que no puede pasar con importes. openpyxl devuelve `Decimal` o cadena |
+| **pandas para leer Excel** | Trae NumPy y convierte a flotante por omisión, que es exactamente lo que no puede pasar con importes. openpyxl devuelve `int`, `float` o cadena; la frontera convierte el `float` con `Decimal(repr(…))` ([ADR-033](adr/20261102-lectura-posicional-del-catalogo.md)) |
 | **Poetry** | uv lo cubre y además reemplaza pip, pip-tools y la gestión de entornos, del mismo equipo que Ruff |
 | **Aplicación nativa o híbrida** para la captura en obra | Daría más capacidad sin conexión, a cambio de una segunda cadena de compilación, un segundo artefacto y distribución en dos tiendas. Contra el criterio **C4**: hay un desarrollador. La aplicación web instalable cubre el caso real — [ADR-015](adr/20260919-captura-diferida-sin-conexion.md) |
 | **Archivos en el sistema de ficheros del servidor** | Rompe el artefacto sin estado de [ADR-008](adr/20260918-despliegue-single-tenant.md), deja el respaldo de `RNF-10` por construir entero, y mete los bytes en el grupo de hilos de [ADR-013](adr/20260919-sqlalchemy-sincrono.md): cada descarga de un video retendría un hilo mientras dura, con una aplicación lenta y ningún error en el registro como único síntoma |

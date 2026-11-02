@@ -531,7 +531,7 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 - [ ] La URL de subida se firma **con el tamaño y el SHA-256 declarados** para que el propio almacén rechace un objeto distinto; la clave del objeto la genera el sistema y el nombre del usuario se guarda como dato, nunca como ruta (`RNF-06`)
 - [ ] Límite de tamaño por tipo —15 MB imagen, 50 MB video, 25 MB documento **(asumido, `PA-15`)**— comprobado **al dar de alta** sobre el tamaño declarado: un declarado que excede el límite responde `422` y no se emite URL. Al confirmar, un tamaño almacenado distinto del declarado es `409` `CONFLICTO` `ARCHIVO_TAMANO_DISTINTO`
 - [ ] `POST /api/v1/archivos/{archivo_id}/confirmacion` verifica tamaño y SHA-256 contra el objeto almacenado; si no coinciden, responde `409` `CONFLICTO` con `ARCHIVO_TAMANO_DISTINTO` o `ARCHIVO_HASH_DISTINTO`, mostrando lo declarado frente a lo almacenado, y el archivo **no** pasa a `DISPONIBLE` (HDU-001 esc. 25, `RNF-19`)
-- [ ] La confirmación determina el tipo **leyendo los bytes** con `puremagic` contra la lista blanca cerrada del [stack §4.6](06-stack-tecnologico.md#46-los-archivos-no-viven-en-postgresql); para hoja de cálculo —solo `.xlsx`; un `.xls` no se admite— y XML la comprobación es **estructural** —abrir el ZIP y exigir la parte de libro en `[Content_Types].xml`; parsear el XML con `defusedxml`—. Un tipo fuera de la lista, **SVG incluido**, se rechaza con `409` `CONFLICTO` `ARCHIVO_TIPO_NO_PERMITIDO`, el tipo detectado y los admitidos, y el archivo no pasa a `DISPONIBLE` (HDU-001 esc. 26). Es `409` y no `422` porque la petición está bien formada: lo que no cuadra es el objeto almacenado con lo declarado, igual que en el hash del esc. 25
+- [ ] La confirmación determina el tipo **leyendo los bytes** con `puremagic` contra la lista blanca cerrada del [stack §4.6](06-stack-tecnologico.md#46-los-archivos-no-viven-en-postgresql); para hoja de cálculo —solo `.xlsx`; un `.xls` no se admite— y XML la comprobación es **estructural** —abrir el ZIP y exigir la parte de libro en `[Content_Types].xml`; parsear el XML con `defusedxml` (dependencia ya declarada desde TKT-013b)—. Un tipo fuera de la lista, **SVG incluido**, se rechaza con `409` `CONFLICTO` `ARCHIVO_TIPO_NO_PERMITIDO`, el tipo detectado y los admitidos, y el archivo no pasa a `DISPONIBLE` (HDU-001 esc. 26). Es `409` y no `422` porque la petición está bien formada: lo que no cuadra es el objeto almacenado con lo declarado, igual que en el hash del esc. 25
 - [ ] Al pasar a `DISPONIBLE`, el sistema **reescribe el `Content-Type` del objeto** con el tipo que determinó, porque el que acompañó a la subida lo eligió el cliente (regla 4 de ADR-016), y asienta en la bitácora, **en la misma transacción**, el adjunto con su hash (`RNF-19`)
 - [ ] `GET /api/v1/archivos/{archivo_id}` devuelve los metadatos —nunca los bytes ni la clave del objeto—, y `GET /api/v1/archivos/{archivo_id}/descarga` emite una URL de lectura de **minutos**, servida desde el origen del almacén y nunca desde el de la SPA; todo lo que no es imagen ni video lleva `Content-Disposition: attachment`. El rol se comprueba **al emitirla**, nunca después
 - [ ] **Barrido al arrancar** de los `PENDIENTE` con la caducidad vencida, **reutilizando el mecanismo que construye TKT-015** para las importaciones con latido vencido (`RNF-17`), no uno nuevo: elimina el objeto que llegara a subirse y pasa la fila a **`CADUCADO`**, sin borrarla. `CADUCADO` y no `ANULADO` porque el barrido no tiene autor, y el invariante 24 exige autor y motivo para anular ([modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos))
@@ -625,12 +625,19 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 |---|---|
 | **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-011b |
 
+**Partición en dos tickets hermanos** (aprobada 2026-11-02; fusión fija **TKT-013a → TKT-013b**):
+
+| Ticket | Contenido | Migración | Depende de | Filas del diseño |
+|---|---|---|---|---|
+| TKT-013a | Dominio puro: `catalogo.py`, `lectura_catalogo.py`, pruebas en memoria | Ninguna | TKT-011b | A0–A4 |
+| TKT-013b | `openpyxl`, `lector_catalogo.py`, archivos reales, totales (`S1`), ADR-033 | Ninguna | TKT-013a | B0–B5 |
+
 **Criterios técnicos**
 
-- [ ] Reconstruye la jerarquía obra › nivel › área › partida › concepto a partir de la indentación y de las filas sin código
+- [ ] Reconstruye la jerarquía obra › nivel › área › partida › concepto a partir de la **posición** de las filas sin código
 - [ ] Reconoce las unidades `M2`, `ML`, `PZA` y sus variantes de mayúsculas
-- [ ] Deposita el resultado en la zona de preparación sin tocar el modelo real
-- [ ] Se prueba contra los **dos** archivos reales, que tienen estructuras ligeramente distintas
+- [ ] Devuelve el resultado **en memoria** sin tocar el modelo real
+- [ ] Se prueba contra los **dos** archivos reales (TKT-013b), que tienen estructuras ligeramente distintas
 - [ ] Reporta fila y columna de cada valor que no puede interpretar
 
 **Non-goals** — No lee los análisis de precios unitarios; no confirma nada.
@@ -641,7 +648,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-013 |
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-013b |
 
 **Criterios técnicos**
 

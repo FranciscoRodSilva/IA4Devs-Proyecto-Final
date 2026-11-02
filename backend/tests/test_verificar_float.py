@@ -272,10 +272,11 @@ def test_tkt004_ca09_decimal_desde_literal_float(tmp_path: Path) -> None:
         cwd=tmp_path,
     )
 
-    salida = proceso.stdout + proceso.stderr
+    bruta = proceso.stdout + proceso.stderr
+    salida = re.sub(r"\x1b\[[0-9;]*m", "", bruta).replace("\\", "/")
     # Ruff imprime la ruta con el separador del sistema: se acepta `/` y `\`.
     marcas = {
-        (int(m.group(1)), m.group(2)) for m in re.finditer(r"reglas\.py:(\d+):\d+: (\w+)", salida)
+        (int(m.group(1)), m.group(2)) for m in re.finditer(r"reglas\.py:(\d+):\d+:\s*(\w+)", salida)
     }
     assert (3, "RUF032") in marcas, salida
     assert (4, "RUF032") not in marcas, salida

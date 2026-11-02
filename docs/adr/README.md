@@ -52,6 +52,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-11-01 | [Los conjuntos cerrados se declaran con `CHECK` con nombre, no con `ENUM`](20261101-catalogos-cerrados-por-check.md) | Aceptado | Base de datos, migraciones, presupuesto · `accion_bitacora` conserva su `ENUM` |
 | 2026-11-01 | [La inmutabilidad de la línea base la impone el motor, con disparadores que rechazan con un `SQLSTATE` propio](20261101-inmutabilidad-de-la-linea-base-en-el-motor.md) | Aceptado | Base de datos, migraciones, presupuesto · completa [la copia física](20260918-snapshot-linea-base.md) |
 | 2026-11-02 | [Los datos reales de arranque van en la migración, y los sintéticos o con credencial, en una herramienta de base local](20261102-semilla-en-migracion-y-herramienta-local.md) | Aceptado | Base de datos, migraciones, operación · TKT-010 |
+| 2026-11-02 | [Lectura posicional del catálogo de conceptos y conversión de `float` con `repr`](20261102-lectura-posicional-del-catalogo.md) | Aceptado | presupuesto · TKT-013 |
 
 ## Plantilla
 
