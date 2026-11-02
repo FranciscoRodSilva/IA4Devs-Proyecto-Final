@@ -220,3 +220,215 @@ Criterios `[M]` de TKT-010a: todos con resultado explícito y evidencia en la ta
 - [x] Documentación afectada por esta entrega actualizada en este mismo cambio
 - [x] `ruff`, `mypy`, `lint-imports` limpios
 - [x] Rama correcta (`tkt-010a-migracion-semilla`) y sin secretos en el diff
+
+---
+
+## TKT-010b · Ejecución de la herramienta de siembra local
+
+> Segunda entrega hermana (filas B1 a B5 del diseño). TKT-010a quedó fusionada en `Produccion` con el PR 33 antes de empezar.
+
+## Qué se implementó (TKT-010b)
+
+La herramienta `backend/herramientas/semilla_local.py`, que se ejecuta con `uv run --env-file ../.env python -m herramientas.semilla_local`, siembra en una base local seis usuarios, uno por rol de acceso, y 27 insumos sintéticos de tablaroca con su precio general. Se niega antes de conectar si el host de la base no es local o si `PGHOSTADDR` o `PGSERVICE` redirigen la conexión, exige la contraseña en `CIMENTA_SEMILLA_CONTRASENA`, deriva cada hash con `ContrasenasArgon2`, escribe en una sola transacción y nunca sobrescribe una fila existente. Se entrega con la documentación de arranque, `.env.example` y el ADR-032, que registra por qué la empresa y los tipos van en migración y los usuarios y los insumos en una herramienta local.
+
+## Ajustes respecto al design (TKT-010b)
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-02 | El ADR se llama `20261102-semilla-en-migracion-y-herramienta-local.md`, no `20261101-…` | Es la fecha real de creación; `design.md` se corrigió |
+| 2026-11-02 | `create_engine(…, hide_parameters=True)` | `auditor-arquitectura` (Menor): sin ello, un fallo de sentencia vuelca los hashes Argon2id en `[parameters: …]` |
+| 2026-11-02 | La cuarta subconsulta del resumen es `count(DISTINCT insumo_id)` | `auditor-sql` (Menor): contar filas daría 28 cuando TKT-014 cargue un segundo precio general |
+| 2026-11-02 | Tres pruebas nuevas, TC-B04b, TC-B06b y TC-B09b, y los mutantes MB-9 y MB-10 | Cobertura pedida por los auditores; consta en `design.md` |
+| 2026-11-02 | `npm run e2e` no se ejecutó contra la base local de desarrollo | La herramienta escribiría ahí, y `sdd/_evolucion.md` registra el antecedente de un agente que sembró la base de la persona usuaria. TC-B16 ejecuta el script de humo contra un contenedor y el CI corre la comprobación «Humo». Fila B5 marcada `⚠ Ajustado` |
+| 2026-11-02 | El resumen de TC-B06b es `(5, 4, 26, 26)` y no `(5, 5, 26, 26)` | Error de cálculo del informe de `auditor-sql`: al borrar las asignaciones 3 y 4 quedan cuatro sembradas; `auditor-sql` lo confirmó a mano en la reauditoría |
+
+## Archivos tocados (TKT-010b)
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/herramientas/semilla_local.py` | nuevo | infraestructura (herramienta de operación) |
+| `backend/tests/test_tkt010_semilla_local.py` | nuevo | pruebas |
+| `docs/adr/20261102-semilla-en-migracion-y-herramienta-local.md` | nuevo | documentación |
+| `docs/adr/README.md`, `CLAUDE.md`, `README.md`, `llms.txt` | modificados: fila del ADR-032, comando nuevo y conteo de ADR a 32 | documentación |
+| `docs/arranque-local.md`, `docs/03-modelo-datos.md`, `docs/05-tickets-trabajo.md`, `.env.example` | modificados | documentación y configuración de ejemplo |
+
+## Ciclo TDD por fila (TKT-010b)
+
+| Fila | Rojo | Verde |
+|---|---|---|
+| B1 · esqueleto, datos y guardas | `9 failed`, todos con «La herramienta herramientas.semilla_local no existe todavía» | `9 passed`; ruff, mypy, `lint-imports` y `verificar_float` limpios |
+| B2 · usuarios y asignaciones | `3 failed, 9 passed`: `NotImplementedError` (TC-B04, TC-B16) y «sembrar no existe todavía» (TC-B07) | `1 failed, 11 passed`; TC-B04 solo falla en «27 insumos y 27 precios» del resumen, lo que cierra B3. E-1 confirmado: `id = ANY(:lista)` con `list[uuid.UUID]` llega como `uuid[]` |
+| B3 · insumos y precios generales | `10 failed, 11 passed` por insumos y precios sin sembrar; ninguna prueba nació en verde vacía (se añadió la precondición de 27 insumos) | `21 passed` |
+| B4 · documentación y ADR-032 | no aplica | `verificar_docs` sin problemas (32 ADR), 474 pruebas de `tools/` y `markdownlint` en verde |
+| B5 · mutantes y suite | no aplica | diez mutantes caídos y suite completa en verde |
+
+**Tests devueltos al tester:** ninguno en la fase de ejecución. En el ciclo de corrección, el tester añadió las pruebas antes de que el corrector tocara la herramienta.
+
+**Mutación en rutas críticas** (cada mutante aplicado, visto en rojo y restaurado con el SHA-256 original):
+
+| Mutante | Test que cayó |
+|---|---|
+| MB-1 · sentencia 1 con `DO UPDATE SET password_hash` | TC-B07 |
+| MB-2 · sentencia 3 con `DO UPDATE SET unidad` | TC-B08 |
+| MB-3 · sentencia 4 sin `NOT EXISTS` | TC-B09 |
+| MB-4 · `if host not in HOSTS_LOCALES` pasa a `if False` | TC-B11 (dos casos) |
+| MB-5 · solo `PGHOSTADDR` en `VARIABLES_QUE_REDIRIGEN` | TC-B12, caso `pgservice` |
+| MB-6 · contraseña con `os.environ.get(…, "")` | TC-B10 (dos casos) |
+| MB-7 · la guarda se llama después de `create_engine` | TC-B11 y TC-B12 (cuatro casos) |
+| MB-8 · el `print` del resumen añade la contraseña | TC-B04 |
+| MB-9 · `ON CONFLICT (id) DO NOTHING` en usuarios, asignaciones o insumos | TC-B06b (`uq_usuario_email`, `uq_usuario_rol_usuario_id_rol_id`, `uq_insumo_codigo`); en precios es equivalente |
+| MB-10 · sin `hide_parameters=True` | TC-B04b |
+
+**Evidencia de ejecución al cerrar**, con `docker info` respondiendo (servidor 29.9.2), desde `backend/`:
+
+```text
+uv run ruff format --check .                    -> 178 files already formatted
+uv run ruff check .                             -> All checks passed!
+uv run mypy .                                   -> Success: no issues found in 178 source files
+uv run lint-imports                             -> Contracts: 15 kept, 0 broken.
+uv run python -m herramientas.verificar_float   -> archivos revisados: 19; hallazgos: 0
+uv run pytest -q                                -> 1722 passed in 340.21s (0:05:40)
+python tools/verificar_docs.py                  -> ✓ Sin problemas.
+python -m unittest discover -s tools/tests      -> Ran 474 tests … OK
+```
+
+## Modelo por paso (TKT-010b)
+
+| Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
+|---|---|---|---|---|
+| Apertura de rama | `git-entrega` | por omisión | por omisión | — |
+| B1, B2 y B3 · rojo | `tester-backend` | `sonnet` | `sonnet` | — |
+| B1, B2 y B3 · verde | `desarrollador-sql` | `haiku` | `haiku` | — |
+| B4 · documentación y ADR | `desarrollador-sql` | `haiku` | `haiku` | — |
+| B5 · mutantes y suite | `tester-backend` | `sonnet` | `sonnet` | — |
+| Auditorías de arquitectura y SQL | `auditor-arquitectura`, `auditor-sql` | `sonnet` | `sonnet` | — |
+| Ciclo de corrección 1 · pruebas | `tester-backend` | `sonnet` | `sonnet` | — |
+| Ciclo de corrección 1 · código | `corrector-revision` | `haiku` | `haiku` | — |
+| Reauditoría de SQL | `auditor-sql` | `sonnet` | `sonnet` | Incluía un hallazgo Mayor |
+| Reauditoría de arquitectura | `auditor-arquitectura` | `sonnet` | `haiku` | Hallazgo Menor ya corregido, acotado según la metodología |
+
+Ningún paso de desarrollo subió de modelo.
+
+## Resultado contra los criterios de aceptación (TKT-010b)
+
+| Criterio | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| `CA-4` | `[M]` | Cumplido | TC-B03, TC-B04, TC-B04b |
+| `CA-5` | `[M]` | Cumplido | TC-B01, TC-B05 |
+| `CA-6` | `[M]` | Cumplido | TC-B06, TC-B06b, TC-B07, TC-B08, TC-B09, TC-B09b; MB-1 a MB-3 y MB-9 |
+| `CA-7` | `[M]` | Cumplido | TC-B10; MB-6 |
+| `CA-8` | `[M]` | Cumplido | TC-B11, TC-B12; MB-4, MB-5 y MB-7 |
+| `CA-9` | `[M]` | Cumplido | TC-B13, TC-B14 |
+| `CA-10` | `[M]` | Cumplido (el escenario de la migración, en TKT-010a) | TC-B15 |
+| `CA-R5` | `[M]` | Cumplido | TC-B02 y la salida de `ruff`, `mypy`, `lint-imports` y `verificar_float` |
+| `CA-R6` | `[M]` | Cumplido localmente; se confirma en el PR | `verificar_docs` sin problemas |
+| `CA-R7` | `[M]` | Cumplido | TC-B16 |
+
+## Auditorías (TKT-010b)
+
+| Auditor | Veredicto | Hallazgos | Ciclos |
+|---|---|---|---|
+| `auditor-sql` | `APROBADO` | Primera pasada con un Mayor y dos Menores; los tres `Resuelto` en la reauditoría, sin hallazgos nuevos | 2 |
+| `auditor-arquitectura` | `REQUIERE CAMBIOS` en la reauditoría por un Menor de documentación, resuelto por el orquestador | El Menor de código quedó `Resuelto`; el Menor de documentación (literales del diseño) lo resolvió el orquestador según el criterio de parada de redacción, y la Observación de trazabilidad se atendió al añadir las tres pruebas nuevas a `design.md` | 2 |
+| `auditor-codigo`, `auditor-seguridad`, `auditor-docs` | Ver «Verificación en `/sdd-revisar` (TKT-010b)» al final de este documento | | |
+
+### Hallazgos y su resolución (TKT-010b)
+
+| ID | Auditor | Severidad | Ubicación | Hallazgo | Estado |
+|---|---|---|---|---|---|
+| F021 | `auditor-arquitectura` | Menor | `semilla_local.py:295` | El docstring prometía no imprimir hashes, pero un fallo de sentencia los volcaba en `[parameters: …]` | Resuelto: `hide_parameters=True` y TC-B04b |
+| F022 | `auditor-sql` | Mayor | `test_tkt010_semilla_local.py:729-848` | Ninguna prueba cubría una fila ajena con la misma única y otro `id` | Resuelto: TC-B06b ata el mutante MB-9 |
+| F023 | `auditor-sql` | Menor | `semilla_local.py:223` | El resumen contaba filas de precio general, no insumos | Resuelto: `count(DISTINCT insumo_id)` y TC-B09b |
+| F024 | `auditor-sql` | Menor | `test_tkt010_semilla_local.py:973-976` | La consulta con `%%simulad%%` iba sin parámetros y sin control positivo | Resuelto |
+| F025 | `auditor-arquitectura` | Menor | `design.md:154` y `:189` | Los literales del diseño no reflejaban el cambio | Resuelto por el orquestador |
+| F026 | `auditor-arquitectura` | Observación | `test_tkt010_semilla_local.py:494`, `:905`, `:1018` | TC-B04b, TC-B06b y TC-B09b no estaban en el plan del diseño | Resuelto: añadidos a `design.md` |
+
+Observaciones que no bloquean y que se anotan fuera de alcance: la siembra no asienta en la bitácora (decidido, `A7`); la guarda por host no cubre un túnel hacia una base remota; la herramienta escribe con el rol de migración, igual que `contrasenas_roles`; si una fila ajena choca, el resumen muestra una cifra menor y devuelve 0 sin avisar; `NOT EXISTS` no mira `vigente_hasta`; y falta una fila MB-11 para `count(*)` en el diseño.
+
+## Hallazgos fuera de alcance (TKT-010b)
+
+| Archivo | Observación | Prioridad |
+|---|---|---|
+| `backend/herramientas/semilla_local.py` y `frontend/e2e/sembrar_usuario_humo.py` | La guarda por host está duplicada, porque el script de humo no es importable | Baja, ya registrada en el ADR-032 |
+| `backend/herramientas/semilla_local.py` | Devolver un código distinto de 0 o avisar cuando el resumen sea menor que 6, 6, 27 y 27 | Baja |
+| `README.md` | La cifra de ADR de «Lo entregado, en cifras» ya estaba desactualizada antes de este ticket | Baja |
+| Vale | No está instalado en local: la prosa se revisó a mano y la comprobación de CI lo ejecuta | Baja |
+
+## Documentación actualizada (TKT-010b)
+
+`CLAUDE.md` (comando nuevo y conteo de ADR), `README.md`, `llms.txt`, `docs/arranque-local.md`, `.env.example`, `docs/03-modelo-datos.md`, `docs/05-tickets-trabajo.md` (título, «Qué hace» y criterios de TKT-010) y el ADR-032 con su fila en `docs/adr/README.md`. `python tools/verificar_docs.py` → `✓ Sin problemas.`
+
+## Verificación final (TKT-010b)
+
+- [x] Todos los criterios `[M]` de TKT-010b cumplidos con evidencia
+- [x] Ciclo TDD completo en cada fila: rojo antes de verde, ningún test editado por un desarrollador
+- [x] Suite en verde, con la salida pegada arriba
+- [x] ≥1 test de rechazo por regla implicada
+- [x] Mutación en rutas críticas: diez mutantes, diez con su test en rojo (en MB-9, la sentencia de precios es equivalente y se excluye de ese recuento)
+- [x] `auditor-sql` `APROBADO`; `auditor-arquitectura` sin hallazgos de código pendientes
+- [x] Sin hallazgo crítico o mayor pendiente
+- [x] Documentación afectada actualizada en este mismo cambio
+- [x] `ruff`, `mypy`, `lint-imports` limpios
+- [x] Rama correcta (`tkt-010b-herramienta-semilla-local`) y sin secretos en el diff
+
+## Verificación en `/sdd-revisar` (TKT-010b, 2026-11-02)
+
+**Auditorías.** `auditor-arquitectura` y `auditor-sql` auditaron el código en `/sdd-ejecutar` y se reauditaron allí; en esta fase se despacharon `auditor-codigo`, `auditor-seguridad` y `auditor-docs`.
+
+| Auditor | Primera pasada | Reauditorías | Veredicto final |
+|---|---|---|---|
+| `auditor-codigo` | `REQUIERE CAMBIOS`: ocho Menores | Ciclo 2: seis resueltos, dos parciales y dos Menores nuevos. Ciclo 3: queda un Menor (N001) más dos Observaciones | `APROBADO` condicionado a N001, que se aplicó después (ver abajo) |
+| `auditor-seguridad` | `APROBADO` con dos Bajas | Ciclo 2: las dos `Resuelto`, sin hallazgos nuevos; los siete mutantes de la guarda y del volcado cayeron | `APROBADO` |
+| `auditor-docs` | `REQUIERE CAMBIOS`: dos Mayores y cuatro Menores | Ciclo 2: los siete aplicados `Resuelto`, un Menor nuevo (el diseño no recogía el comportamiento nuevo de `main()`) | `APROBADO`: el Menor lo resolvió el orquestador con el texto literal pedido, según el criterio de parada de redacción |
+
+Ciclos de corrección: tres, en el máximo. Quedaron Menores de pruebas y Observaciones, sin Críticos ni Mayores vivos.
+
+### Hallazgos y su resolución (`/sdd-revisar`)
+
+| ID | Auditor | Severidad | Ubicación | Hallazgo | Estado |
+|---|---|---|---|---|---|
+| F027 | `auditor-codigo` | Menor | `semilla_local.py:294-296` | `url_migracion()` se evaluaba fuera del `try`: un entorno de conexión incompleto salía con traza | Resuelto: la URL va dentro del `try`, con `except ValueError` para el puerto; TC-B10b |
+| F028 | `auditor-seguridad` | Baja | `semilla_local.py:296-301` | `hide_parameters=True` no oculta el `DETAIL: Failing row contains (...)` de PostgreSQL, que lleva el hash | Resuelto: `except SQLAlchemyError` con `SystemExit` sin detalle y `from None`; TC-B04c |
+| F029 | `auditor-codigo` | Menor | `semilla_local.py:164-169` | El docstring de `exigir_base_local` decía «Lanza `SystemExit`» aunque con el host ausente deja pasar un `RuntimeError` | Resuelto |
+| F030 | `auditor-codigo` y `auditor-seguridad` | Menor y Baja | `test_tkt010_semilla_local.py` (TC-B11) | Solo se probaban dos hosts remotos; el mensaje no decía «exactamente» | Resuelto: nueve casos y mutantes `split(",")`, `lower()`, `startswith` y `strip` caídos |
+| F031 | `auditor-codigo` | Menor | `test_tkt010_semilla_local.py` | Andamiaje de la fase roja muerto, `Any` sin justificar, duplicación y un docstring en fase roja | Resuelto: import al inicio, `psycopg.Connection[tuple[Any, ...]]`, `COSTES_BARATOS`, `functools.partial` y docstring |
+| F032 | `auditor-codigo` | Menor | `semilla_local.py:44-46` | Comentario en línea que obligaba a envolver la anotación de `costo_unitario` | Resuelto: docstring de clase |
+| F033 | `auditor-codigo` | Menor | `test_tkt010_semilla_local.py` (TC-B04b y TC-B04c) | Bloque de captura de fallos duplicado, y falta de prueba con `CIMENTA_DB_HOST` ausente o vacío | Resuelto: helpers `secretos_filtrados` y `capturar_fallo`, y los casos `host_ausente` y `host_vacio` de TC-B10b |
+| F034 | `auditor-docs` | Mayor | `README.md` (tabla de cifras) | Decía 21 ADR cuando el resto del repositorio dice 32 | Resuelto |
+| F035 | `auditor-docs` | Mayor | `impl.md` | Dos encabezados de primer nivel (MD025) | Resuelto |
+| F036 | `auditor-docs` | Menor | `README.md`, `design.md` e `impl.md` | La frase sobre qué cifras comprueba `verificar_docs.py`; la fila B5 del diseño (MB-1 a MB-10, sin `npm run e2e` local, `⚠ Ajustado`); «ocho» en lugar de «diez» mutantes; recuento ambiguo | Resuelto |
+| F037 | `auditor-docs` | Observación | ADR-032 y `README.md` | `PA-T13` sin su ticket | Resuelto: «de TKT-006» |
+| F038 | `auditor-docs` | Menor | `design.md` (`main()` y plan de pruebas) | El diseño no recogía el comportamiento nuevo de `main()` ni TC-B10b y TC-B04c | Resuelto por el orquestador |
+| F039 | `auditor-seguridad` | Observación | `semilla_local.py:7-8` y ADR-032 línea 34 | El docstring prometía «cualquier variable de libpq» y el ADR decía que un destino remoto «no recibe ninguna escritura» sin matizar el túnel | Resuelto: se nombran `PGHOSTADDR` y `PGSERVICE` y el túnel consta entre los costes aceptados |
+
+**Observaciones aceptadas, sin acción:** `CLAUDE.md:63` (documentar la excepción de `herramientas/`) queda a decisión de la persona dueña; el `except ValueError` cubre todo el `try`, pero hoy solo `int()` lo lanza; `ContrasenasArgon2` se construye fuera del `try` (solo mostraría una traza sin secretos); líneas de más de 100 caracteres; `sembrar` larga con SQL incrustado; la importación de `CaptureResult` desde `_pytest.capture` solo para anotar; Vale y lychee no se ejecutan en local.
+
+**Último ajuste, sin una cuarta reauditoría.** Al tercer ciclo quedaba un Menor de pruebas (N001, el bloque de captura repetido en dos pruebas), que el propio auditor dejaba en `APROBADO` si se corregía con el texto literal. Se aplicó (helper `capturar_fallo`) y lo verifiqué yo: las 36 pruebas de la herramienta pasan, y `ruff`, `mypy` y los escáneres de credenciales siguen en verde. Ese último cambio no lo reauditó un auditor.
+
+### Suite y verificadores reejecutados por el orquestador
+
+```text
+uv run pytest -q                                -> 1734 passed in 355.17s (0:05:55)
+uv run pytest tests/test_tkt010_semilla_local.py tests/test_identidad_credenciales.py tests/test_identidad_sin_create_all.py -q
+                                                -> 43 passed in 15.11s   (tras el último ajuste de pruebas)
+uv run ruff format --check .                    -> 178 files already formatted
+uv run ruff check .                             -> All checks passed!
+uv run mypy .                                   -> Success: no issues found in 178 source files
+uv run lint-imports                             -> Contracts: 15 kept, 0 broken.
+uv run python -m herramientas.verificar_float   -> archivos revisados: 19; hallazgos: 0
+python tools/verificar_docs.py                  -> ✓ Sin problemas.
+npx --no-install markdownlint-cli2 (11 archivos tocados) -> Summary: 0 issues in 0 files
+python -m unittest discover -s tools/tests      -> OK (474 pruebas)
+```
+
+La suite completa (1734) se ejecutó antes del último ajuste de pruebas y los 36 casos de la herramienta se volvieron a ejecutar después. Lo que solo se puede verificar con el pipeline de un PR real —las diez comprobaciones requeridas, entre ellas «Humo» y «Documentación» con Vale y lychee— se verifica en `/sdd-completar`.
+
+### Resultado final por criterio
+
+Los diez criterios `[M]` de TKT-010b (`CA-4` a `CA-10`, `CA-R5`, `CA-R6` y `CA-R7`) quedan cumplidos con la evidencia de las secciones anteriores. `CA-R6` se confirma además en el PR.
+
+### Deuda y desviaciones
+
+- La fila B5 del diseño está `⚠ Ajustado`: no se ejecutó `npm run e2e` contra la base local de desarrollo.
+- Credenciales de prueba con valor en el repositorio público, anteriores a este ticket: `auditor-seguridad` las marca como fuera de alcance y pide una decisión de la persona dueña (`CIMENTA_PRUEBA_CONTRASENA` en `.env.example`, contraseñas de desarrollo de los roles en el diseño de TKT-003 y un literal en una prueba de `tools/`). No se tocaron.
+- Sigue pendiente decidir si el estado `PARCIAL` y la regla de partición llegan a la metodología (propuestas de `meta-sdd`).

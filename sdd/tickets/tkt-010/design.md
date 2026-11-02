@@ -37,7 +37,7 @@ El orden suma unas **770 líneas**, casi el doble del tope de ~400 por cambio. S
 | `DatosPresupuesto.tipo_partida` obtiene la fila si la clave existe | 4 · cambio mínimo | `A8` y `CA-R1`. Ver «Convivencia con la plantilla sembrada». Es soporte de prueba en `conftest.py`, no un test |
 | Ajuste de tres pruebas de TKT-011 | 4 · cambio mínimo | `CA-R1`: comprobaban «tabla vacía» o «una sola fila» donde ahora hay filas sembradas. Cambian la precondición, no lo que verifican. Necesita aprobación (P2) |
 | ADR-032 | 5 · objeto nuevo | Ver «¿Merece ADR?» |
-| Ajuste de entorno (`local`, `pruebas`, `produccion`) | 1 · YAGNI, fuera | Won't de la spec |
+| Ajuste de entorno (`local`, `pruebas`, `demostracion`, `produccion`) | 1 · YAGNI, fuera | Won't de la spec |
 | Asiento en la bitácora | 1 · YAGNI, fuera | `A7`: la siembra no tiene autor |
 | Comprobación previa de que existen los seis `rol` | 1 · YAGNI, fuera | La herramienta corre sobre una base migrada; si faltara un rol, el resumen de la salida lo muestra (5 asignaciones en lugar de 6) |
 
@@ -149,9 +149,9 @@ Los mensajes van sin tildes, como los del script de humo: la consola de Windows 
 
 **`main()`**:
 
-1. `try: exigir_base_local(); contrasena = leer_variable(VARIABLE_CONTRASENA)` `except RuntimeError as error: raise SystemExit(str(error)) from None`. `leer_variable` lanza `RuntimeError` con el nombre de la variable; `SystemExit` con una cadena termina con código 1 y la escribe en la salida de error.
+1. `try: exigir_base_local(); contrasena = leer_variable(VARIABLE_CONTRASENA); url = url_migracion()` `except RuntimeError as error: raise SystemExit(str(error)) from None` `except ValueError: raise SystemExit("Negado: CIMENTA_DB_PUERTO no es un numero entero. No se ha conectado.") from None` (ajuste del ciclo de corrección 2: sin él, un entorno de conexión incompleto salía con una traza). `leer_variable` lanza `RuntimeError` con el nombre de la variable; `SystemExit` con una cadena termina con código 1 y la escribe en la salida de error.
 2. `contrasenas = ContrasenasArgon2(ConfiguracionIdentidad.desde_entorno(os.environ))`.
-3. `motor = create_engine(url_migracion(), poolclass=NullPool)`; `try: with motor.begin() as conexion: resumen = sembrar(conexion, contrasena=contrasena, contrasenas=contrasenas)` `finally: motor.dispose()`. Una sola transacción: si cualquier sentencia falla, no queda nada escrito.
+3. `motor = create_engine(url, poolclass=NullPool, hide_parameters=True)` (ajuste del ciclo de corrección 1: sin `hide_parameters`, un fallo de sentencia vuelca los hashes en `[parameters: …]`); `try: with motor.begin() as conexion: resumen = sembrar(conexion, contrasena=contrasena, contrasenas=contrasenas)` `except SQLAlchemyError` → `SystemExit` con el tipo de la excepción original y el SQLSTATE, sin el detalle, que puede contener un hash (ajuste del ciclo de corrección 2) `finally: motor.dispose()`. Una sola transacción: si cualquier sentencia falla, no queda nada escrito.
 4. `print(f"Siembra local aplicada: {resumen.usuarios} usuarios, {resumen.asignaciones} asignaciones de rol, {resumen.insumos} insumos y {resumen.precios} precios generales. La contrasena no se muestra.")` y `return 0`. Ningún otro `print`; la contraseña y los hashes no se imprimen ni se registran.
 
 `if __name__ == "__main__": raise SystemExit(main())`.
@@ -186,7 +186,7 @@ ON CONFLICT DO NOTHING
 SELECT (SELECT count(*) FROM usuario WHERE id = ANY(:usuarios)),
        (SELECT count(*) FROM usuario_rol WHERE id = ANY(:asignaciones)),
        (SELECT count(*) FROM insumo WHERE id = ANY(:insumos)),
-       (SELECT count(*) FROM precio_insumo WHERE insumo_id = ANY(:insumos) AND obra_id IS NULL)
+       (SELECT count(DISTINCT insumo_id) FROM precio_insumo WHERE insumo_id = ANY(:insumos) AND obra_id IS NULL)
 ```
 
 `:costo_unitario` recibe `Decimal(insumo.costo_unitario)`. Una fila ajena con el mismo correo o el mismo código y otro identificador no se toca, y lo que depende de ella (su rol, su precio) no se crea: el resumen lo muestra con una cifra menor que 6 o 27. Las listas de la sentencia 5 son `list[uuid.UUID]`; psycopg las adapta a `uuid[]` (E-1).
@@ -300,11 +300,11 @@ Se ejecuta fila por fila con el ciclo TDD de [metodología §16](../../metodolog
 
 | # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
 |---|---|---|---|---|---|---|
-| B1 | Esqueleto de `semilla_local.py`: constantes, `UsuarioSemilla`, `InsumoSemilla` con las dos listas literales, `identificador`, `exigir_base_local` y `main` hasta el paso 1 (sin conectar). ~95 líneas | TC-B01, TC-B02, TC-B03, TC-B10, TC-B11, TC-B12 | `desarrollador-sql` | `haiku` | `uv run pytest tests/test_tkt010_semilla_local.py -k "ca05_los_codigos or ca04_los_correos or ca07 or ca08 or car5"` en verde | Pendiente |
-| B2 | `sembrar` con las sentencias 1, 2 y 5 (usuarios, asignaciones y resumen) y `main` completo. ~45 líneas | TC-B04, TC-B07, TC-B16 | `desarrollador-sql` | `haiku` | `uv run pytest tests/test_tkt010_semilla_local.py -k "ca04 or ca06_un_usuario or car7"` en verde | Pendiente |
-| B3 | `sembrar` con las sentencias 3 y 4 (insumos y precios generales). ~35 líneas | TC-B05, TC-B06, TC-B08, TC-B09, TC-B13, TC-B14, TC-B15 | `desarrollador-sql` | `haiku` | `uv run pytest tests/test_tkt010_semilla_local.py` completo en verde | Pendiente |
-| B4 | Documentación `S1` y ADR-032 (ver «Documentación afectada»). Sin código | `CA-R6` | `desarrollador-sql` | `haiku` | `python tools/verificar_docs.py`; `python tools/extraer_mermaid.py`; `python -m unittest tools.tests.test_definicion_revision tools.tests.test_definicion_dependabot -v` (conteo de ADR y `.env.example`) | Pendiente |
-| B5 | Cierre de b: mutantes MB-1 a MB-8, el humo de Playwright y el trabajo `backend` completo | Todos los de b y la regresión completa | `tester-backend` | `sonnet` · valor por omisión del agente | Cada mutante aplicado, visto en rojo y revertido, con la salida en `impl.md`; `npm run e2e` desde `frontend/` en verde tras ejecutar la herramienta en la base local; los cinco comandos de calidad de A2 y `uv run pytest` en verde | Pendiente |
+| B1 | Esqueleto de `semilla_local.py`: constantes, `UsuarioSemilla`, `InsumoSemilla` con las dos listas literales, `identificador`, `exigir_base_local` y `main` hasta el paso 1 (sin conectar). ~95 líneas | TC-B01, TC-B02, TC-B03, TC-B10, TC-B11, TC-B12 | `desarrollador-sql` | `haiku` | `uv run pytest tests/test_tkt010_semilla_local.py -k "ca05_los_codigos or ca04_los_correos or ca07 or ca08 or car5"` en verde | Hecho |
+| B2 | `sembrar` con las sentencias 1, 2 y 5 (usuarios, asignaciones y resumen) y `main` completo. ~45 líneas | TC-B04, TC-B07, TC-B16 | `desarrollador-sql` | `haiku` | `uv run pytest tests/test_tkt010_semilla_local.py -k "ca04 or ca06_un_usuario or car7"` en verde | Hecho |
+| B3 | `sembrar` con las sentencias 3 y 4 (insumos y precios generales). ~35 líneas | TC-B05, TC-B06, TC-B08, TC-B09, TC-B13, TC-B14, TC-B15 | `desarrollador-sql` | `haiku` | `uv run pytest tests/test_tkt010_semilla_local.py` completo en verde | Hecho |
+| B4 | Documentación `S1` y ADR-032 (ver «Documentación afectada»). Sin código | `CA-R6` | `desarrollador-sql` | `haiku` | `python tools/verificar_docs.py`; `python tools/extraer_mermaid.py`; `python -m unittest tools.tests.test_definicion_revision tools.tests.test_definicion_dependabot -v` (conteo de ADR y `.env.example`) | Hecho |
+| B5 | Cierre de b: mutantes MB-1 a MB-10, el humo de Playwright y el trabajo `backend` completo | Todos los de b y la regresión completa | `tester-backend` | `sonnet` · valor por omisión del agente | Cada mutante aplicado, visto en rojo y revertido, con la salida en `impl.md`; `npm run e2e` no se ejecuta contra la base local de desarrollo (ajuste de impl.md); TC-B16 cubre el humo; los cinco comandos de calidad de A2 y `uv run pytest` en verde | ⚠ Ajustado |
 
 **Modelo:** `haiku` en todas las filas de desarrollo. Ninguna cae en un disparador de [metodología §14](../../metodologia.md#14--enrutamiento-de-modelo): no hay regla de dinero ni de límite (los costos son datos, no una regla), ni bloqueo, ni disparador de inmutabilidad, ni cambio de permisos de un rol. Las filas de cierre van en `sonnet` porque es el valor por omisión de `tester-backend`. Ninguna fila va en `opus`.
 
@@ -359,6 +359,11 @@ Para las pruebas de `main`, una ayuda local `entorno_de_siembra(monkeypatch, con
 | TC-B13 | `test_tkt010_ca09_unidad_fuera_del_catalogo_sigue_rechazada`: tras `sembrar`, un insumo `LITRO` con el rol de aplicación responde `23514` con `ck_insumo_unidad`; `insumo` sigue con 27 | **rechazo** | `CA-9` esc. 1 · invariante 27 | aplicación |
 | TC-B14 | `test_tkt010_ca09_codigo_costo_y_correo_siguen_rechazados`, parametrizada: insumo con código `TBR-001` (`23505`, `uq_insumo_codigo`), precio general de `TBR-003` con costo `Decimal("-1.0000")` (`23514`, `ck_precio_insumo_costo_unitario_no_negativo`) y usuario `Ana@Cimenta.TEST` (`23514`, `ck_usuario_email_minusculas`); en cada caso la tabla conserva su recuento previo | **rechazo** | `CA-9` esc. 2 · invariante 8 | aplicación |
 | TC-B15 | `test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio`: tras `sembrar`, `obra`, `nivel`, `area`, `partida`, `concepto`, `apu` y `linea_base` tienen cero filas; `to_regclass` de `empleado`, `proveedor` y `rol_oficio` es nulo; ninguna tabla de `pg_tables` del esquema `public` contiene `simulad` en su nombre | **rechazo** | `CA-10` esc. 1 · `M7` | migración |
+| TC-B10b | `test_tkt010_ca07_un_entorno_de_conexion_incompleto_se_niega_sin_traza`: sin la contraseña de migración, o con un puerto no numérico, `main()` termina con `SystemExit` con un mensaje que nombra la variable, y el espía no se llamó (ajuste del ciclo de corrección 2) | **rechazo** | `CA-7` · `RNF-07` | migración |
+| TC-B04c | `test_tkt010_ca04_un_check_que_rechaza_la_fila_no_vuelca_el_hash`: con un `CHECK` que rechaza las filas nuevas de `usuario`, `main()` termina con `SystemExit` sin `$argon2id$` ni la contraseña en la excepción ni en la salida, y `usuario` queda sin filas (ajuste del ciclo de corrección 2) | **rechazo** | `CA-4` · `RNF-07` | migración |
+| TC-B04b | `test_tkt010_ca04_un_fallo_de_siembra_no_vuelca_hashes_ni_contrasena`: `main()` contra una base sin migrar falla; ni la excepción ni la salida contienen `$argon2id$` ni la contraseña de siembra (ajuste del ciclo de corrección 1) | **rechazo** | `CA-4` · `RNF-07` | migración |
+| TC-B06b | `test_tkt010_ca06_una_fila_ajena_con_la_misma_unica_no_se_toca`: con un usuario ajeno de otro `id` y el mismo correo, un insumo ajeno de otro `id` y el mismo código, y una asignación ajena que choca con `uq_usuario_rol_usuario_id_rol_id`, sembrar de nuevo no falla, deja las filas ajenas intactas y devuelve el resumen `(5, 4, 26, 26)`; ata el mutante MB-9 (ajuste del ciclo de corrección 1) | **rechazo** | `CA-6` · `M5` | migración |
+| TC-B09b | `test_tkt010_ca06_un_segundo_precio_general_no_cambia_el_resumen`: tras añadir un segundo precio general a un insumo, sembrar de nuevo devuelve `(6, 6, 27, 27)`: el resumen cuenta insumos con precio general, no filas (ajuste del ciclo de corrección 1) | **rechazo** | `CA-6` · `M3` | migración |
 | TC-B16 | `test_tkt010_car7_el_humo_no_toca_a_los_usuarios_sembrados`: tras `sembrar`, fotografía de los seis usuarios y sus asignaciones; `subprocess.run([sys.executable, RAIZ / "frontend/e2e/sembrar_usuario_humo.py"], cwd=BACKEND, env=…)` con `PYTHONPATH` en `backend`, las variables de la base del contenedor y `CIMENTA_HUMO_CORREO=humo.compras@cimenta.test`; código 0; la fotografía no cambió y el usuario de humo existe con el rol `COMPRAS` | regresión | `CA-R7` | migración |
 
 `CA-R5` (Ruff, mypy, `lint-imports` y `verificar_float`) y `CA-R6` (verificadores de documentación) se comprueban con los comandos de A2, B4 y B5. `verificar_float` solo recorre `dominio/` y `tipos_base/`; la garantía de que la herramienta no usa `float` es TC-B02.
@@ -381,6 +386,8 @@ Cada mutante se aplica a mano, se ejecuta la prueba indicada, se ve en rojo y se
 | MB-6 | `leer_variable(VARIABLE_CONTRASENA)` pasa a `os.environ.get(VARIABLE_CONTRASENA, "")` | TC-B10 (se escriben seis usuarios con el hash de la cadena vacía) |
 | MB-7 | La guarda se llama después de `create_engine` | TC-B11 y TC-B12 (el espía se llama) |
 | MB-8 | `print` del resumen añade `contrasena` | TC-B04 |
+| MB-9 | En las sentencias 1, 2 o 3, `ON CONFLICT DO NOTHING` pasa a `ON CONFLICT (id) DO NOTHING` (ajuste del ciclo de corrección 1) | TC-B06b |
+| MB-10 | `create_engine` sin `hide_parameters=True` (ajuste del ciclo de corrección 1) | TC-B04b |
 
 ## Impacto
 
@@ -415,16 +422,16 @@ Análisis del arquitecto, revisado por `revisor-impacto` el 2026-11-01: sin fron
 | `.env.example`, líneas 34 a 38 | El comentario de «Usuario de prueba» remite a «ver README, “Entrega 2”». Se revisa que no contradiga la sección nueva | b |
 | `docs/03-modelo-datos.md`, línea 235 (opcional) | Decir que la fila única de `empresa` la fija la migración `0008` | b |
 | `docs/05-tickets-trabajo.md`, ficha de TKT-010 (criterios) | Título «Datos semilla con catálogos» (sin «reales»; `Grep` de `tkt-010--datos` no encuentra enlaces a la ancla). «Qué hace»: datos de arranque sintéticos con forma real. Criterios: la empresa y los tipos en la migración `0008`; los seis usuarios y los 27 insumos **sintéticos** en `herramientas.semilla_local`, solo en una base local; la clave del importador es `codigo` recortado y en mayúsculas `(asumido)`; idempotente sin sobrescribir. Si se aprueba P1, subsección «Partición en dos tickets hermanos» con la tabla de este diseño, como TKT-011 | a (partición) y b (criterios) |
-| `docs/adr/20261101-semilla-en-migracion-y-herramienta-local.md` y `docs/adr/README.md` | ADR-032 y su fila en el índice | b |
+| `docs/adr/20261102-semilla-en-migracion-y-herramienta-local.md` y `docs/adr/README.md` | ADR-032 y su fila en el índice | b |
 | `docs/api/openapi.yaml` | Sin cambios: `listar_tipos_partida` ya dice «sembrado por TKT-010» | — |
 
 ## ¿Merece ADR?
 
-**Sí: ADR-032**, `docs/adr/20261101-semilla-en-migracion-y-herramienta-local.md`, formato MADR, en la fila B4. Un recién llegado verá la empresa y los tipos en una migración y los usuarios e insumos en una herramienta, y se preguntará por qué no van juntos. Opciones que registra:
+**Sí: ADR-032**, `docs/adr/20261102-semilla-en-migracion-y-herramienta-local.md`, formato MADR, en la fila B4. Un recién llegado verá la empresa y los tipos en una migración y los usuarios e insumos en una herramienta, y se preguntará por qué no van juntos. Opciones que registra:
 
 - **Elegida:** lo real y necesario en todo entorno, en migración; lo sintético o con credencial, en una herramienta que solo escribe en una base local, con la guarda por host.
 - **Descartada, todo en la migración:** los 27 insumos sintéticos llegarían a producción como catálogo falso, y los usuarios con una contraseña conocida (o sin una contraseña que la migración pueda leer de forma segura). Era la primera decisión del 2026-11-01 y se corrigió el mismo día.
-- **Descartada, un ajuste de entorno** (`local`, `pruebas`, `produccion`) que decida qué se siembra: ningún ticket lo pidió y la spec lo deja en Won't; la guarda por host ya existe en el script de humo.
+- **Descartada, un ajuste de entorno** (`local`, `pruebas`, `demostracion`, `produccion`) que decida qué se siembra: ningún ticket lo pidió y la spec lo deja en Won't; la guarda por host ya existe en el script de humo.
 - **Descartada, sembrar solo desde las pruebas:** no da usuarios para probar a mano, que es la mitad del valor del ticket.
 
 ## Pasada adversarial

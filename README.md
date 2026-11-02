@@ -27,7 +27,7 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 31 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 32 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
 | [`tools/`](tools/README.md) | Verificadores de la documentación y del pipeline: enlaces, anclas, identificadores, conteos, diagramas y escenarios sin test |
@@ -42,7 +42,7 @@
 
 La Entrega 2 construye el hilo vertical por tickets con el pipeline SDD. Hoy están archivados los de la fundación: estructura del repositorio, esqueleto del backend, PostgreSQL con identidad, tipos base decimales, contrato de error, autenticación por rol, bitácora y el cliente web (andamiaje, inicio de sesión con armazón por rol, y componentes reutilizables).
 
-**Lo que funciona de extremo a extremo:** iniciar y cerrar sesión. El cliente React llama al API de FastAPI, que valida la contraseña con Argon2id contra PostgreSQL y guarda la sesión en la tabla `sesion`. Tras iniciar sesión aparece el armazón con la navegación del rol. Las pantallas de negocio de la fase 1 llegan con los tickets siguientes, así que sus rutas son marcadores. El límite de intentos, la verificación CSRF y las cabeceras de seguridad están desde TKT-057. Los usuarios reales (TKT-010) aún no existen: **esta versión es solo para pruebas locales**.
+**Lo que funciona de extremo a extremo:** iniciar y cerrar sesión. El cliente React llama al API de FastAPI, que valida la contraseña con Argon2id contra PostgreSQL y guarda la sesión en la tabla `sesion`. Tras iniciar sesión aparece el armazón con la navegación del rol. Las pantallas de negocio de la fase 1 llegan con los tickets siguientes, así que sus rutas son marcadores. El límite de intentos, la verificación CSRF y las cabeceras de seguridad están desde TKT-057. Los usuarios reales aún no existen (`PA-T13` de TKT-006): **esta versión es solo para pruebas locales**, con los usuarios que siembra `herramientas.semilla_local`.
 
 ### Cómo ejecutar el proyecto
 
@@ -65,7 +65,9 @@ uv run --env-file ../.env alembic upgrade head
 uv run --env-file ../.env python -m herramientas.contrasenas_roles
 ```
 
-**3. Sembrar el usuario de prueba.** Desde `backend/`. El script lee las credenciales de `.env` y se niega a escribir si la base no es local.
+**3. Sembrar los usuarios de prueba.** Desde `backend/`. Hay dos siembras, y las dos escriben solo en una base local: se niegan a conectar o a escribir si el host no es local.
+
+El usuario de prueba manual, `prueba.compras@cimenta.test`, lo siembra el script de `frontend/e2e/` con las credenciales de `.env`:
 
 ```bash
 PYTHONPATH=. uv run --env-file ../.env python ../frontend/e2e/sembrar_usuario_humo.py
@@ -78,6 +80,12 @@ $env:PYTHONPATH = "."; uv run --env-file ../.env python ../frontend/e2e/sembrar_
 ```
 
 Es idempotente: si el usuario ya existe, le restablece la contraseña.
+
+Un usuario por cada rol de acceso, con 27 insumos sintéticos y su precio general, lo siembra `herramientas.semilla_local`. El correo de cada usuario es `<rol en minúsculas>@cimenta.test` y su contraseña es la de `CIMENTA_SEMILLA_CONTRASENA`, que se define en `.env` antes de sembrar (va vacía en `.env.example`). No sobrescribe nada que ya exista:
+
+```bash
+uv run --env-file ../.env python -m herramientas.semilla_local
+```
 
 **4. Arrancar el API.** Desde `backend/`, en una terminal que se queda abierta:
 
@@ -101,6 +109,8 @@ npm run dev
 | Correo | `prueba.compras@cimenta.test` |
 | Contraseña | `Cimenta-Prueba-2026` |
 | Rol | `COMPRAS` |
+
+Los usuarios de `herramientas.semilla_local` entran con la misma forma: `<rol en minúsculas>@cimenta.test` y la contraseña de `CIMENTA_SEMILLA_CONTRASENA`. Por ejemplo, `compras@cimenta.test` entra con el rol `COMPRAS`.
 
 Pruebas manuales sugeridas: entrar con esas credenciales y ver el armazón con la navegación de Compras; cerrar sesión; entrar con una contraseña incorrecta y ver el rechazo del formulario; reducir la ventana al ancho de un teléfono y abrir el menú.
 
@@ -249,8 +259,8 @@ La revisión de LIDR del **2026-10-14** dio *luz amarilla: avanzar ajustando*. C
 | Tickets de trabajo | 69, todos detallados con criterios técnicos y *non-goals*, en 11 sprints: 7 de fase 1 y 4 de fase 2 |
 | Especificación de la API | 70 operaciones de fase 1 en el borrador OpenAPI 3.1, validado; las de fase 2, listadas con su ticket |
 | Wireframes | 10 pantallas del hilo vertical |
-| Decisiones de arquitectura (ADR) | 21 |
+| Decisiones de arquitectura (ADR) | 32 |
 
-Estas cifras las comprueba [`tools/verificar_docs.py`](tools/README.md) contra los documentos, salvo las de API y wireframes.
+Estas cifras las comprueba [`tools/verificar_docs.py`](tools/README.md) contra los documentos, salvo las de API, wireframes y ADR.
 
 > **Sobre el número de historias.** El enunciado pedía entre 3 y 5 *must-have* y 1-2 *should-have*. Se entregan **6 y 3**. La razón está documentada en la [auditoría de suficiencia](docs/04-historias-usuario.md#auditoría-de-suficiencia): el conjunto más pequeño dejaba tres huecos de cadena —nada emitía la orden de compra, nada daba de alta el personal, nada creaba obras ni proveedores— que habrían aparecido como bloqueos en pleno sprint. Si la entrega exige ceñirse al conteo, la vía limpia es bajar HDU-003 y HDU-004 a *should-have*; el producto ya no funcionaría de extremo a extremo con solo las *must*. Tras el corte en fases, las seis *must* son exactamente el hilo vertical de la fase 1: quitar cualquiera lo cortaría.
