@@ -30,7 +30,7 @@ El Must lo validó la persona dueña el 2026-11-01.
 | | **M4** Restricciones de dominio: unidades admitidas (invariante 27), `UNIQUE (obra_id, codigo)` en `concepto` (invariante 13), `CHECK >= 0` en toda cantidad, precio, importe y rendimiento (invariante 8 ampliado) y rango de los porcentajes |
 | | **M5** Inmutabilidad de la línea base (invariante 14, ampliado el 2026-11-01): las copias `linea_base_concepto` y `explosion_presupuesto` rechazan `INSERT`, `UPDATE` y `DELETE` cuando su línea base no es `BORRADOR`; y la fila `linea_base` solo avanza `BORRADOR` → `CONGELADA` → `SUPERSEDIDA`, no vuelve atrás, no se borra si no es `BORRADOR` y, una vez congelada, no cambia más que su estado hacia `SUPERSEDIDA` |
 | | **M6** Permisos por rol: el rol de aplicación solo `SELECT` e `INSERT` sobre `linea_base_concepto`; `UPDATE` sobre `explosion_presupuesto` y `presupuesto_control` para que `SELECT … FOR UPDATE` funcione; el rol de lectura solo `SELECT`. Con sus pruebas, cada una con el rol que corresponde |
-| | **M7** Reversibilidad probada: subir, bajar y subir; la bajada se niega si existe una línea base `CONGELADA` |
+| | **M7** Reversibilidad probada: subir, bajar y subir; la bajada se niega si existe una línea base `CONGELADA` o `SUPERSEDIDA` |
 | | **M8** Consecuencia documental: el modelo de datos, la ficha de TKT-011 y la arquitectura §9 quedan alineados con lo que crea la migración, en el mismo PR |
 | **Should** | **S1** Todas las restricciones, índices y el disparador llevan nombre explícito con los prefijos de `conv-sql-postgres` (`pk_`, `fk_`, `uq_`, `ck_`, `ix_`, `trg_`) |
 | **Could** | Ninguno |
@@ -426,16 +426,18 @@ Escenario: ciclo completo de cada migración
 
 ```gherkin
 Escenario: bajada con datos de negocio
-  Dado una línea base "CONGELADA" en la base
+  Dado una línea base "CONGELADA" o "SUPERSEDIDA" en la base
   Cuando se ejecuta "downgrade 0006" (la guarda vive en la bajada de "0007")
-  Entonces la bajada se detiene con un error que nombra la línea base congelada
+  Entonces la bajada se detiene con un error que nombra la línea base "CONGELADA" o "SUPERSEDIDA"
   Y las tablas y las filas siguen intactas
 
-Escenario: bajada sin línea base congelada
-  Dado una base sin ninguna línea base "CONGELADA"
+Escenario: bajada solo con borradores
+  Dado una base en la que solo hay borradores: ninguna línea base "CONGELADA" ni "SUPERSEDIDA"
   Cuando se ejecuta "downgrade 0006"
   Entonces la bajada elimina las siete tablas de "0007" y sus dos funciones
 ```
+
+La guarda se niega también con una `SUPERSEDIDA`: es un presupuesto firmado que ya estuvo vigente, y bajar la migración la borraría igual que a la vigente. Decisión de la persona dueña del 2026-11-01 (PA-T6 y PA-T8).
 
 ### Nombres y documentación
 
@@ -549,7 +551,7 @@ Todo lo marcado `(asumido)` en los criterios se repite aquí.
 | PA-T5 | El invariante 8 se amplía a toda cantidad, precio, importe y rendimiento de las tablas del ticket (decisión del 2026-11-01). El rango de los **porcentajes** que propone la spec es `0 <= p <= 1` en `retencion_destajo_pct`, `fondo_garantia_pct` y `progreso`, y solo `>= 0` en `umbral_alerta_pct` y `apu_cargo.porcentaje` | Un tope de 1 en un porcentaje que puede pasar de 1 (por ejemplo una desviación relativa) rechazaría datos válidos | `(asumido)`: la persona dueña confirma los límites en el gate del diseño |
 | PA-T6 | El disparador del invariante 14 interviene cuando la línea base de la fila **no es** `BORRADOR` (`CONGELADA` o `SUPERSEDIDA`) y rechaza con un código y un mensaje estables que citan `RN-01`; el código exacto lo fija el diseño y TKT-017 lo traduce a `409` `REGLA_NEGOCIO` | Si se limitara a `CONGELADA`, una versión superada podría alterarse | `(asumido)` — confirmado como valor por omisión el 2026-11-01 |
 | PA-T7 | `concepto.unidad` e `insumo.unidad` admiten las **ocho** unidades del catálogo (invariante 27 y el borrador `Unidad`). El modelo de datos comenta `M2\|ML\|PZA` para el concepto y `PZA\|CAJA\|SACO\|ROLLO\|KG\|JORNAL` para el insumo, pero son ejemplos del uso habitual, no un recorte | Si el concepto solo admitiera `M2`, `ML` y `PZA`, el `CHECK` debería ser distinto en cada tabla | `(asumido)` |
-| PA-T8 | Las claves foráneas no se borran en cascada (`RESTRICT`); la bajada de la migración se niega si existe una línea base `CONGELADA`; los nombres usan los prefijos de `conv-sql-postgres` | Un borrado en cascada sobre un borrador descartado sería más cómodo para TKT-017 pero abriría un camino a borrar copias | `(asumido)` — confirmado como valor por omisión el 2026-11-01 |
+| PA-T8 | Las claves foráneas no se borran en cascada (`RESTRICT`); la bajada de la migración se niega si existe una línea base `CONGELADA` o `SUPERSEDIDA`; los nombres usan los prefijos de `conv-sql-postgres` | Un borrado en cascada sobre un borrador descartado sería más cómodo para TKT-017 pero abriría un camino a borrar copias | `(asumido)` — confirmado como valor por omisión el 2026-11-01 |
 | PA-T9 | `UNIQUE (linea_base_id, tipo_partida_id, insumo_id)` en `explosion_presupuesto`. El ticket y el modelo (§15) lo llaman índice sin decir si es único | Si el cálculo de TKT-016 pudiera repetir un insumo dentro del tipo de partida, la unicidad lo rechazaría | `(asumido)` — confirmado como valor por omisión el 2026-11-01 |
 | PA-T10 | **Nulabilidad.** Toda columna es `NOT NULL` salvo las que el modelo o el borrador OpenAPI marcan opcionales o condicionales: `umbral_alerta_pct`; `precio_insumo.obra_id` y `vigente_hasta`; `linea_base.congelada_en` y `congelada_por_id`; en `presupuesto_control`, `importe_tope`, `capturado_*` y `actualizado_*`; en `importacion`, `progreso`, `latido`, `filas_*` y `resumen`; en `importacion_error`, `hoja`, `fila`, `columna` y `valor_original`. El diseño completa la tabla | Una columna `NOT NULL` de más rechaza datos válidos; una `NULL` de más deja pasar datos incompletos | `(asumido)`: la persona dueña aprueba la tabla de nulabilidad en el gate del diseño |
 | PA-T11 | Columnas de auditoría solo donde el modelo o el borrador las usan: `obra` (creación y actualización con autor), `linea_base` (autor de creación y de congelado), `presupuesto_control` (`actualizado_*` y motivo), `importacion` (`importado_por`, `creado_en`). Catálogos y copias congeladas, sin ellas. Decisión de la persona dueña el 2026-11-01 | Un caso de uso que necesite auditar otra tabla tendrá que migrarla | Confirmado |
@@ -558,6 +560,7 @@ Todo lo marcado `(asumido)` en los criterios se repite aquí.
 | PA-T14 | La fila `linea_base` solo avanza `BORRADOR` → `CONGELADA` → `SUPERSEDIDA`, y desde `CONGELADA` solo cambia su estado hacia `SUPERSEDIDA`; todas las demás columnas quedan fijas desde que se congela. Decisión de la persona dueña el 2026-11-01 de cerrar el hueco de la fila (`M5` ampliado); la lista exacta de columnas inmutables es `(asumido)` | Si TKT-017 necesitara escribir `importe_venta` o `congelada_*` después del cambio de estado, tendría que hacerlo en la misma sentencia que congela, o el disparador lo rechazaría | `(asumido)` |
 | PA-T15 | `TRUNCATE` no dispara disparadores de fila: el rol de aplicación no tiene ese privilegio (los privilegios por omisión de `0001` son `SELECT`, `INSERT`, `UPDATE` y `DELETE`) y solo el rol de migración, que es superusuario en la suite y en el despliegue, podría vaciar las copias | Un uso indebido del rol de migración vaciaría una copia congelada sin que ningún disparador lo vea; lo cubre la disciplina de acceso al rol de migración, no el esquema | `(asumido)`; se comprueba que la aplicación no tiene `TRUNCATE` (`CA-17`) |
 | PA-T16 | Dependencias externas de pago, cuenta o clave: **ninguna**. Solo PostgreSQL local y testcontainers con Docker | No hay presupuesto que confirmar | Resuelto |
+| PA-T17 | ¿Con qué valor nace `linea_base.importe_venta` en un `BORRADOR`, si la columna es `NOT NULL`? Lo decide TKT-017, que es quien crea el borrador | Si el caso de uso inventa un valor, un borrador con importe cero es indistinguible de un presupuesto de importe cero | Abierta: se resuelve en TKT-017 |
 
 ## Pasada adversarial
 

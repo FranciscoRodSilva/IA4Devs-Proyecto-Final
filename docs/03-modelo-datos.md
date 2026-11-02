@@ -257,6 +257,8 @@ erDiagram
         uuid congelada_por_id FK
         text motivo "por qué se creó esta versión"
         numeric importe_venta
+        timestamptz creado_en "NOT NULL · DEFAULT now()"
+        uuid creado_por_id FK
     }
     LINEA_BASE_CONCEPTO {
         uuid id PK
@@ -271,7 +273,7 @@ erDiagram
         uuid id PK
         uuid linea_base_id FK
         uuid tipo_partida_id FK "PA-01 · nivel de control"
-        uuid insumo_id FK
+        uuid insumo_id FK "UNIQUE (linea_base_id, tipo_partida_id, insumo_id)"
         numeric cantidad_presupuestada "Σ cantidad × rendimiento"
         numeric rendimiento_congelado "RN-24 · referencia inmutable"
         numeric costo_unitario
@@ -1022,6 +1024,7 @@ erDiagram
         int filas_rechazadas
         jsonb resumen "totales de la previsualización"
         uuid importado_por_id FK
+        timestamptz creado_en "NOT NULL · DEFAULT now()"
         timestamptz latido "lo refresca el trabajo mientras analiza"
     }
     IMPORTACION_ERROR {
@@ -1147,7 +1150,7 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 11 | Un avance pagado está validado | Clave foránea compuesta que incluye el estado | RN-10 |
 | 12 | El fondo se libera solo con las dos condiciones | `CHECK (estado <> 'LIBERADO' OR (area_liberada AND area_cobrada))` | RN-12 |
 | 13 | Un concepto es único por obra | `UNIQUE (obra_id, codigo)` | — |
-| 14 | Una línea base congelada no se altera | Disparador que rechaza `UPDATE`/`DELETE` sobre sus copias · sobre `linea_base_concepto`, además, el rol de aplicación solo tiene `SELECT` e `INSERT` | RN-01 |
+| 14 | Una línea base congelada no se altera | Disparadores que rechazan `INSERT`, `UPDATE` y `DELETE` sobre sus copias (`linea_base_concepto` y `explosion_presupuesto`) cuando la línea base no es `BORRADOR`, con `FOR SHARE` sobre su fila. La fila `linea_base` solo avanza de `BORRADOR` a `CONGELADA` y de `CONGELADA` a `SUPERSEDIDA`; desde `CONGELADA` solo cambia su estado. Sobre `linea_base_concepto`, además, el rol de aplicación solo tiene `SELECT` e `INSERT`. Todo rechazo lleva el `SQLSTATE` `IN001` y el prefijo `RN-01:`; TKT-017 lo traduce a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)` | RN-01 |
 | 15 | Una cuadrilla cobra por destajo **o** por nómina en una semana, nunca por ambas | `UNIQUE (cuadrilla_id, semana)` sobre `modalidad_pago_semana` · `semana` con `CHECK` de jueves: el jueves de corte, común a destajo y nómina (`PA-19`) | RN-22 |
 | 16 | Un empleado no tiene dos jornadas el mismo día | `UNIQUE (empleado_id, fecha)` sobre `jornada` | RN-23 |
 | 17 | El reparto de nómina entre obras suma el neto del renglón | Restricción diferida sobre `imputacion_nomina_obra` | RN-23 |
@@ -1299,7 +1302,7 @@ stateDiagram-v2
     SUPERSEDIDA --> [*]
 ```
 
-Una línea base `CONGELADA` **nunca vuelve a `BORRADOR`**. Solo puede ser sustituida por una versión posterior, y la anterior se conserva íntegra.
+Una línea base `CONGELADA` **nunca vuelve a `BORRADOR`**. Solo puede ser sustituida por una versión posterior, y la anterior se conserva íntegra, también al bajar la migración: la bajada de `0007` se niega mientras exista una línea base `CONGELADA` o `SUPERSEDIDA`, para no perderla. Lo impide el motor: el disparador `trg_linea_base_solo_avanza` rechaza cualquier transición que no sea `BORRADOR` a `CONGELADA` o `CONGELADA` a `SUPERSEDIDA`, y rechaza el borrado de una línea base que no sea `BORRADOR`.
 
 ---
 
@@ -1493,7 +1496,7 @@ Se presenta como **fila propia al nivel de la obra**, marcada como no imputada a
 | Tabla | Índice |
 |---|---|
 | `presupuesto_control` | `(linea_base_id, tipo_partida_id)` único |
-| `explosion_presupuesto` | `(linea_base_id, tipo_partida_id, insumo_id)` |
+| `explosion_presupuesto` | `(linea_base_id, tipo_partida_id, insumo_id)` único: una sola fila por línea base, tipo de partida e insumo |
 | `requisicion` | `(obra_id, tipo_partida_id, estado)` |
 | `movimiento_inventario` | `(obra_id, tipo_partida_id, ocurrido_en)` · `(obra_id, tipo_partida_id, insumo_id, ocurrido_en)` para el control por volumen, que agrupa por tipo de partida **e** insumo |
 | `orden_compra_renglon` | `(orden_compra_id)` con `cantidad_recibida < cantidad_ordenada` parcial |
