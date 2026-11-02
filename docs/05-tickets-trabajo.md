@@ -487,7 +487,7 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 
 | | |
 |---|---|
-| **Tipo** | Fundación · **Talla** S · **Depende de** TKT-003, TKT-011a · **Sprint 2** |
+| **Tipo** | Fundación · **Talla** S · **Depende de** TKT-003, TKT-011a, TKT-011b · **Sprint 2** |
 
 **Qué hace.** Carga un conjunto de datos de arranque con usuarios de cada rol y los catálogos base reales, para que el desarrollo y los tests trabajen sobre datos del cliente y no inventados.
 
@@ -504,6 +504,13 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 > Ya **no** siembra obras: darlas de alta es funcionalidad de HDU-001 y debe probarse por su propio camino.
 
 **Non-goals** — No importa el catálogo de conceptos (HDU-001). No siembra empleados ni proveedores: son funcionalidad de HDU-007 y HDU-004. No siembra `rol_oficio`: su tabla nace en TKT-042 y el catálogo se carga ahí. No siembra los datos simulados de mano de obra y avance: son un archivo de TKT-060, no filas de la base.
+
+**Partición en dos tickets hermanos.** El diseño del ticket suma unas 770 líneas, casi el doble del tope de unas 400 por cambio, así que se reparte en dos tickets hermanos con un PR cada uno. TKT-010 queda como paraguas: conserva la especificación y el diseño, y se cierra cuando se cierran los dos hermanos. El orden de fusión es fijo: **TKT-010a, y después TKT-010b**.
+
+| Ticket | Contenido | Migración | Depende de | Filas del diseño |
+|---|---|---|---|---|
+| TKT-010a | La empresa única y los cuatro tipos de partida, sembrados por migración con identificadores fijos; la plantilla de pruebas sembrada y la fábrica que obtiene el tipo existente | `0008`, cuelga de `0007` | TKT-011b | A1 y A2 |
+| TKT-010b | La herramienta `herramientas.semilla_local` (seis usuarios y 27 insumos sintéticos con su precio, solo en una base local), la documentación y el ADR-032 | Ninguna | TKT-010a | B1 a B5 |
 
 ---
 
@@ -587,7 +594,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 | TKT-011a | `empresa`, `obra`, `nivel`, `area`, `tipo_partida`, `partida`, `concepto`, `insumo`, `precio_insumo`, `apu`, `apu_insumo` y `apu_cargo`: estructura, catálogos y restricciones de dominio de esas doce tablas | `0006`, cuelga de `0005` | TKT-003 | A0 a A7 |
 | TKT-011b | `linea_base`, `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`, `importacion`, `importacion_error` y `rendimiento_observado`; los dos disparadores del invariante 14; la revocación de privilegios y la guarda de la bajada | `0007`, cuelga de `0006` | TKT-011a | B1 a B8 |
 
-Qué depende de cada mitad: TKT-010, TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo TKT-011a, porque apuntan a `empresa`, `obra`, `area`, `tipo_partida` o `insumo`. TKT-012 y TKT-013 necesitan TKT-011b; TKT-012 porque `Obra.linea_base_vigente_id` se lee de `linea_base` y su ficha exige el rechazo `OBRA_CON_HISTORIAL`. La línea de trazabilidad de TKT-039 también pasa a TKT-011b.
+Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo TKT-011a, porque apuntan a `empresa`, `obra`, `area`, `tipo_partida` o `insumo`. TKT-012 y TKT-013 necesitan TKT-011b; TKT-012 porque `Obra.linea_base_vigente_id` se lee de `linea_base` y su ficha exige el rechazo `OBRA_CON_HISTORIAL`. La línea de trazabilidad de TKT-039 también pasa a TKT-011b. TKT-010 apunta a las tablas de TKT-011a, pero su migración `0008` cuelga de `0007`, la de TKT-011b, así que necesita las dos mitades.
 
 ---
 
@@ -2259,7 +2266,7 @@ El buffer no es pesimismo: los PR generados por agente exigen revisión más cui
 >
 > **La costura:** de TKT-059, el sprint 2 solo necesita la subida, la confirmación por hash y la validación de tipo. **La URL de descarga y el barrido de `PENDIENTE` caducados** pueden ir al sprint 4 sin que HDU-001 lo note, y dejan el 2 en ~19 y el 4 en ~13. El precio es declarado: hasta entonces, una subida abandonada deja una fila en `PENDIENTE` que nadie barre. No corrompe nada —la importación no arranca sin `DISPONIBLE`—, pero es una fila que miente sobre su estado, que es justo lo que el barrido existe para impedir.
 >
-> **TKT-010 no está en el sprint 1, y no por holgura sino por dependencia.** Los datos semilla cargan `empresa`, `tipo_partida` e `insumo`, tablas que crea TKT-011a en el sprint 2. Sembrarlas antes fallaría por tabla inexistente.
+> **TKT-010 no está en el sprint 1, y no por holgura sino por dependencia.** Los datos semilla cargan `empresa`, `tipo_partida` e `insumo`, tablas que crea TKT-011a en el sprint 2. Sembrarlas antes fallaría por tabla inexistente. Y como su migración `0008` cuelga de `0007`, también necesita TKT-011b.
 >
 > **HDU-006 se reparte entre los sprints 4 y 5, y no es partir la historia por comodidad.** El escalón 2 de TKT-039, TKT-040 y TKT-041 necesita entradas reales, que llegan con TKT-035 en el sprint 5 y con ellas la implementación de `FuenteEjercido` por `almacen`; hasta entonces el ejercido es un *cero real*. La historia se da por terminada al cerrar el 5, con sus escenarios en verde salvo la parte de nómina del 7, que es de la fase 2; en el 4 se demuestra con el aviso de cifra parcial del escenario 6, que existe precisamente para eso.
 

@@ -361,6 +361,9 @@ def test_tkt011_ca01_borrar_el_padre_con_hijos_lo_rechaza_la_clave_foranea(
     padre_id = PADRE_CON_UN_HIJO[restriccion](datos_presupuesto)
 
     with conectar("aplicacion", base_de_prueba) as aplicacion:
+        # Los padres sembrados por `0008` (la empresa) cuentan en la tabla: se compara con el
+        # recuento previo y se comprueba que el padre concreto sigue por su `id`.
+        padres_antes = contar(aplicacion, padre)
         with pytest.raises(psycopg.errors.RestrictViolation) as rechazo:
             aplicacion.execute(
                 sql.SQL("DELETE FROM {} WHERE id = %s").format(sql.Identifier(padre)),
@@ -368,7 +371,8 @@ def test_tkt011_ca01_borrar_el_padre_con_hijos_lo_rechaza_la_clave_foranea(
             )
 
         afirmar_rechazo(rechazo.value, "23001", restriccion, hija)
-        assert contar(aplicacion, padre) == 1
+        assert contar(aplicacion, padre) == padres_antes
+        assert contar_donde(aplicacion, padre, "id", str(padre_id)) == 1
         assert contar(aplicacion, hija) == 1
 
 
@@ -867,18 +871,26 @@ def test_tkt011_ca14_porcentaje_negativo_de_cargo_lo_rechaza_la_base(
 
 
 def test_tkt011_ca20_clave_de_tipo_partida_repetida_la_rechaza_la_base(
-    base_de_prueba: str, conectar: Conectar, datos_presupuesto: DatosPresupuesto
+    base_de_prueba: str, conectar: Conectar
 ) -> None:
-    """CA-20 · invariante 6 — dos tipos de partida `MUROS` violan `uq_tipo_partida_clave`."""
-    datos_presupuesto.tipo_partida(clave="MUROS")
+    """CA-20 · invariante 6 — un segundo tipo de partida `MUROS` viola `uq_tipo_partida_clave`.
 
-    with pytest.raises(psycopg.errors.UniqueViolation) as rechazo:
-        datos_presupuesto.tipo_partida(clave="MUROS")
-
-    afirmar_rechazo(rechazo.value, "23505", "uq_tipo_partida_clave", "tipo_partida")
+    El primer `MUROS` ya lo siembra la migración `0008` (TKT-010), así que la precondición es que
+    exista uno y el `INSERT` directo del segundo lo rechaza la base sin añadir ninguna fila.
+    """
     with conectar("aplicacion", base_de_prueba) as aplicacion:
+        antes = contar(aplicacion, "tipo_partida")
         assert contar_donde(aplicacion, "tipo_partida", "clave", "MUROS") == 1
-        assert contar(aplicacion, "tipo_partida") == 1
+
+        with pytest.raises(psycopg.errors.UniqueViolation) as rechazo:
+            aplicacion.execute(
+                "INSERT INTO tipo_partida (id, clave, nombre) VALUES (%s, 'MUROS', 'Muros')",
+                (uuid.uuid4(),),
+            )
+
+        afirmar_rechazo(rechazo.value, "23505", "uq_tipo_partida_clave", "tipo_partida")
+        assert contar_donde(aplicacion, "tipo_partida", "clave", "MUROS") == 1
+        assert contar(aplicacion, "tipo_partida") == antes
 
 
 def test_tkt011_ca20_codigo_de_insumo_repetido_lo_rechaza_la_base(

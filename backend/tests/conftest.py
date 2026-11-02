@@ -618,6 +618,14 @@ class DatosPresupuesto:
         )
 
     def tipo_partida(self, *, clave: str = "MUROS", nombre: str = "Muros") -> uuid.UUID:
+        """Un tipo de partida. Es un catálogo: si la clave ya existe —los cuatro de `PA-01` los siembra la
+        migración `0008` (TKT-010)— devuelve su `id` sin insertar. Una prueba que necesite el duplicado
+        lo inserta con SQL propio."""
+        fila = self._conexion.execute(
+            "SELECT id FROM tipo_partida WHERE clave = %s", (clave,)
+        ).fetchone()
+        if fila is not None:
+            return uuid.UUID(str(fila[0]))
         return self._insertar("tipo_partida", {"clave": clave, "nombre": nombre})
 
     def insumo(

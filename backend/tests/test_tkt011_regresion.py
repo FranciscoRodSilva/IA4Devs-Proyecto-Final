@@ -299,7 +299,7 @@ def test_tkt011_ca17_privilegios_de_las_tablas_de_estructura(
     `SELECT, INSERT, UPDATE, DELETE` y la lectura exactamente `SELECT`; la aplicación no tiene
     `TRUNCATE` según `has_table_privilege`, con `SELECT` como precondición para que el `false`
     no sea el de una tabla sin ningún privilegio. Un `INSERT` real en `empresa` con el rol de
-    lectura responde `42501` y la tabla sigue vacía.
+    lectura responde `42501` y la tabla no gana filas (la migración `0008` ya sembró la suya).
     """
     with conectar("migracion", base_de_prueba) as migracion:
         de_aplicacion = {t: privilegios(migracion, t, "aplicacion") for t in TABLAS}
@@ -322,6 +322,9 @@ def test_tkt011_ca17_privilegios_de_las_tablas_de_estructura(
     assert tiene_select == {t: (True,) for t in TABLAS}
     assert tiene_truncate == {t: (False,) for t in TABLAS}
 
+    with conectar("migracion", base_de_prueba) as migracion:
+        antes = migracion.execute("SELECT count(*) FROM empresa").fetchone()
+
     with (
         conectar("lectura", base_de_prueba) as lectura,
         pytest.raises(psycopg.errors.InsufficientPrivilege) as rechazo,
@@ -336,7 +339,7 @@ def test_tkt011_ca17_privilegios_de_las_tablas_de_estructura(
 
     with conectar("migracion", base_de_prueba) as migracion:
         filas = migracion.execute("SELECT count(*) FROM empresa").fetchone()
-    assert filas == (0,)
+    assert filas == antes
 
 
 # --------------------------------------------------------------------------- TC-INV-1 a TC-INV-6
