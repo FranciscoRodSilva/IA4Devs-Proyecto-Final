@@ -30,6 +30,7 @@
 | [Decisiones de arquitectura](docs/adr/README.md) | 32 ADRs en formato MADR |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
+| [`AGENTS.md`](AGENTS.md) | Entrada de Cursor: remite a `CLAUDE.md` y recoge lo que cambia al trabajar desde Cursor |
 | [`tools/`](tools/README.md) | Verificadores de la documentación y del pipeline: enlaces, anclas, identificadores, conteos, diagramas y escenarios sin test |
 | [Arranque local](docs/arranque-local.md) | Requisitos, arranque del backend y del frontend, verificadores y lo que todavía no arranca |
 | [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio) | Directorios `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, y los archivos de configuración de la raíz |

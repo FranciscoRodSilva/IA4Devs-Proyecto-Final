@@ -50,12 +50,14 @@ El anti-patrón que este proyecto evita explícitamente: un único `README.md` d
 ```text
 IA4Devs-Proyecto-Final/
 ├── .claude/                        Agentes, skills, hooks y comandos del pipeline SDD
+├── .cursor/                        Agentes de Cursor, generados desde .claude/agents con tools/agentes_cursor.py
 ├── .editorconfig                   Codificación y finales de línea por tipo de archivo
 ├── .gitattributes                  Normalización de finales de línea: LF en el repositorio
 ├── .env.example                    Plantilla de variables de entorno, sin contraseñas: cada persona las define en su `.env`, que no se versiona
 ├── compose.yaml                    PostgreSQL local (TKT-003); MinIO llega con TKT-059
 ├── README.md                       Índice + ficha del proyecto. Nunca contenido extenso
 ├── llms.txt                        Mapa del proyecto para agentes IA
+├── AGENTS.md                       Puntero de Cursor a CLAUDE.md, más lo que cambia al trabajar desde Cursor
 ├── CLAUDE.md                       Instrucciones de proyecto para el copiloto (Paso 5)
 ├── Doc de contexto/                Fuente del cliente. Solo lectura, no se versiona
 ├── backend/                        Proyecto uv del backend: pyproject.toml, uv.lock, el paquete cimenta/ y, fuera de él, contrato_error/, servidor/, migraciones/, herramientas/, tipos_base/ y tests/
