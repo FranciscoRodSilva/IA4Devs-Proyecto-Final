@@ -483,23 +483,22 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 
 ---
 
-### TKT-010 · Datos semilla con catálogos reales
+### TKT-010 · Datos semilla con catálogos
 
 | | |
 |---|---|
 | **Tipo** | Fundación · **Talla** S · **Depende de** TKT-003, TKT-011a, TKT-011b · **Sprint 2** |
 
-**Qué hace.** Carga un conjunto de datos de arranque con usuarios de cada rol y los catálogos base reales, para que el desarrollo y los tests trabajen sobre datos del cliente y no inventados.
+**Qué hace.** Carga datos de arranque sintéticos con forma real. La empresa única y los cuatro tipos de partida los siembra la migración `0008` en todo entorno. Seis usuarios, uno por rol, y 27 insumos con su precio son sintéticos y solo existen en una base local, donde los siembra `herramientas.semilla_local`. Así TKT-012 da de alta una obra, TKT-014 encuentra sus insumos y las pruebas manuales entran con cada rol, sin que producción reciba una credencial conocida ni un catálogo inventado.
 
-> **Va en el sprint 2 y no en el 1 porque las tablas que siembra no existen antes.** `empresa`, `tipo_partida` e `insumo` las crea TKT-011a, que es del módulo `presupuesto`. Sembrar en el sprint 1 solo podría cargar usuarios y roles de acceso; los catálogos del cliente fallarían por tabla inexistente. El `rol_oficio` se siembra más tarde todavía, en TKT-042, junto a la tabla que lo contiene.
+> **Va en el sprint 2 y no en el 1 porque las tablas que siembra no existen antes.** `empresa`, `tipo_partida` e `insumo` las crea TKT-011a, que es del módulo `presupuesto`. Sembrar en el sprint 1 solo podría cargar usuarios y roles de acceso; los catálogos fallarían por tabla inexistente. El `rol_oficio` se siembra más tarde todavía, en TKT-042, junto a la tabla que lo contiene.
 
 **Criterios técnicos**
 
-- [ ] La fila única de `empresa` —Constructora Celsius—, **antes que nada**: `obra.empresa_id` es obligatoria y sin ella el alta de obra de TKT-012 falla por clave foránea
-- [ ] Un usuario por cada uno de los seis roles
-- [ ] Catálogo de `tipo_partida`: `MUROS`, `PLAFONES_Y_CAJILLOS`, `ENCHAPES`, `GENERALES`
-- [ ] Los 27 insumos reales de la explosión de Union Square con sus unidades y precios, **con la misma clave que usará el importador**: TKT-014 da de alta los insumos que no encuentra, y si la clave no coincidiera duplicaría los 27
-- [ ] La carga es idempotente: ejecutarla dos veces no duplica nada
+- [ ] La migración `0008` siembra la fila única de `empresa` —Constructora Celsius, con RFC genérico `(asumido)`— y los cuatro `tipo_partida` (`MUROS`, `PLAFONES_Y_CAJILLOS`, `ENCHAPES`, `GENERALES`), con identificadores fijos. `obra.empresa_id` es obligatoria: sin esa fila el alta de obra de TKT-012 falla por clave foránea
+- [ ] `herramientas.semilla_local` siembra seis usuarios **sintéticos**, uno por rol de acceso (correo `<rol en minúsculas>@cimenta.test`, contraseña de `CIMENTA_SEMILLA_CONTRASENA`), y 27 insumos **sintéticos** `MATERIAL` con un precio general vigente desde el 2026-01-01 `(asumido)`. Solo escribe en una base local: se niega antes de conectar si el host no es local o si `PGHOSTADDR` o `PGSERVICE` redirigen la conexión
+- [ ] La clave del importador es el `codigo` recortado y en mayúsculas `(asumido)`: TKT-014 la hereda, y los 27 códigos sembrados (`TBR-001` a `TBR-027`) ya la cumplen. Si la clave no coincidiera, el importador duplicaría los insumos
+- [ ] La carga es idempotente y no sobrescribe: ejecutarla dos veces no duplica nada, y una fila existente con otros valores se deja intacta
 
 > Ya **no** siembra obras: darlas de alta es funcionalidad de HDU-001 y debe probarse por su propio camino.
 

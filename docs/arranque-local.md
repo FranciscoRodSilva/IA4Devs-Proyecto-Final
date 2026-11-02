@@ -187,7 +187,7 @@ Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que s
 |---|---|
 | `docker compose up -d minio` | TKT-059 |
 
-Iniciar sesión en local: no hay alta de usuarios todavía (`PA-T13` de TKT-006); las pruebas siembran los suyos. El humo de Playwright siembra el suyo (`frontend/e2e/sembrar_usuario_humo.py`).
+Iniciar sesión en local: `uv run --env-file ../.env python -m herramientas.semilla_local` siembra, solo en una base local, un usuario por rol (`<rol en minúsculas>@cimenta.test`) con la contraseña de `CIMENTA_SEMILLA_CONTRASENA`, y 27 insumos sintéticos con su precio. Se niega si el host no es local. No hay alta de usuarios fuera de esta herramienta (`PA-T13` de TKT-006); las pruebas siembran los suyos. El humo de Playwright siembra el suyo (`frontend/e2e/sembrar_usuario_humo.py`).
 
 Cuando un ticket se completa, su `/sdd-completar` quita la marca del comando que habilita en `CLAUDE.md`.
 
