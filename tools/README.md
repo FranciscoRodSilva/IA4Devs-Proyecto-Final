@@ -127,6 +127,17 @@ La última línea resume los recuentos: escenarios, exigidos, cubiertos, faltan,
 
 **Pruebas.** `python -m unittest discover -s tools/tests -v` las ejecuta junto con el resto de `tools/`, y el trabajo `herramientas` las corre con esa misma orden. Los casos de `tools/tests/test_verificar_escenarios.py` construyen documentos de ejemplo en un directorio temporal; el de «árbol real» lee el repositorio.
 
+## `agentes_cursor.py`
+
+```bash
+python tools/agentes_cursor.py --generar     # reescribe .cursor/agents/
+python tools/agentes_cursor.py --verificar   # sale con 1 si .cursor/agents/ difiere de lo generado
+```
+
+Sin dependencias. Genera los agentes de Cursor desde los de Claude Code, que son la fuente única. Traduce el frontmatter: `model` pasa a `composer-2.5[fast=false]` (Composer 2.5 sin *fast*), `readonly: true` solo para el agente sin herramientas de escritura ni de consola, y se descartan `tools`, `effort` y `skills`. Las convenciones que `skills` precargaba pasan a una orden de lectura al inicio del cuerpo, porque Cursor no las precarga. El cuerpo se copia sin cambios.
+
+La comprobación corre en la suite de `tools/tests/` (`test_agentes_cursor.py`), que el trabajo `herramientas` ejecuta en cada pull request.
+
 ## `severidad_pip_audit.py`
 
 ```bash

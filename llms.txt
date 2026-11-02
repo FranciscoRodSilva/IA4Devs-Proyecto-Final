@@ -63,6 +63,8 @@ Detalle completo y alternativas descartadas en [`docs/06-stack-tecnologico.md`](
 
 [`CLAUDE.md`](CLAUDE.md) en la raíz: orden de lectura, comandos, convenciones de código y qué no hacer.
 
+[`AGENTS.md`](AGENTS.md) en la raíz: entrada de Cursor y de otras herramientas que lo leen. Remite a `CLAUDE.md` y recoge lo que cambia al trabajar desde Cursor; sus agentes están en `.cursor/agents/`, generados desde `.claude/agents/`.
+
 ## Contexto del cliente
 
 Documentación fuente real en `Doc de contexto/`: cuestionario de requerimientos, catálogos de conceptos de dos obras (Union Square Fase 2 y ENITI Torre 5), análisis de precios unitarios, explosión de insumos y nómina semanal con destajo. Toda afirmación sobre el negocio en la documentación es trazable a estos archivos.

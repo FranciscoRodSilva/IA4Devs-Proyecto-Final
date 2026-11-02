@@ -169,6 +169,8 @@ Los agentes especializados viven en [`.claude/agents/`](.claude/agents/) y las c
 
 **Modelo por tarea** ([metodología §14](sdd/metodologia.md#14--enrutamiento-de-modelo)): definir y diseñar van en `opus` con esfuerzo medio; ejecutar, en `haiku` por omisión y `sonnet` donde el diseño cita un disparador; tester, auditores y `ingeniero-devsecops`, en `sonnet`. El orquestador pasa el modelo en cada despacho y lo anota en `impl.md`; nunca sube un paso de ejecución a `opus`.
 
+**El proyecto también se trabaja desde Cursor.** [`AGENTS.md`](AGENTS.md) remite a este archivo, y `CLAUDE.md` sigue siendo la única fuente de las instrucciones. Los agentes de Cursor viven en `.cursor/agents/` y **se generan** desde `.claude/agents/` con `python tools/agentes_cursor.py --generar`: los 21 corren en Composer 2.5 sin *fast* (`composer-2.5[fast=false]`). Nunca se editan a mano; cambiar un agente es cambiar el de `.claude/agents/` y regenerar, y la suite de `tools/tests/` falla si los dos directorios difieren. Las skills `/sdd-*` y `conv-*` las comparten las dos herramientas.
+
 **Caveman se aplica a la conversación, nunca a los artefactos.** Un hook lo recuerda en cada turno. Lo que se escribe a disco —specs, diseños, ADRs, docstrings, documentación, mensajes de commit— va en prosa completa: es el entregable y pasa por Vale.
 
 ## Documentación
