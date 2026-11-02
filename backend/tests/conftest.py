@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Literal, Protocol
+from typing import Any, Literal, NamedTuple, Protocol
 
 import psycopg
 import pytest
@@ -518,9 +518,24 @@ def cliente(aplicacion_identidad: FastAPI) -> Iterator[TestClient]:
 # rechazo sobrescriben el argumento que quieren romper y dejan el resto válido.
 
 
+class CopiasDeLineaBase(NamedTuple):
+    """Una línea base con una copia de concepto y un renglón de explosión, y los padres de ambos."""
+
+    linea_base_id: uuid.UUID
+    obra_id: uuid.UUID
+    concepto_id: uuid.UUID
+    copia_id: uuid.UUID
+    tipo_partida_id: uuid.UUID
+    insumo_id: uuid.UUID
+    renglon_id: uuid.UUID
+
+
 class DatosPresupuesto:
     """Fábrica de filas del módulo `presupuesto`: `empresa`, `obra`, `tipo_partida`, `insumo`,
-    `nivel`, `area`, `partida`, `concepto`, `precio_insumo`, `apu`, `apu_insumo` y `apu_cargo`.
+    `nivel`, `area`, `partida`, `concepto`, `precio_insumo`, `apu`, `apu_insumo` y `apu_cargo`
+    (migración `0006`) y, desde TKT-011b, las de la migración `0007` (`linea_base`,
+    `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`, `importacion`,
+    `importacion_error` y `rendimiento_observado`).
 
     Cuando una fila necesita un padre que la prueba no pasó, la fábrica crea el padre con una clave
     única (`nivel` y `concepto` crean su propia obra; `partida`, su propio tipo de partida), para que
@@ -674,9 +689,7 @@ class DatosPresupuesto:
             {
                 "area_id": area_id if area_id is not None else self.area(),
                 "tipo_partida_id": (
-                    tipo_partida_id
-                    if tipo_partida_id is not None
-                    else self.tipo_partida(clave=f"TP-{uuid.uuid4().hex[:8]}")
+                    tipo_partida_id if tipo_partida_id is not None else self._tipo_partida_nuevo()
                 ),
                 "orden": orden,
             },
@@ -715,9 +728,13 @@ class DatosPresupuesto:
             },
         )
 
-    def _insumo_nuevo(self) -> uuid.UUID:
+    def insumo_nuevo(self) -> uuid.UUID:
         """Un insumo con un código que no choca con el de otro insumo de la misma prueba."""
         return self.insumo(codigo=f"INS-{uuid.uuid4().hex[:8]}")
+
+    def _tipo_partida_nuevo(self) -> uuid.UUID:
+        """Un tipo de partida con una clave que no choca con la de otro de la misma prueba."""
+        return self.tipo_partida(clave=f"TP-{uuid.uuid4().hex[:8]}")
 
     def precio_insumo(
         self,
@@ -732,7 +749,7 @@ class DatosPresupuesto:
         return self._insertar(
             "precio_insumo",
             {
-                "insumo_id": insumo_id if insumo_id is not None else self._insumo_nuevo(),
+                "insumo_id": insumo_id if insumo_id is not None else self.insumo_nuevo(),
                 "obra_id": obra_id,
                 "costo_unitario": costo_unitario,
                 "vigente_desde": vigente_desde,
@@ -783,7 +800,7 @@ class DatosPresupuesto:
             "apu_insumo",
             {
                 "apu_id": apu_id if apu_id is not None else self.apu(),
-                "insumo_id": insumo_id if insumo_id is not None else self._insumo_nuevo(),
+                "insumo_id": insumo_id if insumo_id is not None else self.insumo_nuevo(),
                 "costo_unitario": costo_unitario,
                 "rendimiento": rendimiento,
                 "cargo": cargo,
@@ -808,6 +825,282 @@ class DatosPresupuesto:
                 "porcentaje": porcentaje,
                 "base_calculo": base_calculo,
                 "importe": importe,
+            },
+        )
+
+    # ------------------------------------------------------------------ TKT-011b · parte b
+
+    def linea_base(
+        self,
+        *,
+        estado: str = "BORRADOR",
+        obra_id: uuid.UUID | None = None,
+        creado_por_id: uuid.UUID | None = None,
+        version: int = 1,
+        motivo: str | None = None,
+        importe_venta: Decimal = Decimal("1000000.0000"),
+        congelada_en: datetime | None = None,
+        congelada_por_id: uuid.UUID | None = None,
+    ) -> uuid.UUID:
+        """Una línea base en el estado pedido. Sin `obra_id` o `creado_por_id` crea el que falta.
+
+        Las que nacen `CONGELADA` o `SUPERSEDIDA` se insertan directamente con ese estado: el
+        disparador `trg_linea_base_solo_avanza` no interviene en `INSERT` (CA-4). Como una
+        congelada de verdad lleva quién y cuándo la congeló, esas dos reciben `congelada_en`
+        (2026-10-21 12:00 UTC) y `congelada_por_id` (un usuario nuevo) si la prueba no los pasa;
+        una `BORRADOR` los deja nulos salvo que la prueba los pida.
+        """
+        ya_congelada = estado in ("CONGELADA", "SUPERSEDIDA")
+        if congelada_en is None and ya_congelada:
+            congelada_en = datetime(2026, 10, 21, 12, 0, tzinfo=UTC)
+        if congelada_por_id is None and ya_congelada:
+            congelada_por_id = self.usuario()
+        return self._insertar(
+            "linea_base",
+            {
+                "obra_id": obra_id if obra_id is not None else self._obra_nueva(),
+                "version": version,
+                "estado": estado,
+                "congelada_en": congelada_en,
+                "congelada_por_id": congelada_por_id,
+                "motivo": motivo,
+                "importe_venta": importe_venta,
+                "creado_por_id": creado_por_id if creado_por_id is not None else self.usuario(),
+            },
+        )
+
+    def copia_concepto(
+        self,
+        *,
+        linea_base_id: uuid.UUID | None = None,
+        concepto_id: uuid.UUID | None = None,
+        codigo: str = "620001",
+        cantidad: Decimal = Decimal("100.0000"),
+        precio_unitario: Decimal = Decimal("250.0000"),
+        importe: Decimal = Decimal("25000.0000"),
+    ) -> uuid.UUID:
+        """Una copia de concepto. Sin `linea_base_id` crea un `BORRADOR`; sin `concepto_id`, el concepto.
+
+        El disparador del invariante 14 solo admite insertar copias en un `BORRADOR`: para tener
+        una línea base congelada con copias, usa `linea_base_con_copias`.
+        """
+        return self._insertar(
+            "linea_base_concepto",
+            {
+                "linea_base_id": linea_base_id if linea_base_id is not None else self.linea_base(),
+                "concepto_id": concepto_id if concepto_id is not None else self.concepto(),
+                "codigo": codigo,
+                "cantidad": cantidad,
+                "precio_unitario": precio_unitario,
+                "importe": importe,
+            },
+        )
+
+    def renglon_explosion(
+        self,
+        *,
+        linea_base_id: uuid.UUID | None = None,
+        tipo_partida_id: uuid.UUID | None = None,
+        insumo_id: uuid.UUID | None = None,
+        cantidad_presupuestada: Decimal = Decimal("100.0000"),
+        rendimiento_congelado: Decimal = Decimal("0.500000"),
+        costo_unitario: Decimal = Decimal("85.0000"),
+        importe_venta: Decimal = Decimal("8500.0000"),
+    ) -> uuid.UUID:
+        """Un renglón de explosión. Sin padres crea un `BORRADOR`, un tipo de partida y un insumo nuevos."""
+        return self._insertar(
+            "explosion_presupuesto",
+            {
+                "linea_base_id": linea_base_id if linea_base_id is not None else self.linea_base(),
+                "tipo_partida_id": (
+                    tipo_partida_id if tipo_partida_id is not None else self._tipo_partida_nuevo()
+                ),
+                "insumo_id": insumo_id if insumo_id is not None else self.insumo_nuevo(),
+                "cantidad_presupuestada": cantidad_presupuestada,
+                "rendimiento_congelado": rendimiento_congelado,
+                "costo_unitario": costo_unitario,
+                "importe_venta": importe_venta,
+            },
+        )
+
+    def congelar(
+        self,
+        linea_base_id: uuid.UUID,
+        *,
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
+    ) -> None:
+        """Pasa una línea base `BORRADOR` a `CONGELADA` con `UPDATE`, igual que el congelado real (`PA-T14`).
+
+        Con `conexion` la sentencia va en esa conexión, para que la prueba la tenga sin confirmar.
+        Sin ella usa la de la fábrica, que confirma cada sentencia.
+        """
+        destino = conexion if conexion is not None else self._conexion
+        destino.execute(
+            "UPDATE linea_base SET estado = 'CONGELADA', congelada_en = now(), "
+            "congelada_por_id = %s WHERE id = %s",
+            (self.usuario(), linea_base_id),
+        )
+
+    def linea_base_con_copias(self, *, estado: str = "CONGELADA") -> CopiasDeLineaBase:
+        """Una línea base en el estado pedido con una copia de concepto y un renglón de explosión.
+
+        Como la aplicación solo inserta copias en un `BORRADOR`, las copias se insertan con la línea
+        base en `BORRADOR` y después se le pasa el estado con `UPDATE`, igual que el congelado real
+        (`BORRADOR` -> `CONGELADA` fija quién y cuándo, `PA-T14`; `SUPERSEDIDA` pasa por `CONGELADA`
+        porque `BORRADOR` -> `SUPERSEDIDA` está prohibido).
+        """
+        if estado not in ("BORRADOR", "CONGELADA", "SUPERSEDIDA"):
+            raise ValueError(f"Estado de línea base desconocido: {estado}")
+        obra_id = self._obra_nueva()
+        linea_base_id = self.linea_base(estado="BORRADOR", obra_id=obra_id)
+        concepto_id = self.concepto(obra_id=obra_id)
+        tipo_partida_id = self._tipo_partida_nuevo()
+        insumo_id = self.insumo_nuevo()
+        copia_id = self.copia_concepto(linea_base_id=linea_base_id, concepto_id=concepto_id)
+        renglon_id = self.renglon_explosion(
+            linea_base_id=linea_base_id, tipo_partida_id=tipo_partida_id, insumo_id=insumo_id
+        )
+        if estado in ("CONGELADA", "SUPERSEDIDA"):
+            self.congelar(linea_base_id)
+        if estado == "SUPERSEDIDA":
+            self._conexion.execute(
+                "UPDATE linea_base SET estado = 'SUPERSEDIDA' WHERE id = %s", (linea_base_id,)
+            )
+        return CopiasDeLineaBase(
+            linea_base_id, obra_id, concepto_id, copia_id, tipo_partida_id, insumo_id, renglon_id
+        )
+
+    # ------------------------------------------------------------------ TKT-011b · filas B3 y B5
+
+    def control(
+        self,
+        *,
+        linea_base_id: uuid.UUID | None = None,
+        tipo_partida_id: uuid.UUID | None = None,
+        importe_tope: Decimal | None = None,
+        importe_sugerido: Decimal = Decimal("500000.0000"),
+        capturado_por_id: uuid.UUID | None = None,
+        capturado_en: datetime | None = None,
+        actualizado_por_id: uuid.UUID | None = None,
+        actualizado_en: datetime | None = None,
+        motivo_ultimo_cambio: str | None = None,
+    ) -> uuid.UUID:
+        """Un control presupuestal. Sin `linea_base_id` crea un `BORRADOR`; sin tipo, uno con clave única.
+
+        El tope, la captura y la actualización nacen nulos: son lo que el Director de Proyectos
+        captura después (`CA-5`). La prueba que los necesita los pasa.
+        """
+        return self._insertar(
+            "presupuesto_control",
+            {
+                "linea_base_id": linea_base_id if linea_base_id is not None else self.linea_base(),
+                "tipo_partida_id": (
+                    tipo_partida_id if tipo_partida_id is not None else self._tipo_partida_nuevo()
+                ),
+                "importe_tope": importe_tope,
+                "importe_sugerido": importe_sugerido,
+                "capturado_por_id": capturado_por_id,
+                "capturado_en": capturado_en,
+                "actualizado_por_id": actualizado_por_id,
+                "actualizado_en": actualizado_en,
+                "motivo_ultimo_cambio": motivo_ultimo_cambio,
+            },
+        )
+
+    def importacion(
+        self,
+        *,
+        obra_id: uuid.UUID | None = None,
+        archivo_id: uuid.UUID | None = None,
+        estado: str = "RECIBIDO",
+        progreso: Decimal | None = None,
+        filas_leidas: int | None = None,
+        filas_validas: int | None = None,
+        filas_rechazadas: int | None = None,
+        importado_por_id: uuid.UUID | None = None,
+        latido: datetime | None = None,
+    ) -> uuid.UUID:
+        """Una importación. Sin `archivo_id` usa un identificador que no corresponde a ningún archivo.
+
+        `archivo_id` es lógico, sin clave foránea (`CA-7`): la fábrica no crea ningún archivo.
+        Sin `obra_id` o `importado_por_id` crea el que falta.
+        """
+        return self._insertar(
+            "importacion",
+            {
+                "obra_id": obra_id if obra_id is not None else self._obra_nueva(),
+                "archivo_id": archivo_id if archivo_id is not None else uuid.uuid4(),
+                "estado": estado,
+                "progreso": progreso,
+                "filas_leidas": filas_leidas,
+                "filas_validas": filas_validas,
+                "filas_rechazadas": filas_rechazadas,
+                "importado_por_id": (
+                    importado_por_id if importado_por_id is not None else self.usuario()
+                ),
+                "latido": latido,
+            },
+        )
+
+    def error_importacion(
+        self,
+        *,
+        importacion_id: uuid.UUID | None = None,
+        hoja: str | None = "Presupuesto",
+        fila: int | None = 12,
+        columna: str | None = "C",
+        tipo: str = "REF_ROTA",
+        mensaje: str | None = "La referencia no existe en la hoja de insumos.",
+        valor_original: str | None = None,
+    ) -> uuid.UUID:
+        """Un error de importación. Sin `importacion_id` crea la importación que le falta.
+
+        `mensaje` admite `None` para que una prueba pueda mandar el nulo a la base (`CA-9`).
+        """
+        return self._insertar(
+            "importacion_error",
+            {
+                "importacion_id": (
+                    importacion_id if importacion_id is not None else self.importacion()
+                ),
+                "hoja": hoja,
+                "fila": fila,
+                "columna": columna,
+                "tipo": tipo,
+                "mensaje": mensaje,
+                "valor_original": valor_original,
+            },
+        )
+
+    def rendimiento_observado(
+        self,
+        *,
+        obra_id: uuid.UUID | None = None,
+        insumo_id: uuid.UUID | None = None,
+        consumo_acumulado: Decimal = Decimal("120.0000"),
+        avance_acumulado: Decimal = Decimal("100.0000"),
+        rendimiento: Decimal = Decimal("1.200000"),
+        rendimiento_congelado: Decimal = Decimal("1.000000"),
+        divergencia_pct: Decimal = Decimal("0.200000"),
+        muestra: int = 1,
+        calculado_en: datetime = datetime(2026, 11, 1, 6, 0, tzinfo=UTC),
+    ) -> uuid.UUID:
+        """Una fila del rendimiento observado. Sin `obra_id` o `insumo_id` crea el que falta.
+
+        La divergencia es relativa y puede ser negativa: una cuadrilla mejor que lo presupuestado.
+        """
+        return self._insertar(
+            "rendimiento_observado",
+            {
+                "obra_id": obra_id if obra_id is not None else self._obra_nueva(),
+                "insumo_id": insumo_id if insumo_id is not None else self.insumo_nuevo(),
+                "consumo_acumulado": consumo_acumulado,
+                "avance_acumulado": avance_acumulado,
+                "rendimiento": rendimiento,
+                "rendimiento_congelado": rendimiento_congelado,
+                "divergencia_pct": divergencia_pct,
+                "muestra": muestra,
+                "calculado_en": calculado_en,
             },
         )
 

@@ -11,7 +11,7 @@ Treinta y ocho invariantes del [modelo de datos](../../../docs/03-modelo-datos.m
 
 | Invariante | Mecanismo |
 |---|---|
-| La línea base congelada es inmutable | disparador que rechaza `UPDATE` y `DELETE` |
+| La línea base congelada es inmutable | disparadores que rechazan `INSERT`, `UPDATE` y `DELETE` sobre las copias cuando la línea base no es `BORRADOR`, y una fila `linea_base` que solo avanza (ADR-031) |
 | La bitácora no admite modificación | sin `UPDATE`, `DELETE` ni `TRUNCATE` para el rol de aplicación (invariante 10, TKT-007) |
 | El inventario es solo-anexado | sin columna de existencia; correcciones como movimiento `AJUSTE` |
 | Rangos y dominios cerrados | `CHECK` con nombre |
@@ -84,3 +84,12 @@ Y toda requisición además `tipo_partida_id`. No es opcional, no es nullable, y
 - [ ] Ninguna operación destructiva sin plan de reversa documentado
 - [ ] Ningún `DROP` o `ALTER ... TYPE` sobre una tabla con datos sin estrategia declarada
 - [ ] Ninguna lógica de negocio en el esquema
+
+## 9 · Comportamientos del motor que sorprenden
+
+Cuatro hechos comprobados contra PostgreSQL 18.6. Cada uno ha confundido a alguien al escribir una prueba o una traducción de error.
+
+- **`ON DELETE RESTRICT` responde `23001` (`restrict_violation`), no `23503`.** El `23503` lo responde insertar un hijo que apunta a un padre inexistente. Borrar un padre con hijos cae en `23001`. Lo comprobó TC-02 de TKT-011a.
+- **PostgreSQL 18 registra los `NOT NULL` en `pg_constraint`, con un nombre generado.** Una consulta que liste las restricciones con nombre explícito tiene que filtrar `contype <> 'n'`; si no, las cuenta todas.
+- **Un disparador de fila no se ejecuta con `TRUNCATE` ni con `SELECT … FOR UPDATE`.** `TRUNCATE` no dispara los disparadores de fila, y bloquear una fila no es un `UPDATE` (E-3 y E-2 de TKT-011a). Por eso `TRUNCATE` sobre las copias lo impide el privilegio y no el disparador, y el rol de migración, que es propietario, puede ejecutarlo (ADR-031).
+- **El estándar SQL reserva las clases de `SQLSTATE` que empiezan por 0 a 4 o por una letra entre la A y la H.** Un código propio tiene que caer en otra clase. Por eso el rechazo de la línea base usa `IN001` y no `CM001` (ADR-031).

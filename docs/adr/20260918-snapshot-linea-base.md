@@ -36,6 +36,8 @@ La razón de fondo: una copia no depende de nada. No hay ruta de código, script
 
 Se refuerza con dos mecanismos en el motor: un índice único parcial que garantiza **una sola línea base congelada vigente por obra**, y un disparador que rechaza `UPDATE` y `DELETE` sobre las tablas de copia. El disparador es el único invariante del modelo que no se puede expresar de forma declarativa, y se acepta precisamente porque protege el principio más importante.
 
+> **Nota de 2026-11-01.** El disparador rechaza también `INSERT` sobre las copias cuando su línea base no es `BORRADOR`, y la fila `linea_base` solo avanza de `BORRADOR` a `CONGELADA` y de `CONGELADA` a `SUPERSEDIDA`. El rechazo lleva el `SQLSTATE` `IN001`. Los detalles están en [ADR-031](20261101-inmutabilidad-de-la-linea-base-en-el-motor.md).
+
 Se descarta el **registro de eventos** por desproporción: da inmutabilidad, pero obliga a reconstruir el presupuesto en cada consulta para un caso donde el estado cambia dos o tres veces en la vida de una obra.
 
 ## Consecuencias

@@ -571,8 +571,8 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 - [ ] Índice único parcial que garantiza una sola línea base `CONGELADA` por obra — invariante 5
 - [ ] `UNIQUE (linea_base_id, tipo_partida_id)` sobre `presupuesto_control` — invariante 6
 - [ ] `presupuesto_control` incluye `actualizado_por_id`, `actualizado_en` y `motivo_ultimo_cambio`: el tope se recaptura, a diferencia de las copias congeladas
-- [ ] Disparador que rechaza `UPDATE` y `DELETE` sobre `linea_base_concepto` y `explosion_presupuesto` cuando la línea base está congelada — invariante 14
-- [ ] Índices `(linea_base_id, tipo_partida_id, insumo_id)` sobre `explosion_presupuesto`
+- [ ] Disparadores que rechazan `INSERT`, `UPDATE` y `DELETE` sobre `linea_base_concepto` y `explosion_presupuesto` cuando su línea base no es `BORRADOR`; y `linea_base.estado` solo avanza de `BORRADOR` a `CONGELADA` y de `CONGELADA` a `SUPERSEDIDA`. El rechazo lleva el `SQLSTATE` `IN001` y el prefijo `RN-01:` — invariante 14, [ADR-031](adr/20261101-inmutabilidad-de-la-linea-base-en-el-motor.md)
+- [ ] Índice único `(linea_base_id, tipo_partida_id, insumo_id)` sobre `explosion_presupuesto`: una sola fila por línea base, tipo de partida e insumo
 - [ ] `rendimiento_observado` es tabla separada de `explosion_presupuesto`: ninguna escribe sobre la otra — invariante 19
 - [ ] **Permisos del rol de aplicación, revocados en esta migración con su prueba** sobre los permisos por omisión de TKT-003: sobre `linea_base_concepto`, solo `SELECT` e `INSERT` —sin `UPDATE` ni `DELETE`—, **además** del disparador; sobre `explosion_presupuesto` y `presupuesto_control`, `UPDATE`, porque `SELECT … FOR UPDATE` exige ese privilegio y sin él el bloqueo pesimista de [ADR-004](adr/20260918-bloqueo-pesimista-presupuesto.md) falla por permisos en tiempo de ejecución ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera))
 - [ ] Un test toma `SELECT … FOR UPDATE` sobre `explosion_presupuesto` **con el rol de aplicación** y verifica que funciona; otro verifica que un `UPDATE` sobre `linea_base_concepto` con el rol de aplicación falla por permiso
@@ -710,6 +710,10 @@ Qué depende de cada mitad: TKT-010, TKT-019, TKT-042, TKT-046 y TKT-049 necesit
 - [ ] El congelado registra fecha, usuario y motivo, escribe en la bitácora y pasa la obra a estado `ACTIVA`
 - [ ] Intentar congelar una segunda línea base vigente falla con el contrato de error y regla `RN-01`
 - [ ] Intentar modificar una línea base congelada falla a nivel de motor
+- [ ] Las copias de `linea_base_concepto` y `explosion_presupuesto` solo se escriben en la transacción del congelado: el rol de aplicación no tiene `DELETE` sobre `linea_base_concepto`, así que una copia escrita en un `BORRADOR` no se puede retirar después
+- [ ] La `CONGELADA` anterior pasa a `SUPERSEDIDA` antes de congelar la nueva, en la misma transacción; si no, el índice único parcial responde `23505`. `BORRADOR` a `SUPERSEDIDA` lo rechaza el disparador
+- [ ] El caso de uso traduce los `SQLSTATE` del motor al contrato de error, sin que ninguno llegue como `500`: `IN001` a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)`; `23505` (una segunda línea base vigente); `23503` (una copia que apunta a una línea base o a un concepto inexistente); `23001` (borrar un padre con hijos, porque la clave foránea es `ON DELETE RESTRICT`). El detalle está en [ADR-031](adr/20261101-inmutabilidad-de-la-linea-base-en-el-motor.md)
+- [ ] **Pregunta abierta (`PA-T17` de TKT-011):** ¿con qué valor nace `importe_venta` en un `BORRADOR`? La columna es `NOT NULL` en `linea_base` y un borrador todavía no tiene importe de venta. Hasta que la persona dueña responda, el caso de uso no inventa un valor
 - [ ] **Captura del presupuesto de control** por tipo de partida (**PA-03**), con el importe sugerido visible pero no impuesto
 - [ ] Un importe tope superior al de venta exige confirmación con motivo: sin ella responde `409` `CONFLICTO` `TOPE_SUPERIOR_A_VENTA_SIN_CONFIRMAR`; con ella, se guarda y el motivo queda en la bitácora
 - [ ] El rechazo de una requisición contra una obra sin presupuesto de control capturado **no es de este ticket**: es `CONFLICTO` `SIN_PRESUPUESTO_CONTROL` y lo implementa TKT-021

@@ -41,7 +41,7 @@ Pega la salida. Un `downgrade` que nadie corrió no está probado.
 |---|---|---|
 | 1 | Una columna de dinero en `DOUBLE PRECISION` o `REAL`; `NUMERIC` sin precisión y escala | **Crítica** |
 | 2 | Una columna de existencia de inventario | **Crítica** |
-| 3 | La línea base congelada o la bitácora sin el disparador o la revocación que rechaza `UPDATE` y `DELETE` | **Crítica** |
+| 3 | La línea base congelada sin el disparador que rechaza INSERT, UPDATE y DELETE sobre sus copias (y que la fila linea_base solo avanza), o la bitácora sin la revocación de UPDATE, DELETE y TRUNCATE para el rol de aplicación | **Crítica** |
 | 4 | Lógica de negocio en un disparador, una función o un procedimiento | **Crítica** |
 | 5 | Un gasto sin `obra_id` no nulo; una requisición sin `tipo_partida_id` | **Crítica** |
 | 6 | `downgrade` ausente o que no deja el esquema como estaba | Mayor |
