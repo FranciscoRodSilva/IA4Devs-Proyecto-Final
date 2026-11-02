@@ -54,12 +54,14 @@ Los tickets citan los endpoints por método y ruta con las convenciones del [bor
 | 1 | [HDU-004 · Proveedores y órdenes de compra](#tickets-de-hdu-004--proveedores-y-órdenes-de-compra) | TKT-029 … TKT-032 | HDU-004 | 5 |
 | 1 | [HDU-005 · Entrada de material, en línea](#tickets-de-hdu-005--entrada-de-material-con-recepción-parcial) | TKT-033 … TKT-038, TKT-054 | HDU-005 | 8 de 11 |
 | 1 | [HDU-006 · Semáforo de obra](#tickets-de-hdu-006--semáforo-de-obra) | TKT-039 … TKT-041, TKT-060 | HDU-006 | 6 |
-| 1 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057, TKT-058, TKT-061 | — | ~8 |
+| 1 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057, TKT-058, TKT-061, TKT-070 | — | ~8 |
 | 2 | [Fase 2 · HDU-007 a HDU-009 y captura en campo](#fase-2--mano-de-obra-y-campo) | TKT-042 … TKT-053, TKT-055, TKT-056, TKT-063 … TKT-069 | HDU-005 (3 de 11), HDU-007, HDU-008, HDU-009 | 33 + ~10 |
 
-**69 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
+**70 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
 
 **TKT-057 y TKT-058 salieron de la revisión del stack del 2026-09-19**, que encontró que la especificación no declaraba ningún requisito de seguridad ni de recuperación. Los requisitos están ahora en el [PRD §9](01-descripcion-producto.md#9-requisitos-no-funcionales) y estos dos tickets los implementan.
+
+**TKT-070 salió de la decisión del 2026-11-02 de probar el destino de despliegue en una VPS de bajo costo**, antes de que exista la imagen de TKT-058. No tiene sprint asignado ni suma puntos de historia.
 
 **TKT-059 a TKT-068 salieron de la revisión de LIDR del 2026-10-14**, que pidió tres cosas: detallar todos los tickets al nivel de los de HDU-001 y HDU-002, cerrar el bloque que estaba *pendiente de descomponer* y recortar el MVP a un hilo vertical. El bloque pendiente ya no existe: su contenido son ahora TKT-059 —el camino mínimo de `archivos`, en la fase 1— y TKT-063 a TKT-068, en la fase 2. TKT-060 sostiene las fuentes simuladas del semáforo ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)); TKT-061 convierte el borrador de [`docs/api/openapi.yaml`](api/openapi.yaml) en prueba de contrato; TKT-062 pone a la IA a revisar cada PR sin darle la aprobación.
 
@@ -1430,7 +1432,7 @@ Historia: [HDU-006](04-historias-usuario.md#hdu-006--semáforo-de-obra) · 6 SP 
 
 **No pertenecen a ninguna historia porque sirven a todas.** TKT-057 y TKT-058 son los dos tickets que cubren los requisitos no funcionales del [PRD §9](01-descripcion-producto.md#9-requisitos-no-funcionales): lo que tiene que ser cierto para que las 25 reglas de negocio signifiquen algo. TKT-061 se les une por la misma razón aplicada al contrato del API: lo que tiene que ser cierto para que el borrador signifique algo.
 
-Están separados de la Épica 0 a propósito. La fundación entrega *la capacidad de entregar valor*; estos tres entregan *la capacidad de no perderlo*, y se descubren tarde en casi todos los proyectos porque nadie los pide.
+Están separados de la Épica 0 a propósito. La fundación entrega *la capacidad de entregar valor*; estos tres entregan *la capacidad de no perderlo*, y se descubren tarde en casi todos los proyectos porque nadie los pide. TKT-070 es distinto: no cubre un requisito no funcional, sino que prueba el destino de despliegue antes de que exista la imagen.
 
 ---
 
@@ -1510,7 +1512,36 @@ Están separados de la Épica 0 a propósito. La fundación entrega *la capacida
 >
 > **Dónde entra la IA, y dónde no.** El script de restauración, el `Dockerfile` y la configuración del pipeline los puede escribir un agente, y pasan por la revisión de TKT-062 y por una persona como cualquier PR. **El ensayo de restauración no**: es un procedimiento con testigo (`RNF-11`), y su valor es precisamente que alguien comprobó con sus ojos que el sistema volvió.
 
-**Non-goals** — No implementa alta disponibilidad: `RNF-12` la descarta expresamente. No monta infraestructura de métricas ni trazado distribuido: hay un proceso. No emite el registro estructurado: eso es TKT-005. No elige el destino de despliegue: se decide aparte, y este ticket solo exige las dos restricciones que ese destino tiene que cumplir.
+**Non-goals** — No implementa alta disponibilidad: `RNF-12` la descarta expresamente. No monta infraestructura de métricas ni trazado distribuido: hay un proceso. No emite el registro estructurado: eso es TKT-005. No ensaya el destino de prueba de TKT-070, que no lo condiciona.
+
+> **Este ticket decide el destino de despliegue final**, como dice el [stack §10](06-stack-tecnologico.md#despliegue) y como se acordó el 2026-11-02: lo decide en su diseño, con `PA-12` respondida, y lo registra en un ADR. Las dos restricciones que el destino tiene que cumplir son la recuperación a un punto en el tiempo y el bucket versionado. La VPS de TKT-070 es solo un banco de pruebas y no es candidata por defecto.
+
+---
+
+### TKT-070 · Despliegue de prueba en una VPS con Caddy y PostgreSQL
+
+| | |
+|---|---|
+| **Tipo** | Fundación · **Talla** por estimar · **Depende de** TKT-003 · **Sprint** sin asignar |
+
+**Qué hace.** Deja funcionando, en una VPS Linux de bajo costo, dos entornos aislados —`prod` y `test`— cada uno con su propia base de datos PostgreSQL y su propio nombre con HTTPS, **sin la aplicación todavía**. Su propósito es comprobar el destino de despliegue antes de que exista la imagen única de TKT-058: que los dos entornos conviven, que el certificado se emite y que la base de cada uno queda aislada de Internet y del otro entorno.
+
+Los nombres son `apbuildings.duckdns.org` para `prod` y `apbuildings-test.duckdns.org` para `test`, ambos de DuckDNS. La VPS es una *Express Linux VPS* de Database Mart con Ubuntu Server 24.04, 2 núcleos, 4 GB de RAM y una IPv4 compartida cuyos puertos 80 y 443 el proveedor confirmó disponibles. El servidor ya tiene Docker y Compose instalados, SSH por llave y un firewall que deja abiertos solo los puertos 22, 80 y 443.
+
+**Criterios técnicos**
+
+- [ ] **Los archivos de despliegue viven en el repositorio**, no solo en la VPS: un Compose por entorno, el archivo de Caddy y la guía de operación. La ubicación exacta la fija `/sdd-disenar`
+- [ ] **Cada entorno tiene su propio PostgreSQL**, con la misma versión que el `compose.yaml` local, su volumen propio y una red interna. **Cada base se publica solo en `127.0.0.1` del anfitrión, con un puerto distinto por entorno, y nunca hacia Internet**: desde Internet, el puerto 5432 no responde. Ese acceso de bucle local es el que usa el túnel SSH de la migración
+- [ ] **Un solo Caddy publica los puertos 80 y 443** y enruta por nombre a cada entorno. Los certificados salen de Let's Encrypt por el desafío HTTP del puerto 80, y las peticiones HTTP se redirigen a HTTPS
+- [ ] **Los tres roles de PostgreSQL —migración, aplicación y solo lectura— existen en cada base con contraseñas distintas entre `prod` y `test`**, y el esquema se aplica con `alembic upgrade head` usando el rol de migración (`RNF-07`), **desde el equipo de quien despliega y por un túnel SSH**: no hay imagen del backend hasta TKT-058 y `env.py` no genera SQL sin conexión
+- [ ] **Los secretos viven solo en el `.env` de cada entorno dentro de la VPS**, con permisos restringidos y fuera del control de versiones. Ninguno aparece en el repositorio ni en el registro de un comando
+- [ ] **Escenario de rechazo:** desde fuera de la VPS, una conexión directa a PostgreSQL de cualquiera de los dos entornos es rechazada, y un acceso por HTTP no sirve contenido, sino que redirige
+- [ ] **Un ADR registra el destino de despliegue de prueba** y declara lo que este destino **no** ofrece frente a `RNF-10` y `RNF-11`: sin recuperación a un punto en el tiempo, y con el respaldo del proveedor cada cuatro semanas
+- [ ] **La guía de operación** deja por escrito cómo se entra por SSH, qué puertos están abiertos y por qué, cómo se actualiza el servidor y cómo se recrea un entorno desde cero
+
+> **El entorno `prod` no recibe datos reales del cliente mientras este ticket sea todo lo que hay.** Se llama así porque es el destino del despliegue final, no porque cumpla ya la condición de salida de la fase 1: el sistema no se pone en manos del cliente sin respaldo con recuperación a un punto en el tiempo y sin un ensayo de restauración hecho, y eso es TKT-058. Hasta entonces, ambos entornos llevan solo datos de prueba. Tampoco se ejecuta la siembra local, que se niega a escribir fuera de una base local.
+
+**Non-goals** — No despliega la aplicación: el `Dockerfile` y la imagen única son de TKT-058. No monta respaldos ni restauración: se pospusieron por decisión expresa, y TKT-058 los exige antes de la entrega al cliente. No automatiza el despliegue desde el pipeline. No monta el almacén de objetos de TKT-059. No elige el proveedor definitivo de producción: esta VPS es de prueba, el destino final lo decide TKT-058 y la respuesta de `PA-12` sigue fijando el precio de la base gestionada. No resuelve `PA-T5` de TKT-057, el origen del cliente detrás del proxy: Caddy la activa en cuanto haya aplicación detrás, y la resuelve TKT-058.
 
 ---
 
