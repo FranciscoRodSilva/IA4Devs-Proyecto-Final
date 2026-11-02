@@ -5,8 +5,10 @@ description = "Backend de CIMENTA: control de costos de obra."
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.0",
+    "defusedxml>=0.7.1",
     "email-validator>=2.3.0",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.159.1",
+    "openpyxl>=3.1.5",
     "psycopg[binary]>=3.3.6",
     "pwdlib[argon2]>=0.3.1",
     "pydantic>=2.14.1",
@@ -27,6 +29,7 @@ dev = [
     "ruff>=0.17.1",
     "testcontainers[postgres]>=4.15.0",
     "types-jsonschema>=4.26.0.20261006",
+    "types-openpyxl>=3.1.5.20261017",
     "types-pyyaml>=6.0.12.20260906",
 ]
 

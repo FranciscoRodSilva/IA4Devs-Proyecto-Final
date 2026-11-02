@@ -1040,10 +1040,14 @@ class PruebasSobreElArbolReal(unittest.TestCase):
         lineas = resumen(self.salida)
         literal = (
             f"Escenarios: {total} · exigidos 0 · cubiertos 0 · faltan 0 · pendientes {total} · retirados 0 · "
-            "tests HDU 0 · tests de fundación "
+            "tests HDU "
         )
-        # Todo es literal salvo el recuento de fundación, que crece con cada ticket.
-        self.assertRegex(lineas, "^" + re.escape(literal) + r"\d+$", self.salida)
+        # Todo es literal salvo los recuentos de tests HDU y de fundación, que crecen con cada ticket.
+        self.assertRegex(
+            lineas,
+            "^" + re.escape(literal) + r"\d+ · tests de fundación \d+$",
+            self.salida,
+        )
 
     def test_tc56_arbol_real_cuenta_los_tests_de_fundacion(self) -> None:
         """TC-56 · CA-7 esc. 1 — los tests de fundación del repositorio entran en el recuento, y ninguno es error ni cubre un escenario."""

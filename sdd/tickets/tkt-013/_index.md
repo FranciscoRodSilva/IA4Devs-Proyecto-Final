@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR (entregas TKT-013a y TKT-013b, en ese orden)
+ARCHIVADO (al fusionarse el PR; ver comentario de registro en GitHub)
 
 ## Ficha
 
@@ -19,7 +19,7 @@ LISTO PARA EJECUTAR (entregas TKT-013a y TKT-013b, en ese orden)
 | **Módulos en alcance** | `presupuesto` |
 | **Capas en alcance** | dominio e infraestructura. Sin API, aplicación ni frontend |
 | **Depende de** | TKT-011b (ARCHIVADO) |
-| **Rama** | `tkt-013a-lector-catalogo-dominio` (primera entrega) y `tkt-013b-lector-catalogo-openpyxl` (segunda, sale de `Produccion` con la primera fusionada) |
+| **Rama** | `tkt-013b-lector-catalogo-openpyxl` (apila 013a+013b; en PR se puede partir como diseño) |
 
 ## Artefactos
 
@@ -27,8 +27,8 @@ LISTO PARA EJECUTAR (entregas TKT-013a y TKT-013b, en ese orden)
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-02 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-02 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Pendiente |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-11-02 |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-02 |
 
 ## Log de estados
 
@@ -37,6 +37,11 @@ LISTO PARA EJECUTAR (entregas TKT-013a y TKT-013b, en ese orden)
 | 2026-11-02 | — | `SPEC PENDIENTE` | `/sdd-definir` | Spec creada. Must validado por la persona dueña (M1 a M6, Should S1). 12 criterios `[M]`, uno `[S]` y tres de regresión `[M]`; seis de rechazo (CA-6 a CA-11). Se inspeccionaron los dos archivos reales. INVEST sin fallos y con tres reservas. Cinco objeciones adversariales incorporadas |
 | 2026-11-02 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito por `arquitecto-tecnico` (opus). Condición de parada 3: ~1,455 líneas, se propone partir en TKT-013a (dominio puro, ~735) y TKT-013b (openpyxl, archivos reales y `S1`, ~720). `revisor-impacto`: sin frontera cruzada y seis hallazgos incorporados. Diez objeciones adversariales. Once preguntas (P1 a P11) esperan a la persona dueña; catorce experimentos quedan `(sin ejecutar)` hasta A0 y B0 |
 | 2026-11-02 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones del arquitecto en P1 a P11. Spec ajustada en el mismo acto: sección «Partición en dos entregas», `PA-T2` y `PA-T9` resueltas |
+| 2026-11-02 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | TKT-013a (A0–A4) y TKT-013b (B0–B5) implementados; 72 tests TKT-013 en verde con archivos reales; ADR-033; `CIMENTA_CATALOGO_UNION` debe ser el libro P.U. (CA-7) |
+| 2026-11-02 | `EN REVISIÓN` | `REQUIERE CAMBIOS` | `/sdd-revisar` | `uv run pytest` → 1806 passed; mypy/ruff/lint-imports/verificar_float/verificar_docs OK; `unittest tools/tests` TC-56 falla (47 tests HDU-001); auditores arquitectura/código/docs REQUIERE CAMBIOS; seguridad APROBADO |
+| 2026-11-02 | `REQUIERE CAMBIOS` | `REQUIERE CAMBIOS` | `corrector-revision` ciclo 1 | Cerrados COD-F001–F003, DOC-F001–F008, F004, ARQ-F002/F004, SEG-O004; `unittest` 484 OK; pendiente reauditoría y DOC-F009/F010, menores código, ARQ-F001 |
+| 2026-11-02 | `REQUIERE CAMBIOS` | `LISTO PARA PR` | reauditoría ciclo 2 | Auditores arquitectura/código/docs APROBADO; `ruff format` dominio; 1809 pytest; menores ARQ-F001, DOC-F009/F010, COD F004–F012 anotados |
+| 2026-11-02 | `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` | `delta.md`; PR abierto; ticket archivado al fusionar |
 
 ## Decisiones registradas
 
@@ -47,6 +52,7 @@ LISTO PARA EJECUTAR (entregas TKT-013a y TKT-013b, en ese orden)
 - 2026-11-02 · persona dueña: un concepto sin partida se reporta como hallazgo; no se infiere ni se completa (`PA-T13`).
 - 2026-11-02 · persona dueña: ruta local de los archivos reales, `D:\Documentos\Miich\Documentos`.
 - 2026-11-02 · persona dueña: en CI, los archivos reales se omiten con `skip` explícito y visible, y un fixture sintético con la misma estructura cubre el pipeline (`PA-T3`).
+- 2026-11-02 · persona dueña (revisión): un solo PR apilado TKT-013a+013b en rama `tkt-013b-lector-catalogo-openpyxl`, con la partición documentada en `docs/05` (alternativa a dos PR en cadena).
 
 ## Tickets futuros sugeridos
 
