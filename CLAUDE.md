@@ -151,7 +151,7 @@ python -m unittest discover -s tools/tests -v   # pruebas de tools/
 
 ## Cómo se trabaja: el pipeline SDD
 
-El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de control. El núcleo del método está en [`sdd/metodologia.md`](sdd/metodologia.md); el diseño y su porqué, en [`sdd/00-propuesta-toolkit.md`](sdd/00-propuesta-toolkit.md).
+El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de control y dos de operación del servidor, que no pertenecen a ningún ticket. El núcleo del método está en [`sdd/metodologia.md`](sdd/metodologia.md); el diseño y su porqué, en [`sdd/00-propuesta-toolkit.md`](sdd/00-propuesta-toolkit.md).
 
 | Comando | Qué hace | Produce |
 |---|---|---|
@@ -162,14 +162,16 @@ El trabajo pasa por cinco fases con gate entre cada una, más dos comandos de co
 | `/sdd-completar TKT-xxx` | Delta del sistema, aprendizajes, documentación, y abre, vigila y fusiona el único PR del ticket tras tu aprobación | `delta.md`, PR fusionado |
 | `/sdd-avance` | Qué está hecho, qué falta, qué está esperando una decisión | — |
 | `/sdd-escalar TKT-xxx` | Pausa y pide la decisión que no le corresponde al agente | — |
+| `/sdd-desplegar test\|prod` | Despliega en un entorno del servidor: plan de solo lectura, aprobación explícita en `prod`, migración con el rol de migración, verificación y vuelta atrás | entorno desplegado y verificado |
+| `/sdd-revisar-servidor test\|prod` | Audita el endurecimiento del servidor y hace pruebas de penetración contra el OWASP Top 10 y el ASVS. Solo lee y reporta | hallazgos con su severidad |
 
-**Tres transiciones tienen dueño humano:** aprobar el diseño, resolver lo escalado y aprobar la fusión a `Produccion`. Ningún agente las mueve.
+**Cuatro transiciones tienen dueño humano:** aprobar el diseño, resolver lo escalado, aprobar la fusión a `Produccion` y aprobar el despliegue en el entorno `prod`. Ningún agente las mueve. Tampoco cambia nada en un servidor sin aprobación explícita en la sesión.
 
-Los agentes especializados viven en [`.claude/agents/`](.claude/agents/) y las convenciones por stack en [`.claude/skills/conv-*`](.claude/skills/). Cada agente carga **solo** las convenciones de su capa.
+Los agentes especializados viven en [`.claude/agents/`](.claude/agents/) y las convenciones por stack en [`.claude/skills/conv-*`](.claude/skills/). Cada agente carga **solo** las convenciones de su capa. Dos de ellos operan sobre el servidor y no sobre el repositorio: `ingeniero-despliegue`, que despliega desde `/sdd-desplegar`, y `auditor-servidor`, que audita el servidor en marcha desde `/sdd-revisar-servidor`. Los dos actúan solo sobre los entornos `test` y `prod` que nombra la [guía de operación](docs/despliegue-prueba-vps.md).
 
-**Modelo por tarea** ([metodología §14](sdd/metodologia.md#14--enrutamiento-de-modelo)): definir y diseñar van en `opus` con esfuerzo medio; ejecutar, en `haiku` por omisión y `sonnet` donde el diseño cita un disparador; tester, auditores y `ingeniero-devsecops`, en `sonnet`. El orquestador pasa el modelo en cada despacho y lo anota en `impl.md`; nunca sube un paso de ejecución a `opus`.
+**Modelo por tarea** ([metodología §14](sdd/metodologia.md#14--enrutamiento-de-modelo)): definir y diseñar van en `opus` con esfuerzo medio; ejecutar, en `haiku` por omisión y `sonnet` donde el diseño cita un disparador; tester, auditores, `ingeniero-devsecops` e `ingeniero-despliegue`, en `sonnet`. El orquestador pasa el modelo en cada despacho y lo anota en `impl.md`; nunca sube un paso de ejecución a `opus`.
 
-**El proyecto también se trabaja desde Cursor.** [`AGENTS.md`](AGENTS.md) remite a este archivo, y `CLAUDE.md` sigue siendo la única fuente de las instrucciones. Los agentes de Cursor viven en `.cursor/agents/` y **se generan** desde `.claude/agents/` con `python tools/agentes_cursor.py --generar`: los 21 corren en Composer 2.5 sin *fast* (`composer-2.5[fast=false]`). Nunca se editan a mano; cambiar un agente es cambiar el de `.claude/agents/` y regenerar, y la suite de `tools/tests/` falla si los dos directorios difieren. Las skills `/sdd-*` y `conv-*` las comparten las dos herramientas.
+**El proyecto también se trabaja desde Cursor.** [`AGENTS.md`](AGENTS.md) remite a este archivo, y `CLAUDE.md` sigue siendo la única fuente de las instrucciones. Los agentes de Cursor viven en `.cursor/agents/` y **se generan** desde `.claude/agents/` con `python tools/agentes_cursor.py --generar`: los 23 corren en Composer 2.5 sin *fast* (`composer-2.5[fast=false]`). Nunca se editan a mano; cambiar un agente es cambiar el de `.claude/agents/` y regenerar, y la suite de `tools/tests/` falla si los dos directorios difieren. Las skills `/sdd-*` y `conv-*` las comparten las dos herramientas.
 
 **Caveman se aplica a la conversación, nunca a los artefactos.** Un hook lo recuerda en cada turno. Lo que se escribe a disco —specs, diseños, ADRs, docstrings, documentación, mensajes de commit— va en prosa completa: es el entregable y pasa por Vale.
 

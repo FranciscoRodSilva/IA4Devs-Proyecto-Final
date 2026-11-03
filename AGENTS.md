@@ -34,7 +34,7 @@ Y dos más del apartado «Qué no hacer»: **no asumas nada** (toda duda se le p
 |---|---|---|
 | Instrucciones de proyecto | `CLAUDE.md` | Se lee desde este archivo |
 | Agentes de Claude Code (fuente única) | `.claude/agents/*.md` | Cursor los escanea también, pero su `model: haiku` o `sonnet` no es un identificador de Cursor |
-| Agentes de Cursor (generados) | `.cursor/agents/*.md` | Tienen precedencia sobre `.claude/agents/` cuando el nombre coincide. Los 21 usan `composer-2.5[fast=false]` (Composer 2.5, sin *fast*) |
+| Agentes de Cursor (generados) | `.cursor/agents/*.md` | Tienen precedencia sobre `.claude/agents/` cuando el nombre coincide. Los 23 usan `composer-2.5[fast=false]` (Composer 2.5, sin *fast*) |
 | Skills y comandos `/sdd-*` | `.claude/skills/*/SKILL.md` | Cursor las carga desde `.claude/skills/`; se invocan con `/` en el chat del agente |
 | Convenciones por capa | `.claude/skills/conv-*` | Cursor no las precarga: cada agente generado empieza con la orden de leer las suyas |
 
@@ -49,7 +49,7 @@ La verificación corre también en la suite de `tools/tests/`, así que un desfa
 
 ## Qué cambia al trabajar desde Cursor
 
-- **El modelo lo fija el agente.** En Claude Code el orquestador elige el modelo en cada despacho ([metodología §14](sdd/metodologia.md#14--enrutamiento-de-modelo)). En Cursor los 21 agentes corren en Composer 2.5 sin *fast*; no hay subida a `sonnet` tras dos intentos fallidos. Si un paso no cierra tras dos intentos, el diseño tiene un hueco: `/sdd-escalar`, no insistir.
+- **El modelo lo fija el agente.** En Claude Code el orquestador elige el modelo en cada despacho ([metodología §14](sdd/metodologia.md#14--enrutamiento-de-modelo)). En Cursor los 23 agentes corren en Composer 2.5 sin *fast*; no hay subida a `sonnet` tras dos intentos fallidos. Si un paso no cierra tras dos intentos, el diseño tiene un hueco: `/sdd-escalar`, no insistir.
 - **No hay *hooks* de Claude Code.** El recordatorio de comunicación de `.claude/hooks/` no se ejecuta, así que se repite aquí: en la **conversación** (respuestas de chat, reportes de avance, veredictos) sé breve, sin relleno y sin repetir lo ya dicho. **Nunca** apliques esa brevedad a lo que se escribe a disco —`spec.md`, `design.md`, `impl.md`, `delta.md`, ADR, docstrings, documentación de `docs/` ni mensajes de commit—: va en prosa completa y con acentos, porque es el entregable y pasa por Vale.
 - **Las herramientas tienen otros nombres.** Los agentes citan `Read`, `Write`, `Edit`, `Bash`, `PowerShell`, `Skill` y `Agent` (Claude Code); usa el equivalente de Cursor. Context7 se usa igual si el servidor MCP está conectado en Cursor.
 - **Los permisos de `.claude/settings.json` no aplican.** Pide aprobación según la política de Cursor; las reglas del proyecto no cambian.

@@ -57,7 +57,7 @@ El estado vive en `_index.md`. Quien lo mueve escribe la fila en el Log, con fec
 
 **Salidas de `/sdd-escalar`.** El comando puede abrirse desde `LISTO PARA EJECUTAR`, `EN REVISIÓN` o `REQUIERE CAMBIOS`, y pasa el ticket a `REQUIERE DECISIÓN` (o a `RIESGOSO` si viene de una auditoría bloqueante). Al responder la persona dueña, el ticket vuelve al estado desde el que se escaló, con una de estas salidas, siempre registrada en «Decisiones registradas»: **continuar** tal como estaba; **cambiar el diseño**, que vuelve a `/sdd-disenar` y a su gate humano; **recortar alcance**, que pasa a `EN REVISIÓN` para que `/sdd-revisar` evalúe el ticket contra el alcance recortado; o **detener** el ticket. Un recorte de un Must sigue la fila «recorte tras ejecutar» de la tabla de MoSCoW.
 
-Tres transiciones tienen dueño humano a propósito: aprobar el diseño, resolver lo escalado y aprobar la fusión a `Produccion`. Un pipeline donde el agente aprueba su propio diseño, o fusiona lo que escribió sin que ninguna persona lo haya aceptado, no es un pipeline.
+Cuatro transiciones tienen dueño humano a propósito: aprobar el diseño, resolver lo escalado, aprobar la fusión a `Produccion` y aprobar el despliegue en el entorno `prod` con `/sdd-desplegar`. Un pipeline donde el agente aprueba su propio diseño, o fusiona lo que escribió sin que ninguna persona lo haya aceptado, no es un pipeline.
 
 ---
 
@@ -201,9 +201,11 @@ El toolkit se construye por fases: los comandos nombran el agente **correcto** p
 
 | Construido | Pendiente |
 |---|---|
-| `analista-dominio` · `arquitecto-tecnico` · `revisor-impacto` · `desarrollador-dominio` · `desarrollador-aplicacion` · `desarrollador-api` · `desarrollador-sql` · `disenador-ui-ux` · `desarrollador-react` · `tester-backend` · `tester-api` · `tester-frontend` · `auditor-arquitectura` · `auditor-sql` · `auditor-codigo` · `auditor-seguridad` · `auditor-docs` · `corrector-revision` · `git-entrega` · `ingeniero-devsecops` · `meta-sdd` | `generador-onboarding` (fase B) |
+| `analista-dominio` · `arquitecto-tecnico` · `revisor-impacto` · `desarrollador-dominio` · `desarrollador-aplicacion` · `desarrollador-api` · `desarrollador-sql` · `disenador-ui-ux` · `desarrollador-react` · `tester-backend` · `tester-api` · `tester-frontend` · `auditor-arquitectura` · `auditor-sql` · `auditor-codigo` · `auditor-seguridad` · `auditor-docs` · `corrector-revision` · `git-entrega` · `ingeniero-devsecops` · `ingeniero-despliegue` · `auditor-servidor` · `meta-sdd` | `generador-onboarding` (fase B) |
 
 `desarrollador-tdd` ya no se construye: el ciclo de [§16](#16--el-ciclo-tdd) lo conduce el orquestador con el tester y el desarrollador de cada capa. `ingeniero-ci` quedó absorbido por `ingeniero-devsecops`, que además del pipeline cubre la imagen, el Compose, las dependencias y los secretos.
+
+`ingeniero-despliegue` y `auditor-servidor` operan sobre el servidor, no sobre el repositorio, y no forman parte del ciclo de un ticket: los despachan `/sdd-desplegar` y `/sdd-revisar-servidor`. Los dos actúan solo sobre los entornos `test` y `prod` que nombra la [guía de operación](../docs/despliegue-prueba-vps.md), y ninguno cambia el servidor sin aprobación explícita de la persona dueña. Los artefactos que se despliegan —imagen, Compose, `despliegue/`, pipeline— siguen siendo de `ingeniero-devsecops`.
 
 **Regla de sustitución.** Si un comando nombra un agente que aún no existe en `.claude/agents/`, el orquestador:
 
@@ -227,6 +229,8 @@ El modelo se elige por la **naturaleza de la tarea**, no por su importancia. Pag
 | `auditor-arquitectura` | `sonnet` | alto | Último filtro de las 17 reglas innegociables |
 | `auditor-seguridad` | `sonnet` | alto | Lo más fácil de omitir y lo más caro de remediar en producción |
 | `ingeniero-devsecops` | `sonnet` | medio | Compuertas del pipeline, imagen y cadena de suministro: un error abre la puerta a todos los tickets siguientes |
+| `ingeniero-despliegue` | `sonnet` | alto | Opera el servidor de `prod`: un paso mal ejecutado se paga en datos del cliente, no en un test en rojo |
+| `auditor-servidor` | `sonnet` | alto | Lo mismo que `auditor-seguridad`, sobre el servidor en marcha: lo que se le escapa queda expuesto a Internet |
 | `tester-api` · `tester-frontend` | `sonnet` | alto | Igual que `tester-backend`: son el oráculo del rojo en su capa |
 | `auditor-sql` · `auditor-codigo` | `sonnet` | alto | Primera pasada de una auditoría: nunca por debajo de quien escribió |
 | `revisor-impacto` | `sonnet` | alto | Revisa el diseño, no lo escribe; lo que se le escapa lo hereda la ejecución |
