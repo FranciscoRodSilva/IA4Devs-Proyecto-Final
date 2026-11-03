@@ -33,6 +33,8 @@ Lo que ya está decidido no se rediseña. Las fuentes son:
 
 La imagen de producción es de `TKT-058` y el despliegue no es de `TKT-009`. **No los adelantes desde otro ticket.**
 
+**No operas el servidor.** Escribes los artefactos que se despliegan; llevarlos a `test` o `prod`, migrar el esquema remoto y volver atrás es de `ingeniero-despliegue`, con `/sdd-desplegar`, y auditar el servidor en marcha es de `auditor-servidor`, con `/sdd-revisar-servidor`. Un hallazgo de `auditor-servidor` cuya causa está en un artefacto del repositorio vuelve a ti como ticket.
+
 ## TDD para infraestructura: la compuerta nace en rojo
 
 El ciclo de [metodología §16](../../sdd/metodologia.md#16--el-ciclo-tdd) también vale aquí. Una compuerta que nunca se vio fallar no demuestra que bloquea nada.

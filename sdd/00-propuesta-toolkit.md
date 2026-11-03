@@ -81,7 +81,7 @@ Antes del diseño, los hechos técnicos que lo condicionan. Verificados contra l
 
 ## 3 · El pipeline
 
-Cinco comandos de pipeline y dos de soporte, como se pidió. Cada uno con su gate: el estado no avanza solo.
+Cinco comandos de pipeline y dos de soporte, como se pidió, más dos de operación del servidor que se añadieron después. Cada uno con su gate: el estado no avanza solo.
 
 ```text
                  ┌──── /escalar ────┐   (desde cualquier fase)
@@ -115,6 +115,15 @@ Cinco comandos de pipeline y dos de soporte, como se pidió. Cada uno con su gat
 
 Ese último es la traducción directa de la regla del proyecto: **no inventes reglas de negocio**.
 
+### Los dos de operación del servidor
+
+No pertenecen a ningún ticket ni mueven su estado: operan sobre el servidor, no sobre el repositorio, y solo sobre los entornos `test` y `prod` que nombra la [guía de operación](../docs/despliegue-prueba-vps.md).
+
+| Comando | Cuándo | Qué hace | Por qué existe |
+|---|---|---|---|
+| `/sdd-desplegar test\|prod` | Se pide desplegar en un entorno | `ingeniero-despliegue` prepara un plan de solo lectura con el digest en marcha como vuelta atrás; en `prod` la persona dueña lo aprueba de forma explícita; después migra con el rol de migración, despliega la imagen por digest, verifica y, si la verificación falla, vuelve al digest anterior. | Un despliegue sin plan aprobado ni vuelta atrás preparada es una apuesta sobre los datos del cliente |
+| `/sdd-revisar-servidor test\|prod` | Se pide revisar la seguridad del servidor, antes de exponer un entorno o tras un despliegue | `auditor-servidor` revisa el endurecimiento —SSH, cortafuegos, actualizaciones, usuarios, permisos, servicios expuestos, TLS, registros, recursos, respaldos y contenedores— y hace pruebas de penetración contra el OWASP Top 10 y el ASVS. Solo lee y reporta. | `auditor-seguridad` audita el diff; lo que se edita a mano en el servidor solo se ve auditando el servidor |
+
 ### Estados
 
 | Estado | Sale hacia | Quién lo mueve |
@@ -127,7 +136,7 @@ Ese último es la traducción directa de la regla del proyecto: **no inventes re
 | `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` |
 | `REQUIERE DECISIÓN` · `RIESGOSO` | estado previo | **el usuario** |
 
-Tres transiciones tienen dueño humano a propósito: aprobar el diseño, resolver lo escalado y aprobar la fusión a `Produccion`. Un pipeline donde el agente aprueba su propio diseño, o fusiona sin que ninguna persona lo haya aceptado, no es un pipeline, es un monólogo.
+Cuatro transiciones tienen dueño humano a propósito: aprobar el diseño, resolver lo escalado, aprobar la fusión a `Produccion` y aprobar el despliegue en el entorno `prod`. Un pipeline donde el agente aprueba su propio diseño, o fusiona sin que ninguna persona lo haya aceptado, no es un pipeline, es un monólogo.
 
 ---
 
@@ -275,6 +284,7 @@ Ninguno de estos modifica archivos. Emiten veredicto con evidencia citable —ar
 | `auditor-sql` | Hay migración o DDL | Reversibilidad, idempotencia, `NUMERIC`, restricciones nombradas, índices, disparadores, permisos por rol, migración destructiva sin plan. | El esquema aprobado sin auditar llega a producción con errores que no se reproducen en local | A |
 | `auditor-codigo` | Hay Python o TypeScript | Tipado, manejo de errores, casos borde, complejidad, código muerto, duplicación, Ruff y mypy limpios. | El mismo que escribió el código no puede auditarlo | A |
 | `auditor-seguridad` | Hay endpoint, entrada externa, archivo o sesión | OWASP: autorización por obra (IDOR), inyección, secretos, sesión y CSRF, URL prefirmadas, tipo leído de los bytes, dependencias con CVE. | Es lo más fácil de omitir bajo presión y lo más caro de remediar después | A |
+| `auditor-servidor` | Se pide revisar el servidor, antes de exponer un entorno o tras un despliegue (`/sdd-revisar-servidor`) | El servidor en marcha, no el diff: SSH, cortafuegos —y los puertos que Docker publica saltándose `ufw`—, actualizaciones, usuarios, permisos, servicios expuestos, TLS, registros, límites de recursos, respaldos y contenedores; y pruebas de penetración contra el OWASP Top 10 y el ASVS, las activas solo en `test` salvo aprobación expresa. Solo actúa sobre los servidores propios de la guía de operación y no los modifica. | Un ajuste hecho a mano en el servidor no aparece en ningún diff, y un disco lleno o un certificado sin renovar tumban el servicio sin que falle ningún test | A |
 | `auditor-docs` | El cambio altera comportamiento | Que la documentación afectada se actualice en el mismo cambio; que ningún identificador citado sea inexistente; que cada escenario tenga test. Corre `verificar_docs.py`. | En este proyecto la documentación **es** el entregable, y se valida en CI | A |
 | `corrector-revision` | Un auditor devolvió `REQUIERE CAMBIOS` | Aplica exactamente los hallazgos señalados y devuelve a reauditoría. Nada más: no refactoriza de paso. | Sin corrector, el ciclo auditoría→arreglo se rompe y el ticket se queda a medias | A |
 
@@ -286,6 +296,7 @@ Ninguno de estos modifica archivos. Emiten veredicto con evidencia citable —ar
 |---|---|---|---|---|
 | `git-entrega` | Al abrir y al cerrar un ticket | Crea o verifica la rama, revisa que no entren secretos ni archivos fuera de alcance, commitea con el formato del proyecto, abre el único PR del ticket y espera sus comprobaciones (la fusión, con la aprobación explícita de la persona dueña, la ejecuta el orquestador y no este agente); y marca el origen del PR con una de las cuatro etiquetas (`human`, `human+copilot`, `agent`, `agent+human-review`), que dice quién escribió el código y no cambia al aprobar. | El repositorio tiene su formato de rama y su atribución; y el origen del PR es una métrica declarada del proyecto | A |
 | `ingeniero-devsecops` | Se toca el pipeline, la imagen, el Compose, las dependencias o la gestión de secretos | Mantiene las compuertas —Ruff, mypy, import-linter, pip-audit, npm audit, pytest con testcontainers, markdownlint, Vale, lychee, los verificadores propios—, Dependabot y el escaneo de secretos; endurece los *workflows* (permisos mínimos, acciones fijadas por SHA) y la imagen. Cada compuerta nace demostrando que falla ante su violación. Sustituye al `ingeniero-ci` previsto. | Un guardrail que no corre en CI es una recomendación, y un pipeline mal endurecido es la puerta de entrada a todos los tickets a la vez | A |
+| `ingeniero-despliegue` | Se pide desplegar en `test` o en `prod` (`/sdd-desplegar`) | Prepara un plan de solo lectura —digest en marcha como vuelta atrás, migraciones pendientes y su compatibilidad, respaldo—; tras la aprobación, que en `prod` es explícita, migra con el rol de migración, despliega la imagen por digest del registro que fije TKT-058, verifica y vuelve atrás si la verificación falla. No escribe artefactos del repositorio. | Desplegar es operar un servidor con datos, un riesgo distinto del de escribir el pipeline; separarlo deja a `ingeniero-devsecops` como dueño de lo que se despliega y a este como quien lo lleva al servidor | A |
 | `meta-sdd` | Al completar cada ticket | Agrupa las observaciones de `_evolucion.md` por tema, detecta patrones repetidos ≥3 y **propone** mejoras al toolkit. Nunca las aplica solo. | Sin revisión del proceso, el toolkit se fosiliza y deja de reflejar la realidad | A |
 | `generador-onboarding` | Alguien nuevo, o módulo desconocido | Recorrido pedagógico de un módulo: qué hace, cómo fluye, dónde están los riesgos. | El onboarding sin guía cuesta tiempo de todo el equipo | B |
 
@@ -342,6 +353,14 @@ El orquestador es el hilo principal ejecutando el comando. Cada comando declara 
                         ¿RIESGOSO?         ──► /sdd-escalar
 
 /sdd-completar    [delta.md] ──► auditor-docs ──► git-entrega (PR) ──► meta-sdd
+
+/sdd-desplegar    ingeniero-despliegue (plan, solo lectura)
+                                   │
+                        GATE humano en prod
+                                   │
+                  ingeniero-despliegue (migra, despliega, verifica; vuelta atrás si falla)
+
+/sdd-revisar-servidor   auditor-servidor ──► hallazgos con su severidad (solo lectura)
 ```
 
 ---
@@ -397,9 +416,9 @@ Los cuatro primeros son la traducción directa de cuatro reglas del `CLAUDE.md` 
 
 ```text
 .claude/
-├── agents/                      9 construidos de 21
+├── agents/                      23 construidos
 ├── skills/
-│   ├── sdd-definir/SKILL.md     los 7 comandos del pipeline
+│   ├── sdd-definir/SKILL.md     los 9 comandos del toolkit
 │   ├── sdd-disenar/  …
 │   ├── conv-dominio-python/     los 7 paquetes de convenciones
 │   └── abogado-del-diablo/
@@ -432,6 +451,7 @@ Construir veintiún agentes antes del primer ticket es el mismo error que escrib
 | 6 | Los agentes restantes de fase A | Ya con evidencia de qué falta de verdad | Pendiente |
 | 7 | Hooks que bloquean (`float` en dominio, `sqlite` en tests, `async def` en rutas) | Cuando ya se sabe qué se rompe en la práctica | Pendiente |
 | 8 | Fase B | Cuando el proyecto llegue a esa superficie | Pendiente |
+| 9 | `ingeniero-despliegue`, `auditor-servidor`, `/sdd-desplegar` y `/sdd-revisar-servidor` | Desplegar en `test` y `prod` y auditar el servidor, con la VPS de TKT-070 como destino | **Hecho** |
 
 > El hook de `caveman` sí está puesto desde el principio: no es un guardrail de código, es una preferencia de comunicación, y no hace falta evidencia de uso para activarla.
 
