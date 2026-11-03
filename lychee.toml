@@ -5,5 +5,6 @@ include_fragments = "none"
 max_retries = 3
 timeout = 20
 accept = ["200..=206", "429"]
+# La VPS de prueba de TKT-070 se contrató un mes: sus nombres de DuckDNS dejan de responder al apagarla.
 # Medium responde 403 a los corredores de GitHub y 200 a una persona: no es un enlace roto.
-exclude = ['cimenta\.test', '^https://medium\.com/']
+exclude = ['cimenta\.test', '^https://medium\.com/', 'duckdns\.org']

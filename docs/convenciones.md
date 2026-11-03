@@ -55,6 +55,7 @@ IA4Devs-Proyecto-Final/
 ├── .gitattributes                  Normalización de finales de línea: LF en el repositorio
 ├── .env.example                    Plantilla de variables de entorno, sin contraseñas: cada persona las define en su `.env`, que no se versiona
 ├── compose.yaml                    PostgreSQL local (TKT-003); MinIO llega con TKT-059
+├── despliegue/                     Compose de ajustes de la VPS de prueba, Caddy y su consulta de permisos (TKT-070)
 ├── README.md                       Índice + ficha del proyecto. Nunca contenido extenso
 ├── llms.txt                        Mapa del proyecto para agentes IA
 ├── AGENTS.md                       Puntero de Cursor a CLAUDE.md, más lo que cambia al trabajar desde Cursor
@@ -76,6 +77,7 @@ IA4Devs-Proyecto-Final/
     ├── 06-stack-tecnologico.md     Decisiones de stack — Paso 5
     ├── 07-especificacion-api.md    Endpoints, convenciones y contrato de error
     ├── 08-wireframes.md            Bocetos de baja fidelidad de las pantallas del hilo vertical
+    ├── despliegue-prueba-vps.md    Guía de operación de la VPS de prueba (TKT-070)
     ├── api/
     │   └── openapi.yaml            Borrador OpenAPI 3.1 de la fase 1: el contrato del agente
     └── adr/

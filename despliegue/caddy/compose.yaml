@@ -3,7 +3,8 @@ name: cimenta-caddy
 
 services:
   caddy:
-    image: caddy:2.11.7
+    build: .
+    image: cimenta-caddy:2.11.7-duckdns
     cap_drop:
       - ALL
     cap_add:
@@ -14,6 +15,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    env_file:
+      - path: .env
+        required: true
     environment:
       CIMENTA_ACME_CA: ${CIMENTA_ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
     volumes:

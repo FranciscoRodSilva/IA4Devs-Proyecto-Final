@@ -190,6 +190,11 @@
 | 2026-11-02 | TKT-013a | `convención` | Compartir datos de prueba entre módulos `test_*` con `from tests.test_*` o imports cruzados rompe `mypy .` (módulo duplicado); el soporte compartido quedó en `herramientas/soporte_tkt013.py` | Baja |
 | 2026-11-02 | TKT-013b | `herramienta` | `verificar_escenarios` TC-56 asumía `tests HDU 0` con todas las historias inactivas; TKT-013 añadió 47 tests `test_hdu001_esc*` que cuentan aunque la historia siga pendiente | Baja |
 | 2026-11-02 | TKT-013 | `agente` | Reauditoría acotada al informe previo más corrector-revisión cerraron mayores en dos ciclos sin agotar el tope de tres | Baja |
+| 2026-11-03 | TKT-070 | `comando` | TKT-070 se ejecutó en VPS antes de cerrar `impl.md` en el repo; `/sdd-revisar` bloqueó hasta reconstruir evidencia. Conviene que `/sdd-ejecutar` exija `impl.md` mínimo aunque la verificación manual sea externa | Media |
+| 2026-11-03 | TKT-070 | `herramienta` | `ruff`/`mypy` del job `backend` no cubren `tools/`; hallazgos de formato en scripts nuevos solo aparecen en revisión manual | Baja |
+| 2026-11-03 | TKT-070 | `agente` | Reauditoría de código sin el texto literal de F005–F012 del ciclo 1 obligó a reclasificar por observación; conviene que `impl.md` copie los IDs de hallazgo del informe del auditor | Baja |
+| 2026-11-03 | TKT-070 | `documentación` | La guía y `docs/05-tickets-trabajo.md` quedaron desfasados respecto a DNS-01 hasta el ciclo 2 de corrección | Media |
+| 2026-11-03 | TKT-070 | `guardrail` | Tres ciclos de corrección (Mayor `sed`, docs/LF, Menores de código) para un ticket sin backend | Media |
 
 Temas en uso: `plantilla` · `agente` · `comando` · `guardrail` · `convención` · `documentación` · `contexto` · `herramienta` · `modelo`.
 
