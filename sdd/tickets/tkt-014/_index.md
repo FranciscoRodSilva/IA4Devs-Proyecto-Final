@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega **TKT-014a** (paraguas TKT-014 abierto hasta **014b**)
+LISTO PARA EJECUTAR · **TKT-014b** (entrega **TKT-014a** fusionada en [PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38#issuecomment-6614407455))
 
 ## Ficha
 
@@ -19,7 +19,7 @@ PENDIENTE FUSIÓN · entrega **TKT-014a** (paraguas TKT-014 abierto hasta **014b
 | **Módulos en alcance** | `presupuesto` |
 | **Capas en alcance** | dominio e infraestructura. Sin API, aplicación ni frontend |
 | **Depende de** | TKT-013b (ARCHIVADO) |
-| **Rama** | `tkt-014a-dominio-hoja` (014a); `tkt-014b-…` apila a 014a |
+| **Rama** | 014a fusionada · `tkt-014b-…` apila a `Produccion` |
 
 ## Artefactos
 
@@ -44,6 +44,7 @@ PENDIENTE FUSIÓN · entrega **TKT-014a** (paraguas TKT-014 abierto hasta **014b
 | 2026-11-03 | `REQUIERE CAMBIOS` | `EN REVISIÓN` | corrector-revisión ciclo 2 | `"viaticos" in rotulo`; fixture `CARGOS VIATICOS Y HOSPEDAJE` + 2 roles; pie fila 21; 43 tests con `Hallazgo` completo; design E-1 actualizado |
 | 2026-11-03 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (014a) ciclo 3 | Suite 1853 passed; arquitectura APROBADO; F012 cabecera + docs/design; 44 tests. Siguiente: `/sdd-completar` |
 | 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014a) | [PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38); `delta.md`; hub TKT-014 abierto hasta 014b |
+| 2026-11-03 | `PENDIENTE FUSIÓN` | `LISTO PARA EJECUTAR` | fusión PR #38 | **TKT-014a** en `Produccion` (merge `65b0992`); registro en comentario del PR. Siguiente: `/sdd-ejecutar TKT-014b` |
 
 ## Decisiones registradas
 
