@@ -1,0 +1,12 @@
+# TKT-070 · marcador HTTPS sin aplicación. Guía: docs/despliegue-prueba-vps.md
+{
+	acme_ca {$CIMENTA_ACME_CA}
+}
+
+apbuildings.duckdns.org {
+	respond "CIMENTA entorno prod: sin aplicacion todavia (TKT-070)" 200
+}
+
+apbuildings-test.duckdns.org {
+	respond "CIMENTA entorno test: sin aplicacion todavia (TKT-070)" 200
+}

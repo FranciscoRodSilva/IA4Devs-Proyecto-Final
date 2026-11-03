@@ -1,0 +1,6 @@
+# Ajustes de la VPS de prueba (TKT-070) sobre el compose.yaml de la raíz. No declara imagen, puertos ni entorno: los hereda.
+# Guía: docs/despliegue-prueba-vps.md
+services:
+  db:
+    restart: unless-stopped
+    mem_limit: 768m

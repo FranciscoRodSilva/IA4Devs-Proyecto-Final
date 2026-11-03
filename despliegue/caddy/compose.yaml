@@ -1,0 +1,26 @@
+# Caddy único para los dos nombres de la VPS de prueba (TKT-070). Guía: docs/despliegue-prueba-vps.md
+name: cimenta-caddy
+
+services:
+  caddy:
+    image: caddy:2.11.7
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - "no-new-privileges:true"
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CIMENTA_ACME_CA: ${CIMENTA_ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_datos:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_datos:
+  caddy_config:
