@@ -6,7 +6,7 @@
 
 CIMENTA todavía no tiene destino de despliegue. El stack ([stack §10](../../../docs/06-stack-tecnologico.md#10-infraestructura)) lo deja para el cierre de la fase 1, junto con TKT-058, y TKT-058 a su vez dice que el destino «se decide aparte». Mientras tanto no hay forma de comprobar que la pieza más delicada del despliegue —una base PostgreSQL con tres roles y disparadores de inmutabilidad, detrás de un proxy con HTTPS— funciona fuera de la máquina de quien desarrolla.
 
-La persona dueña del proyecto contrató por **un mes, a 4.07 USD**, una *Express Linux VPS* de Database Mart: Ubuntu Server 24.04, 2 núcleos, 4 GB de RAM, 60 GB de disco y una IPv4 compartida. El proveedor confirmó que los puertos 80 y 443 están disponibles. En el servidor ya hay Docker y Compose instalados, SSH por llave y un firewall (`ufw`) que deja abiertos solo los puertos 22, 80 y 443. Los nombres `apbuildings.duckdns.org` y `apbuildings-test.duckdns.org` ya resuelven a la IP pública de la VPS.
+La persona dueña del proyecto contrató por **un mes, a 4.07 USD**, una *Express Linux VPS* de Database Mart: Ubuntu Server 24.04, 2 núcleos, 4 GB de RAM, 60 GB de disco y una IPv4 compartida. El proveedor **no** reenvía el tráfico entrante a los puertos **80 y 443 estándar** de la IP pública hacia la VM; en su lugar publica **10004→80** (HTTP), **10005→443** (HTTPS) y **10003→22** (SSH). Los certificados de Let's Encrypt se obtienen por **desafío DNS-01** (token DuckDNS), no por HTTP-01 en el puerto 80. En el servidor hay Docker y Compose instalados, SSH por llave y un firewall (`ufw`). Los nombres `apbuildings.duckdns.org` y `apbuildings-test.duckdns.org` resuelven a la IP pública de la VPS.
 
 Este ticket levanta en esa VPS dos entornos aislados, **`prod` y `test`**, cada uno con su base de datos y su nombre con HTTPS, **sin la aplicación**: no hay `Dockerfile` ni imagen del backend hasta TKT-058, y la regla 17 de `CLAUDE.md` prohíbe adelantarlos desde otro ticket. Lo que sí se prueba es lo que no depende de la aplicación: que el certificado se emite, que cada base queda cerrada a Internet y a la otra, y que el esquema real —con sus permisos— se reproduce en la VPS.
 
@@ -89,9 +89,9 @@ Escenario: la base no se alcanza aunque Docker se salte el firewall
 ### CA-3 `[M]` · Caddy sirve los dos nombres con HTTPS y certificado válido
 
 ```gherkin
-Escenario: cada nombre obtiene su certificado de Let's Encrypt
-  Dado que Caddy está arriba y los puertos 80 y 443 llegan a la VPS
-  Cuando se ejecuta `curl -I https://apbuildings.duckdns.org` y `curl -I https://apbuildings-test.duckdns.org`
+Escenario: cada nombre obtiene su certificado de Let's Encrypt por DNS-01
+  Dado que Caddy está arriba con el plugin DuckDNS y el reenvío público 10005→443 hacia la VM
+  Cuando se ejecuta `curl.exe -I https://apbuildings.duckdns.org:10005` y lo mismo para `apbuildings-test.duckdns.org`
   Entonces cada respuesta llega sin error de certificado
   Y el certificado de cada nombre lo emitió Let's Encrypt y no está caducado
 ```
@@ -99,10 +99,10 @@ Escenario: cada nombre obtiene su certificado de Let's Encrypt
 ### CA-4 `[M]` · Rechazo · el HTTP no sirve contenido
 
 ```gherkin
-Escenario: una petición sin cifrar se redirige
-  Dado que Caddy escucha en el puerto 80
-  Cuando se ejecuta `curl -I http://apbuildings.duckdns.org` y `curl -I http://apbuildings-test.duckdns.org`
-  Entonces cada respuesta es una redirección permanente a la dirección `https://` del mismo nombre
+Escenario: una petición sin cifrar se redirige al HTTPS publicado
+  Dado que Caddy escucha en el puerto 80 dentro de la VM y el proveedor reenvía 10004→80
+  Cuando se ejecuta `curl.exe -I http://apbuildings.duckdns.org:10004` y lo mismo para `apbuildings-test.duckdns.org`
+  Entonces cada respuesta es una redirección permanente a `https://` del mismo nombre en el puerto público 10005
   Y ninguna respuesta de HTTP lleva contenido del entorno
 ```
 
@@ -300,7 +300,7 @@ La del tipo **Documentación**, de [`sdd/metodologia.md` §8](../../metodologia.
 | 5 | El DoD de «Fundación», que `convenciones.md` §6 no define, es el de **Documentación** `(asumido)` | El cierre se juzgaría con otra vara | Decidido por la persona dueña, 2026-11-02 |
 | 6 | La decisión del destino de despliegue final es de **TKT-058**, que la toma en su diseño, con `PA-12` respondida. El non-goal de TKT-058 se corrigió para que no diga «se decide aparte» | Si nadie la tomara, TKT-058 llegaría sin destino | Decidido por la persona dueña, 2026-11-02 |
 | 7 | `PA-T5` de TKT-057 —origen del cliente detrás del proxy— se activa en cuanto haya aplicación detrás de Caddy. Este ticket no expone ninguna y la deja en TKT-058 | La aplicación llegaría detrás de un proxy sin resolverla | Decidido por la persona dueña, 2026-11-02: se remite a TKT-058. Se cita como «PA-T5 de TKT-057», no como `PA-T5` a secas: el identificador se reutiliza en otros tickets |
-| 8 | Los puertos 80 y 443 llegan a la VPS por una IPv4 compartida | Sin ellos no hay certificado | Confirmado por el proveedor, y `CA-3` lo prueba |
+| 8 | La IPv4 compartida reenvía **10004→80**, **10005→443** y **10003→22** hacia la VM; los puertos 80/443 **estándar** de la IP pública no llegan a Caddy | Sin 10004/10005 no hay comprobación externa; sin DNS-01 no hay certificado LE | **Verificado en VPS**, 2026-11-03: `curl` en :10004 da 308; en :80 da 404. Certificados por DNS-01 + token DuckDNS `(asumido)` hasta V4 |
 | 9 | La VPS es KVM y corre Docker | Sin Docker no hay Compose | Comprobado: `hello-world` corrió el 2026-11-02 |
 | 10 | Si Caddy y la aplicación emitirán las mismas cabeceras de seguridad cuando haya aplicación | Cabeceras duplicadas o ausentes | Abierta, es de TKT-058 |
 

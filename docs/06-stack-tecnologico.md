@@ -518,7 +518,7 @@ El destino concreto —VPS con Compose, o una plataforma gestionada— se decide
 
 **Dos restricciones que el destino tiene que cumplir**, y por eso se declaran ya:
 
-- PostgreSQL gestionado **con recuperación a un punto en el tiempo** (`RNF-10`). Es el criterio que descarta un contenedor de PostgreSQL sobre un volumen de VPS sin más, que es la opción por omisión cuando nadie lo ha pensado.
+- PostgreSQL gestionado **con recuperación a un punto en el tiempo** (`RNF-10`). Es el criterio que descarta un contenedor de PostgreSQL sobre un volumen de VPS sin más, que es la opción por omisión cuando nadie lo ha pensado. TKT-070 levanta un [banco de pruebas en VPS](despliegue-prueba-vps.md) que **no es candidato por omisión** al destino final; la decisión queda en TKT-058 ([ADR-034](adr/20261102-destino-de-prueba-en-vps.md)).
 - Un **bucket de objetos con versionado y ciclo de vida** (`RNF-19`). Es lo que hace que la imagen del backend siga sin estado: si los archivos acabaran en un volumen junto al contenedor, el artefacto deja de ser recreable y [ADR-008](adr/20260918-despliegue-single-tenant.md) se rompe por la puerta de atrás.
 
 ### Respaldo y recuperación

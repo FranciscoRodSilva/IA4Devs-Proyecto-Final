@@ -1,12 +1,26 @@
-# TKT-070 · marcador HTTPS sin aplicación. Guía: docs/despliegue-prueba-vps.md
+# TKT-070 · docs/despliegue-prueba-vps.md
+# IPv4 compartida: publico 10004→80 y 10005→443 hacia esta VM; Caddy escucha 80/443 dentro del contenedor.
+# La redireccion HTTP debe nombrar el puerto publico 10005 (no usar https_port global: cambia el listener interno).
 {
 	acme_ca {$CIMENTA_ACME_CA}
 }
 
+http://apbuildings.duckdns.org, http://apbuildings-test.duckdns.org {
+	redir https://{host}:10005{uri} permanent
+}
+
 apbuildings.duckdns.org {
+	tls {
+		dns duckdns {env.DUCKDNS_API_TOKEN}
+		resolvers 8.8.8.8 8.8.4.4
+	}
 	respond "CIMENTA entorno prod: sin aplicacion todavia (TKT-070)" 200
 }
 
 apbuildings-test.duckdns.org {
+	tls {
+		dns duckdns {env.DUCKDNS_API_TOKEN}
+		resolvers 8.8.8.8 8.8.4.4
+	}
 	respond "CIMENTA entorno test: sin aplicacion todavia (TKT-070)" 200
 }

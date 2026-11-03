@@ -13,6 +13,8 @@ Docker aparece en tres sitios del proyecto, y en cada uno con un papel distinto.
 | **Pruebas** | PostgreSQL y MinIO **efímeros**, levantados por testcontainers en cada sesión | El Compose local: los tests no dependen de que esté arriba | `TKT-003`, `TKT-009`, `TKT-059` |
 | **Producción** | **Una** imagen: el backend sirviendo los estáticos del frontend ya compilado | PostgreSQL (gestionado, con recuperación a un punto en el tiempo) y los archivos (bucket R2 versionado) | `TKT-058` |
 
+**Excepción temporal (TKT-070):** el banco de pruebas en VPS sí corre PostgreSQL en contenedor, con `restart` y `mem_limit`, hasta que venza el mes contratado. Su Caddy corre como `root` dentro del contenedor, con todas las capacidades retiradas salvo `NET_BIND_SERVICE` y sin nuevos privilegios, porque con otro usuario no puede escribir en el volumen `/data` donde guarda certificados (E-L4).
+
 La fuente de estas decisiones es el [stack §10](../../../docs/06-stack-tecnologico.md#10-infraestructura), [ADR-008](../../../docs/adr/20260918-despliegue-single-tenant.md) y [ADR-016](../../../docs/adr/20261001-almacenamiento-de-objetos.md). Esta convención no añade ninguna decisión de arquitectura: las reúne. Lo que sí añade son **prácticas de higiene de contenedores** —versiones fijadas, puertos a `127.0.0.1`, usuario sin privilegios, `.dockerignore`— que ningún documento del proyecto escribe; van marcadas con ‡ y, si alguna choca con un ticket, manda el ticket.
 
 ## 1 · Requisito previo: el demonio responde

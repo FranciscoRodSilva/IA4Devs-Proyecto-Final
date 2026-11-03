@@ -127,6 +127,23 @@ La última línea resume los recuentos: escenarios, exigidos, cubiertos, faltan,
 
 **Pruebas.** `python -m unittest discover -s tools/tests -v` las ejecuta junto con el resto de `tools/`, y el trabajo `herramientas` las corre con esa misma orden. Los casos de `tools/tests/test_verificar_escenarios.py` construyen documentos de ejemplo en un directorio temporal; el de «árbol real» lee el repositorio.
 
+## `verificar_despliegue.py`
+
+```bash
+python tools/verificar_despliegue.py anfitrion [--puertos 5432 5433 5434]
+python tools/verificar_despliegue.py remoto [--http-port 10004] [--https-port 10005] [--nombres …] [--ip IP] [--puertos 5432 5433 5434]
+```
+
+No es un verificador de documentación: comprueba el despliegue de prueba en VPS (TKT-070, `CA-1`, `CA-2`, `CA-3`, `CA-4`, `CA-S3`). Biblioteca estándar; Python 3.12 o posterior.
+
+| Código | Cuándo |
+|---|---|
+| `0` | Ninguna falla |
+| `1` | Alguna comprobación falló |
+| `2` | Suborden desconocida, o `docker`/`ss` no disponibles (`anfitrion` en Windows sale aquí porque no hay `ss`) |
+
+**Pruebas sin red.** `python -m unittest tools.tests.test_verificar_despliegue -v` inyecta salidas de `docker ps` y `ss`; ningún caso depende de la VPS salvo los que llaman a `main` con dependencias sustituidas.
+
 ## `agentes_cursor.py`
 
 ```bash

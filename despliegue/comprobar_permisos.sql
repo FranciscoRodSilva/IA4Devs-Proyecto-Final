@@ -1,4 +1,6 @@
--- TKT-070 · CA-5, CA-7, CA-R1. Ejecutar con rol cimenta_migracion por el túnel (guía §7).
+-- TKT-070 · CA-5, CA-7, CA-R1. Rol cimenta_migracion (superusuario en VPS, asumido) por túnel SSH.
+-- Ejecutar: ver guía §7 paso 4 (one-liner PowerShell con psycopg) o design.md secuencia paso 6.
+-- Las filas que leen pg_authid exigen superusuario.
 SELECT 'rol_existe_cimenta_migracion' AS comprobacion,
        EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cimenta_migracion') AS ok
 UNION ALL
