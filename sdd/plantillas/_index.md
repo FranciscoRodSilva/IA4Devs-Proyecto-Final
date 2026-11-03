@@ -4,7 +4,9 @@
 
 ## Estado
 
-<SPEC PENDIENTE | DISEÑO PENDIENTE REVISIÓN | LISTO PARA EJECUTAR | EN REVISIÓN | REQUIERE CAMBIOS | REQUIERE DECISIÓN | RIESGOSO | LISTO PARA PR | ARCHIVADO>
+<SPEC PENDIENTE | … | LISTO PARA PR | PENDIENTE FUSIÓN | ARCHIVADO>
+
+Si el diseño partió el ticket en entregas a/b: califica el estado (`LISTO PARA PR · entrega TKT-xxxa`, `PENDIENTE FUSIÓN · entrega TKT-xxxa`). **`ARCHIVADO` solo al cerrar la última entrega**; la entrega a fusiona su PR pero el paraguas sigue vivo hasta b.
 
 ## Ficha
 

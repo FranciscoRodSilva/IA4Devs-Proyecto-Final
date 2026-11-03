@@ -4,6 +4,8 @@
 
 El delta no repite la implementación: declara **qué cambió en el sistema** respecto a como estaba antes. Es lo que leería alguien que no siguió el ticket.
 
+Si es una **entrega hermana** (TKT-014a) de un paraguas partido: usa ese id en el título, indica qué entrega queda pendiente y que el hub **no** se archiva hasta la última entrega.
+
 ## Añadido
 
 | Qué | Dónde | Para qué |
