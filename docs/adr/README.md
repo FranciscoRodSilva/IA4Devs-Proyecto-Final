@@ -54,6 +54,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-11-02 | [Los datos reales de arranque van en la migración, y los sintéticos o con credencial, en una herramienta de base local](20261102-semilla-en-migracion-y-herramienta-local.md) | Aceptado | Base de datos, migraciones, operación · TKT-010 |
 | 2026-11-02 | [Lectura posicional del catálogo de conceptos y conversión de `float` con `repr`](20261102-lectura-posicional-del-catalogo.md) | Aceptado | presupuesto · TKT-013 |
 | 2026-11-02 | [El destino de prueba es una VPS con un Compose por entorno, un Caddy único y la migración por túnel SSH](20261102-destino-de-prueba-en-vps.md) | Aceptado · temporal | Despliegue, base de datos, operación · TKT-070 |
+| 2026-11-03 | [Clave de insumo por descripción normalizada, lectura de APU por rótulos y cuadre por suma](20261103-clave-de-insumo-y-lectura-de-apu.md) | Aceptado | presupuesto · TKT-014b |
 
 ## Plantilla
 

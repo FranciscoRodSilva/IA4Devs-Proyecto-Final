@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from cimenta.presupuesto.dominio.catalogo import Hallazgo
+from cimenta.presupuesto.dominio.catalogo import CatalogoLeido, Hallazgo
 from tipos_base import Dinero, Porcentaje, Rendimiento
 
 
@@ -80,11 +80,39 @@ class AnalisisLeido:
     hallazgos: tuple[Hallazgo, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class InsumoPorCrear:
+    clave: str
+    descripcion: str
+    unidad: str
+    tipo: TipoInsumo
+    creado_en_importacion: bool = True
+
+
+@dataclass(frozen=True, slots=True)
+class AsociacionLeida:
+    hoja: str
+    codigo: str
+    filas_catalogo: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class AnalisisDelLibro:
+    catalogo: CatalogoLeido
+    analisis: tuple[AnalisisLeido, ...]
+    asociaciones: tuple[AsociacionLeida, ...]
+    codigos_sin_analisis: tuple[str, ...]
+    insumos_por_crear: tuple[InsumoPorCrear, ...]
+    hallazgos: tuple[Hallazgo, ...]
+
+
 __all__ = [
+    "AnalisisDelLibro",
     "AnalisisLeido",
+    "AsociacionLeida",
     "CabeceraLeida",
     "CargoLeido",
-    "Hallazgo",
+    "InsumoPorCrear",
     "InsumoLeido",
     "TipoCargo",
     "TipoInsumo",

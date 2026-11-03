@@ -179,16 +179,16 @@ Los archivos de texto se guardan en UTF-8 y con finales de línea LF. La regla t
 
 El archivo `.editorconfig` fija `charset = utf-8` para todo el repositorio y `utf-8-bom` solo para los `.ps1`. El editor lo respeta si tiene el plugin de EditorConfig activo.
 
-## Pruebas contra los catálogos reales (TKT-013)
+## Pruebas contra los catálogos reales (TKT-013 y TKT-014)
 
-Los archivos del cliente **no se versionan**. Para ejecutar las pruebas de `tests/test_tkt013_archivos_reales.py` y las de totales que usan los reales, define en PowerShell:
+Los archivos del cliente **no se versionan**. Para ejecutar las pruebas de `tests/test_tkt013_archivos_reales.py`, `tests/test_tkt014_archivos_reales.py` y las de totales que usan los reales, define en PowerShell:
 
 ```powershell
 $env:CIMENTA_CATALOGO_ENITI = 'D:\ruta\Presupuesto Base Tablaroca Eniti T5 AP 2.xlsx'
 $env:CIMENTA_CATALOGO_UNION = 'D:\ruta\AP-058-25 SEGUNDA ETAPA P.U UNION SQUERE.xlsx'
 ```
 
-Union debe ser el libro de **precios unitarios** que trae `#REF!` en P.U. e importe (CA-7), no solo la exportación del catálogo. Sin esas variables, esas pruebas hacen `pytest.skip` con el motivo en el resumen (`pytest -ra`).
+Union debe ser el libro de **precios unitarios** (`AP-058-25 SEGUNDA ETAPA P.U UNION SQUERE.xlsx`) con la hoja `CATALOGO DE CONCEPTOS`, `#REF!` en P.U. e importe (CA-7) **y las hojas de APU** (TKT-014). ENITI debe incluir sus hojas de APU numeradas. Sin esas variables, esas pruebas hacen `pytest.skip` con el motivo en el resumen (`pytest -ra`).
 
 ## Lo que todavía no arranca
 

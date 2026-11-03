@@ -1,6 +1,6 @@
 # Impl · TKT-014 · Lector de análisis de precios unitarios
 
-> [← index](_index.md) | [← design](design.md) | [← delta](delta.md) | Entrega **TKT-014a** (TKT-014b pendiente)
+> [← index](_index.md) | [← design](design.md) | [← delta](delta.md) | Entregas **TKT-014a** (PR #38) + **TKT-014b**
 
 ## Qué se implementó
 
@@ -104,6 +104,149 @@ python tools/verificar_docs.py                        → ✓ Sin problemas.
 
 **Cierre:** `/sdd-completar TKT-014a` — ver [delta.md](delta.md) y PR en GitHub. **TKT-014** (paraguas) sigue abierto hasta **TKT-014b**.
 
-## Siguiente entrega
+## TKT-014b · qué se implementó
 
-- **TKT-014b** sin iniciar (asociación, adaptador, reales, ADR-034).
+Asociación catálogo ↔ hojas APU (`M5`), insumos por crear (`M6`), objetos de libro en `analisis.py`, refactor de `lector_catalogo.py` con `leer_libro_presupuesto`, pruebas sintéticas (openpyxl) y **10** pruebas contra archivos reales (TC-40…TC-49). **ADR-035** documenta clave por descripción, lectura por rótulos y cuadre por suma. Rama: `tkt-014b-asociacion-lector`.
+
+### Ajustes respecto al design (014b)
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-03 | Tras viáticos, `cargosindirectos` / `cargosporcentuales` fijan bloque CARGOS y se omiten (no cargo) | TC-47: hoja `01` ENITI fila 52 |
+| 2026-11-03 | `# type: ignore[misc]` en `_filas` con comentario de stubs | E-10 / mypy |
+| 2026-11-03 | En docs, **ADR-035** (no «ADR-034» del design: el 034 ya era VPS) | Índice ADR existente |
+| 2026-11-03 | TC-29: dos hojas (`H-LT`, `H-M2`) en lugar de `extend([-1:])` | Hallazgo auditor-código F001 |
+
+### Archivos tocados (014b)
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/presupuesto/dominio/asociacion_analisis.py` | nuevo | dominio |
+| `backend/cimenta/presupuesto/dominio/analisis.py` | modificado | dominio |
+| `backend/cimenta/presupuesto/dominio/catalogo.py` | modificado | dominio |
+| `backend/cimenta/presupuesto/dominio/lectura_analisis.py` | modificado | dominio |
+| `backend/cimenta/presupuesto/infraestructura/lector_catalogo.py` | modificado | infraestructura |
+| `backend/tests/test_tkt014_asociacion.py` | nuevo | pruebas |
+| `backend/tests/test_tkt014_lector.py` | nuevo | pruebas |
+| `backend/tests/test_tkt014_archivos_reales.py` | nuevo | pruebas |
+| `backend/tests/test_tkt014_hoja.py` | modificado | pruebas |
+| `backend/tests/conftest.py` | modificado | pruebas |
+| `backend/tests/test_tkt010_semilla_local.py` | modificado (docstring) | pruebas |
+| `docs/adr/20261103-clave-de-insumo-y-lectura-de-apu.md` | nuevo | documentación |
+| `docs/adr/README.md` | modificado | documentación |
+| `docs/03-modelo-datos.md`, `docs/05-tickets-trabajo.md`, `docs/arranque-local.md` | modificado | documentación |
+| `docs/adr/20261102-semilla-en-migracion-y-herramienta-local.md` | modificado | documentación |
+| `CLAUDE.md`, `README.md`, `llms.txt` | modificado (35 ADR) | documentación |
+| `sdd/_evolucion.md` | modificado | documentación |
+
+### Experimentos E-4 y E-5 (014b)
+
+| Exp | Estado | Resultado |
+|---|---|---|
+| E-4 | Hecho | Claves de insumo: descripción normalizada; 35 insumos distintos unión ENITI + Union |
+| E-5 | Hecho | Totales medidos para CA-3/CA-16; cuadre reconstruido vs pie con tolerancia `1E-9` en TC-42 |
+
+### Mutación M-14…M-18 (B5)
+
+Mutación temporal, test en rojo, revertida en el mismo turno.
+
+| Mutante | Cambio | Test que cae |
+|---|---|---|
+| M-14 | `normalizar_clave_insumo` sin colapsar espacios | TC-01, TC-28 |
+| M-15 | Conflicto de unidad: quedarse con la primera | TC-30 |
+| M-16 | Código en dos hojas: asociar solo la primera | TC-26 |
+| M-17 | `leer_libro_presupuesto` doble apertura del libro | TC-35 |
+| M-18 | Viáticos no cierran ante rótulo con tipo de cargo | TC-10 |
+
+### Resultado contra criterios (alcance TKT-014b)
+
+| Criterio / Must | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| M5 | `[M]` | Cumplido | TC-23…TC-27, TC-40…TC-41 |
+| M6 | `[M]` | Cumplido | TC-28…TC-33 |
+| M1–M4, M7, M8, M9 (libro real) | `[M]` | Cumplido | TC-40…TC-49 |
+| S1 (reales) | `[S]` | Cumplido | TC-42, TC-43 |
+| CA-1, CA-2, CA-5, CA-7…CA-14 | `[M]` | Cumplido | `test_tkt014_*` según design |
+| CA-3, CA-4, CA-6, CA-16 (reales) | `[M]` | Cumplido | TC-42, TC-43, TC-45, TC-46 |
+| CA-10 (44 hojas) | `[M]` | Cumplido | TC-44 |
+| CA-15 (determinismo / sin BD) | `[M]` | Cumplido | TC-33, TC-49 |
+| CA-R3 | regresión | Cumplido | TKT-013 + lectura catálogo intacta en TC-48 |
+| E-4, E-5 | design | Cumplido | Tabla arriba; TC-40…49 |
+
+### Pruebas 014b (resumen)
+
+74 pruebas en `test_tkt014_hoja.py`, `test_tkt014_asociacion.py`, `test_tkt014_lector.py`, `test_tkt014_archivos_reales.py`.
+
+**Archivos reales** (requieren `CIMENTA_CATALOGO_ENITI` y `CIMENTA_CATALOGO_UNION`):
+
+```text
+uv run pytest tests/test_tkt014_archivos_reales.py -q --tb=no  → 10 passed in 5.16s
+```
+
+### B4 · verificación documentación
+
+```text
+python tools/verificar_docs.py                        → ✓ Sin problemas.
+python -m unittest discover -s tools/tests -v         → Ran 509 tests … OK
+rg "33 (decisiones|ADRs)" CLAUDE.md README.md llms.txt → (sin coincidencias; conteo 35 ADR)
+```
+
+### Auditorías de cierre de fase (014b · `/sdd-ejecutar` paso 6)
+
+Pendientes de la **segunda** pasada formal en `/sdd-revisar` (esta sesión).
+
+## Verificación final · `/sdd-ejecutar` TKT-014b · 2026-11-03
+
+**Gate:** `_index.md` → `EN REVISIÓN · TKT-014b`.
+
+**Docker:**
+
+```text
+Client:
+ Version:    29.9.2
+```
+
+**Suite y comprobaciones (salida real):**
+
+```text
+uv run pytest -q --tb=no                              → 1884 passed in 353.37s (0:05:53)
+uv run ruff check .                                   → All checks passed!
+uv run ruff format --check .                          → 196 files already formatted
+uv run mypy .                                         → Success: no issues found in 196 source files
+uv run lint-imports                                   → Contracts: 15 kept, 0 broken.
+uv run python -m herramientas.verificar_float         → (incluido en CAR2; 0 hallazgos)
+python tools/verificar_docs.py                        → ✓ Sin problemas.
+```
+
+**OpenAPI:** sin cambios en 014b.
+
+## `/sdd-revisar` TKT-014b · 2026-11-03
+
+**Gate:** `_index.md` en `EN REVISIÓN` → cumplido.
+
+### Auditorías (ciclo 1 → corrector → ciclo 2)
+
+| Auditor | Ciclo 1 | Ciclo 2 |
+|---|---|---|
+| `auditor-arquitectura` | APROBADO (O001 histórico ADR-034 en log; O002 reales con env) | — |
+| `auditor-docs` | APROBADO | — |
+| `auditor-codigo` | REQUIERE CAMBIOS (F001–F004) | **APROBADO** (F001–F003 Resuelto; F004 Menor persiste) |
+
+**Correcciones ciclo 1:** Vale ADR-035; enlaces ADR-035; TC-29/32; TC-38 AST + determinismo; `**variantes: Any` en soporte; TC-29 hallazgos `UNIDAD_NO_RECONOCIDA`.
+
+### Verificación final · `/sdd-revisar` TKT-014b
+
+```text
+uv run pytest -q --tb=no                              → 1884 passed in 344.02s (0:05:44)
+uv run ruff check .                                   → All checks passed!
+uv run ruff format --check .                          → 196 files already formatted
+uv run mypy .                                         → Success: no issues found in 196 source files
+uv run lint-imports                                   → Contracts: 15 kept, 0 broken.
+uv run python -m herramientas.verificar_float         → hallazgos: 0 (25 archivos)
+python tools/verificar_docs.py                        → ✓ Sin problemas.
+uv run pytest tests/test_tkt014_archivos_reales.py -q → 10 passed in 5.16s (con CIMENTA_CATALOGO_*)
+```
+
+**Veredicto de revisión TKT-014b:** **LISTO PARA PR**. CI completa de `ci.yml` → `/sdd-completar`.
+
+**Siguiente:** [`delta.md`](delta.md) (`/sdd-completar TKT-014b`).

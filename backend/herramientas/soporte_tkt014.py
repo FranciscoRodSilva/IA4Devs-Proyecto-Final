@@ -2,9 +2,24 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from decimal import Decimal
+from typing import Any
 
-from cimenta.presupuesto.dominio.catalogo import ValorCelda
+from cimenta.presupuesto.dominio.analisis import AnalisisDelLibro, AnalisisLeido
+from cimenta.presupuesto.dominio.catalogo import (
+    CatalogoLeido,
+    ConceptoLeido,
+    Ruta,
+    ValorCelda,
+)
+from cimenta.presupuesto.dominio.lectura_analisis import analizar_hoja_apu
+from herramientas.soporte_tkt013 import (
+    HOJA_ENITI,
+    LibroCatalogoPrueba,
+    encabezado_eniti,
+    metadatos_siete_filas,
+)
 
 
 def hoja_apu_sintetica(
@@ -146,3 +161,84 @@ def hoja_apu_sintetica(
 
 def fila_apu(numero: int, *valores: ValorCelda) -> tuple[int, tuple[ValorCelda, ...]]:
     return (numero, valores)
+
+
+def catalogo_con_codigos(pares: Sequence[tuple[int, str]]) -> CatalogoLeido:
+    """Catálogo mínimo con conceptos en las filas indicadas (pruebas TKT-014b)."""
+    ruta = Ruta(raiz=None, nivel=None, area=None, partida=None)
+    conceptos = tuple(
+        ConceptoLeido(
+            fila=fila,
+            codigo=codigo,
+            descripcion=None,
+            unidad="M2",
+            cantidad=None,
+            precio_unitario=None,
+            importe=None,
+            ruta=ruta,
+        )
+        for fila, codigo in pares
+    )
+    return CatalogoLeido(
+        hoja="CATALOGO",
+        fila_encabezado=8,
+        nodos=(),
+        conceptos=conceptos,
+        hallazgos=(),
+    )
+
+
+def leer_apu_en_memoria(hoja: str, **variantes: Any) -> AnalisisLeido:
+    """Analiza la hoja sintética con el nombre de hoja dado."""
+    filas = hoja_apu_sintetica(**variantes)
+    resultado = analizar_hoja_apu(hoja, filas)
+    assert resultado is not None
+    return resultado
+
+
+def escribir_hoja_apu_sintetica(
+    libro: LibroCatalogoPrueba,
+    nombre: str,
+    **variantes: Any,
+) -> None:
+    """Materializa `hoja_apu_sintetica` en una hoja del libro de prueba."""
+    libro.nueva_hoja(nombre)
+    for numero, fila in hoja_apu_sintetica(**variantes):
+        celdas = list(fila)
+        while len(celdas) < 7:
+            celdas.append(None)
+        libro.escribir_fila(nombre, numero, tuple(celdas[:7]))
+
+
+def libro_eniti_con_apu_y_resumen(libro: LibroCatalogoPrueba) -> bytes:
+    """Catálogo ENITI sintético con dos APU y hoja RESUMEN (TC-34)."""
+    escribir_hoja_apu_sintetica(libro, "APU X ", codigo="P-001")
+    escribir_hoja_apu_sintetica(libro, "APU-2", codigo="P-040-A")
+    libro.nueva_hoja("RESUMEN")
+    libro.nueva_hoja(HOJA_ENITI)
+    metadatos_siete_filas(libro, HOJA_ENITI)
+    encabezado_eniti(libro, HOJA_ENITI)
+    libro.escribir_fila(HOJA_ENITI, 9, (None, "RAIZ SYN"))
+    libro.escribir_fila(HOJA_ENITI, 10, (None, "NIVEL A"))
+    libro.escribir_fila(HOJA_ENITI, 11, (None, "ZONA 1"))
+    libro.escribir_fila(HOJA_ENITI, 12, (None, "TRABAJO X"))
+    libro.escribir_fila(
+        HOJA_ENITI,
+        13,
+        ("P-001", "Concepto uno", "M2", 16.089, 668.69, 10758.55341),
+    )
+    libro.escribir_fila(
+        HOJA_ENITI,
+        14,
+        ("P-040-A", "Con sufijo", "M2", 1, 10, 10),
+    )
+    return libro.bytes()
+
+
+def leer_libro_presupuesto_bytes(
+    contenido: bytes,
+    insumos_existentes: Mapping[str, str] | None = None,
+) -> AnalisisDelLibro:
+    from cimenta.presupuesto.infraestructura.lector_catalogo import leer_libro_presupuesto
+
+    return leer_libro_presupuesto(contenido, insumos_existentes or {})

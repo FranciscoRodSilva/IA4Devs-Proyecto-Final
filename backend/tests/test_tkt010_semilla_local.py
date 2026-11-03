@@ -257,10 +257,11 @@ def motor_migracion(
 
 
 def test_tkt010_ca05_los_codigos_sembrados_ya_estan_normalizados() -> None:
-    """TC-B01 · CA-5 esc. 2 · M4 — los 27 códigos ya son lo que el importador buscaría.
+    """TC-B01 · CA-5 esc. 2 · M4 — los 27 códigos sembrados siguen normalizados por `codigo`.
 
-    Quitar espacios de los extremos y pasar a mayúsculas deja cada código idéntico, y tras normalizar
-    no hay dos iguales. Son `TBR-001` a `TBR-027`, en orden y con el número del insumo.
+    TKT-014b compara insumos de APU por descripción normalizada (ADR-035), no por este `codigo`;
+    la semilla no pretende coincidir con el lector de APU (`PA-T1`). Aquí solo se verifica que los
+    códigos `TBR-001`…`TBR-027` están recortados, en mayúsculas y son únicos.
     """
 
     insumos = list(semilla_local.INSUMOS)
