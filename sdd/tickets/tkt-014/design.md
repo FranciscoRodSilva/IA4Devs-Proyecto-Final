@@ -74,15 +74,15 @@ Ningún objeto paró en el peldaño 4 tocando un invariante registrado: la escal
 | `material` | Abre el bloque `MATERIAL`. Su primera aparición marca el inicio del análisis |
 | `manodeobra` | Abre el bloque `MANO_OBRA` |
 | `costodirecto` | Cierra los insumos y abre la zona de cargos |
-| empieza por `viaticos` | Abre el bloque de viáticos |
-| `preciounitario` | Pie. Su primera aparición después de `material` cierra el análisis |
+| contiene `viaticos` (p. ej. `cargosviaticosyhospedaje`) | Abre el bloque de viáticos |
+| `preciounitario` | Pie (rótulo en columna **D**, valor en **G**). Su primera aparición en cualquier columna después de `material` cierra el análisis |
 | empieza por `subtotal`, `total` o `suma` | Fila de subtotal: se ignora sin hallazgo en cualquier bloque `(asumido, P9)` |
 
 `tipo_de_cargo(rotulo)` devuelve el tipo por el rótulo normalizado: `herramientamenor` → `HERRAMIENTA_MENOR`, `andamiaje` → `ANDAMIAJE`, `desperdicio` → `DESPERDICIO`, `indirectos` → `INDIRECTOS`, `utilidad` → `UTILIDAD` (igualdad exacta), y todo lo que **empieza por** `iva` → `IVA` (`PA-T7`). Cualquier otro, incluido `siroc`, devuelve `None`. `VIATICOS` no se asigna por rótulo: lo da el bloque.
 
 ### Reconocimiento (`M1`)
 
-Una hoja es de APU si y solo si su columna A tiene una fila con rótulo `material` y, después de ella, una con `preciounitario`. Si no, `analizar_hoja_apu` devuelve `None` y no hay hallazgo (`RESUMEN US F2`, `BORRADOR DE GENERADORES`, `REFUERZOS`). El adaptador salta además la hoja que `elegir_hoja` eligió como catálogo, para no recorrer sus miles de filas.
+Una hoja es de APU si y solo si su columna A tiene una fila con rótulo `material` y, después de ella, una fila con `preciounitario` en **cualquier columna** (E-1: el rótulo del pie está en **D**). Si no, `analizar_hoja_apu` devuelve `None` y no hay hallazgo (`RESUMEN US F2`, `BORRADOR DE GENERADORES`, `REFUERZOS`). El adaptador salta además la hoja que `elegir_hoja` eligió como catálogo, para no recorrer sus miles de filas.
 
 ### Cabecera (`M2`)
 
@@ -92,9 +92,9 @@ Se buscan los rótulos en **cualquier columna** de las filas anteriores a la fil
 |---|---|---|---|
 | `codigo` | `codigo` | `C` | Spec, `CA-7` (fila 12, columna C) |
 | `precio_unitario` (de la cabecera) | `pu` | `C` | Spec, `CA-9` (fila 15, columna C) |
-| `unidad` | `unidad` | la que mida E-1 | `(sin ejecutar, E-1)` |
-| `fecha` | `fecha` | la que mida E-1 | `(sin ejecutar, E-1)` |
-| `analista` | `analista` | la que mida E-1 | `(sin ejecutar, E-1)` |
+| `unidad` | `unidad` | `C` | E-1, medido |
+| `fecha` | `fecha` | `C` | E-1, medido |
+| `analista` | `analista` | `B` | E-1, medido |
 
 Si E-1 encuentra un literal de rótulo distinto (por ejemplo `elaboro`), se añade al conjunto de su campo y se anota en `impl.md`. Si un campo cae en columnas distintas entre hojas, o su rótulo aparece dos veces en una cabecera, **la fila A0 se detiene y se escala**. El rótulo `CONCEPTO` no se lee: ningún Must lo pide, y su `#REF!` en las 20 hojas de Union sería ruido.
 
@@ -124,10 +124,10 @@ Se recorren las filas estrictamente entre la fila `material` y la del pie. Para 
 |---|---|---|
 | `MATERIAL` | `InsumoLeido` de tipo `MATERIAL` | descripción `A`, unidad `D`, costo `E`, rendimiento `F`, cargo `G` |
 | `MANO_OBRA` | `InsumoLeido` de tipo `MANO_OBRA` (`PA-T8`) | las mismas |
-| zona de cargos | `CargoLeido` con `tipo_de_cargo(rótulo)`. Si es `None`: hallazgo `CARGO_DESCONOCIDO` en `(fila, "A")` con el texto de A tal cual (`CA-6`) | rótulo `A`, base `E`, porcentaje `F`, importe `G` `(sin ejecutar, E-1)` |
-| viáticos | Si `tipo_de_cargo(rótulo)` no es `None`, la fila cierra el bloque y se lee como cargo de ese tipo en la zona de cargos. Si no, `CargoLeido` de tipo `VIATICOS` cuyo rótulo es el rol (`OFICIAL TABLAROQUERO`) | las de la zona de cargos |
+| zona de cargos | `CargoLeido` con `tipo_de_cargo(rótulo)`. Si es `None`: hallazgo `CARGO_DESCONOCIDO` en `(fila, "A")` con el texto de A tal cual (`CA-6`) | rótulo `A`, porcentaje **D**, base **E**, importe **G** (F vacía; E-1) |
+| viáticos | Si `tipo_de_cargo(rótulo)` no es `None`, la fila cierra el bloque y se lee como cargo de ese tipo en la zona de cargos. Si no, `CargoLeido` de tipo `VIATICOS` cuyo rótulo es el rol (`OFICIAL TABLAROQUERO`, `AYUDANTE TABLAROQUERO`) | porcentaje **D**, base **E**, importe **G** |
 
-Las columnas de base y porcentaje son la hipótesis de este diseño (base en `E` y porcentaje en `F`, como costo y rendimiento en los insumos); E-1 las confirma. Si E-1 da otras letras iguales en las 44 hojas, se usan las medidas y se anota en `impl.md`; si difieren entre hojas, **se escala antes de A1**.
+E-1 midió porcentaje **D**, base **E**, importe **G** en las 44 hojas (F vacía). Si difieren entre hojas, **se escala**.
 
 **Datos de un insumo.** `descripcion` es el texto de A recortado; `clave` es `normalizar_clave_insumo(descripcion)`. La unidad se lee como en la cabecera, en la columna `D` (`CA-13`). Costo con `_interpretar_no_negativo(…, Dinero)`, rendimiento con `_interpretar_no_negativo(…, Rendimiento)`, cargo con `_interpretar_no_negativo(…, Dinero)`. Cada causa da `Hallazgo(causa, hoja, fila, <letra>, _texto_original(valor))` y el campo queda `None`, **nunca cero** (`CA-11`). Rendimiento vacío da `VALOR_AUSENTE` en `F`.
 
@@ -280,7 +280,7 @@ Como en TKT-013, ninguna repite un nombre de `importacion_error.tipo`: son halla
 | `totalizar_analisis(insumos: Sequence[InsumoLeido], cargos: Sequence[CargoLeido]) -> TotalesAnalisis` | `S1`; ver «Totales y cuadre» |
 | `verificar_precio_unitario(...) -> Hallazgo \| None` | `M7`; ver «Totales y cuadre» |
 
-Privados: `_interpretar_no_negativo`, `_Bloque` (`StrEnum` con `MATERIAL`, `MANO_OBRA`, `CARGOS`, `VIATICOS`), las constantes de columna (`_COL_DESCRIPCION = 0`, `_COL_UNIDAD = 3`, `_COL_COSTO = 4`, `_COL_RENDIMIENTO = 5`, `_COL_CARGO = 6`, `_COL_BASE = 4`, `_COL_PORCENTAJE = 5`, `_COL_IMPORTE = 6`, las de cabecera de E-1), `_PREFIJOS_DE_SUBTOTAL = ("subtotal", "total", "suma")` y `_TOLERANCIA_PU = Decimal("0.01")`.
+Privados: `_interpretar_no_negativo`, `_Bloque` (`StrEnum` con `MATERIAL`, `MANO_OBRA`, `CARGOS`, `VIATICOS`), las constantes de columna (`_COL_DESCRIPCION = 0`, `_COL_UNIDAD = 3`, `_COL_COSTO = 4`, `_COL_RENDIMIENTO = 5`, `_COL_CARGO = 6`; cargos **D/E/G** vía `_COL_PORCENTAJE_CARGO = 3`, `_COL_BASE_CARGO = 4`, `_COL_IMPORTE_CARGO = 6`; pie: rótulo en **D**, valor en **G**; cabecera en C/B según E-1), `_PREFIJOS_DE_SUBTOTAL = ("subtotal", "total", "suma")` y `_TOLERANCIA_PU = Decimal("0.01")`.
 
 #### `asociacion_analisis.py` (b)
 
@@ -339,13 +339,13 @@ Ninguno se ejecutó al diseñar: esta sesión no tiene intérprete. Las cifras d
 
 | # | Afirmación | Experimento | Resultado esperado | Fuente |
 |---|---|---|---|---|
-| E-1 | Disposición de una hoja: rótulos de bloque y de cargo en A; insumos con unidad en D, costo en E, rendimiento en F y cargo en G; cargos con base en E, porcentaje en F e importe en G; pie en G; cabecera con código y P.U. en C y la columna de unidad, fecha y analista | Volcar letra, tipo de Python y valor de cada celda no vacía de las filas 1 a 65 de `"MURO STD-635-STD "`, `01` y `14`, solo rótulos y cifras que cita la spec. Después, sobre las 44 hojas, la columna del valor de cada rótulo de cabecera | Lo de la columna de la izquierda; una sola columna por campo en las 44 hojas | `(sin ejecutar)`. **Si un campo varía de columna, o base y porcentaje no están en E y F en todas, se escala antes de A1** |
-| E-2 | La tabla de rótulos clasifica todas las filas | Sobre las 44 hojas, el conjunto de rótulos normalizados de la columna A por bloque, con su cuenta y si `E`, `F` o `G` tienen cifra. Contar `material` y `preciounitario` por hoja | Una aparición de cada uno por hoja; ningún rótulo con cifras fuera de la tabla salvo insumos, roles de viáticos y `siroc`; las filas `SACO`, `KG` y `ML` sin cifras | `(sin ejecutar)`. **Si aparece un rótulo con cifras en la zona de cargos que no esté en la tabla y no sea `siroc`, se escala antes de A1** |
-| E-3 | `RESUMEN US F2`, `BORRADOR DE GENERADORES` y `REFUERZOS` no tienen `material` y `preciounitario` en A | Aplicar el reconocimiento a todas las hojas de los dos libros | 24 en ENITI y 20 en Union | `(sin ejecutar)`. **Si sale otra cuenta, se escala antes de A1** |
+| E-1 | Disposición de una hoja: rótulos de bloque y de cargo en A; insumos con unidad en D, costo en E, rendimiento en F y cargo en G; cargos con **porcentaje D, base E, importe G** (F vacía); pie con rótulo `PRECIO UNITARIO` en **D** y valor en **G**; cabecera con rótulos en A y valores código/unidad/fecha/P.U. en **C** (analista en **B**) | Volcar letra, tipo de Python y valor de cada celda no vacía de las filas 1 a 65 de `"MURO STD-635-STD "`, `01` y `14`, solo rótulos y cifras que cita la spec. Después, sobre las 44 hojas, la columna del valor de cada rótulo de cabecera | Lo de la columna de la izquierda; una sola columna por campo en las 44 hojas | **Hecho** (2026-11-03, 44/44 hojas). Ver `impl.md` |
+| E-2 | La tabla de rótulos clasifica todas las filas | Sobre las 44 hojas, el conjunto de rótulos normalizados de la columna A por bloque, con su cuenta y si `E`, `F` o `G` tienen cifra. Contar `material` y `preciounitario` por hoja | Una aparición de cada uno por hoja; ningún rótulo con cifras fuera de la tabla salvo insumos, roles de viáticos y `siroc`; las filas `SACO`, `KG` y `ML` sin cifras | **Hecho** (2026-11-03): 44 hojas APU; `siroc` con cifra en cargos (esperado); encabezados `cargosporcentuales`/`cargosindirectos` sin cifra E/F/G. Tabla resumida en `impl.md` |
+| E-3 | `RESUMEN US F2`, `BORRADOR DE GENERADORES` y `REFUERZOS` no tienen `material` y `preciounitario` en A | Aplicar el reconocimiento a todas las hojas de los dos libros | 24 en ENITI y 20 en Union | **Hecho** (2026-11-03): 24 + 20 hojas APU. Ver `impl.md` |
 | E-4 | Las cifras de la spec se cumplen con las reglas de este diseño | Prototipo en el guion: hojas sin código (21), códigos en dos hojas (`620014`, `620045`, `620050`), `#REF!` en `P.U:` (hojas `14`, `15`, `16`, `18`, `19`), `SIROC` (20 hojas), códigos distintos de ENITI (20), códigos del catálogo sin hoja (16), filas de `620001` (162), insumos distintos con `normalizar_clave_insumo` (29, 23, unión 35, comunes 17) y su reparto por tipo (26 y 3; 21 y 2). Además: claves con dos unidades y claves en los dos bloques, en cada libro | Las cifras de la spec; ninguna clave con dos unidades ni con dos tipos | Medición de la persona dueña del 2026-11-02 `(sin ejecutar con estas reglas)`. **Si hay conflictos de unidad o de tipo en los reales, las cuentas de `CA-12` cambian: se escala antes de B3** |
 | E-5 | El cuadre de las 44 hojas y las cifras exactas de `"MURO STD-635-STD "` | Totales con `Decimal(repr(f))` y suma exacta: material, mano de obra, costo directo, cargos, P.U. reconstruido y diferencia con el pie, por hoja; la diferencia máxima | Diferencia máxima muy por debajo de 0.01. Los totales exactos de `"MURO STD-635-STD "` se anotan: son los literales de TC-42 | `(sin ejecutar)`. Si la suma exacta difiere de las cifras de `CA-3` y `CA-16` (que vienen de `float`), aplica P3 |
-| E-6 | openpyxl entrega la fecha de la cabecera como `datetime` y `str()` da `AAAA-MM-DD 00:00:00` | Tipo y `str` de la celda de fecha de `01` y de `"MURO STD-635-STD "` | `datetime`; `'2026-08-25 00:00:00'` y `'2025-09-01 00:00:00'` | Documentación de openpyxl: las fechas se convierten a `datetime` (Context7) `(sin ejecutar)`. **Si llega como texto o número, se escala antes de A1** |
-| E-7 | `str.split()` sin argumento corta en tabulador y en espacio duro (`\xa0`) | `"A\t B\xa0 C".split()` | `['A', 'B', 'C']` | Biblioteca estándar `(sin ejecutar)` |
+| E-6 | openpyxl entrega la fecha de la cabecera como `datetime` y `str()` da `AAAA-MM-DD 00:00:00` | Tipo y `str` de la celda de fecha de `01` y de `"MURO STD-635-STD "` | `datetime`; `'2026-08-25 00:00:00'` y `'2025-09-01 00:00:00'` | **Hecho** (2026-11-03). Ver `impl.md` |
+| E-7 | `str.split()` sin argumento corta en tabulador y en espacio duro (`\xa0`) | `"A\t B\xa0 C".split()` | `['A', 'B', 'C']` | No ejecutado; cubierto por TC-01 (`\t`, `\xa0`) |
 | E-8 | En un libro de solo lectura se recorren varias hojas, una tras otra, en la misma apertura | Recorrer con `iter_rows` la hoja del catálogo y después cada hoja de APU en una sola apertura; tiempo total frente a dos aperturas | Las filas de cada hoja completas; una apertura más rápida que dos | Documentación «Read-only mode» (Context7) `(sin ejecutar)`. El tiempo se anota para TKT-015 |
 | E-9 | `pickle` conserva `AnalisisDelLibro` | `pickle.loads(pickle.dumps(r)) == r` sobre ENITI | Igualdad | `(sin ejecutar)`. Informativo para TKT-015 |
 | E-10 | `Workbook` se importa de `openpyxl.workbook.workbook` y mypy lo acepta con `types-openpyxl` | Módulo de prueba en el directorio temporal | mypy sin errores | `(sin ejecutar)`. Lo corre B3 |
@@ -358,12 +358,12 @@ Se ejecuta fila por fila con el ciclo TDD de [metodología §16](../../metodolog
 
 | # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
 |---|---|---|---|---|---|---|
-| A0 | Experimentos E-1 a E-7 con un guion en el directorio temporal; salida en `impl.md`. Fija en `impl.md` las letras de unidad, fecha y analista, los literales de rótulo medidos y los totales exactos de E-5. Sin código del repositorio | — | `tester-backend` | `haiku` · tarea mecánica: el guion y lo esperado están escritos aquí | Cada resultado coincide con «Resultado esperado». **Si E-1, E-2, E-3 o E-6 no coinciden, `/sdd-escalar` antes de A1** | Pendiente |
-| A1 | `analisis.py` (parte a), las cinco causas de a, la restricción de `interpretar_numero`, y en `lectura_analisis.py`: `normalizar_clave_insumo`, `normalizar_codigo`, `rotulo_normalizado`, `tipo_de_cargo`, `interpretar_fecha`. El tester escribe además `herramientas/soporte_tkt014.py` con la hoja sintética. ~120 líneas | TC-01 a TC-06 | `desarrollador-dominio` | `haiku` | `uv run pytest tests/test_tkt014_hoja.py -k "clave or codigo or rotulo or numero or fecha"`; `uv run python -m herramientas.verificar_float`; `uv run pytest tests/test_tkt013_dominio.py` | Pendiente |
-| A2 | `analizar_hoja_apu`: reconocimiento, cabecera y esqueleto de bloques, con `totales` y cuadre provisionales en `None` hasta A4. ~90 líneas | TC-07, TC-19, TC-22 | `desarrollador-dominio` | `haiku` | `uv run pytest tests/test_tkt014_hoja.py -k "estructura or cabecera or codigo_de_cabecera"` | Pendiente |
-| A3 | Bloques: insumos, cargos, viáticos, subtotales, filas sin cifras, `_interpretar_no_negativo`. ~100 líneas | TC-09, TC-10, TC-11, TC-14, TC-18, TC-21 | `desarrollador-dominio` | `haiku` | `uv run pytest tests/test_tkt014_hoja.py -k "bloque or viaticos or subtotal or ilegibles or unidad or inmutable"` | Pendiente |
-| A4 | `totalizar_analisis`, `verificar_precio_unitario` y su llamada al final de `analizar_hoja_apu`. ~60 líneas | TC-08, TC-12, TC-13, TC-15, TC-16, TC-17, TC-20 | `desarrollador-dominio` | `sonnet` · disparador: regla de dinero con frontera (tolerancia ±0.01 inclusive, decisión 4 de la persona dueña), afín a `RN-03` | `uv run pytest tests/test_tkt014_hoja.py` completo en verde | Pendiente |
-| A5 | Cierre de a: mutantes M-01 a M-13; ficha de TKT-014 en `docs/05` con la partición; suite completa | Todos los de a, TC-INV-1, TC-INV-2 y la suite de TKT-013 | `tester-backend` | `sonnet` · valor por omisión del agente: la mutación es el oráculo del oráculo | Cada mutante aplicado, test en rojo, revertido, salida en `impl.md`; `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy .`, `uv run lint-imports`, `uv run python -m herramientas.verificar_float`, `uv run pytest`; `python tools/verificar_docs.py` | Pendiente |
+| A0 | Experimentos E-1 a E-7 con un guion en el directorio temporal; salida en `impl.md`. Fija en `impl.md` las letras de unidad, fecha y analista, los literales de rótulo medidos y los totales exactos de E-5. Sin código del repositorio | — | `tester-backend` | `haiku` · tarea mecánica: el guion y lo esperado están escritos aquí | Cada resultado coincide con «Resultado esperado». **Si E-1, E-2, E-3 o E-6 no coinciden, `/sdd-escalar` antes de A1** | ⚠ Ajustado |
+| A1 | `analisis.py` (parte a), las cinco causas de a, la restricción de `interpretar_numero`, y en `lectura_analisis.py`: `normalizar_clave_insumo`, `normalizar_codigo`, `rotulo_normalizado`, `tipo_de_cargo`, `interpretar_fecha`. El tester escribe además `herramientas/soporte_tkt014.py` con la hoja sintética. ~120 líneas | TC-01 a TC-06 | `desarrollador-dominio` | `haiku` | `uv run pytest tests/test_tkt014_hoja.py -k "clave or codigo or rotulo or numero or fecha"`; `uv run python -m herramientas.verificar_float`; `uv run pytest tests/test_tkt013_dominio.py` | ✓ Hecho |
+| A2 | `analizar_hoja_apu`: reconocimiento, cabecera y esqueleto de bloques, con `totales` y cuadre provisionales en `None` hasta A4. ~90 líneas | TC-07, TC-19, TC-22 | `desarrollador-dominio` | `haiku` | `uv run pytest tests/test_tkt014_hoja.py -k "estructura or cabecera or codigo_de_cabecera"` | ✓ Hecho |
+| A3 | Bloques: insumos, cargos, viáticos, subtotales, filas sin cifras, `_interpretar_no_negativo`. ~100 líneas | TC-09, TC-10, TC-11, TC-14, TC-18, TC-21 | `desarrollador-dominio` | `haiku` | `uv run pytest tests/test_tkt014_hoja.py -k "bloque or viaticos or subtotal or ilegibles or unidad or inmutable"` | ✓ Hecho |
+| A4 | `totalizar_analisis`, `verificar_precio_unitario` y su llamada al final de `analizar_hoja_apu`. ~60 líneas | TC-08, TC-12, TC-13, TC-15, TC-16, TC-17, TC-20 | `desarrollador-dominio` | `sonnet` · disparador: regla de dinero con frontera (tolerancia ±0.01 inclusive, decisión 4 de la persona dueña), afín a `RN-03` | `uv run pytest tests/test_tkt014_hoja.py` completo en verde | ✓ Hecho |
+| A5 | Cierre de a: mutantes M-01 a M-13; ficha de TKT-014 en `docs/05` con la partición; suite completa | Todos los de a, TC-INV-1, TC-INV-2 y la suite de TKT-013 | `tester-backend` | `sonnet` · valor por omisión del agente: la mutación es el oráculo del oráculo | Cada mutante aplicado, test en rojo, revertido, salida en `impl.md`; `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy .`, `uv run lint-imports`, `uv run python -m herramientas.verificar_float`, `uv run pytest`; `python tools/verificar_docs.py` | ✓ Hecho |
 
 ### Entrega TKT-014b · asociación, insumos, adaptador y archivos reales
 
@@ -391,13 +391,14 @@ Las pruebas del dominio construyen las filas como tuplas con `herramientas/sopor
 | bloque | `MANO DE OBRA` | | | | |
 | insumo | `CUADRILLA X` | `JORNAL` | `1000` | `10` | `100` |
 | bloque | `COSTO DIRECTO` | | | | `127.5` |
-| cargo | `HERRAMIENTA MENOR` | | `127.5` | `0.01` | `1.275` |
-| bloque | `VIATICOS Y HOSPEDAJE` | | | | |
-| cargo | `OFICIAL X` | | `0` | `0` | `0` |
-| cargo | `INDIRECTOS` | | `128.775` | `0.08` | `10.302` |
-| cargo | `UTILIDAD` | | `128.775` | `0.12` | `15.453` |
-| cargo | `IVA` | | `27.5` | `0.16` | `4.4` |
-| pie | `PRECIO UNITARIO` | | | | `158.93` |
+| cargo | `HERRAMIENTA MENOR` | `0.01` | `127.5` | | `1.275` |
+| bloque | `CARGOS VIATICOS Y HOSPEDAJE` | `%` | | | |
+| cargo viático | `OFICIAL TABLAROQUERO` | `0` | `0` | | `0` |
+| cargo viático | `AYUDANTE TABLAROQUERO` | `0` | `0` | | `0` |
+| cargo | `INDIRECTOS` | `0.08` | `128.775` | | `10.302` |
+| cargo | `UTILIDAD` | `0.12` | `128.775` | | `15.453` |
+| cargo | `IVA` | `0.16` | `27.5` | | `4.4` |
+| pie (fila 21) | | `PRECIO UNITARIO` | | | `158.93` |
 
 El P.U. reconstruido es exactamente `158.93`. Las variantes (`siroc=True` añade `SIROC` al 1 % y sube el pie a `160.205`; `pie=…`; celdas rotas) se pasan por parámetro. Las pruebas con openpyxl escriben esa misma hoja en un `LibroCatalogo` junto con `libro_forma_eniti`. Las de archivos reales usan `archivo_eniti` y `archivo_union`, que se omiten con motivo si falta la variable. **Ningún dato del cliente entra al repositorio** salvo las cifras y nombres que ya cita la spec.
 
@@ -414,7 +415,7 @@ Todo rechazo comprueba el hallazgo completo (`causa`, `hoja`, `fila`, `columna`,
 | TC-05 | `test_hdu001_esc05_rendimiento_y_porcentaje_exactos`: `interpretar_numero(Decimal("0.3278"), Rendimiento) == Rendimiento("0.3278")` con `.valor` sin cuantizar; `Decimal("0.16")` → `Porcentaje("0.16")`; `"#REF!"` → `ERROR_DE_FORMULA` | feliz y **rechazo** | `CA-15` | `HDU-001 esc. 5` |
 | TC-06 | `test_hdu001_esc06_fecha_de_la_cabecera`: `"2025-09-01 00:00:00"` → `"2025-09-01"`; `"01/09/2025"`, `"2025-09-01 10:30:00"` y `45901` → `FECHA_NO_RECONOCIDA`; `None` → `VALOR_AUSENTE`; `"#REF!"` → `ERROR_DE_FORMULA` | feliz y **rechazo** | `CA-3` · `PA-T9` | `HDU-001 esc. 6` |
 | TC-07 | `test_hdu001_esc05_hoja_sin_estructura_de_apu_no_es_analisis`: filas sin `MATERIAL`; con `MATERIAL` y sin `PRECIO UNITARIO`; con `PRECIO UNITARIO` antes de `MATERIAL`; filas con la forma del catálogo → `None` | **rechazo** | `CA-2` · `M1` | `HDU-001 esc. 5` |
-| TC-08 | `test_hdu001_esc05_analisis_sintetico_completo`: la hoja sintética → cabecera (`P-001`, `M2`, `2025-09-01`, analista, P.U.), dos materiales y una mano de obra con sus cifras y tipos, cinco cargos con tipo, porcentaje, base e importe, totales `27.5`, `100`, `127.5`, `31.43` y `158.93`, `hallazgos == ()` | feliz | `CA-1`, `CA-3`, `CA-4`, `CA-16` | `HDU-001 esc. 5` |
+| TC-08 | `test_hdu001_esc05_analisis_sintetico_completo`: la hoja sintética (rótulo viáticos `CARGOS VIATICOS Y HOSPEDAJE`, pie fila 21) → cabecera (`P-001`, `M2`, `2025-09-01`, analista, P.U.), dos materiales y una mano de obra, **seis** cargos (incl. dos `VIATICOS`), totales `27.5`, `100`, `127.5`, `31.43` y `158.93`, `hallazgos == ()` | feliz | `CA-1`, `CA-3`, `CA-4`, `CA-16` | `HDU-001 esc. 5` |
 | TC-09 | `test_hdu001_esc05_variantes_de_rotulo_de_bloque`, parametrizada: `MATERIAL:`, `"MATERIAL "`, `Material`, `MANO DE OBRA:`; y una fila extra `("SACO",)` y otra con solo `KG` en D bajo el rótulo → mismos insumos y ningún hallazgo | feliz | `CA-1`, `CA-2` · `M1` | `HDU-001 esc. 5` |
 | TC-10 | `test_hdu001_esc05_viaticos_por_rol_son_cargos_viaticos`: dos roles → dos cargos `VIATICOS` con el rol como rótulo, porcentaje `0` e importe `0`; `INDIRECTOS` tras ellos sale `INDIRECTOS` | feliz | `CA-4` · `PA-T7` | `HDU-001 esc. 5` |
 | TC-11 | `test_hdu001_esc05_filas_de_subtotal_se_ignoran`: `SUBTOTAL` y `TOTAL MATERIAL` con cifra en G → no son insumos ni cargos; una fila sin A con cifra en G tampoco | borde | `M1` · P9 | `HDU-001 esc. 5` |

@@ -49,9 +49,11 @@ Si falta cualquiera de los obligatorios → **STOP**. Se pide, no se rellena. Si
 | `EN REVISIÓN` | `REQUIERE DECISIÓN` · `RIESGOSO` | bloqueo | Auditores → escala |
 | `REQUIERE CAMBIOS` | `EN REVISIÓN` | `corrector-revision` arregla y se reaudita (máx. 3 ciclos) | Orquestador |
 | `REQUIERE DECISIÓN` · `RIESGOSO` | estado previo | el usuario responde | **Usuario** |
-| `LISTO PARA PR` | `ARCHIVADO` | `/sdd-completar` produce `delta.md`, abre el único PR del ticket, espera las diez comprobaciones y lo fusiona | Orquestador, con la **aprobación del usuario** a la fusión |
+| `LISTO PARA PR` | `ARCHIVADO` o entrega intermedia (ver abajo) | `/sdd-completar` produce `delta.md`, abre el PR de la unidad que se fusiona, espera las diez comprobaciones y lo fusiona | Orquestador, con la **aprobación del usuario** a la fusión |
 
 El estado vive en `_index.md`. Quien lo mueve escribe la fila en el Log, con fecha y motivo.
+
+**Ticket partido en entregas hermanas (a/b).** Un solo hub (`sdd/tickets/tkt-014/`), spec y design compartidos; **un PR por entrega** (`TKT-014a`, luego `TKT-014b` apilado a `Produccion` tras a). El hub **no** pasa a `ARCHIVADO` al fusionar la entrega a: queda **`LISTO PARA EJECUTAR · TKT-014b`** (o la siguiente). Solo la **última** entrega archiva el paraguas. Estados habituales: `LISTO PARA PR · entrega TKT-014a` → `PENDIENTE FUSIÓN · entrega TKT-014a` (PR abierto) → tras fusión a, `LISTO PARA EJECUTAR · TKT-014b`. Detalle en [`/sdd-completar`](../.claude/skills/sdd-completar/SKILL.md), paso 4.
 
 **Salidas de `/sdd-escalar`.** El comando puede abrirse desde `LISTO PARA EJECUTAR`, `EN REVISIÓN` o `REQUIERE CAMBIOS`, y pasa el ticket a `REQUIERE DECISIÓN` (o a `RIESGOSO` si viene de una auditoría bloqueante). Al responder la persona dueña, el ticket vuelve al estado desde el que se escaló, con una de estas salidas, siempre registrada en «Decisiones registradas»: **continuar** tal como estaba; **cambiar el diseño**, que vuelve a `/sdd-disenar` y a su gate humano; **recortar alcance**, que pasa a `EN REVISIÓN` para que `/sdd-revisar` evalúe el ticket contra el alcance recortado; o **detener** el ticket. Un recorte de un Must sigue la fila «recorte tras ejecutar» de la tabla de MoSCoW.
 
