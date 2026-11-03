@@ -510,12 +510,9 @@ def test_hdu001_esc06_cabecera_incompleta() -> None:
 
 def test_hdu001_esc06_cabecera_campos_ilegibles() -> None:
     filas = [
-        (n, ("ANALISTA:", "#REF!") + f[1:]) if n == 1 else (n, f)
-        for n, f in hoja_apu_sintetica()
+        (n, ("ANALISTA:", "#REF!") + f[1:]) if n == 1 else (n, f) for n, f in hoja_apu_sintetica()
     ]
-    filas = [
-        (n, ("UNIDAD:", None, "LT")) if n == 3 else (n, f) for n, f in filas
-    ]
+    filas = [(n, ("UNIDAD:", None, "LT")) if n == 3 else (n, f) for n, f in filas]
     filas = [(n, ("FECHA:", None, "")) if n == 4 else (n, f) for n, f in filas]
     resultado = analizar_hoja_apu("H", filas)
     assert resultado is not None
