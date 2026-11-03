@@ -170,6 +170,22 @@ def test_hdu001_esc05_viaticos_por_rol_son_cargos_viaticos() -> None:
     assert indirectos.rotulo == "INDIRECTOS"
 
 
+def test_hdu001_esc05_encabezado_cargos_indirectos_tras_viaticos_no_es_cargo() -> None:
+    """E-2 · fila «CARGOS INDIRECTOS» con «%» en D tras viáticos (hoja `01` ENITI)."""
+    filas = list(hoja_apu_sintetica())
+    insertadas: list[tuple[int, tuple[ValorCelda, ...]]] = [
+        (18, (None, None, None, "TOTAL VIATICOS  Y HOSPEDAJE ", None, None, Decimal("0"))),
+        (19, ("CARGOS INDIRECTOS ", None, None, "%")),
+    ]
+    desplazadas = [(n + 2, f) if n >= 18 else (n, f) for n, f in filas]
+    desplazadas.extend(insertadas)
+    desplazadas.sort(key=lambda x: x[0])
+    resultado = analizar_hoja_apu("01", desplazadas)
+    assert resultado is not None
+    assert not any(c.rotulo.startswith("CARGOS INDIRECTOS") for c in resultado.cargos)
+    assert not any(h.causa == CausaHallazgo.PU_NO_VERIFICABLE for h in resultado.hallazgos)
+
+
 def test_hdu001_esc05_filas_de_subtotal_se_ignoran() -> None:
     filas: list[tuple[int, tuple[ValorCelda, ...]]] = []
     for numero, fila in hoja_apu_sintetica():

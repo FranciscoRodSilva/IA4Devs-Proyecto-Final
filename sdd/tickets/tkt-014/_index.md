@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · **TKT-014b** (entrega **TKT-014a** fusionada en [PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38#issuecomment-6614407455))
+PENDIENTE FUSIÓN · entrega **TKT-014b** (014a en [PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38#issuecomment-6614407455))
 
 ## Ficha
 
@@ -27,8 +27,8 @@ LISTO PARA EJECUTAR · **TKT-014b** (entrega **TKT-014a** fusionada en [PR #38](
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-02 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-02 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | TKT-014a escrito; 014b pendiente |
-| Delta | [delta.md](delta.md) | `/sdd-completar` | TKT-014a · 2026-11-03 |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | TKT-014a + **014b** (B1–B5) |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | **TKT-014b** · 2026-11-03 |
 
 ## Log de estados
 
@@ -45,6 +45,11 @@ LISTO PARA EJECUTAR · **TKT-014b** (entrega **TKT-014a** fusionada en [PR #38](
 | 2026-11-03 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (014a) ciclo 3 | Suite 1853 passed; arquitectura APROBADO; F012 cabecera + docs/design; 44 tests. Siguiente: `/sdd-completar` |
 | 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014a) | [PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38); `delta.md`; hub TKT-014 abierto hasta 014b |
 | 2026-11-03 | `PENDIENTE FUSIÓN` | `LISTO PARA EJECUTAR` | fusión PR #38 | **TKT-014a** en `Produccion` (merge `65b0992`); registro en comentario del PR. Siguiente: `/sdd-ejecutar TKT-014b` |
+| 2026-11-03 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | `/sdd-ejecutar` (014b) | Rama `tkt-014b-asociacion-lector`; B1–B3 y TC-40…49 reales; fix TC-47 (`CARGOS INDIRECTOS`) |
+| 2026-11-03 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | `/sdd-revisar` (014b) | **Gate no cumplido:** hub no está en `EN REVISIÓN`. B4 (ADR-034 APU, docs) y B5 (M-14…M-18, `impl` 014b) pendientes. Revisión no iniciada |
+| 2026-11-03 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` (014b) | B4: ADR-035, docs y conteo 35 ADR; B5: M-14…M-18; suite en verde; correcciones revisión (TC-29/32, Vale, ADR-035) |
+| 2026-11-03 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (014b) | 1884 passed; arquitectura/docs APROBADO; código APROBADO tras ciclo 2 (F001–F003); F004 Menor persiste |
+| 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014b) | `delta.md` 014b; PR en curso; hub archiva tras fusión |
 
 ## Decisiones registradas
 

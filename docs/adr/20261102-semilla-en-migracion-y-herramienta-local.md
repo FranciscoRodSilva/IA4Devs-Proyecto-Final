@@ -48,4 +48,4 @@ Se elige **la partición en dos mecanismos**, con identificadores fijos en ambos
 
 * Si producción necesita su primer usuario, `PA-T13` de TKT-006 se resuelve con un ticket propio que decida cómo nace ese usuario. Esta herramienta no se amplía para producción.
 * Si aparece un entorno no local que deba recibir el catálogo sintético, se revisa la guarda por host y se evalúa un ajuste de entorno.
-* Si TKT-014 elige una clave de insumo distinta del `codigo` recortado y en mayúsculas, los insumos sembrados no coincidirían con los importados, y se revisa la regla de clave.
+* **Condición cumplida (2026-11-03):** TKT-014b eligió la descripción normalizada ([ADR-035](20261103-clave-de-insumo-y-lectura-de-apu.md)); los insumos sembrados por `codigo` no coinciden y saldrán por crear hasta que TKT-017 resuelva P14.

@@ -1176,7 +1176,8 @@ def archivo_eniti() -> bytes:
 def archivo_union() -> bytes:
     """Bytes del catálogo Union Square (`CIMENTA_CATALOGO_UNION`).
 
-    Debe apuntar al libro P.U. con la hoja `CATALOGO DE CONCEPTOS` (CA-7: `#REF!` en E/F).
+    Debe apuntar al libro P.U. con la hoja `CATALOGO DE CONCEPTOS` (CA-7: `#REF!` en E/F) y las hojas
+    de APU (TKT-014).
     """
     return _bytes_catalogo_real("CIMENTA_CATALOGO_UNION", "Union Square")
 

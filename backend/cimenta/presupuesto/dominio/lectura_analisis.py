@@ -586,7 +586,8 @@ def analizar_hoja_apu(
             continue
         if _es_prefijo_subtotal(rotulo):
             continue
-        if bloque == _Bloque.CARGOS and rotulo in ("cargosporcentuales", "cargosindirectos"):
+        if rotulo in ("cargosporcentuales", "cargosindirectos"):
+            bloque = _Bloque.CARGOS
             continue
 
         sin_cifras = (

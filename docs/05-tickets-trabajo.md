@@ -491,7 +491,7 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 |---|---|
 | **Tipo** | Fundación · **Talla** S · **Depende de** TKT-003, TKT-011a, TKT-011b · **Sprint 2** |
 
-**Qué hace.** Carga datos de arranque sintéticos con forma real. La empresa única y los cuatro tipos de partida los siembra la migración `0008` en todo entorno. Seis usuarios, uno por rol, y 27 insumos con su precio son sintéticos y solo existen en una base local, donde los siembra `herramientas.semilla_local`. Así TKT-012 da de alta una obra, TKT-014 encuentra sus insumos y las pruebas manuales entran con cada rol, sin que producción reciba una credencial conocida ni un catálogo inventado.
+**Qué hace.** Carga datos de arranque sintéticos con forma real. La empresa única y los cuatro tipos de partida los siembra la migración `0008` en todo entorno. Seis usuarios, uno por rol, y 27 insumos con su precio son sintéticos y solo existen en una base local, donde los siembra `herramientas.semilla_local`. Así TKT-012 da de alta una obra, TKT-014b propone insumos por crear al leer APU y TKT-017 los materializa, y las pruebas manuales entran con cada rol, sin que producción reciba una credencial conocida ni un catálogo inventado.
 
 > **Va en el sprint 2 y no en el 1 porque las tablas que siembra no existen antes.** `empresa`, `tipo_partida` e `insumo` las crea TKT-011a, que es del módulo `presupuesto`. Sembrar en el sprint 1 solo podría cargar usuarios y roles de acceso; los catálogos fallarían por tabla inexistente. El `rol_oficio` se siembra más tarde todavía, en TKT-042, junto a la tabla que lo contiene.
 
@@ -499,7 +499,7 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 
 - [ ] La migración `0008` siembra la fila única de `empresa` —Constructora Celsius, con RFC genérico `(asumido)`— y los cuatro `tipo_partida` (`MUROS`, `PLAFONES_Y_CAJILLOS`, `ENCHAPES`, `GENERALES`), con identificadores fijos. `obra.empresa_id` es obligatoria: sin esa fila el alta de obra de TKT-012 falla por clave foránea
 - [ ] `herramientas.semilla_local` siembra seis usuarios **sintéticos**, uno por rol de acceso (correo `<rol en minúsculas>@cimenta.test`, contraseña de `CIMENTA_SEMILLA_CONTRASENA`), y 27 insumos **sintéticos** `MATERIAL` con un precio general vigente desde el 2026-01-01 `(asumido)`. Solo escribe en una base local: se niega antes de conectar si el host no es local o si `PGHOSTADDR` o `PGSERVICE` redirigen la conexión
-- [ ] La clave del importador es el `codigo` recortado y en mayúsculas `(asumido)`: TKT-014 la hereda, y los 27 códigos sembrados (`TBR-001` a `TBR-027`) ya la cumplen. Si la clave no coincidiera, el importador duplicaría los insumos
+- [ ] La clave del lector de APU es la descripción recortada, en mayúsculas y con espacios interiores colapsados ([ADR-035](adr/20261103-clave-de-insumo-y-lectura-de-apu.md), decisión 2026-11-02): los 27 códigos sembrados (`TBR-001` a `TBR-027`) no la cumplen y saldrán por crear (`PA-T1` de TKT-014). TKT-017 decide el `insumo.codigo` al dar de alta
 - [ ] La carga es idempotente y no sobrescribe: ejecutarla dos veces no duplica nada, y una fila existente con otros valores se deja intacta
 
 > Ya **no** siembra obras: darlas de alta es funcionalidad de HDU-001 y debe probarse por su propio camino.
@@ -573,7 +573,7 @@ Historia: [HDU-001](04-historias-usuario.md#hdu-001--alta-de-obra-e-importación
 - [ ] Tablas `importacion`, `importacion_error`, `rendimiento_observado`, con `importacion.latido`, `importacion.progreso` y los tipos de error `PROCESO_INTERRUMPIDO` (`RNF-17`) y `SIN_CONCEPTOS` —hoja sin ninguna fila de concepto, HDU-001 esc. 27—
 - [ ] `importacion` **no** tiene columnas de nombre ni de URL del archivo: el Excel vive en `archivo` con `referencia_tipo = 'IMPORTACION'` ([modelo de datos §11](03-modelo-datos.md#11-importación)). `importacion.archivo_id` es un identificador lógico **sin clave foránea** —una clave entre tablas de dos módulos cruzaría la frontera por el esquema— y está en la lista cerrada de [modelo de datos §2](03-modelo-datos.md#2-convenciones). El caso de uso que crea la importación es de TKT-018
 - [ ] `obra` incluye `domicilio`, `retencion_destajo_pct`, `fondo_garantia_pct`, `iva_acreditable` (PA-02, PA-05) y `umbral_alerta_pct` —`Porcentaje`, nullable; F7.3—, el umbral que separa `AMARILLO` de `ROJO` en el semáforo y dispara su alerta (TKT-039; `PA-18`, resuelta el 2026-10-17)
-- [ ] `insumo.creado_en_importacion BOOLEAN`, que TKT-014 marca al dar de alta un insumo que no encuentra
+- [ ] `insumo.creado_en_importacion BOOLEAN`, que TKT-017 marca al dar de alta un insumo que TKT-014b propone
 - [ ] `CHECK` de `concepto.unidad` e `insumo.unidad` contra el catálogo de unidades admitidas — invariante 27 —, el mismo enum que usa el borrador
 - [ ] Restricción `UNIQUE (obra_id, codigo)` sobre `concepto` — invariante 13
 - [ ] Índice único parcial que garantiza una sola línea base `CONGELADA` por obra — invariante 5
@@ -654,13 +654,13 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 **Criterios técnicos**
 
-- [ ] Lee cada hoja de análisis: bloque de material, bloque de mano de obra, cargos porcentuales y cargos indirectos
-- [ ] Asocia cada análisis con su concepto **por el código de la hoja**; sin código o con el código en dos hojas, lo reporta
-- [ ] Extrae por insumo: unidad, costo unitario, rendimiento y cargo
-- [ ] Extrae los cargos con su tipo, porcentaje, base e importe
-- [ ] Devuelve los insumos por crear, por descripción normalizada, marcados `creado_en_importacion = true`; los da de alta TKT-017
-- [ ] Verifica que el precio unitario reconstruido coincide con el del archivo dentro de ±0.01 absoluta `(asumido)`; si no, lo reporta como error
-- [ ] Se prueba con `MURO STD-635-STD`: material $201.67 + mano de obra $286.07 = costo directo $487.74, precio unitario $641.36
+- [x] Lee cada hoja de análisis: bloque de material, bloque de mano de obra, cargos porcentuales y cargos indirectos
+- [x] Asocia cada análisis con su concepto **por el código de la hoja**; sin código o con el código en dos hojas, lo reporta
+- [x] Extrae por insumo: unidad, costo unitario, rendimiento y cargo
+- [x] Extrae los cargos con su tipo, porcentaje, base e importe
+- [x] Devuelve los insumos por crear, por descripción normalizada, marcados `creado_en_importacion = true`; los da de alta TKT-017
+- [x] Verifica que el precio unitario reconstruido coincide con el del archivo dentro de ±0.01 absoluta `(asumido)`; si no, lo reporta como error
+- [x] Se prueba con `MURO STD-635-STD`: material $201.67 + mano de obra $286.07 = costo directo $487.74, precio unitario $641.36
 
 **Non-goals** — No recalcula precios; solo lee y verifica.
 
@@ -669,7 +669,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 | Ticket | Contenido | Migración | Depende de | Filas del diseño |
 |---|---|---|---|---|
 | TKT-014a | Dominio de la hoja (`analisis.py`, `lectura_analisis.py`, causas nuevas, `interpretar_numero`, `soporte_tkt014.py`, pruebas en memoria) | Ninguna | TKT-013b | A0–A5 |
-| TKT-014b | Asociación (`asociacion_analisis.py`), insumos por crear, refactor de `lector_catalogo.py`, archivos reales, ADR-034 y documentación | Ninguna | TKT-014a | B1–B5 |
+| TKT-014b | Asociación (`asociacion_analisis.py`), insumos por crear, refactor de `lector_catalogo.py`, archivos reales, [ADR-035](adr/20261103-clave-de-insumo-y-lectura-de-apu.md) y documentación | Ninguna | TKT-014a | B1–B5 |
 
 ---
 
