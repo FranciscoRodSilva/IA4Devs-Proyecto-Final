@@ -655,14 +655,21 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 **Criterios técnicos**
 
 - [ ] Lee cada hoja de análisis: bloque de material, bloque de mano de obra, cargos porcentuales y cargos indirectos
-- [ ] Asocia cada análisis con su concepto
+- [ ] Asocia cada análisis con su concepto **por el código de la hoja**; sin código o con el código en dos hojas, lo reporta
 - [ ] Extrae por insumo: unidad, costo unitario, rendimiento y cargo
 - [ ] Extrae los cargos con su tipo, porcentaje, base e importe
-- [ ] Da de alta los insumos que no existan, con `insumo.creado_en_importacion = true`
-- [ ] Verifica que el precio unitario reconstruido coincide con el del archivo dentro de la tolerancia decimal; si no, lo reporta como error
+- [ ] Devuelve los insumos por crear, por descripción normalizada, marcados `creado_en_importacion = true`; los da de alta TKT-017
+- [ ] Verifica que el precio unitario reconstruido coincide con el del archivo dentro de ±0.01 absoluta `(asumido)`; si no, lo reporta como error
 - [ ] Se prueba con `MURO STD-635-STD`: material $201.67 + mano de obra $286.07 = costo directo $487.74, precio unitario $641.36
 
 **Non-goals** — No recalcula precios; solo lee y verifica.
+
+**Partición en dos tickets hermanos** (aprobada 2026-11-02; fusión fija **TKT-014a → TKT-014b**). TKT-014 queda como paraguas, conserva la spec y el diseño, y se cierra cuando se cierran las dos. TKT-015, TKT-016 y TKT-017 dependen de **TKT-014b**.
+
+| Ticket | Contenido | Migración | Depende de | Filas del diseño |
+|---|---|---|---|---|
+| TKT-014a | Dominio de la hoja (`analisis.py`, `lectura_analisis.py`, causas nuevas, `interpretar_numero`, `soporte_tkt014.py`, pruebas en memoria) | Ninguna | TKT-013b | A0–A5 |
+| TKT-014b | Asociación (`asociacion_analisis.py`), insumos por crear, refactor de `lector_catalogo.py`, archivos reales, ADR-034 y documentación | Ninguna | TKT-014a | B1–B5 |
 
 ---
 
@@ -670,7 +677,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-014 |
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-014b |
 
 **Criterios técnicos**
 
@@ -695,7 +702,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-014 |
+| **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-014b |
 
 **Criterios técnicos**
 

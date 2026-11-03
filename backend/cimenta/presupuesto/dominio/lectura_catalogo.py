@@ -22,7 +22,7 @@ from cimenta.presupuesto.dominio.catalogo import (
     Ruta,
     ValorCelda,
 )
-from tipos_base import Cantidad, Dinero
+from tipos_base import Cantidad, Dinero, Porcentaje, Rendimiento
 
 _PROFUNDIDADES: tuple[Profundidad, ...] = (
     Profundidad.RAIZ,
@@ -74,7 +74,7 @@ def normalizar_unidad(unidad: str) -> str | None:
     return None
 
 
-def interpretar_numero[N: (Cantidad, Dinero)](
+def interpretar_numero[N: (Cantidad, Dinero, Rendimiento, Porcentaje)](
     valor: ValorCelda, tipo: type[N]
 ) -> N | CausaHallazgo:
     """HDU-001 esc. 6: nunca sustituye un rechazo por cero."""
