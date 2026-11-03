@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega **TKT-014b** (014a en [PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38#issuecomment-6614407455))
+ARCHIVADO · paraguas **TKT-014** cerrado ([PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38) + [PR #39](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/39#issuecomment-6616208264))
 
 ## Ficha
 
@@ -50,6 +50,7 @@ PENDIENTE FUSIÓN · entrega **TKT-014b** (014a en [PR #38](https://github.com/F
 | 2026-11-03 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` (014b) | B4: ADR-035, docs y conteo 35 ADR; B5: M-14…M-18; suite en verde; correcciones revisión (TC-29/32, Vale, ADR-035) |
 | 2026-11-03 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (014b) | 1884 passed; arquitectura/docs APROBADO; código APROBADO tras ciclo 2 (F001–F003); F004 Menor persiste |
 | 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014b) | [PR #39](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/39); `delta.md` 014b; hub → `ARCHIVADO` tras fusión |
+| 2026-11-03 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | fusión PR #39 | TKT-014b en `Produccion` (`d6f39cc`); registro en [comentario del PR #39](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/39#issuecomment-6616208264). Planificación del paraguas cerrada |
 
 ## Decisiones registradas
 
