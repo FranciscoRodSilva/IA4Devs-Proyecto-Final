@@ -43,7 +43,7 @@ PENDIENTE FUSIÓN · entrega **TKT-014a** (paraguas TKT-014 abierto hasta **014b
 | 2026-11-03 | `EN REVISIÓN` | `REQUIERE CAMBIOS` | `/sdd-revisar` (014a) ciclo 2 | Suite 1850 passed; linters OK. Tres auditores REQUIERE CAMBIOS: viáticos `cargosviaticosyhospedaje` vs `startswith("viaticos")` (F001 arq); tests rechazo incompletos (codigo); cuerpo design pre E-1 (docs). Sin `LISTO PARA PR` |
 | 2026-11-03 | `REQUIERE CAMBIOS` | `EN REVISIÓN` | corrector-revisión ciclo 2 | `"viaticos" in rotulo`; fixture `CARGOS VIATICOS Y HOSPEDAJE` + 2 roles; pie fila 21; 43 tests con `Hallazgo` completo; design E-1 actualizado |
 | 2026-11-03 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (014a) ciclo 3 | Suite 1853 passed; arquitectura APROBADO; F012 cabecera + docs/design; 44 tests. Siguiente: `/sdd-completar` |
-| 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014a) | `delta.md`; hub TKT-014 sigue abierto hasta 014b. PR a `Produccion`; número en comentario de registro al fusionar |
+| 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014a) | [PR #38](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/38); `delta.md`; hub TKT-014 abierto hasta 014b |
 
 ## Decisiones registradas
 
