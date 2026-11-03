@@ -49,7 +49,7 @@ PENDIENTE FUSIÓN · entrega **TKT-014b** (014a en [PR #38](https://github.com/F
 | 2026-11-03 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | `/sdd-revisar` (014b) | **Gate no cumplido:** hub no está en `EN REVISIÓN`. B4 (ADR-034 APU, docs) y B5 (M-14…M-18, `impl` 014b) pendientes. Revisión no iniciada |
 | 2026-11-03 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` (014b) | B4: ADR-035, docs y conteo 35 ADR; B5: M-14…M-18; suite en verde; correcciones revisión (TC-29/32, Vale, ADR-035) |
 | 2026-11-03 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (014b) | 1884 passed; arquitectura/docs APROBADO; código APROBADO tras ciclo 2 (F001–F003); F004 Menor persiste |
-| 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014b) | `delta.md` 014b; PR en curso; hub archiva tras fusión |
+| 2026-11-03 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (014b) | [PR #39](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/39); `delta.md` 014b; hub → `ARCHIVADO` tras fusión |
 
 ## Decisiones registradas
 

@@ -8,7 +8,7 @@ Aceptado
 
 Las hojas de análisis de precios unitarios del cliente no traen un código por insumo: solo la descripción en la columna A. La asociación del análisis con el catálogo sí usa el código de la cabecera de la hoja. TKT-017 materializará insumos nuevos; hace falta una regla estable para saber si un renglón del Excel ya existe en `insumo`.
 
-La disposición de cada hoja repite la misma forma en 44 hojas medidas (E-1): bloques `MATERIAL`, `MANO DE OBRA`, cargos con porcentaje en la columna D, base en la columna E e importe en la columna G, pie `PRECIO UNITARIO` en D con valor en G.
+La disposición de cada hoja repite la misma forma en 44 hojas medidas (E-1): bloques `MATERIAL`, `MANO DE OBRA`, cargos con porcentaje en la columna D, base en la columna E, importe en la columna G, pie `PRECIO UNITARIO` en D con valor en G.
 
 El pie del archivo trae un precio unitario; openpyxl entrega sumandos como `float`. Recalcular `costo × rendimiento` o `porcentaje × base` no reproduce siempre el Excel (mano de obra con rendimiento ambiguo, `PA-T6`).
 
