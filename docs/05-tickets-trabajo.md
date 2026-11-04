@@ -54,14 +54,16 @@ Los tickets citan los endpoints por método y ruta con las convenciones del [bor
 | 1 | [HDU-004 · Proveedores y órdenes de compra](#tickets-de-hdu-004--proveedores-y-órdenes-de-compra) | TKT-029 … TKT-032 | HDU-004 | 5 |
 | 1 | [HDU-005 · Entrada de material, en línea](#tickets-de-hdu-005--entrada-de-material-con-recepción-parcial) | TKT-033 … TKT-038, TKT-054 | HDU-005 | 8 de 11 |
 | 1 | [HDU-006 · Semáforo de obra](#tickets-de-hdu-006--semáforo-de-obra) | TKT-039 … TKT-041, TKT-060 | HDU-006 | 6 |
-| 1 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057, TKT-058, TKT-061, TKT-070 | — | ~8 |
+| 1 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057, TKT-058, TKT-061, TKT-070, TKT-071 | — | ~8 |
 | 2 | [Fase 2 · HDU-007 a HDU-009 y captura en campo](#fase-2--mano-de-obra-y-campo) | TKT-042 … TKT-053, TKT-055, TKT-056, TKT-063 … TKT-069 | HDU-005 (3 de 11), HDU-007, HDU-008, HDU-009 | 33 + ~10 |
 
-**70 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
+**71 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
 
 **TKT-057 y TKT-058 salieron de la revisión del stack del 2026-09-19**, que encontró que la especificación no declaraba ningún requisito de seguridad ni de recuperación. Los requisitos están ahora en el [PRD §9](01-descripcion-producto.md#9-requisitos-no-funcionales) y estos dos tickets los implementan.
 
 **TKT-070 salió de la decisión del 2026-11-02 de probar el destino de despliegue en una VPS de bajo costo**, antes de que exista la imagen de TKT-058. No tiene sprint asignado ni suma puntos de historia.
+
+**TKT-071 salió de la revisión de las alertas de Dependabot del 2026-11-03**, que encontró tres alertas de severidad baja o moderada, ninguna explotable en CIMENTA. Corrige la única con camino de actualización limpio y reúne los parches de dependencias pendientes. Tampoco tiene sprint asignado ni suma puntos de historia.
 
 **TKT-059 a TKT-068 salieron de la revisión de LIDR del 2026-10-14**, que pidió tres cosas: detallar todos los tickets al nivel de los de HDU-001 y HDU-002, cerrar el bloque que estaba *pendiente de descomponer* y recortar el MVP a un hilo vertical. El bloque pendiente ya no existe: su contenido son ahora TKT-059 —el camino mínimo de `archivos`, en la fase 1— y TKT-063 a TKT-068, en la fase 2. TKT-060 sostiene las fuentes simuladas del semáforo ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)); TKT-061 convierte el borrador de [`docs/api/openapi.yaml`](api/openapi.yaml) en prueba de contrato; TKT-062 pone a la IA a revisar cada PR sin darle la aprobación.
 
@@ -1549,6 +1551,30 @@ Los nombres son `apbuildings.duckdns.org` para `prod` y `apbuildings-test.duckdn
 > **El entorno `prod` no recibe datos reales del cliente mientras este ticket sea todo lo que hay.** Se llama así porque es el destino del despliegue final, no porque cumpla ya la condición de salida de la fase 1: el sistema no se pone en manos del cliente sin respaldo con recuperación a un punto en el tiempo y sin un ensayo de restauración hecho, y eso es TKT-058. Hasta entonces, ambos entornos llevan solo datos de prueba. Tampoco se ejecuta la siembra local, que se niega a escribir fuera de una base local.
 
 **Non-goals** — No despliega la aplicación: el `Dockerfile` y la imagen única son de TKT-058. No monta respaldos ni restauración: se pospusieron por decisión expresa, y TKT-058 los exige antes de la entrega al cliente. No automatiza el despliegue desde el pipeline. No monta el almacén de objetos de TKT-059. No elige el proveedor definitivo de producción: esta VPS es de prueba, el destino final lo decide TKT-058 y la respuesta de `PA-12` sigue fijando el precio de la base gestionada. No resuelve `PA-T5` de TKT-057, el origen del cliente detrás del proxy: Caddy la activa en cuanto haya aplicación detrás, y la resuelve TKT-058.
+
+---
+
+### TKT-071 · Mantenimiento de dependencias: mermaid-cli y parches de Dependabot
+
+| | |
+|---|---|
+| **Tipo** | Fundación · **Talla** S · **Depende de** TKT-009b, TKT-009d · **Sprint** sin asignar |
+
+**Qué hace.** Atiende la alerta de Dependabot de `katex` (GHSA-238p-pmpm-9mq7, severidad baja) subiendo `@mermaid-js/mermaid-cli` de 12.0.0 a 12.2.0 en `.github/mermaid/`: esa versión deja de arrastrar `katex` 0.16.47, la copia vulnerable. En el mismo cambio aplica cuatro actualizaciones de versión menor o de parche que Dependabot propuso: `sqlalchemy` 2.1.5 → 2.1.6, `alembic` 1.20.0 → 1.20.1 y `ruff` 0.17.1 → 0.17.3 en `backend/`, y `eslint` 10.0.1 → 10.13.0 en `frontend/`. Los pull requests de Dependabot que este ticket cubre se cierran tras la fusión, con referencia a él.
+
+La alerta no es explotable en CIMENTA: KaTeX solo se ejecuta cuando un diagrama Mermaid contiene fórmulas, ningún diagrama de la documentación las tiene y `mermaid-cli` solo procesa diagramas del propio repositorio en el ejecutor de CI. Se corrige porque existe un camino limpio dentro de la misma versión mayor. El pipeline no la detectó porque `npm audit` corre con `--audit-level=high` y la alerta es de severidad baja, como fija TKT-009b.
+
+**Criterios técnicos**
+
+- [ ] `.github/mermaid/package.json` fija `@mermaid-js/mermaid-cli` en 12.2.0 exacto, y el lock regenerado no contiene ninguna copia de `katex` anterior a 0.18.2
+- [ ] El paso «Diagramas con mermaid-cli» del pipeline sigue validando todos los diagramas de la documentación sin errores
+- [ ] `backend/uv.lock` lleva `sqlalchemy` 2.1.6, `alembic` 1.20.1 y `ruff` 0.17.3, y el formato, el lint, los tipos, las fronteras, `verificar_float` y la suite del backend pasan
+- [ ] `alembic upgrade head` y el descenso de las migraciones siguen funcionando contra PostgreSQL real
+- [ ] `frontend/package-lock.json` lleva `eslint` 10.13.0, y el lint, los tipos, las pruebas y el humo de Playwright pasan
+- [ ] `pip-audit` y `npm audit --audit-level=high` quedan en verde en los tres directorios auditados, y la alerta de `katex` se cierra en GitHub
+- [ ] **Escenario de rechazo:** antes del cambio, `npm audit` en `.github/mermaid` reporta `katex`; después del cambio, deja de reportarlo
+
+**Non-goals** — No adopta saltos de versión mayor: `typescript` 7, que rompe el pipeline, `react-router` 8, `@types/node` 26 y `@testing-library/jest-dom` 7 quedan fuera y se deciden aparte. No fuerza `minimatch` 11 con `overrides` ni sustituye `deepmerge`: sus dos alertas se aceptan con su motivo, porque son de herramientas de desarrollo, no reciben entrada externa y no tienen camino de actualización por los paquetes que las traen. No cambia el umbral de severidad de la auditoría ni la configuración de Dependabot.
 
 ---
 
