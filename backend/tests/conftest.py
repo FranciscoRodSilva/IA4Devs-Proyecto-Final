@@ -523,10 +523,20 @@ class CopiasDeLineaBase(NamedTuple):
 
     linea_base_id: uuid.UUID
     obra_id: uuid.UUID
-    concepto_id: uuid.UUID
+    partida_concepto_id: uuid.UUID
     copia_id: uuid.UUID
     tipo_partida_id: uuid.UUID
     insumo_id: uuid.UUID
+    renglon_id: uuid.UUID
+
+
+class CopiasAnterioresA0010(NamedTuple):
+    """Línea base sembrada con el esquema de `0009` (concepto con partida y cantidades en la misma fila)."""
+
+    linea_base_id: uuid.UUID
+    obra_id: uuid.UUID
+    concepto_id: uuid.UUID
+    copia_id: uuid.UUID
     renglon_id: uuid.UUID
 
 
@@ -654,15 +664,97 @@ class DatosPresupuesto:
         """Una obra con un código que no choca con el de otra obra de la misma prueba."""
         return self.obra(codigo=f"OB-{uuid.uuid4().hex[:8]}")
 
-    def nivel(
-        self, *, obra_id: uuid.UUID | None = None, nombre: str = "Planta baja", orden: int = 1
+    def concepto(
+        self,
+        *,
+        obra_id: uuid.UUID | None = None,
+        codigo: str = "620001",
+        descripcion: str = "Muro de tablaroca a dos caras",
+        unidad: str = "M2",
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
     ) -> uuid.UUID:
-        """Un nivel. Sin `obra_id` crea la obra que le falta."""
-        return self._insertar(
-            "nivel",
+        """Un concepto de obra (código, descripción y unidad). Sin `obra_id` crea la obra."""
+        obra = obra_id if obra_id is not None else self._obra_nueva()
+        destino = conexion if conexion is not None else self._conexion
+        return self._insertar_en(
+            destino,
+            "concepto",
             {
-                "obra_id": obra_id if obra_id is not None else self._obra_nueva(),
-                "nombre": nombre,
+                "obra_id": obra,
+                "codigo": codigo,
+                "descripcion": descripcion,
+                "unidad": unidad,
+            },
+        )
+
+    def partida_concepto(
+        self,
+        *,
+        concepto_id: uuid.UUID | None = None,
+        partida_id: uuid.UUID | None = None,
+        cantidad: Decimal = Decimal("100.0000"),
+        precio_unitario: Decimal = Decimal("250.0000"),
+        importe: Decimal = Decimal("25000.0000"),
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
+    ) -> uuid.UUID:
+        """Aparición de un concepto en una partida. Sin `concepto_id` crea uno; sin `partida_id`, la jerarquía en la obra del concepto."""
+        destino = conexion if conexion is not None else self._conexion
+        if concepto_id is None:
+            concepto_id = self.concepto(conexion=destino)
+        if partida_id is None:
+            fila = destino.execute(
+                "SELECT obra_id FROM concepto WHERE id = %s", (concepto_id,)
+            ).fetchone()
+            assert fila is not None
+            obra = uuid.UUID(str(fila[0]))
+            partida_id = self.partida(
+                area_id=self.area(nivel_id=self.nivel(obra_id=obra)), conexion=destino
+            )
+        return self._insertar_en(
+            destino,
+            "partida_concepto",
+            {
+                "concepto_id": concepto_id,
+                "partida_id": partida_id,
+                "cantidad": cantidad,
+                "precio_unitario": precio_unitario,
+                "importe": importe,
+            },
+        )
+
+    def _insertar_en(
+        self, conexion: psycopg.Connection[tuple[Any, ...]], tabla: str, valores: dict[str, Any]
+    ) -> uuid.UUID:
+        identificador = uuid.uuid4()
+        columnas = {"id": identificador, **valores}
+        consulta = sql.SQL("INSERT INTO {} ({}) VALUES ({})").format(
+            sql.Identifier(tabla),
+            sql.SQL(", ").join(sql.Identifier(columna) for columna in columnas),
+            sql.SQL(", ").join(sql.Placeholder() for _ in columnas),
+        )
+        conexion.execute(consulta, list(columnas.values()))
+        return identificador
+
+    def partida(
+        self,
+        *,
+        area_id: uuid.UUID | None = None,
+        tipo_partida_id: uuid.UUID | None = None,
+        orden: int = 1,
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
+    ) -> uuid.UUID:
+        """Una partida. Sin `area_id` crea el área que le falta; sin tipo, uno con clave única."""
+        destino = conexion if conexion is not None else self._conexion
+        if area_id is None:
+            area_id = self.area(conexion=destino)
+        if tipo_partida_id is None:
+            tipo_partida_id = self._tipo_partida_nuevo()
+        return self._insertar_en(
+            destino,
+            "partida",
+            {
+                "area_id": area_id,
+                "tipo_partida_id": tipo_partida_id,
                 "orden": orden,
             },
         )
@@ -673,66 +765,41 @@ class DatosPresupuesto:
         nivel_id: uuid.UUID | None = None,
         nombre: str = "Sala",
         tipo_unidad: str = "M2",
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
     ) -> uuid.UUID:
         """Un área. Sin `nivel_id` crea el nivel (y su obra) que le falta."""
-        return self._insertar(
+        destino = conexion if conexion is not None else self._conexion
+        if nivel_id is None:
+            nivel_id = self.nivel(conexion=destino)
+        return self._insertar_en(
+            destino,
             "area",
             {
-                "nivel_id": nivel_id if nivel_id is not None else self.nivel(),
+                "nivel_id": nivel_id,
                 "nombre": nombre,
                 "tipo_unidad": tipo_unidad,
             },
         )
 
-    def partida(
-        self,
-        *,
-        area_id: uuid.UUID | None = None,
-        tipo_partida_id: uuid.UUID | None = None,
-        orden: int = 1,
-    ) -> uuid.UUID:
-        """Una partida. Sin `area_id` crea el área que le falta; sin tipo, uno con clave única."""
-        return self._insertar(
-            "partida",
-            {
-                "area_id": area_id if area_id is not None else self.area(),
-                "tipo_partida_id": (
-                    tipo_partida_id if tipo_partida_id is not None else self._tipo_partida_nuevo()
-                ),
-                "orden": orden,
-            },
-        )
-
-    def concepto(
+    def nivel(
         self,
         *,
         obra_id: uuid.UUID | None = None,
-        partida_id: uuid.UUID | None = None,
-        codigo: str = "620001",
-        descripcion: str = "Muro de tablaroca a dos caras",
-        unidad: str = "M2",
-        cantidad: Decimal = Decimal("100.0000"),
-        precio_unitario: Decimal = Decimal("250.0000"),
-        importe: Decimal = Decimal("25000.0000"),
+        nombre: str = "Planta baja",
+        orden: int = 1,
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
     ) -> uuid.UUID:
-        """Un concepto. Sin `obra_id` crea la obra; sin `partida_id`, nivel, área y partida de esa obra."""
-        obra = obra_id if obra_id is not None else self._obra_nueva()
-        partida = (
-            partida_id
-            if partida_id is not None
-            else self.partida(area_id=self.area(nivel_id=self.nivel(obra_id=obra)))
-        )
-        return self._insertar(
-            "concepto",
+        """Un nivel. Sin `obra_id` crea la obra que le falta."""
+        destino = conexion if conexion is not None else self._conexion
+        if obra_id is None:
+            obra_id = self._obra_nueva()
+        return self._insertar_en(
+            destino,
+            "nivel",
             {
-                "obra_id": obra,
-                "partida_id": partida,
-                "codigo": codigo,
-                "descripcion": descripcion,
-                "unidad": unidad,
-                "cantidad": cantidad,
-                "precio_unitario": precio_unitario,
-                "importe": importe,
+                "obra_id": obra_id,
+                "nombre": nombre,
+                "orden": orden,
             },
         )
 
@@ -881,22 +948,24 @@ class DatosPresupuesto:
         self,
         *,
         linea_base_id: uuid.UUID | None = None,
-        concepto_id: uuid.UUID | None = None,
+        partida_concepto_id: uuid.UUID | None = None,
         codigo: str = "620001",
         cantidad: Decimal = Decimal("100.0000"),
         precio_unitario: Decimal = Decimal("250.0000"),
         importe: Decimal = Decimal("25000.0000"),
     ) -> uuid.UUID:
-        """Una copia de concepto. Sin `linea_base_id` crea un `BORRADOR`; sin `concepto_id`, el concepto.
+        """Una copia de concepto. Sin `linea_base_id` crea un `BORRADOR`; sin `partida_concepto_id`, concepto y aparición.
 
         El disparador del invariante 14 solo admite insertar copias en un `BORRADOR`: para tener
         una línea base congelada con copias, usa `linea_base_con_copias`.
         """
+        if partida_concepto_id is None:
+            partida_concepto_id = self.partida_concepto()
         return self._insertar(
             "linea_base_concepto",
             {
                 "linea_base_id": linea_base_id if linea_base_id is not None else self.linea_base(),
-                "concepto_id": concepto_id if concepto_id is not None else self.concepto(),
+                "partida_concepto_id": partida_concepto_id,
                 "codigo": codigo,
                 "cantidad": cantidad,
                 "precio_unitario": precio_unitario,
@@ -961,10 +1030,15 @@ class DatosPresupuesto:
             raise ValueError(f"Estado de línea base desconocido: {estado}")
         obra_id = self._obra_nueva()
         linea_base_id = self.linea_base(estado="BORRADOR", obra_id=obra_id)
-        concepto_id = self.concepto(obra_id=obra_id)
+        partida_concepto_id = self.partida_concepto(
+            concepto_id=self.concepto(obra_id=obra_id),
+            partida_id=self.partida(area_id=self.area(nivel_id=self.nivel(obra_id=obra_id))),
+        )
         tipo_partida_id = self._tipo_partida_nuevo()
         insumo_id = self.insumo_nuevo()
-        copia_id = self.copia_concepto(linea_base_id=linea_base_id, concepto_id=concepto_id)
+        copia_id = self.copia_concepto(
+            linea_base_id=linea_base_id, partida_concepto_id=partida_concepto_id
+        )
         renglon_id = self.renglon_explosion(
             linea_base_id=linea_base_id, tipo_partida_id=tipo_partida_id, insumo_id=insumo_id
         )
@@ -975,8 +1049,84 @@ class DatosPresupuesto:
                 "UPDATE linea_base SET estado = 'SUPERSEDIDA' WHERE id = %s", (linea_base_id,)
             )
         return CopiasDeLineaBase(
-            linea_base_id, obra_id, concepto_id, copia_id, tipo_partida_id, insumo_id, renglon_id
+            linea_base_id,
+            obra_id,
+            partida_concepto_id,
+            copia_id,
+            tipo_partida_id,
+            insumo_id,
+            renglon_id,
         )
+
+    def concepto_anterior_a_0010(
+        self,
+        *,
+        obra_id: uuid.UUID,
+        partida_id: uuid.UUID,
+        codigo: str = "620001",
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
+    ) -> uuid.UUID:
+        """Concepto con el esquema de `0009` (partida y cantidades en la misma fila)."""
+        destino = conexion if conexion is not None else self._conexion
+        return self._insertar_en(
+            destino,
+            "concepto",
+            {
+                "obra_id": obra_id,
+                "partida_id": partida_id,
+                "codigo": codigo,
+                "descripcion": "Muro de tablaroca a dos caras",
+                "unidad": "M2",
+                "cantidad": Decimal("100.0000"),
+                "precio_unitario": Decimal("250.0000"),
+                "importe": Decimal("25000.0000"),
+            },
+        )
+
+    def copia_concepto_anterior_a_0010(
+        self,
+        *,
+        linea_base_id: uuid.UUID,
+        concepto_id: uuid.UUID,
+        codigo: str = "620001",
+        conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
+    ) -> uuid.UUID:
+        """Copia que apunta a `concepto_id`, como en `0009`."""
+        destino = conexion if conexion is not None else self._conexion
+        return self._insertar_en(
+            destino,
+            "linea_base_concepto",
+            {
+                "linea_base_id": linea_base_id,
+                "concepto_id": concepto_id,
+                "codigo": codigo,
+                "cantidad": Decimal("100.0000"),
+                "precio_unitario": Decimal("250.0000"),
+                "importe": Decimal("25000.0000"),
+            },
+        )
+
+    def linea_base_con_copias_anterior_a_0010(
+        self, *, estado: str = "CONGELADA"
+    ) -> CopiasAnterioresA0010:
+        """Línea base sembrada con columnas de `0009`; solo válida con revisión `0009` o anterior."""
+        if estado not in ("BORRADOR", "CONGELADA", "SUPERSEDIDA"):
+            raise ValueError(f"Estado de línea base desconocido: {estado}")
+        obra_id = self._obra_nueva()
+        linea_base_id = self.linea_base(estado="BORRADOR", obra_id=obra_id)
+        partida_id = self.partida(area_id=self.area(nivel_id=self.nivel(obra_id=obra_id)))
+        concepto_id = self.concepto_anterior_a_0010(obra_id=obra_id, partida_id=partida_id)
+        copia_id = self.copia_concepto_anterior_a_0010(
+            linea_base_id=linea_base_id, concepto_id=concepto_id
+        )
+        renglon_id = self.renglon_explosion(linea_base_id=linea_base_id)
+        if estado in ("CONGELADA", "SUPERSEDIDA"):
+            self.congelar(linea_base_id)
+        if estado == "SUPERSEDIDA":
+            self._conexion.execute(
+                "UPDATE linea_base SET estado = 'SUPERSEDIDA' WHERE id = %s", (linea_base_id,)
+            )
+        return CopiasAnterioresA0010(linea_base_id, obra_id, concepto_id, copia_id, renglon_id)
 
     # ------------------------------------------------------------------ TKT-011b · filas B3 y B5
 
@@ -1119,6 +1269,16 @@ def datos_presupuesto(base_de_prueba: str, conectar: Conectar) -> DatosPresupues
     return DatosPresupuesto(conectar("aplicacion", base_de_prueba))
 
 
+@pytest.fixture
+def datos_presupuesto_en(conectar: Conectar) -> Callable[[str], DatosPresupuesto]:
+    """Fábrica de `presupuesto` sobre una base con nombre arbitrario (p. ej. sembrada en `0009`)."""
+
+    def _fabrica(base: str) -> DatosPresupuesto:
+        return DatosPresupuesto(conectar("aplicacion", base))
+
+    return _fabrica
+
+
 # ----------------------------------------------------------------------------- TKT-013
 # Libro sintético con openpyxl en tmp_path; archivos reales por variable de entorno (PA-T3).
 
@@ -1226,15 +1386,9 @@ ESTRUCTURA_ESPERADA: dict[str, dict[str, tuple[Any, ...]]] = {
     },
     "concepto": {
         "p": ("pk_concepto",),
-        "f": ("fk_concepto_obra_id", "fk_concepto_partida_id"),
+        "f": ("fk_concepto_obra_id",),
         "u": ("uq_concepto_obra_id_codigo",),
-        "c": (
-            "ck_concepto_unidad",
-            "ck_concepto_cantidad_no_negativo",
-            "ck_concepto_precio_unitario_no_negativo",
-            "ck_concepto_importe_no_negativo",
-        ),
-        "i": (("ix_concepto_partida_id", "partida_id"),),
+        "c": ("ck_concepto_unidad",),
     },
     "precio_insumo": {
         "p": ("pk_precio_insumo",),

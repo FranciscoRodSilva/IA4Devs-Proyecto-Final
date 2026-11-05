@@ -25,7 +25,7 @@ Lo que gobierna el diseño:
 
 **La escalera de decisión, por objeto.** Antes de proponer cualquier objeto nuevo, recorrer en orden y parar en el primer peldaño que resuelve: YAGNI → nativo de la plataforma → reuso → cambio mínimo → objeto nuevo. El peldaño donde paró se registra: es la justificación del objeto.
 
-> El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 38 invariantes o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe → `/sdd-escalar`.
+> El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 39 invariantes o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe → `/sdd-escalar`.
 
 **Solo las capas en alcance.** Una sección vacía se borra, no se deja con «no aplica».
 

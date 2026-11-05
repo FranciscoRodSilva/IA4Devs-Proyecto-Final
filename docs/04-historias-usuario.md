@@ -502,7 +502,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 ### Contexto técnico
 
 - Módulo `presupuesto`, capas `api` / `aplicacion` / `dominio` / `infraestructura`; el Excel entra por el módulo `archivos` y se consulta por su interfaz publicada
-- Tablas: `obra`, `nivel`, `area`, `partida`, `tipo_partida`, `concepto`, `insumo`, `apu`, `apu_insumo`, `apu_cargo`, `linea_base`, `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`, `importacion`, `importacion_error`, y `archivo` con `referencia_tipo = 'IMPORTACION'` ([modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos))
+- Tablas: `obra`, `nivel`, `area`, `partida`, `tipo_partida`, `concepto`, `partida_concepto`, `insumo`, `apu`, `apu_insumo`, `apu_cargo`, `linea_base`, `linea_base_concepto`, `explosion_presupuesto`, `presupuesto_control`, `importacion`, `importacion_error`, y `archivo` con `referencia_tipo = 'IMPORTACION'` ([modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos))
 - Invariantes 23, 25 y 26 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos) para el adjunto del Excel. Almacén de objetos y URL prefirmadas: [ADR-016](adr/20261001-almacenamiento-de-objetos.md). Ticket de fundación: TKT-059, prerrequisito de TKT-018
 - Invariantes 5, 13 y 14 del [modelo de datos §13](03-modelo-datos.md#13-invariantes-en-base-de-datos)
 - Máquinas de estado de importación y línea base: [§14](03-modelo-datos.md#14-máquinas-de-estado)

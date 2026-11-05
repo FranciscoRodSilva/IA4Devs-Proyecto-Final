@@ -19,7 +19,7 @@ Los escenarios salen de la historia y de los `x-escenarios` de las operaciones d
 
 ## 1 · Nunca SQLite
 
-Los tests levantan **PostgreSQL real** con testcontainers, y **MinIO real** cuando el ticket toca archivos: un doble del almacén no verifica que la URL prefirmada se firme, que caduque ni que el hash coincida. testcontainers necesita **Docker en marcha**; sin el demonio la suite falla, no se salta ([`conv-docker`](../conv-docker/SKILL.md)). SQLite probaría contra garantías distintas de las de producción, y treinta y ocho invariantes del proyecto viven exactamente en esas garantías: disparadores, restricciones de exclusión, `NUMERIC`, tipos con zona horaria, bloqueo `FOR UPDATE`.
+Los tests levantan **PostgreSQL real** con testcontainers, y **MinIO real** cuando el ticket toca archivos: un doble del almacén no verifica que la URL prefirmada se firme, que caduque ni que el hash coincida. testcontainers necesita **Docker en marcha**; sin el demonio la suite falla, no se salta ([`conv-docker`](../conv-docker/SKILL.md)). SQLite probaría contra garantías distintas de las de producción, y treinta y nueve invariantes del proyecto viven exactamente en esas garantías: disparadores, restricciones de exclusión, `NUMERIC`, tipos con zona horaria, bloqueo `FOR UPDATE`.
 
 - El esquema se construye con **`alembic upgrade head`**, nunca con `create_all()`. Probar contra un esquema que no es el que se despliega es probar otro sistema.
 - La conexión usa el **rol de aplicación**. Con el propietario, las pruebas de permisos quedan verdes sin verificar nada.

@@ -34,7 +34,7 @@ Por **cada** objeto que el diseño propone crear o modificar, recorre en orden y
 
 Registras el peldaño y el porqué. Esa fila **es** la justificación del objeto; sin ella, el objeto no entra al diseño.
 
-> **Precedencia dura:** el peldaño 4 nunca autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 38 invariantes o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe: devuelves `REQUIERE DECISIÓN` con la regla citada. **No lo resuelves tú.**
+> **Precedencia dura:** el peldaño 4 nunca autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 39 invariantes o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe: devuelves `REQUIERE DECISIÓN` con la regla citada. **No lo resuelves tú.**
 
 ## Lo que todo design tuyo cumple
 

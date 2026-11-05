@@ -48,7 +48,7 @@ Los tickets citan los endpoints por método y ruta con las convenciones del [bor
 | Fase | Bloque | Tickets | Historia | SP |
 |---|---|---|---|---|
 | 1 | [Épica 0 · Fundación](#épica-0--fundación) | TKT-001 … TKT-010, TKT-059, TKT-062 | — | ~42 |
-| 1 | [HDU-001 · Obra y línea base](#tickets-de-hdu-001--obra-y-línea-base) | TKT-011 … TKT-018 | HDU-001 | 14 |
+| 1 | [HDU-001 · Obra y línea base](#tickets-de-hdu-001--obra-y-línea-base) | TKT-011 … TKT-018, TKT-072 | HDU-001 | 14 |
 | 1 | [HDU-002 · Requisición](#tickets-de-hdu-002--requisición-con-control-de-presupuesto) | TKT-019 … TKT-024 | HDU-002 | 8 |
 | 1 | [HDU-003 · Resolución de requisiciones bloqueadas](#tickets-de-hdu-003--resolución-de-requisiciones-bloqueadas) | TKT-025 … TKT-028 | HDU-003 | 5 |
 | 1 | [HDU-004 · Proveedores y órdenes de compra](#tickets-de-hdu-004--proveedores-y-órdenes-de-compra) | TKT-029 … TKT-032 | HDU-004 | 5 |
@@ -57,13 +57,15 @@ Los tickets citan los endpoints por método y ruta con las convenciones del [bor
 | 1 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057, TKT-058, TKT-061, TKT-070, TKT-071 | — | ~8 |
 | 2 | [Fase 2 · HDU-007 a HDU-009 y captura en campo](#fase-2--mano-de-obra-y-campo) | TKT-042 … TKT-053, TKT-055, TKT-056, TKT-063 … TKT-069 | HDU-005 (3 de 11), HDU-007, HDU-008, HDU-009 | 33 + ~10 |
 
-**71 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
+**72 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
 
 **TKT-057 y TKT-058 salieron de la revisión del stack del 2026-09-19**, que encontró que la especificación no declaraba ningún requisito de seguridad ni de recuperación. Los requisitos están ahora en el [PRD §9](01-descripcion-producto.md#9-requisitos-no-funcionales) y estos dos tickets los implementan.
 
 **TKT-070 salió de la decisión del 2026-11-02 de probar el destino de despliegue en una VPS de bajo costo**, antes de que exista la imagen de TKT-058. No tiene sprint asignado ni suma puntos de historia.
 
 **TKT-071 salió de la revisión de las alertas de Dependabot del 2026-11-03**, que encontró tres alertas de severidad baja o moderada, ninguna explotable en CIMENTA. Corrige la única con camino de actualización limpio y reúne los parches de dependencias pendientes. Tampoco tiene sprint asignado ni suma puntos de historia.
+
+**TKT-072 salió de la decisión de la persona dueña del 2026-11-05 sobre `PA-T1` de TKT-013**: los Excel reales repiten cada código de concepto en muchas áreas, y el invariante 13 impedía confirmar cualquiera de ellos. Separa el concepto de sus apariciones por área antes de TKT-017, que pasa a depender de él. Tampoco tiene sprint asignado ni suma puntos de historia.
 
 **TKT-059 a TKT-068 salieron de la revisión de LIDR del 2026-10-14**, que pidió tres cosas: detallar todos los tickets al nivel de los de HDU-001 y HDU-002, cerrar el bloque que estaba *pendiente de descomponer* y recortar el MVP a un hilo vertical. El bloque pendiente ya no existe: su contenido son ahora TKT-059 —el camino mínimo de `archivos`, en la fase 1— y TKT-063 a TKT-068, en la fase 2. TKT-060 sostiene las fuentes simuladas del semáforo ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)); TKT-061 convierte el borrador de [`docs/api/openapi.yaml`](api/openapi.yaml) en prueba de contrato; TKT-062 pone a la IA a revisar cada PR sin darle la aprobación.
 
@@ -728,11 +730,33 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 ---
 
+### TKT-072 · Concepto único por obra y sus apariciones por área
+
+| | |
+|---|---|
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-011b, TKT-015b · **Sprint** sin asignar |
+
+**Qué hace.** Resuelve `PA-T1` de TKT-013 con la opción que eligió la persona dueña el 2026-11-05: separar el **concepto**, único por obra —código, descripción y unidad—, de sus **apariciones** en cada partida de un área (`partida_concepto`, *concepto de partida*), cada una con su cantidad, su precio unitario y su importe. El precio viaja con la aparición porque en ENITI un mismo código tiene dos precios según el área (decisión del 2026-11-05). En los dos Excel reales cada código se repite en muchas áreas (ENITI: 5,028 conceptos con 36 códigos; Union Square: 4,281 con 31), y el invariante 13 (`UNIQUE (obra_id, codigo)`) sobre el modelo actual, donde cada fila de `concepto` lleva cantidad y partida, impide confirmar cualquiera de ellos.
+
+**Criterios técnicos**
+
+- [ ] El esquema distingue el concepto de la obra de su aparición en una partida de un área; el invariante 13 sigue siendo «un código por obra» y aplica al concepto, y la aparición lleva la cantidad y su importe
+- [ ] El mismo código con la misma descripción en varias áreas produce **un** concepto y tantas apariciones como áreas; el mismo código con descripciones distintas sigue siendo `DUPLICADO` (HDU-001 esc. 9, decisión del 2026-11-03 en TKT-015)
+- [ ] Rechazo: una segunda fila de concepto con el mismo código en la misma obra la rechaza el motor con `23505`, y una aparición sin concepto o sin partida la rechaza la clave foránea
+- [ ] La migración es reversible y se prueba en los dos sentidos contra PostgreSQL real, con el rol de migración; el rol de aplicación conserva exactamente los permisos que hoy tiene sobre `concepto`, y los mismos sobre la tabla nueva
+- [ ] `linea_base_concepto` apunta a la aparición, sin perder el detalle por área que el avance necesita en la fase 2; `apu` sigue colgando del concepto, y la preparación de TKT-015 (`importacion.preparacion`), que ya guarda una entrada por fila, no cambia de formato
+- [ ] [`docs/03-modelo-datos.md`](03-modelo-datos.md) —diagrama, invariante 13 y la decisión «el código de concepto no es global»— y un ADR recogen el cambio y su porqué
+- [ ] Las suites de TKT-010, TKT-011 y TKT-013 a TKT-016 siguen en verde, ajustadas solo donde el modelo nuevo lo exige
+
+**Non-goals** — No materializa ni congela nada: eso es TKT-017. No asigna tipos de partida ni construye pantallas. No crea un catálogo maestro de conceptos entre obras.
+
+---
+
 ### TKT-017 · Confirmación y congelado de la línea base
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-015b, TKT-016, TKT-007 |
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-015b, TKT-016, TKT-007, TKT-072 |
 
 **Criterios técnicos**
 
@@ -745,8 +769,9 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Intentar modificar una línea base congelada falla a nivel de motor
 - [ ] Las copias de `linea_base_concepto` y `explosion_presupuesto` solo se escriben en la transacción del congelado: el rol de aplicación no tiene `DELETE` sobre `linea_base_concepto`, así que una copia escrita en un `BORRADOR` no se puede retirar después
 - [ ] La `CONGELADA` anterior pasa a `SUPERSEDIDA` antes de congelar la nueva, en la misma transacción; si no, el índice único parcial responde `23505`. `BORRADOR` a `SUPERSEDIDA` lo rechaza el disparador
-- [ ] El caso de uso traduce los `SQLSTATE` del motor al contrato de error, sin que ninguno llegue como `500`: `IN001` a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)`; `23505` (una segunda línea base vigente); `23503` (una copia que apunta a una línea base o a un concepto inexistente); `23001` (borrar un padre con hijos, porque la clave foránea es `ON DELETE RESTRICT`). El detalle está en [ADR-031](adr/20261101-inmutabilidad-de-la-linea-base-en-el-motor.md)
-- [ ] **Pregunta abierta (`PA-T17` de TKT-011):** ¿con qué valor nace `importe_venta` en un `BORRADOR`? La columna es `NOT NULL` en `linea_base` y un borrador todavía no tiene importe de venta. Hasta que la persona dueña responda, el caso de uso no inventa un valor
+- [ ] El caso de uso traduce los `SQLSTATE` del motor al contrato de error, sin que ninguno llegue como `500`: `IN001` a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)`; `23505` (una segunda línea base vigente); `23503` (una copia que apunta a una línea base o a un concepto de partida inexistente); `23001` (borrar un padre con hijos, porque la clave foránea es `ON DELETE RESTRICT`). El detalle está en [ADR-031](adr/20261101-inmutabilidad-de-la-linea-base-en-el-motor.md)
+- [ ] `linea_base.importe_venta` nace calculado al crear el `BORRADOR`, como la suma de los importes de los conceptos de partida que se materializan (`PA-T17` de TKT-011, resuelta por la persona dueña el 2026-11-05). De qué precio unitario sale lo fija la spec
+- [ ] El tipo de partida de cada partida lo asigna el Director de Proyectos en la previsualización (`PA-T8` de TKT-013, resuelta por la persona dueña el 2026-11-05); la materialización lo recibe como entrada, lo escribe en `partida.tipo_partida_id` y lo pasa a la explosión de TKT-016. Una partida sin tipo asignado impide confirmar
 - [ ] **Captura del presupuesto de control** por tipo de partida (**PA-03**), con el importe sugerido visible pero no impuesto
 - [ ] Un importe tope superior al de venta exige confirmación con motivo: sin ella responde `409` `CONFLICTO` `TOPE_SUPERIOR_A_VENTA_SIN_CONFIRMAR`; con ella, se guarda y el motivo queda en la bitácora
 - [ ] El rechazo de una requisición contra una obra sin presupuesto de control capturado **no es de este ticket**: es `CONFLICTO` `SIN_PRESUPUESTO_CONTROL` y lo implementa TKT-021
@@ -779,6 +804,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Tests `test_hdu001_esc21_…`, `test_hdu001_esc24_…`, `test_hdu001_esc25_…` y `test_hdu001_esc26_…` en verde: los dos de rechazo prueban que **no se escribe ninguna fila** en la zona de preparación ni en el modelo real
 - [ ] Carga del archivo e indicador de progreso del análisis, alimentado por `importacion.progreso`, que no bloquea la pantalla
 - [ ] Pantalla de previsualización con jerarquía leída, conteos, importe total e insumos creados durante la importación
+- [ ] En la previsualización, el Director de Proyectos asigna a cada nombre de partida leído uno de los tipos de partida de la obra (`PA-T8` de TKT-013, decisión del 2026-11-05); el botón de confirmar sigue deshabilitado mientras quede alguna partida sin tipo
 - [ ] Tabla de errores navegable por hoja y fila, exportable
 - [ ] Botón de confirmar deshabilitado mientras la importación esté en `CON_ERRORES`
 - [ ] Acción de congelar con captura obligatoria del motivo
@@ -1774,7 +1800,7 @@ Los escenarios 1 a 17 se cubren en TKT-046, TKT-047, TKT-048 y TKT-053. Los esce
 
 *Alcance*
 
-- [ ] `POST /api/v1/obras/{obra_id}/alcances-destajo/precarga` con un tipo de partida: crea una fila por área y etapa con los m² de contrato, sumando los conceptos en `M2` de las partidas de ese tipo en esa área. Lee la línea base por la interfaz publicada de `presupuesto`, nunca sus tablas — esc. 15
+- [ ] `POST /api/v1/obras/{obra_id}/alcances-destajo/precarga` con un tipo de partida: crea una fila por área y etapa con los m² de contrato, sumando los conceptos de partida en `M2` de las partidas de ese tipo en esa área. Lee la línea base por la interfaz publicada de `presupuesto`, nunca sus tablas — esc. 15
 - [ ] Sin línea base congelada responde `409` `CONFLICTO` `SIN_LINEA_BASE_CONGELADA` con la acción de ir a congelarla
 - [ ] La respuesta informa cuántos conceptos quedaron fuera por venir en `ML` o `PZA` — esc. 15
 - [ ] Un test verifica que una partida con tres etapas aporta el triple de sus m² de catálogo (DoD de HDU-008)

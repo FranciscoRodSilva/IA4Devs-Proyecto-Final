@@ -9,9 +9,9 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 1. [`docs/glosario.md`](docs/glosario.md) — *concepto*, *partida*, *APU*, *rendimiento*, *destajo*, *explosión de insumos*
 2. [`docs/01-descripcion-producto.md`](docs/01-descripcion-producto.md) — 25 reglas `RN-01`…`RN-25` y 19 requisitos no funcionales `RNF-01`…`RNF-19`
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
-4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
+4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 39 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 38 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 39 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
@@ -137,7 +137,7 @@ python -m unittest discover -s tools/tests -v   # pruebas de tools/
 
 ## Qué no hacer
 
-- **No uses SQLite en tests.** Probaría contra garantías distintas de las de producción, y 38 invariantes viven en esas garantías. Los tests construyen el esquema con `alembic upgrade head`, nunca con `create_all()`, y **se conectan con el rol de aplicación**: con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
+- **No uses SQLite en tests.** Probaría contra garantías distintas de las de producción, y 39 invariantes viven en esas garantías. Los tests construyen el esquema con `alembic upgrade head`, nunca con `create_all()`, y **se conectan con el rol de aplicación**: con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
 - **No escribas un esquema Zod que espeje un modelo de Pydantic.** Los tipos del cliente se generan del OpenAPI. Zod valida formularios, no respuestas.
 - **No uses `passlib`.** Es `pwdlib[argon2]`.
 - **No pongas reglas de negocio en controladores ni en modelos del ORM.** Van en `dominio/`.

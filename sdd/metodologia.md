@@ -91,7 +91,7 @@ Antes de proponer cualquier objeto nuevo en `design.md`, se recorre en orden y *
 
 El peldaño donde paró y por qué se registra en `design.md`.
 
-> **Precedencia dura.** El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 38 invariantes del modelo de datos o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe y se **escala**.
+> **Precedencia dura.** El peldaño 4 **nunca** autoriza tocar un invariante registrado. Si el cambio mínimo choca con uno de los 39 invariantes del modelo de datos o con una de las 17 reglas de `CLAUDE.md`, la escalera se rompe y se **escala**.
 
 ---
 

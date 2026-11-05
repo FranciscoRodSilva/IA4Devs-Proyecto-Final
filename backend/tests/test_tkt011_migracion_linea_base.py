@@ -47,6 +47,9 @@ BACKEND = Path(__file__).resolve().parents[1]
 
 REVISION_ANTERIOR = "0006"
 REVISION_NUEVA = "0007"
+# La bajada de `0007` se prueba desde `0009`: desde la cabeza, la guarda de `0010` (TKT-072, `P-6`)
+# intercepta antes con filas escritas y estas pruebas dejarían de probar la guarda de `0007`.
+REVISION_PREVIA_A_0010 = "0009"
 
 # Las siete tablas que entrega TKT-011b, en el orden del diseño.
 TABLAS: tuple[str, ...] = (
@@ -106,7 +109,10 @@ ESTRUCTURA_ESPERADA: dict[str, dict[str, tuple[Any, ...]]] = {
     },
     "linea_base_concepto": {
         "p": ("pk_linea_base_concepto",),
-        "f": ("fk_linea_base_concepto_linea_base_id", "fk_linea_base_concepto_concepto_id"),
+        "f": (
+            "fk_linea_base_concepto_linea_base_id",
+            "fk_linea_base_concepto_partida_concepto_id",
+        ),
         "c": (
             "ck_linea_base_concepto_cantidad_no_negativo",
             "ck_linea_base_concepto_precio_unitario_no_negativo",
@@ -410,38 +416,39 @@ def test_tkt011_ca18_0007_sube_baja_y_vuelve_a_subir(
 @pytest.mark.parametrize("estado", ["CONGELADA", "SUPERSEDIDA"])
 def test_tkt011_ca19_no_se_baja_con_una_linea_base_congelada(
     estado: str,
-    base_de_prueba: str,
+    base_vacia: str,
     migrar: Migrar,
     conectar: Conectar,
-    datos_presupuesto: DatosPresupuesto,
+    datos_presupuesto_en: Callable[[str], DatosPresupuesto],
 ) -> None:
     """TC-48 · CA-19 esc. 1 · RN-01, invariante 14 — `downgrade 0006` se niega y no borra nada.
 
     Con una línea base `CONGELADA` o `SUPERSEDIDA` (una `SUPERSEDIDA` es un presupuesto firmado que
-    ya estuvo vigente) y sus copias (una de concepto y un renglón de explosión), la bajada lanza un
-    error cuyo texto nombra «línea base CONGELADA o SUPERSEDIDA» y `RN-01`, y cuyo `sqlstate` de
-    origen es `IN001`. Como `env.py` ejecuta la cadena en una transacción (E-12), la versión sigue en
-    la cabeza que dice `ScriptDirectory`, las siete tablas y las dos funciones existen y las filas son
-    exactamente las mismas, texto a texto.
+    ya estuvo vigente) y sus copias (una de concepto y un renglón de explosión), sembradas con el
+    esquema de `0009` (`P-6` de TKT-072), la bajada lanza un error cuyo texto nombra «línea base
+    CONGELADA o SUPERSEDIDA» y `RN-01`, y cuyo `sqlstate` de origen es `IN001`. Como `env.py`
+    ejecuta la cadena en una transacción (E-12), la versión sigue en `0009`, las siete tablas y las
+    dos funciones existen y las filas son exactamente las mismas, texto a texto.
     """
-    copias = datos_presupuesto.linea_base_con_copias(estado=estado)
-    with conectar("migracion", base_de_prueba) as administrador:
+    migrar(base_vacia, REVISION_PREVIA_A_0010)
+    copias = datos_presupuesto_en(base_vacia).linea_base_con_copias_anterior_a_0010(estado=estado)
+    with conectar("migracion", base_vacia) as administrador:
         estados = administrador.execute("SELECT id, estado FROM linea_base").fetchall()
         antes = filas_de_las_copias(administrador)
         entes_antes = disparadores_y_funciones(administrador)
         version_antes = version_de_alembic(administrador)
     assert estados == [(copias.linea_base_id, estado)], f"La precondición es una {estado}"
     assert len(antes["linea_base_concepto"]) == 1 and len(antes["explosion_presupuesto"]) == 1
-    assert version_antes == [(cabeza_de_las_migraciones(),)]
+    assert version_antes == [(REVISION_PREVIA_A_0010,)]
 
     with pytest.raises(DBAPIError) as rechazo:
-        migrar(base_de_prueba, REVISION_ANTERIOR, "downgrade")
+        migrar(base_vacia, REVISION_ANTERIOR, "downgrade")
 
     texto = str(rechazo.value)
     assert "línea base CONGELADA o SUPERSEDIDA" in texto, texto
     assert "RN-01" in texto, texto
     assert sqlstate_de(rechazo.value) == "IN001", texto
-    with conectar("migracion", base_de_prueba) as administrador:
+    with conectar("migracion", base_vacia) as administrador:
         version = version_de_alembic(administrador)
         tablas = administrador.execute(
             "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
@@ -450,7 +457,7 @@ def test_tkt011_ca19_no_se_baja_con_una_linea_base_congelada(
         ).fetchall()
         despues = filas_de_las_copias(administrador)
         entes_despues = disparadores_y_funciones(administrador)
-    assert version == [(cabeza_de_las_migraciones(),)]
+    assert version == [(REVISION_PREVIA_A_0010,)]
     assert [str(t[0]) for t in tablas] == sorted(TABLAS)
     assert despues == antes
     assert entes_despues == entes_antes
@@ -459,21 +466,24 @@ def test_tkt011_ca19_no_se_baja_con_una_linea_base_congelada(
 
 
 def test_tkt011_ca19_solo_con_borradores_la_bajada_elimina_las_tablas(
-    base_de_prueba: str,
+    base_vacia: str,
     migrar: Migrar,
     conectar: Conectar,
-    datos_presupuesto: DatosPresupuesto,
+    datos_presupuesto_en: Callable[[str], DatosPresupuesto],
 ) -> None:
     """TC-49 · CA-19 esc. 2 — solo con borradores, la bajada elimina las siete tablas y sus funciones.
 
     Con solo líneas base `BORRADOR` (una con sus copias y otra sin ellas), `downgrade 0006` termina:
     ninguna de las siete tablas, ni de las dos funciones, ni de los disparadores existe, la versión
     es `0006` y los datos de las tablas de `0006` (las obras de las dos líneas base) siguen ahí, sin
-    cambios. Un borrador no es un presupuesto firmado, así que la guarda no lo protege.
+    cambios. Un borrador no es un presupuesto firmado, así que la guarda no lo protege. Se siembra
+    con el esquema de `0009` (`P-6` de TKT-072).
     """
-    datos_presupuesto.linea_base_con_copias(estado="BORRADOR")
+    migrar(base_vacia, REVISION_PREVIA_A_0010)
+    datos_presupuesto = datos_presupuesto_en(base_vacia)
+    datos_presupuesto.linea_base_con_copias_anterior_a_0010(estado="BORRADOR")
     datos_presupuesto.linea_base()
-    with conectar("migracion", base_de_prueba) as administrador:
+    with conectar("migracion", base_vacia) as administrador:
         estados = administrador.execute("SELECT estado FROM linea_base ORDER BY id").fetchall()
         obras_antes = administrador.execute("SELECT id FROM obra ORDER BY id").fetchall()
         copias_antes = administrador.execute(
@@ -484,9 +494,9 @@ def test_tkt011_ca19_solo_con_borradores_la_bajada_elimina_las_tablas(
     assert len(obras_antes) == 2
     assert copias_antes == (1, 1), "La precondición es una línea base con copias y otra sin ellas"
 
-    migrar(base_de_prueba, REVISION_ANTERIOR, "downgrade")
+    migrar(base_vacia, REVISION_ANTERIOR, "downgrade")
 
-    with conectar("migracion", base_de_prueba) as administrador:
+    with conectar("migracion", base_vacia) as administrador:
         version = version_de_alembic(administrador)
         restantes = fotografia(administrador)
         obras_despues = administrador.execute("SELECT id FROM obra ORDER BY id").fetchall()
@@ -498,10 +508,10 @@ def test_tkt011_ca19_solo_con_borradores_la_bajada_elimina_las_tablas(
 
 
 def test_tkt011_ca19_la_guarda_toma_el_bloqueo_antes_de_comprobar(
-    base_de_prueba: str,
+    base_vacia: str,
     migrar: Migrar,
     conectar: Conectar,
-    datos_presupuesto: DatosPresupuesto,
+    datos_presupuesto_en: Callable[[str], DatosPresupuesto],
 ) -> None:
     """CA-19 esc. 3 · RN-01, invariante 14 — la guarda toma el bloqueo antes de comprobar.
 
@@ -509,15 +519,17 @@ def test_tkt011_ca19_la_guarda_toma_el_bloqueo_antes_de_comprobar(
     en un hilo, corre `downgrade 0006` con el rol de migración. El hilo debe quedar esperando a A
     (visto en `pg_stat_activity` y `pg_blocking_pids`, con un sondeo de tiempo máximo, sin una espera
     fija). Cuando A confirma, la bajada debe terminar con `IN001`: la guarda ve la `CONGELADA` ya
-    confirmada. La versión sigue en la cabeza, las siete tablas existen, la línea base sigue
-    `CONGELADA` y las copias son las mismas.
+    confirmada. La versión sigue en `0009`, las siete tablas existen, la línea base sigue
+    `CONGELADA` y las copias son las mismas. La base se siembra en `0009` (`P-6` de TKT-072).
 
     Sin el `LOCK TABLE linea_base IN ACCESS EXCLUSIVE MODE` de la guarda, esta comprobación usa su
     instantánea anterior (ve un `BORRADOR`), el `DROP TABLE` espera a A y, al confirmar esta, borra
     una `CONGELADA` recién congelada: la bajada termina sin error.
     """
-    copias = datos_presupuesto.linea_base_con_copias(estado="BORRADOR")
-    observador = conectar("migracion", base_de_prueba)
+    migrar(base_vacia, REVISION_PREVIA_A_0010)
+    datos_presupuesto = datos_presupuesto_en(base_vacia)
+    copias = datos_presupuesto.linea_base_con_copias_anterior_a_0010(estado="BORRADOR")
+    observador = conectar("migracion", base_vacia)
     copias_antes = {
         tabla: filas
         for tabla, filas in filas_de_las_copias(observador).items()
@@ -526,7 +538,7 @@ def test_tkt011_ca19_la_guarda_toma_el_bloqueo_antes_de_comprobar(
     assert len(copias_antes["linea_base_concepto"]) == 1
     assert len(copias_antes["explosion_presupuesto"]) == 1
 
-    sesion_a = conectar("aplicacion", base_de_prueba, autocommit=False)
+    sesion_a = conectar("aplicacion", base_vacia, autocommit=False)
     datos_presupuesto.congelar(copias.linea_base_id, conexion=sesion_a)
     pid_de_a = sesion_a.info.backend_pid
 
@@ -539,7 +551,7 @@ def test_tkt011_ca19_la_guarda_toma_el_bloqueo_antes_de_comprobar(
         return fila is not None and fila[0] > 0
 
     with ThreadPoolExecutor(max_workers=1) as hilos:
-        bajada = hilos.submit(migrar, base_de_prueba, REVISION_ANTERIOR, "downgrade")
+        bajada = hilos.submit(migrar, base_vacia, REVISION_ANTERIOR, "downgrade")
         try:
             esperar_hasta(lambda: bajada.done() or bajada_esperando_a())
             esperaba_a = not bajada.done() and bajada_esperando_a()
@@ -566,7 +578,7 @@ def test_tkt011_ca19_la_guarda_toma_el_bloqueo_antes_de_comprobar(
         if tabla != "linea_base"
     }
     entes = disparadores_y_funciones(observador)
-    assert version == [(cabeza_de_las_migraciones(),)]
+    assert version == [(REVISION_PREVIA_A_0010,)]
     assert [str(t[0]) for t in tablas] == sorted(TABLAS)
     assert estados == [(copias.linea_base_id, "CONGELADA")]
     assert copias_despues == copias_antes
@@ -697,7 +709,8 @@ def test_tkt011_car5_claves_foraneas_de_las_siete_tablas_solo_al_modulo_o_a_usua
     assert destinos & set(TABLAS), "Alguna clave foránea debe apuntar a las siete tablas"
     assert destinos & set(TABLAS_DE_0006), "Alguna clave foránea debe apuntar a las doce de 0006"
     assert "usuario" in destinos, "Alguna clave foránea debe apuntar a `usuario`"
-    permitidos = set(TABLAS) | set(TABLAS_DE_0006) | {"usuario"}
+    # `partida_concepto` es de `0010` (TKT-072): la copia apunta a la aparición, no al concepto.
+    permitidos = set(TABLAS) | set(TABLAS_DE_0006) | {"partida_concepto", "usuario"}
     ajenos = sorted((str(h), str(n), str(p)) for h, n, p in filas if str(p) not in permitidos)
     assert ajenos == [], ajenos
 

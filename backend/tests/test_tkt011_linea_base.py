@@ -92,7 +92,7 @@ TABLAS_DE_NULABILIDAD: dict[str, tuple[FilaDeTabla, ...]] = {
     "linea_base_concepto": (
         ("id", "uuid", "no", None),
         ("linea_base_id", "uuid", "no", None),
-        ("concepto_id", "uuid", "no", None),
+        ("partida_concepto_id", "uuid", "no", None),
         ("codigo", "text", "no", None),
         ("cantidad", "numeric(14,4)", "no", None),
         ("precio_unitario", "numeric(14,4)", "no", None),
@@ -249,19 +249,19 @@ def fotografia(conexion: Conexion, tabla: str) -> list[tuple[Any, ...]]:
 def insertar_copia(
     conexion: Conexion,
     linea_base_id: uuid.UUID,
-    concepto_id: uuid.UUID,
+    partida_concepto_id: uuid.UUID,
     *,
     codigo: str = "620002",
 ) -> uuid.UUID:
     """Inserta una copia de concepto con la conexión que se pase (no con la fábrica)."""
     identificador = uuid.uuid4()
     conexion.execute(
-        "INSERT INTO linea_base_concepto (id, linea_base_id, concepto_id, codigo, cantidad, "
-        "precio_unitario, importe) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        "INSERT INTO linea_base_concepto (id, linea_base_id, partida_concepto_id, codigo, "
+        "cantidad, precio_unitario, importe) VALUES (%s, %s, %s, %s, %s, %s, %s)",
         (
             identificador,
             linea_base_id,
-            concepto_id,
+            partida_concepto_id,
             codigo,
             Decimal("10.0000"),
             Decimal("20.0000"),
@@ -1086,7 +1086,7 @@ Sentencia = Callable[[Conexion, "DatosPresupuesto", "CopiasDeLineaBase"], None]
 def _insert_en_linea_base_concepto(
     conexion: Conexion, datos: DatosPresupuesto, copias: CopiasDeLineaBase
 ) -> None:
-    insertar_copia(conexion, copias.linea_base_id, copias.concepto_id, codigo="620099")
+    insertar_copia(conexion, copias.linea_base_id, copias.partida_concepto_id, codigo="620099")
 
 
 def _insert_en_explosion_presupuesto(
@@ -1277,7 +1277,7 @@ def test_tkt011_ca15_borrador_se_prepara_sin_el_disparador(
 
     with conectar("migracion", base_de_prueba) as migracion:
         if tabla == "linea_base_concepto":
-            nueva = insertar_copia(migracion, copias.linea_base_id, copias.concepto_id)
+            nueva = insertar_copia(migracion, copias.linea_base_id, copias.partida_concepto_id)
         else:
             insumo = datos_presupuesto.insumo_nuevo()
             nueva = insertar_renglon(
@@ -1319,7 +1319,9 @@ def test_tkt011_ca15_el_congelado_ocurre_en_una_transaccion(
     """
     obra = datos_presupuesto.obra(codigo="AP-058-25")
     linea_base = datos_presupuesto.linea_base(estado="BORRADOR", obra_id=obra)
-    concepto = datos_presupuesto.concepto(obra_id=obra)
+    concepto = datos_presupuesto.partida_concepto(
+        concepto_id=datos_presupuesto.concepto(obra_id=obra)
+    )
     muros = datos_presupuesto.tipo_partida(clave="MUROS")
     placa = datos_presupuesto.insumo(codigo="INS-PLACA")
     perfil = datos_presupuesto.insumo(codigo="INS-PERFIL")
@@ -1375,13 +1377,13 @@ def test_tkt011_ca15_una_copia_concurrente_no_entra_tras_el_congelado(
     b.execute("SET lock_timeout = '200ms'")
 
     with pytest.raises(psycopg.errors.LockNotAvailable) as espera:
-        insertar_copia(b, linea_base, copias.concepto_id, codigo="620077")
+        insertar_copia(b, linea_base, copias.partida_concepto_id, codigo="620077")
     assert espera.value.sqlstate == "55P03"
 
     a.commit()
 
     with pytest.raises(psycopg.Error) as rechazo:
-        insertar_copia(b, linea_base, copias.concepto_id, codigo="620077")
+        insertar_copia(b, linea_base, copias.partida_concepto_id, codigo="620077")
     afirmar_rechazo_del_disparador(
         rechazo.value, DISPARADOR_DE_COPIAS["linea_base_concepto"], "linea_base_concepto"
     )
@@ -1459,7 +1461,9 @@ def test_tkt011_ca15_e13_congelar_una_obra_real_cabe_en_el_tiempo_del_rol(
     """
     obra = datos_presupuesto.obra(codigo="AP-058-25")
     linea_base = datos_presupuesto.linea_base(estado="BORRADOR", obra_id=obra)
-    concepto = datos_presupuesto.concepto(obra_id=obra)
+    concepto = datos_presupuesto.partida_concepto(
+        concepto_id=datos_presupuesto.concepto(obra_id=obra)
+    )
     muros = datos_presupuesto.tipo_partida(clave="MUROS")
     with conectar("aplicacion", base_de_prueba) as preparacion:
         preparacion.execute(
@@ -1478,8 +1482,8 @@ def test_tkt011_ca15_e13_congelar_una_obra_real_cabe_en_el_tiempo_del_rol(
     try:
         paso = time.perf_counter()
         transaccion.execute(
-            "INSERT INTO linea_base_concepto (id, linea_base_id, concepto_id, codigo, cantidad, "
-            "precio_unitario, importe) SELECT gen_random_uuid(), %s, %s, 'C-' || g, 1.0000, "
+            "INSERT INTO linea_base_concepto (id, linea_base_id, partida_concepto_id, "
+            "codigo, cantidad, precio_unitario, importe) SELECT gen_random_uuid(), %s, %s, 'C-' || g, 1.0000, "
             "10.0000, 10.0000 FROM generate_series(1, %s) AS g",
             (linea_base, concepto, COPIAS_DE_UNA_OBRA_REAL),
         )

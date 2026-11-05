@@ -557,7 +557,7 @@ La comprobación de que el stack sirve a la arquitectura y no al revés.
 | Contrato de error sin excepción de regla en `dominio/` ([ADR-022](adr/20261020-contrato-de-error-y-raiz-de-composicion.md)) | Excepción única lanzada por el caso de uso · manejadores de FastAPI · *middleware* ASGI puro en `backend/servidor/` | ✅ prueba de pureza de `contrato_error` y lista blanca de `import-linter` |
 | Libro mayor de inventario ([ADR-005](adr/20260918-ledger-inventario.md)) | Sin columna de existencia en el esquema | ✅ el esquema no la tiene |
 | Línea base inmutable ([ADR-006](adr/20260918-snapshot-linea-base.md)) | Disparador en migración de Alembic | ✅ test que intenta el `UPDATE` y espera el fallo |
-| 38 invariantes en base de datos | Restricciones y permisos declarados en migraciones | ✅ tests contra PostgreSQL real, con el rol de aplicación |
+| 39 invariantes en base de datos | Restricciones y permisos declarados en migraciones | ✅ tests contra PostgreSQL real, con el rol de aplicación |
 | Importación tolerante a archivos rotos | openpyxl con `data_only=True` | ✅ test contra el archivo real con `#REF!` |
 | Un despliegue ([ADR-008](adr/20260918-despliegue-single-tenant.md)) | Una imagen con backend y estáticos | — |
 | Todo escenario tiene test | Convención de nombres + verificador propio | ✅ falla el pipeline |

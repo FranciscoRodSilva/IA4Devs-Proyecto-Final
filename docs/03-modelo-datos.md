@@ -67,7 +67,7 @@ Cinco decisiones que atraviesan todo el esquema:
 ```mermaid
 graph TB
     subgraph NUC["presupuesto · núcleo"]
-        OBRA["obra › nivel › area › partida › concepto"]
+        OBRA["obra › nivel › area › partida › concepto de partida"]
         APU["apu › apu_insumo › apu_cargo"]
         LB["linea_base › explosion_presupuesto<br/>presupuesto_control"]
     end
@@ -112,7 +112,9 @@ erDiagram
     NIVEL ||--o{ AREA : "contiene"
     AREA ||--o{ PARTIDA : "agrupa trabajo en"
     TIPO_PARTIDA ||--o{ PARTIDA : "clasifica"
-    PARTIDA ||--o{ CONCEPTO : "contiene"
+    OBRA ||--o{ CONCEPTO : "cataloga"
+    CONCEPTO ||--o{ PARTIDA_CONCEPTO : "aparece como"
+    PARTIDA ||--o{ PARTIDA_CONCEPTO : "contiene"
     CONCEPTO ||--|| APU : "se costea con · un APU por concepto, sostenido por el caso de uso"
     APU ||--o{ APU_INSUMO : "desglosa"
     APU ||--o{ APU_CARGO : "aplica"
@@ -168,14 +170,18 @@ erDiagram
     }
     CONCEPTO {
         uuid id PK
-        uuid obra_id FK "denormalizado"
-        uuid partida_id FK
-        string codigo "620001 · único por obra"
+        uuid obra_id FK
+        string codigo "620001 · único por obra · invariante 13"
         text descripcion
         string unidad "M2|ML|PZA|KG|CAJA|SACO|ROLLO|JORNAL · CHECK contra el catálogo"
+    }
+    PARTIDA_CONCEPTO {
+        uuid id PK
+        uuid concepto_id FK
+        uuid partida_id FK "UNIQUE con concepto_id · invariante número 39"
         numeric cantidad
-        numeric precio_unitario
-        numeric importe "cantidad × P.U."
+        numeric precio_unitario "por área: 620040-A vale 414.93 y 428.19 en ENITI"
+        numeric importe "cantidad × P.U.; el motor no lo verifica"
     }
     INSUMO {
         uuid id PK
@@ -226,11 +232,11 @@ erDiagram
 
 **Tres decisiones que conviene explicar.**
 
-*El código de concepto no es global.* `620001` describe un muro estándar en las dos obras analizadas, pero **con textos y precios distintos**. Modelarlo como catálogo maestro obligaría a reconciliar descripciones que el cliente no reconcilia. El código es único **por obra**, y el cliente confirmó que hoy *"no hay un catálogo base"*. Si algún día lo hay, se añade un catálogo maestro y una referencia opcional, sin tocar lo existente.
+*El código de concepto no es global.* `620001` describe un muro estándar en las dos obras analizadas, pero **con textos y precios distintos**. Modelarlo como catálogo maestro obligaría a reconciliar descripciones que el cliente no reconcilia. El código es único **por obra**, y el cliente confirmó que hoy *"no hay un catálogo base"*. Si algún día lo hay, se añade un catálogo maestro y una referencia opcional, sin tocar lo existente. Dentro de la obra, el código identifica el **concepto**; cada aparición en la partida de un área es un **concepto de partida** con su cantidad, su precio unitario y su importe. ENITI tiene 5,028 filas con 36 códigos distintos; Union Square, 4,281 con 31 — ninguno confirmable en CI, pero medidos al definir TKT-072. La separación está razonada en [ADR de concepto único y concepto de partida](adr/20261105-concepto-unico-y-concepto-de-partida.md).
 
 *El insumo sí es global.* Un tablero de yeso Ultra Light es el mismo material en todas las obras; lo que cambia es su precio. Por eso el precio vive en `precio_insumo` con vigencia, no como columna del insumo. Esa tabla es la que hace posible F7.4: detectar que un insumo clave subió y recalcular el costo proyectado.
 
-*`concepto.obra_id` está denormalizado.* Es derivable subiendo cuatro niveles, pero aparece en casi toda consulta de costo. La base no verifica que coincida con el `obra_id` alcanzable por la jerarquía: esa coherencia la sostiene hoy el caso de uso que escribe el concepto. Una restricción que la garantice en el motor queda como ticket futuro sugerido, junto con la unicidad 1:1 del APU y la versión de la línea base (`PA-T3` de TKT-011).
+*`concepto.obra_id` es la obra del concepto.* Ya no es una copia denormalizada de la jerarquía: el concepto pertenece a la obra y el código es único en ella (invariante 13). Lo que el motor **no** cruza es que la partida de cada concepto de partida pertenezca a esa misma obra: esa coherencia la sostiene el caso de uso de TKT-017. Una restricción que la garantice en el motor queda como ticket futuro sugerido, junto con la unicidad 1:1 del APU (`PA-T3` de TKT-011).
 
 *`empresa` existe con una sola fila y nadie filtra por ella.* Es deliberado y lo razona [ADR-008](adr/20260918-despliegue-single-tenant.md): cada despliegue atiende a una empresa, pero `obra.empresa_id` está desde el día uno porque añadir la columna después obligaría a migrar cada tabla, cada consulta y cada índice. La fila única la fija la migración `0008` (TKT-010a), antes de que exista ninguna obra: con la clave foránea obligatoria, dar de alta una obra sin empresa sembrada falla. La columna `empresa.dias_semana_laboral` (`SMALLINT NOT NULL DEFAULT 6`) la crea TKT-011a y no la altera ningún otro módulo: TKT-049 solo la consume (`PA-T2`).
 
@@ -242,6 +248,7 @@ erDiagram
 erDiagram
     OBRA ||--o{ LINEA_BASE : "tiene versiones de"
     LINEA_BASE ||--o{ LINEA_BASE_CONCEPTO : "congela"
+    PARTIDA_CONCEPTO ||--o{ LINEA_BASE_CONCEPTO : "se copia en"
     LINEA_BASE ||--o{ EXPLOSION_PRESUPUESTO : "congela"
     LINEA_BASE ||--o{ PRESUPUESTO_CONTROL : "acota"
     TIPO_PARTIDA ||--o{ EXPLOSION_PRESUPUESTO : "agrupa"
@@ -263,7 +270,7 @@ erDiagram
     LINEA_BASE_CONCEPTO {
         uuid id PK
         uuid linea_base_id FK
-        uuid concepto_id FK
+        uuid partida_concepto_id FK "la aparición: alcanza partida, área y nivel"
         string codigo "copiado"
         numeric cantidad "copiado"
         numeric precio_unitario "copiado"
@@ -300,7 +307,7 @@ erDiagram
 | Control | Tabla | Origen del dato |
 |---|---|---|
 | **Por importe** | `presupuesto_control.importe_tope` | **Capturado** por Dirección (PA-03). El sistema calcula un `importe_sugerido` como `Σ cantidad × (P.U. del análisis − Σ UTILIDAD − Σ INDIRECTOS)`, sin restar IVA; es solo una sugerencia en pantalla |
-| **Por volumen** | `explosion_presupuesto.cantidad_presupuestada` | **Derivado**: `Σ cantidad_concepto × rendimiento` de todos los conceptos del tipo de partida. El `rendimiento_congelado` y el `costo_unitario` congelados son promedios ponderados por cantidad de concepto (TKT-016, [explosión por tipo de partida](adr/20261103-explosion-por-tipo-de-partida.md)) |
+| **Por volumen** | `explosion_presupuesto.cantidad_presupuestada` | **Derivado**: `Σ cantidad × rendimiento` de todos los conceptos de partida del tipo. El `rendimiento_congelado` y el `costo_unitario` congelados son promedios ponderados por la cantidad de cada concepto de partida (TKT-016, [explosión por tipo de partida](adr/20261103-explosion-por-tipo-de-partida.md)) |
 
 Antes eran una sola tabla porque se asumía que el control se derivaba del precio de venta. Al confirmarse que se captura, separarlos es obligado: un importe capturado por una persona y una cantidad derivada de un cálculo no pueden compartir fila sin que quede ambiguo cuál es la fuente de verdad de cada uno.
 
@@ -654,7 +661,7 @@ erDiagram
 
 **Pero el residente no teclea `m2_contrato`.** Se copia de `alcance_destajo` al abrir la captura y se muestra bloqueado; el residente solo introduce `m2_real`. La razón es que la desviación de volumen —los +1.95 m² del departamento 212 que motivan F4.7— es el hallazgo que justifica medir: si quien mide escribe también el número contra el que se compara, la desviación deja de ser auditable y mide lo que el residente quiera que mida. Se copia en lugar de referenciarse para que una corrección posterior del alcance no reescriba mediciones ya validadas, igual que `nomina_renglon.salario_semanal`.
 
-**`alcance_destajo` es el contrato de volumen por área y etapa.** Se precarga al configurar las etapas de la obra, sumando los conceptos medibles en `M2` de las partidas de ese tipo en cada área. Sirve para dos cosas y las dos importan: es el `m2_contrato` que hereda cada medición, y es el **denominador del porcentaje de avance físico** del semáforo. Solo el Director de Proyectos puede corregirlo, con motivo y bitácora: es quien valida las mediciones, así que es quien responde de la cifra contra la que se validan.
+**`alcance_destajo` es el contrato de volumen por área y etapa.** Se precarga al configurar las etapas de la obra, sumando los conceptos de partida medibles en `M2` de las partidas de ese tipo en cada área. Sirve para dos cosas y las dos importan: es el `m2_contrato` que hereda cada medición, y es el **denominador del porcentaje de avance físico** del semáforo. Solo el Director de Proyectos puede corregirlo, con motivo y bitácora: es quien valida las mediciones, así que es quien responde de la cifra contra la que se validan.
 
 > Los conceptos que no se miden en `M2` —los que vienen en `ML` o `PZA`— no entran en el alcance. Su material sí entra en el ejercido, así que una partida con mucho trabajo no medible en m² mostrará un avance más bajo del real y una desviación inflada. El cliente lo aceptó; el disparador de revisión está en el [PRD §10](01-descripcion-producto.md#10-supuestos-y-preguntas-abiertas).
 
@@ -1147,13 +1154,13 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 5 | Una sola línea base congelada vigente por obra | Índice único parcial `WHERE estado = 'CONGELADA'` | RN-01 |
 | 6 | Un presupuesto de control por línea base y tipo de partida | `UNIQUE (linea_base_id, tipo_partida_id)` | RN-03 |
 | 7 | El desglose de un pago agrupado suma el total | Restricción diferida verificada al confirmar | RN-14 |
-| 8 | Importes, precios, cantidades y rendimientos no negativos | `CHECK (<columna> >= 0)` con nombre `ck_<tabla>_<columna>_no_negativo` sobre cada importe, precio, cantidad y rendimiento del esquema. Los porcentajes de rango acotado llevan su propio `CHECK` (`PA-T5` de TKT-011) | — |
+| 8 | Importes, precios, cantidades y rendimientos no negativos | `CHECK (<columna> >= 0)` con nombre `ck_<tabla>_<columna>_no_negativo` sobre cada importe, precio, cantidad y rendimiento del esquema; en el catálogo, cantidad, precio unitario e importe viven en `partida_concepto`. Los porcentajes de rango acotado llevan su propio `CHECK` (`PA-T5` de TKT-011) | — |
 | 9 | Una resolución de autorización exige motivo | `CHECK (estado = 'PENDIENTE' OR motivo_resolucion IS NOT NULL)` | RN-04 |
 | 10 | La bitácora no se modifica | Permisos: sin `UPDATE` ni `DELETE` para el rol de aplicación | RN-04 |
 | 11 | Un avance pagado está validado | Clave foránea compuesta que incluye el estado | RN-10 |
 | 12 | El fondo se libera solo con las dos condiciones | `CHECK (estado <> 'LIBERADO' OR (area_liberada AND area_cobrada))` | RN-12 |
-| 13 | Un concepto es único por obra | `UNIQUE (obra_id, codigo)` | — |
-| 14 | Una línea base congelada no se altera | Disparadores que rechazan `INSERT`, `UPDATE` y `DELETE` sobre sus copias (`linea_base_concepto` y `explosion_presupuesto`) cuando la línea base no es `BORRADOR`, con `FOR SHARE` sobre su fila. La fila `linea_base` solo avanza de `BORRADOR` a `CONGELADA` y de `CONGELADA` a `SUPERSEDIDA`; desde `CONGELADA` solo cambia su estado. Sobre `linea_base_concepto`, además, el rol de aplicación solo tiene `SELECT` e `INSERT`. Todo rechazo lleva el `SQLSTATE` `IN001` y el prefijo `RN-01:`; TKT-017 lo traduce a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)` | RN-01 |
+| 13 | Un concepto es único por obra | `UNIQUE (obra_id, codigo)` sobre `concepto`. El mismo código en otra área de la obra es otro concepto de partida (invariante 39) | — |
+| 14 | Una línea base congelada no se altera | Disparadores que rechazan `INSERT`, `UPDATE` y `DELETE` sobre sus copias (`linea_base_concepto`, que apunta al concepto de partida, y `explosion_presupuesto`) cuando la línea base no es `BORRADOR`, con `FOR SHARE` sobre su fila. La fila `linea_base` solo avanza de `BORRADOR` a `CONGELADA` y de `CONGELADA` a `SUPERSEDIDA`; desde `CONGELADA` solo cambia su estado. Sobre `linea_base_concepto`, además, el rol de aplicación solo tiene `SELECT` e `INSERT`. Todo rechazo lleva el `SQLSTATE` `IN001` y el prefijo `RN-01:`; TKT-017 lo traduce a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)` | RN-01 |
 | 15 | Una cuadrilla cobra por destajo **o** por nómina en una semana, nunca por ambas | `UNIQUE (cuadrilla_id, semana)` sobre `modalidad_pago_semana` · `semana` con `CHECK` de jueves: el jueves de corte, común a destajo y nómina (`PA-19`) | RN-22 |
 | 16 | Un empleado no tiene dos jornadas el mismo día | `UNIQUE (empleado_id, fecha)` sobre `jornada` | RN-23 |
 | 17 | El reparto de nómina entre obras suma el neto del renglón | Restricción diferida sobre `imputacion_nomina_obra` | RN-23 |
@@ -1178,6 +1185,7 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 36 | Cancelar un pago de destajo exige autor, motivo y fecha · *fase 2* | `CHECK (estado <> 'CANCELADO' OR (motivo_cancelacion IS NOT NULL AND cancelado_por_id IS NOT NULL AND cancelado_en IS NOT NULL))` sobre `pago_destajo` | — |
 | 37 | La semana de destajo va de jueves a miércoles y se identifica por su jueves de corte · *fase 2* | `CHECK (EXTRACT(DOW FROM semana) = 4)` sobre `avance`, `pago_destajo` y `modalidad_pago_semana` · en `avance`, además, `CHECK (semana - fecha_medicion BETWEEN 1 AND 7)` (`PA-19`) | RN-23 |
 | 38 | Una autorización de excedente se consume una sola vez | Índice único parcial `(solicitud_autorizacion_id) WHERE solicitud_autorizacion_id IS NOT NULL` sobre `entrada_renglon` | RN-07 |
+| 39 | Un concepto aparece a lo sumo una vez en cada partida | `UNIQUE (concepto_id, partida_id)` sobre `partida_concepto` (`uq_partida_concepto_concepto_id_partida_id`) | — |
 
 **El invariante 21 tiene una consecuencia para `usuario` (`PA-T4` de TKT-003, en `sdd/tickets/tkt-003/spec.md`).** El rol de lectura recibe `GRANT SELECT` por columna sobre `usuario`: las diez columnas que no son `password_hash`. Por eso toda columna nueva de `usuario` necesita su propio `GRANT` al rol de lectura si `analitica` la necesita, y un `SELECT *` sobre `usuario` falla con ese rol. Falla hacia el lado seguro: una columna olvidada no se filtra, simplemente no se lee. Y la regla vale para las tablas futuras: toda tabla que guarde credenciales o secretos revoca `SELECT` al rol de lectura en su propia migración, con su prueba.
 

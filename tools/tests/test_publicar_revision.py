@@ -13,7 +13,7 @@ Casos del plan de pruebas del diseño de TKT-062:
 
 * TC62-20  un hallazgo con una cita de la lista se publica con su cita y su `archivo:linea`.
 * TC62-21  las citas vacías, genéricas o fuera de rango (la regla 18 y la 170 de CLAUDE.md, la regla `RN` con número 26,
-           el invariante con número 39 y el punto 12 de convenciones §12) no aparecen en el comentario. Desde el ajuste
+           el invariante con número 40 y el punto 12 de convenciones §12) no aparecen en el comentario. Desde el ajuste
            del 2026-10-30 (F003) la cita es de vocabulario cerrado: `CITA_VALIDA` se aplica con `fullmatch` sobre
            `cita.strip()`, así que una cita con texto libre alrededor (una mención, una imagen, otra cita) se descarta, y las
            formas exactas siguen valiendo, con espacios al borde incluidos.
@@ -121,7 +121,7 @@ CONTRATO = "docs/api/openapi.yaml"
 SHA = "abcdef1234567890abcdef1234567890abcdef12"
 TITULO_CON_TICKET = "TKT-062b · revisión automatizada"
 
-# Citas que la lista de convenciones acepta. La regla 17 y el invariante 38 son los topes; la 1 y el 1, los mínimos.
+# Citas que la lista de convenciones acepta. La regla 17 y el invariante 39 son los topes; la 1 y el 1, los mínimos.
 CITAS_VALIDAS = (
     "CLAUDE.md regla 11",
     "CLAUDE.md regla 1",
@@ -133,7 +133,7 @@ CITAS_VALIDAS = (
     "RNF-01",
     "RNF-19",
     "invariante 1",
-    "invariante 38",
+    "invariante 39",
     "convenciones §12 punto 1",
     "convenciones §12 punto 11",
     "non-goal de TKT-062b",
@@ -155,7 +155,7 @@ CITAS_INVALIDAS = (
     "RN-250",
     "RN-00",
     "RNF-20",
-    "invariante 39",
+    "invariante 40",
     "invariante 100",
     "convenciones §12 punto 12",
     "convenciones §12 punto 0",
