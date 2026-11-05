@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · TKT-015a
+PENDIENTE FUSIÓN · entrega TKT-015a
 
 ## Ficha
 
@@ -27,8 +27,8 @@ LISTO PARA EJECUTAR · TKT-015a
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-03 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-03 |
-| Impl | `impl.md` | `/sdd-ejecutar` | Pendiente |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | TKT-015a filas A-pre–A9 cerradas (2026-11-05) |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | TKT-015a (2026-11-05) |
 
 ## Log de estados
 
@@ -38,6 +38,9 @@ LISTO PARA EJECUTAR · TKT-015a
 | 2026-11-03 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito por `arquitecto-tecnico` (opus). Condición de parada 3: ~2,960 líneas; se propone partir en TKT-015a (clasificación, preparación, migración `0009` y caso de uso síncrono, ~1,660) y TKT-015b (ejecutor en proceso aparte, latido, barrido reutilizable en `trabajos/` y arranque, ~1,300), con fusión a → b. `revisor-impacto`: sin frontera cruzada, diseño incompleto; nueve omisiones incorporadas, entre ellas un choque de P11 con tres tests de servidor real (P16). Dos objeciones del orquestador: tres causas pasan de `SIN_CONCEPTOS` a `REF_ROTA` y la partición en tres sigue como alternativa. Dieciséis preguntas (P1 a P16) esperan a la persona dueña; los experimentos E-1 a E-10 quedan `(sin ejecutar)` hasta A0 y B0 |
 | 2026-11-03 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones del arquitecto en P1 a P16. Spec ajustada en el mismo acto: sección «Partición en dos entregas» y `PA-15.1`, `PA-15.2`, `PA-15.11` y `PA-15.12` resueltas. Siguiente: `/sdd-ejecutar TKT-015` (entrega a) |
 | 2026-11-03 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | persona dueña | Aprobación del diseño revisado, con P17 incluida (el progreso se cuantiza con `ROUND_DOWN`, excepción `(asumido)` a la regla 1) y la partición a/b con las cifras finales: 21 filas, unas 3,170 líneas (~1,790 en a y ~1,380 en b). Siguiente: `/sdd-ejecutar TKT-015` (entrega a, fila A-pre) |
+| 2026-11-05 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` (A9) | TKT-015a cerrado en ejecución: mutantes M-01…M-12, ADR-036, suite 81+5 skip, CAR2 en verde. Siguiente: `/sdd-revisar TKT-015a` |
+| 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (TKT-015a) | Auditorías + ciclo de corrección; veredicto en `impl.md`. Siguiente: `/sdd-completar TKT-015a` |
+| 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (TKT-015a) | `delta.md`, PR abierto; archivos reales verificados localmente (5/5). Siguiente: fusión tras aprobación |
 
 ## Decisiones registradas
 

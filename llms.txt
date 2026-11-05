@@ -16,7 +16,7 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 - [Descripción del producto](docs/01-descripcion-producto.md): objetivo, roles, 8 capacidades, alcance del MVP, catálogo de 25 reglas de negocio `RN-01`…`RN-25` y 19 requisitos no funcionales `RNF-01`…`RNF-19`. Las doce preguntas de la especificación funcional están resueltas por el cliente; siguen abiertas `PA-12` (objetivos de recuperación), `PA-14` (si un avance se puede validar sin evidencia fotográfica), `PA-15` (cuánto video y cuánto tiempo se conserva) y `PA-23` (modo de redondeo de los importes, antes de TKT-016); ninguna bloquea la implementación. Las decisiones con disparador de revisión están listadas al final
 - [Arquitectura](docs/02-arquitectura.md): monolito modular, 10 contextos delimitados, capas por módulo, flujos clave y aspectos transversales
 - [Modelo de datos](docs/03-modelo-datos.md): esquema relacional, 38 invariantes declarados en base de datos, máquinas de estado y la consulta del semáforo
-- [Historias de usuario](docs/04-historias-usuario.md): 9 historias, 162 escenarios Given/When/Then con su fase. Cada escenario tiene que tener un test que lo nombre
+- [Historias de usuario](docs/04-historias-usuario.md): 9 historias, 164 escenarios Given/When/Then con su fase. Cada escenario tiene que tener un test que lo nombre
 - [Tickets de trabajo](docs/05-tickets-trabajo.md): 69 tickets detallados con criterios técnicos y non-goals, y el plan de sprints por fase
 - [Especificación de la API](docs/07-especificacion-api.md) y [borrador OpenAPI](docs/api/openapi.yaml): endpoints, esquemas y contrato de error de la fase 1. Es el contrato que se implementa; una prueba de CI lo compara contra el OpenAPI que publica FastAPI
 - [Wireframes](docs/08-wireframes.md): bocetos de baja fidelidad de las pantallas del hilo vertical
@@ -24,7 +24,7 @@ Leer en este orden. Saltarse el glosario produce nombres y supuestos inventados:
 - [Stack tecnológico](docs/06-stack-tecnologico.md): criterios de elección, herramientas por capa, seguridad y lo que se descartó
 - [Arranque local](docs/arranque-local.md): requisitos, comandos del backend y del frontend, verificadores de `tools/` y lo que todavía no arranca
 - [Estructura del repositorio](docs/convenciones.md#3-estructura-del-repositorio): `backend/`, `frontend/`, `tools/`, `sdd/` y `.claude/`, con la configuración de la raíz
-- [Decisiones de arquitectura](docs/adr/README.md): 35 ADRs en formato MADR
+- [Decisiones de arquitectura](docs/adr/README.md): 36 ADRs en formato MADR
 - [Despliegue de prueba en VPS](docs/despliegue-prueba-vps.md): guía de operación de TKT-070
 
 ## Reglas que ninguna implementación puede romper

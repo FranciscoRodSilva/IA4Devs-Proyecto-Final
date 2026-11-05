@@ -146,7 +146,11 @@ ESTRUCTURA_ESPERADA: dict[str, dict[str, tuple[Any, ...]]] = {
     "importacion": {
         "p": ("pk_importacion",),
         "f": ("fk_importacion_obra_id", "fk_importacion_importado_por_id"),
-        "c": ("ck_importacion_estado", "ck_importacion_progreso_rango"),
+        "c": (
+            "ck_importacion_estado",
+            "ck_importacion_progreso_rango",
+            "ck_importacion_preparacion_tras_analisis",
+        ),
         "i": (("ix_importacion_obra_id", "obra_id"),),
     },
     "importacion_error": {

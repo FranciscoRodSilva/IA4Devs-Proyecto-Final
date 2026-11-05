@@ -687,7 +687,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Una hoja sin ninguna fila de concepto deja la importación `CON_ERRORES` con un error `SIN_CONCEPTOS`, y no se puede confirmar. Test `test_hdu001_esc27_…` en verde
 - [ ] Cada error registra hoja, fila, columna, tipo, mensaje y valor original
 - [ ] Un error bloqueante deja la importación en estado `CON_ERRORES` y **no** permite confirmar
-- [ ] Las filas válidas se conservan en preparación para no repetir el análisis completo
+- [ ] El resultado válido se guarda en `importacion.preparacion` (`jsonb`, formato 1, [ADR-036](adr/20261105-preparacion-de-importacion-en-jsonb.md)) para no repetir el análisis completo
 - [ ] Se prueba contra el catálogo de Union Square, que tiene `#REF!` en todas las columnas de precio: debe reportarlo fila a fila, no fallar en bloque
 - [ ] El análisis corre en un `ProcessPoolExecutor` de un trabajador: openpyxl retiene el intérprete y degradaría la latencia del resto de la aplicación
 - [ ] El trabajo refresca `importacion.latido` y `importacion.progreso` mientras analiza, y al arrancar la aplicación un barrido pasa a `CON_ERRORES` toda importación en `ANALIZANDO` con latido vencido, con un error `PROCESO_INTERRUMPIDO` (`RNF-17`)
@@ -697,6 +697,13 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 > **Sin el barrido, un reinicio a mitad de análisis deja la fila en `ANALIZANDO` para siempre** y la obra sin poder importar, sin error que consultar y sin nadie a quien reclamar. La fase de análisis no escribe en el modelo real, así que ese es el único daño posible — y es suficiente para bloquear la historia entera.
 
 **Non-goals** — No corrige los errores ni permite editar valores desde la interfaz.
+
+**Partición en dos tickets hermanos** (aprobada 2026-11-03; fusión fija **TKT-015a → TKT-015b**). TKT-015 queda como paraguas, conserva la spec y el diseño, y se cierra cuando se cierran los dos. TKT-017 y TKT-059 dependen de **TKT-015b**; TKT-016 sigue dependiendo solo de TKT-014b.
+
+| Ticket | Contenido | Migración | Depende de | Filas del diseño |
+|---|---|---|---|---|
+| TKT-015a | Clasificación, preparación persistida, caso de uso síncrono, archivos reales, [ADR-036](adr/20261105-preparacion-de-importacion-en-jsonb.md) | `v0009` · columna `preparacion` y su `CHECK` | TKT-014b | A-pre, A0, A1, A2a, A2b, A3 a A9 |
+| TKT-015b | Ejecutor en proceso aparte, latido, progreso, barrido reutilizable, ADR-037 | Ninguna | TKT-015a | B0 a B7 |
 
 ---
 

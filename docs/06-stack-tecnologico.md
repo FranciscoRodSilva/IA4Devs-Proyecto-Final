@@ -186,7 +186,7 @@ infraestructura/
 
 **Las reglas reciben objetos de valor, no entidades.** `evaluar_disponibilidad(presupuestado: Dinero, consumido: Dinero, solicitado: Dinero)` no sabe que existe una tabla, una sesión ni un modelo. La capa de aplicación carga lo que hace falta, extrae los valores, llama a la regla y persiste el resultado.
 
-Esa firma es lo que permite que los 162 escenarios se ejecuten en milisegundos sin levantar nada, y es la razón concreta de elegir un Data Mapper sobre un Active Record.
+Esa firma es lo que permite que los 164 escenarios se ejecuten en milisegundos sin levantar nada, y es la razón concreta de elegir un Data Mapper sobre un Active Record.
 
 ### 4.4. Alembic
 
@@ -394,7 +394,7 @@ El test de concurrencia de TKT-022 necesita **dos conexiones reales y simultáne
 
 ### 7.2. Trazabilidad escenario ↔ test
 
-La especificación tiene 162 escenarios en Gherkin. La pregunta es cómo se garantiza que cada uno tiene un test.
+La especificación tiene 164 escenarios en Gherkin. La pregunta es cómo se garantiza que cada uno tiene un test.
 
 **No se usa pytest-bdd.** Los archivos `.feature` con definiciones de pasos añaden una capa de indirección que hay que mantener, y los agentes escriben pytest plano con mucha más fiabilidad que pytest-bdd. Se pierde la ejecución literal del Gherkin; se gana claridad y menos fricción.
 

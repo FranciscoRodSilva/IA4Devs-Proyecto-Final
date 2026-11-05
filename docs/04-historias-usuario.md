@@ -59,7 +59,7 @@ Nueve historias que recorren el ciclo de valor completo: alta de obra → línea
 | HDU-008 | [Avance de destajo medido y validado](#hdu-008--avance-de-destajo-medido-y-validado) | *Should* | C4/C8 | Media-Alta | 12 | 2 |
 | HDU-009 | [Nómina semanal](#hdu-009--nómina-semanal) | *Should* | C5 | Alta | 13 | 2 |
 
-**Total: 79 SP · 162 escenarios, cerca de la mitad de ellos de rechazo, error o borde.**
+**Total: 79 SP · 164 escenarios, cerca de la mitad de ellos de rechazo, error o borde.**
 
 En la columna `Fase`, **1+2** significa que la historia se entrega en la fase 1 y sus escenarios marcados `· fase 2` se aceptan al cerrar la fase 2. HDU-005 reparte así sus 11 SP: 8 en la fase 1 y 3 en la fase 2. HDU-002 no suma puntos por su escenario de fase 2: es un rechazo en el cliente que cae sobre el armazón sin conexión de TKT-063.
 
@@ -440,6 +440,28 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 
 > Nació al partir el escenario 21 en la revisión del 2026-10-17. Antes, el 21 prometía rechazar una hoja vacía *antes de crear la importación*, y eso es imposible sin leerla: el API no recibe los bytes. Se numera al final para no renumerar los escenarios existentes.
 
+**Escenario 28: Rendimiento ausente en un análisis · fase 1**
+
+- **Dado que** el libro de la importación trae una hoja de análisis de precio unitario con un insumo cuya celda de rendimiento está vacía
+- **Cuando** el sistema analiza la importación
+- **Entonces** la importación queda en estado "CON_ERRORES"
+- **Y** se genera un renglón de error de tipo "RENDIMIENTO_AUSENTE" con la hoja del análisis, la fila del insumo y la columna del rendimiento
+- **Y** ninguna otra celda vacía del mismo insumo —unidad, analista o rótulo— se reporta como "RENDIMIENTO_AUSENTE"
+- **Y** si el usuario intenta confirmarla, el sistema lo rechaza con código 409 como en los escenarios 6 a 9, y nada se escribe en el modelo real ni en la línea base.
+
+**Escenario 29: Análisis interrumpido · fase 1**
+
+- **Dado que** un análisis en curso se interrumpe —por reinicio del servidor, por una excepción inesperada o por la muerte del trabajador que lo ejecutaba—
+- **Cuando** el sistema registra la interrupción
+- **Entonces** la importación queda en estado "CON_ERRORES"
+- **Y** existe un único renglón de error de tipo "PROCESO_INTERRUMPIDO" cuyo mensaje distingue la causa
+- **Y** no queda preparación persistida de ese análisis
+- **Y** la obra vuelve a admitir otra importación
+- **Y** la importación interrumpida admite reintentar el análisis
+- **Y** el barrido de arranque no modifica una importación cuyo latido sigue vigente ni una que ya salió de "ANALIZANDO".
+
+> Los escenarios 28 y 29 cierran la trazabilidad de los tipos `RENDIMIENTO_AUSENTE` y `PROCESO_INTERRUMPIDO` (`PA-15.11`, TKT-015 fila A-pre).
+
 ### Reglas de negocio implicadas
 
 `RN-01` línea base inmutable · `RN-02` imputación obligatoria · `RN-03` el tope de control es el valor contra el que se evalúa, y su recaptura se registra · `RN-25` IVA configurable por obra
@@ -466,8 +488,8 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 
 ### Definition of Done — funcionalidad nueva
 
-- [ ] Cubre los 27 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
-- [ ] Los 27 son de fase 1: ninguno espera a la fase 2
+- [ ] Cubre los 29 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
+- [ ] Los 29 son de fase 1: ninguno espera a la fase 2
 - [ ] Al menos un test por escenario
 - [ ] Los tests de importación corren contra los archivos reales de `Doc de contexto/`, no contra archivos sintéticos
 - [ ] Los escenarios 24 a 26 se prueban contra MinIO levantado con testcontainers, nunca contra un doble del almacén: un ejecutable renombrado y un ZIP sin `[Content_Types].xml` son dos de los archivos de prueba

@@ -644,5 +644,6 @@ Las decisiones que un desarrollador nuevo se preguntaría *"¿por qué lo hicier
 | [ADR-021](adr/20261019-lista-blanca-del-dominio.md) | El dominio importa solo la biblioteca estándar y `tipos_base`, verificado con un contrato propio de import-linter (sustituye el contrato `dominio-sin-framework` de ADR-018) |
 | [ADR-022](adr/20261020-contrato-de-error-y-raiz-de-composicion.md) | El caso de uso lanza la excepción de las reglas, y el contrato y la raíz de composición viven fuera de `cimenta/` |
 | [ADR-023](adr/20261021-sesion-y-autorizacion-por-dependencia.md) | La sesión y el rol por ruta son dependencias de FastAPI, y el `DENEGAR` se asienta en una transacción propia |
+| [ADR-036](adr/20261105-preparacion-de-importacion-en-jsonb.md) | Preparación de importación en `importacion.preparacion jsonb` con formato versionado y `CHECK` de coherencia con el estado |
 
 Las decisiones de herramienta —framework, ORM, modo de ejecución— viven en el [stack tecnológico](06-stack-tecnologico.md) y en [ADR-009](adr/20260918-fastapi.md) … [ADR-013](adr/20260919-sqlalchemy-sincrono.md).

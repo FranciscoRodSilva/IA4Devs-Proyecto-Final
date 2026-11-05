@@ -275,8 +275,8 @@ Base `/api/v1`. **Roles**: DG Dirección General · DP Director de Proyectos · 
 | `POST` | `/obras/{obra_id}/importaciones` | DP | RN-01 | HDU-001 · 4, 21, 24 | TKT-018, TKT-059 |
 | `GET` | `/obras/{obra_id}/importaciones` | DP, DG | — | — | TKT-018 |
 | `GET` | `/importaciones/{importacion_id}` | DP, DG | — | HDU-001 · 4, 5, 10 | TKT-018, TKT-015 |
-| `POST` | `/importaciones/{importacion_id}/analisis` | DP | — | HDU-001 · 4, 6–9, 24, 25, 27 | TKT-018, TKT-015 |
-| `GET` | `/importaciones/{importacion_id}/errores` | DP, DG | — | HDU-001 · 6–9, 27 | TKT-018, TKT-015 |
+| `POST` | `/importaciones/{importacion_id}/analisis` | DP | — | HDU-001 · 4, 6–9, 24, 25, 27–29 | TKT-018, TKT-015 |
+| `GET` | `/importaciones/{importacion_id}/errores` | DP, DG | — | HDU-001 · 6–9, 27–29 | TKT-018, TKT-015 |
 | `POST` | `/importaciones/{importacion_id}/confirmacion` | DP | RN-01 | HDU-001 · 6–9, 11–13 | TKT-018, TKT-017 |
 | `POST` | `/importaciones/{importacion_id}/descarte` | DP | — | HDU-001 · 13 | TKT-018 |
 | `GET` | `/obras/{obra_id}/lineas-base` | DG, DP, CO | RN-01 | — | TKT-017 |

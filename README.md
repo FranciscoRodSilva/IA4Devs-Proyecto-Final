@@ -27,7 +27,7 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 35 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 36 ADRs en formato MADR |
 | [Despliegue de prueba en VPS](docs/despliegue-prueba-vps.md) | Guía de operación de TKT-070 |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
@@ -257,11 +257,11 @@ La revisión de LIDR del **2026-10-14** dio *luz amarilla: avanzar ajustando*. C
 | Preguntas planteadas al cliente | 23 · **19 resueltas**, siete de ellas el 2026-10-17; abiertas `PA-12`, `PA-14`, `PA-15` y `PA-23`, ninguna bloqueante del arranque |
 | Invariantes declarados en base de datos | 38 |
 | Historias de usuario | 9 · **6 *must-have* (fase 1, el hilo vertical) y 3 *should-have* (fase 2)** · 79 SP |
-| Escenarios de aceptación | 162, cerca de la mitad de rechazo, error o borde, cada uno con su fase |
+| Escenarios de aceptación | 164, cerca de la mitad de rechazo, error o borde, cada uno con su fase |
 | Tickets de trabajo | 69, todos detallados con criterios técnicos y *non-goals*, en 11 sprints: 7 de fase 1 y 4 de fase 2 |
 | Especificación de la API | 70 operaciones de fase 1 en el borrador OpenAPI 3.1, validado; las de fase 2, listadas con su ticket |
 | Wireframes | 10 pantallas del hilo vertical |
-| Decisiones de arquitectura (ADR) | 34 |
+| Decisiones de arquitectura (ADR) | 36 |
 
 Estas cifras las comprueba [`tools/verificar_docs.py`](tools/README.md) contra los documentos, salvo las de API, wireframes y ADR.
 

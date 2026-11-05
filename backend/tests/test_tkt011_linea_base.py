@@ -129,6 +129,7 @@ TABLAS_DE_NULABILIDAD: dict[str, tuple[FilaDeTabla, ...]] = {
         ("filas_leidas", "integer", "sí", None),
         ("filas_validas", "integer", "sí", None),
         ("filas_rechazadas", "integer", "sí", None),
+        ("preparacion", "jsonb", "sí", None),
         ("resumen", "jsonb", "sí", None),
         ("importado_por_id", "uuid", "no", None),
         ("creado_en", "timestamptz", "no", "now()"),
