@@ -50,8 +50,10 @@ def copia(tmp_path: Path) -> Path:
     destino = tmp_path / "copia"
     destino.mkdir()
     shutil.copy(BACKEND / "pyproject.toml", destino / "pyproject.toml")
-    for paquete in ("cimenta", "tipos_base", "herramientas"):
-        shutil.copytree(BACKEND / paquete, destino / paquete, ignore=IGNORAR)
+    for paquete in ("cimenta", "tipos_base", "herramientas", "trabajos"):
+        origen = BACKEND / paquete
+        if origen.is_dir():
+            shutil.copytree(origen, destino / paquete, ignore=IGNORAR)
     return destino
 
 
@@ -279,7 +281,7 @@ def test_tkt007_ca08_otro_modulo_no_importa_sus_repositorios(copia: Path) -> Non
     """TC-45 · CA-8 esc. 3, CA-R3 — otro módulo no importa infraestructura de auditoria: lo rompe solo-por-interfaz."""
     sin_violar = correr_linter(copia)
     assert sin_violar.codigo == 0, sin_violar.salida
-    assert contratos_cumplidos_y_rotos(sin_violar) == (15, 0), sin_violar.salida
+    assert contratos_cumplidos_y_rotos(sin_violar) == (16, 0), sin_violar.salida
 
     escribir(
         copia / APLICACION_DE_COMPRAS,

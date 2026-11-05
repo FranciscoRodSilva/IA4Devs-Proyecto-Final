@@ -6,7 +6,7 @@ y las pruebas en hilo.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from cimenta.presupuesto.dominio.clasificacion_importacion import clasificar_libro
@@ -28,9 +28,11 @@ class ResultadoAnalisis:
 def analizar_contenido(
     contenido: bytes,
     insumos_existentes: Mapping[str, str],
+    *,
+    al_avanzar: Callable[[int, int], None] | None = None,
 ) -> ResultadoAnalisis:
     """Lee el libro, clasifica hallazgos y devuelve errores y preparación serializada."""
-    libro = leer_libro_presupuesto(contenido, insumos_existentes)
+    libro = leer_libro_presupuesto(contenido, insumos_existentes, al_avanzar=al_avanzar)
     clasificacion = clasificar_libro(libro)
     preparacion = armar_preparacion(libro, clasificacion)
     return ResultadoAnalisis(

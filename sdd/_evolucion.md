@@ -265,6 +265,12 @@ Con TKT-010b. Cruzan el umbral: las cifras de documentación sin verificador (`d
 
 **Remedios aplicados: ¿funcionaron? (TKT-010b).** (1) *Experimento previo (`sdd-disenar`):* quinto ticket tras aplicarlo sin afirmación refutada en las observaciones de TKT-010b. (2) *Criterio de parada y relectura del diff (`agente`, aplicado el 2026-10-30):* **reaparece el patrón** en TKT-010b, con Menores nuevos de pruebas en cada reauditoría y los tres ciclos agotados; el remedio cerró la redacción pero no cubre el código de pruebas, de modo que no se da por funcionado del todo (ver la fila de `agente`). (3) *Variante barata de `delta.md` (`herramienta`, aplicada el 2026-11-01):* TKT-010b no registra el fallo de `verificar_docs.py` por esos enlaces; cuatro tickets seguidos (TKT-011a, TKT-011b, TKT-010a y TKT-010b), con la cautela de que ninguna observación lo afirma. (4) *Valores por omisión de modelo:* TKT-010b no tiene fila de `modelo` y el `impl.md` no registra ningún paso de `haiku` escalado a `sonnet` fuera de los disparadores del diseño, así que no hay valor por omisión que cambiar.
 
+| 2026-11-05 | TKT-015b | `mutación` | Scripts `ejecutar_mutantes_tkt015a/b` duplican la misma estructura; candidato a helper común si un tercer ticket repite | Baja |
+| 2026-11-05 | TKT-015b | `revisión` | El hueco RNF-17 «reinicio rápido vs barrido único» no estaba cerrado en diseño; la revisión obligó decisión explícita (`cerrar()` con REINICIO) | Media |
+| 2026-11-05 | TKT-015b | `guardrail` | Archivo `tools/historias_activas.tmp` apareció en el working tree durante revisión; no versionar | Baja |
+
+Con TKT-015b. Cierra el paraguas TKT-015 (entrega b). Entra en vigilancia la raíz `mutación` (segundo ticket con script dedicado de mutantes por entrega).
+
 Estado: `Propuesto` · `Aprobado` · `Aplicado` · `Descartado` (con motivo).
 
 ## Tendencias

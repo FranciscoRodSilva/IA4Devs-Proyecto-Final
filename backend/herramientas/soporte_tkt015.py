@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import os
+import time
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any, Literal
+from uuid import UUID
 
 from cimenta.presupuesto.dominio.catalogo import (
     CatalogoLeido,
@@ -12,6 +16,8 @@ from cimenta.presupuesto.dominio.catalogo import (
     Hallazgo,
     Ruta,
 )
+from cimenta.presupuesto.infraestructura.ejecutor_analisis import notificar_avance
+from cimenta.presupuesto.infraestructura.trabajo_analisis import ResultadoAnalisis
 from herramientas.soporte_tkt013 import LibroCatalogoPrueba
 from herramientas.soporte_tkt014 import catalogo_con_codigos, escribir_hoja_apu_sintetica
 
@@ -145,8 +151,8 @@ def libro_sintetico(
     variantes = variantes_apu or {}
 
     for nombre in nombres_hojas:
-        libro.nueva_hoja(nombre)
         if nombre == HOJA_CATALOGO_SINTETICO:
+            libro.nueva_hoja(nombre)
             if catalogo_vacio:
                 continue
             for fila in range(1, 4):
@@ -183,3 +189,64 @@ def libro_sintetico(
             )
 
     return libro.bytes()
+
+
+_TOPE_DE_ESPERA_NS = 30 * 1_000_000_000
+
+
+def _esperar_archivo(ruta: Path) -> None:
+    """Sondea cada 10 ms hasta que exista `ruta`, con tope de 30 s (vive en el hijo)."""
+    limite = time.monotonic_ns() + _TOPE_DE_ESPERA_NS
+    while not ruta.exists() and time.monotonic_ns() < limite:
+        time.sleep(0.01)
+
+
+def _resultado_de_prueba(inicio: int) -> ResultadoAnalisis:
+    return ResultadoAnalisis(
+        errores=(),
+        preparacion={
+            "formato": 1,
+            "pid": os.getpid(),
+            "inicio": inicio,
+            "fin": time.time_ns(),
+        },
+        filas_leidas=0,
+        filas_validas=0,
+        filas_rechazadas=0,
+    )
+
+
+def trabajo_de_prueba(
+    importacion_id: UUID,
+    contenido: bytes,
+    insumos: Mapping[str, str],
+) -> ResultadoAnalisis:
+    """Trabajo inyectable del ejecutor (TKT-015b): `contenido` es la orden a ejecutar.
+
+    Órdenes: `anotar`, `bloquear:<ruta>`, `morir:<ruta>`, `fallar`, `avance:<ruta>` y
+    `avance-desordenado:<ruta>`. De nivel de módulo para que `spawn` lo importe en el hijo.
+    """
+    inicio = time.time_ns()
+    orden, _, argumento = contenido.decode().partition(":")
+    if orden == "anotar":
+        return _resultado_de_prueba(inicio)
+    if orden == "bloquear":
+        _esperar_archivo(Path(argumento))
+        return _resultado_de_prueba(inicio)
+    if orden == "morir":
+        _esperar_archivo(Path(argumento))
+        os._exit(1)
+    if orden == "fallar":
+        raise ValueError("fallo de prueba")
+    if orden in ("avance", "avance-desordenado"):
+        pasos = ((1, 5), (3, 5)) if orden == "avance" else ((3, 5), (1, 5))
+        for leidas, totales in pasos:
+            notificar_avance(importacion_id, leidas, totales)
+        _esperar_archivo(Path(argumento))
+        return _resultado_de_prueba(inicio)
+    raise ValueError(f"orden de prueba desconocida: {orden!r}")
+
+
+def liberar(ruta: Path) -> None:
+    """Crea el archivo que espera `trabajo_de_prueba` y lo deja seguir."""
+    ruta.write_text("liberado", encoding="utf-8")

@@ -26,7 +26,7 @@ def test_tkt013_car1_lint_imports_sin_violaciones_nuevas() -> None:
     )
     salida = proceso.stdout + proceso.stderr
     assert proceso.returncode == 0, salida
-    assert "0 broken" in salida or "Contracts: 15 kept" in salida
+    assert "0 broken" in salida or "Contracts: 16 kept" in salida
 
 
 def test_tkt013_car2_verificar_float_dominio_presupuesto() -> None:

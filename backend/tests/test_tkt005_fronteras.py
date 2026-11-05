@@ -60,8 +60,10 @@ def copia(tmp_path: Path) -> Path:
     destino = tmp_path / "copia"
     destino.mkdir()
     shutil.copy(BACKEND / "pyproject.toml", destino / "pyproject.toml")
-    for paquete in ("cimenta", "tipos_base", "herramientas"):
-        shutil.copytree(BACKEND / paquete, destino / paquete, ignore=IGNORAR)
+    for paquete in ("cimenta", "tipos_base", "herramientas", "trabajos"):
+        origen = BACKEND / paquete
+        if origen.is_dir():
+            shutil.copytree(origen, destino / paquete, ignore=IGNORAR)
     return destino
 
 
@@ -152,11 +154,11 @@ def test_tkt005_car3_dominio_no_importa_framework(copia: Path, framework: str) -
 
 
 def test_tkt005_car3_aplicacion_puede_lanzar_el_rechazo(copia: Path) -> None:
-    """TC-33 · CA-R3 esc. 1 y 3 — la aplicacion/ de un módulo importa RechazoRegla sin romper ninguno de los 15 contratos."""
+    """TC-33 · CA-R3 esc. 1 y 3 — la aplicacion/ de un módulo importa RechazoRegla sin romper ninguno de los 16 contratos."""
     escribir(copia / APLICACION_DE_COMPRAS, "from contrato_error import RechazoRegla\n")
 
     corrida = correr_linter(copia)
 
     assert corrida.codigo == 0, corrida.salida
-    assert contratos_cumplidos_y_rotos(corrida) == (15, 0), corrida.salida
+    assert contratos_cumplidos_y_rotos(corrida) == (16, 0), corrida.salida
     assert "ignore_imports" not in (BACKEND / "pyproject.toml").read_text(encoding="utf-8")

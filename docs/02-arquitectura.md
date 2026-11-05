@@ -144,7 +144,7 @@ graph TB
     style OBJ fill:#5a4a2d,color:#fff
 ```
 
-**Cuatro contenedores, ni uno más.** No hay cola de mensajes, no hay caché distribuida, no hay servicio de búsqueda. La importación de Excel, que es la única operación pesada, se ejecuta como trabajo en segundo plano **dentro del propio proceso del API**, con su estado persistido en base de datos. El umbral que obligaría a introducir una cola externa está documentado en [ADR-001](adr/20260918-monolito-modular.md).
+**Cuatro contenedores, ni uno más.** No hay cola de mensajes, no hay caché distribuida, no hay servicio de búsqueda. La importación de Excel, que es la única operación pesada, se ejecuta como trabajo en segundo plano: el proceso del API lo gobierna y lo parsea en un proceso hijo de un solo trabajador ([ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)), con su estado persistido en base de datos. El umbral que obligaría a introducir una cola externa está documentado en [ADR-001](adr/20260918-monolito-modular.md).
 
 **La flecha que va del navegador al almacén de objetos sin pasar por el API no es un atajo: es la decisión.** El API emite una URL prefirmada y se aparta; los bytes nunca lo atraviesan. Si lo hicieran, cada descarga de un video retendría un hilo del grupo de FastAPI mientras dura —las rutas son `def` ([ADR-013](adr/20260919-sqlalchemy-sincrono.md))— y una galería de evidencia consultada desde obra competiría por hilos con la evaluación de `RN-03`. El razonamiento completo, en [ADR-016](adr/20261001-almacenamiento-de-objetos.md).
 
@@ -409,7 +409,7 @@ El contenedor de archivos del nivel 2 es un **almacén de objetos compatible con
 
 El precio está declarado: **la integridad referencial del adjunto no la da el motor**, la da el caso de uso que lo crea. Es una de las pocas referencias lógicas del esquema, enumeradas en el [modelo de datos §2](03-modelo-datos.md#2-convenciones), y se acepta porque la alternativa —una tabla de adjuntos por cada módulo— multiplicaría por cinco la lógica de subida, validación y caducidad.
 
-**La escritura es en dos pasos y no es transaccional.** La fila nace `PENDIENTE` **antes que el objeto** —en la transacción que crea el documento, o en una posterior que adjunta sobre un documento ya guardado—, el objeto se sube después, y la confirmación verifica tamaño y hash antes de pasarla a `DISPONIBLE`. Las filas `PENDIENTE` caducadas se barren al arrancar, con el mismo mecanismo que las importaciones con el latido vencido (`RNF-17`).
+**La escritura es en dos pasos y no es transaccional.** La fila nace `PENDIENTE` **antes que el objeto** —en la transacción que crea el documento, o en una posterior que adjunta sobre un documento ya guardado—, el objeto se sube después, y la confirmación verifica tamaño y hash antes de pasarla a `DISPONIBLE`. Las filas `PENDIENTE` caducadas se barren al arrancar, con el mismo mecanismo que las importaciones con el latido vencido (`RNF-17`, [ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)).
 
 **La evidencia no viaja en la cola sin conexión.** El avance y la entrada de almacén se sincronizan sin esperar a sus archivos; la evidencia se adjunta después contra el documento ya sincronizado. Es la octava regla que ADR-016 añade a [ADR-015](adr/20260919-captura-diferida-sin-conexion.md), y su coste aceptado —un avance puede validarse antes de que llegue su evidencia— depende de que la evidencia **no** sea condición para validar, que es `PA-14` y está abierta.
 
@@ -563,7 +563,7 @@ stateDiagram-v2
     RECIBIDO --> ANALIZANDO: lectura de hojas
     ANALIZANDO --> VALIDADO: sin errores bloqueantes
     ANALIZANDO --> CON_ERRORES: filas inválidas detectadas
-    CON_ERRORES --> ANALIZANDO: se corrige y reintenta
+    CON_ERRORES --> ANALIZANDO: se reintenta tras una interrupción
     VALIDADO --> CONFIRMADO: el usuario acepta la previsualización
     CONFIRMADO --> [*]: línea base creada
     VALIDADO --> DESCARTADO: se descarta
@@ -579,9 +579,9 @@ stateDiagram-v2
 
 > Una importación que escribe a medias deja la línea base corrupta, y sobre una línea base corrupta todo el control de costos posterior miente. La separación análisis/confirmación existe para que eso no pueda ocurrir.
 
-**El análisis sobrevive a que el servidor no sobreviva** (`RNF-17`). El trabajo corre dentro del proceso del API, así que un reinicio a mitad de análisis deja la fila en `ANALIZANDO` y ahí se queda: no hay nadie que la mueva, y mientras tanto la obra no admite otra importación. La máquina de estados de arriba describe las transiciones que provoca el usuario; esta la provoca su ausencia.
+**El análisis sobrevive a que el servidor no sobreviva** (`RNF-17`). El proceso del API gobierna el trabajo, así que un reinicio a mitad de análisis deja la fila en `ANALIZANDO` y ahí se queda: no hay nadie que la mueva, y mientras tanto la obra no admite otra importación. La máquina de estados de arriba describe las transiciones que provoca el usuario; esta la provoca su ausencia.
 
-La solución es la mínima: el trabajo **actualiza un latido** mientras analiza, y al arrancar la aplicación un barrido marca `CON_ERRORES` toda importación cuyo latido esté vencido, con un error de tipo `PROCESO_INTERRUMPIDO` que explica qué pasó. El usuario ve una importación fallida con su motivo y puede reintentar, que es un resultado; una fila congelada para siempre no lo es.
+La solución es la mínima: el parseo corre en un proceso hijo de un solo trabajador, que gobierna un hilo despachador del API, y es **el proceso del API** quien **refresca el latido** del trabajo en curso y de los que esperan turno, mientras el hijo informa el progreso. Al arrancar, antes de servir y si hay base configurada, el `lifespan` ejecuta el barrido de `trabajos/` ([ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)), que marca `CON_ERRORES` toda importación cuyo latido esté vencido, con un error de tipo `PROCESO_INTERRUMPIDO` que explica qué pasó. El usuario ve una importación fallida con su motivo y puede reintentar, que es un resultado; una fila congelada para siempre no lo es.
 
 No hace falta más: la fase de análisis no escribe en el modelo real, así que una interrupción no puede dejar datos a medias. Solo puede dejar una fila mintiendo sobre su propio estado.
 
@@ -645,5 +645,6 @@ Las decisiones que un desarrollador nuevo se preguntaría *"¿por qué lo hicier
 | [ADR-022](adr/20261020-contrato-de-error-y-raiz-de-composicion.md) | El caso de uso lanza la excepción de las reglas, y el contrato y la raíz de composición viven fuera de `cimenta/` |
 | [ADR-023](adr/20261021-sesion-y-autorizacion-por-dependencia.md) | La sesión y el rol por ruta son dependencias de FastAPI, y el `DENEGAR` se asienta en una transacción propia |
 | [ADR-036](adr/20261105-preparacion-de-importacion-en-jsonb.md) | Preparación de importación en `importacion.preparacion jsonb` con formato versionado y `CHECK` de coherencia con el estado |
+| [ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md) | Trabajos en dos pasos: el API gobierna el latido, un proceso hijo parsea y un barrido de arranque en el `lifespan` cierra lo interrumpido; `trabajos/` como paquete con lista blanca |
 
 Las decisiones de herramienta —framework, ORM, modo de ejecución— viven en el [stack tecnológico](06-stack-tecnologico.md) y en [ADR-009](adr/20260918-fastapi.md) … [ADR-013](adr/20260919-sqlalchemy-sincrono.md).

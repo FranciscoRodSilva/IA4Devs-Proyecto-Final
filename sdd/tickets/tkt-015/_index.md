@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · TKT-015b
+PENDIENTE FUSIÓN · entrega TKT-015b
 
 ## Ficha
 
@@ -27,8 +27,8 @@ LISTO PARA EJECUTAR · TKT-015b
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-03 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-03 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | TKT-015a filas A-pre–A9 cerradas (2026-11-05) |
-| Delta | [delta.md](delta.md) | `/sdd-completar` | TKT-015a (2026-11-05) |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | TKT-015a A-pre–A9; TKT-015b B0–B7 + verificación final (2026-11-05) |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | TKT-015b (2026-11-05) |
 
 ## Log de estados
 
@@ -42,6 +42,9 @@ LISTO PARA EJECUTAR · TKT-015b
 | 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (TKT-015a) | Auditorías + ciclo de corrección; veredicto en `impl.md`. Siguiente: `/sdd-completar TKT-015a` |
 | 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (TKT-015a) | `delta.md`, PR abierto; archivos reales verificados localmente (5/5). Siguiente: fusión tras aprobación |
 | 2026-11-05 | `PENDIENTE FUSIÓN` | `LISTO PARA EJECUTAR · TKT-015b` | fusión PR #44 | Entrega a en `Produccion`. Siguiente: `/sdd-ejecutar TKT-015b` |
+| 2026-11-05 | `LISTO PARA EJECUTAR · TKT-015b` | `EN EJECUCIÓN · TKT-015b` | `/sdd-ejecutar` | Rama `tkt-015b-ejecutor-barrido`; filas B0–B7 cerradas |
+| 2026-11-05 | `EN EJECUCIÓN · TKT-015b` | `EN REVISIÓN · TKT-015b` | `/sdd-revisar` | Auditorías en paralelo; suite completa |
+| 2026-11-05 | `EN REVISIÓN · TKT-015b` | `LISTO PARA PR · TKT-015b` | `/sdd-revisar` | Ciclo 1: `cerrar()` con REINICIO, robustez ejecutor, LF en `fabrica.py`; 2013 tests. Siguiente: `/sdd-completar TKT-015b` |
 
 ## Decisiones registradas
 
@@ -55,6 +58,7 @@ LISTO PARA EJECUTAR · TKT-015b
 - 2026-11-03 · persona dueña: aprobadas P1 a P16 del diseño. Partir en TKT-015a y TKT-015b con fusión a → b (la alternativa de tres entregas queda descartada). Mapa de las 22 causas con la corrección del orquestador: `CONCEPTO_SIN_PARTIDA`, `PROFUNDIDAD_EXCEDIDA` y `CODIGO_SIN_CONCEPTO` van a `REF_ROTA`, y `SIN_CONCEPTOS` queda para las cinco causas de hoja. `SIN_APU` y `DUPLICADO` rechazan todas las filas del código. Preparación en la columna `importacion.preparacion jsonb` (migración `0009`, ADR-036). Latido escrito por el proceso del API, cada 5 s, con vencimiento a 60 s configurables. `progreso` queda en 1 al terminar y se corrige `docs/03`. Un error por celda.
 - 2026-11-03 · persona dueña: aprobada la excepción del `lifespan` `async def` a la regla 11 (solo delega a `run_in_threadpool`), el paquete `trabajos/` fuera de `cimenta/` con la edición de «Estructura del backend» de `CLAUDE.md` en la entrega b, y los escenarios 28 y 29 de HDU-001 en un cambio de documentación aparte antes de la fila A1. No se añade tiempo máximo por análisis (P12).
 - 2026-11-03 · persona dueña: barrido y ejecutor solo arrancan con la base configurada; sin ella se omiten con el aviso `trabajos_omitidos`, y con ella un fallo del barrido impide arrancar (P16 y P11). Conserva el invariante de TKT-006 CA-R4.
+- 2026-11-05 · persona dueña: en cierre ordenado del API, `ejecutor.cerrar()` interrumpe cola y trabajo en curso con `REINICIO` (no depender solo del barrido tras reinicio rápido). Muerte brusca sigue en el barrido del arranque siguiente.
 - 2026-11-03 · persona dueña: aprobada P17. El progreso del análisis se cuantiza con `ROUND_DOWN` a mano, fuera de `Porcentaje.cuantizar()`, como excepción `(asumido)` a la regla 1: no es dinero, y redondear hacia arriba un trabajo sin terminar sería mentir.
 
 ## Tickets futuros sugeridos

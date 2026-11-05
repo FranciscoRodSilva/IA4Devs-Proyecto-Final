@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from decimal import Decimal
 from io import BytesIO
 from zipfile import BadZipFile
@@ -112,6 +112,8 @@ def leer_catalogo(contenido: bytes) -> CatalogoLeido:
 def leer_libro_presupuesto(
     contenido: bytes,
     insumos_existentes: Mapping[str, str],
+    *,
+    al_avanzar: Callable[[int, int], None] | None = None,
 ) -> AnalisisDelLibro:
     """Lee catálogo y hojas APU en una sola apertura (HDU-001 esc. 5; TKT-014b)."""
     try:
@@ -120,16 +122,23 @@ def leer_libro_presupuesto(
         return _libro_presupuesto_vacio(_catalogo_archivo_invalido())
     try:
         catalogo = _leer_catalogo_de_libro(libro)
+        total = len(libro.sheetnames)
+        contador = 0
+        if catalogo.hoja is not None and al_avanzar is not None:
+            al_avanzar(1, total)
+            contador = 1
         analisis_leidos: list[AnalisisLeido] = []
         for nombre in libro.sheetnames:
             if nombre == catalogo.hoja:
                 continue
             hoja = libro[nombre]
-            if not isinstance(hoja, ReadOnlyWorksheet):
-                continue
-            resultado = analizar_hoja_apu(nombre, _filas(hoja))
-            if resultado is not None:
-                analisis_leidos.append(resultado)
+            if isinstance(hoja, ReadOnlyWorksheet):
+                resultado = analizar_hoja_apu(nombre, _filas(hoja))
+                if resultado is not None:
+                    analisis_leidos.append(resultado)
+            contador += 1
+            if al_avanzar is not None:
+                al_avanzar(contador, total)
         return consolidar_libro(catalogo, analisis_leidos, insumos_existentes)
     finally:
         libro.close()

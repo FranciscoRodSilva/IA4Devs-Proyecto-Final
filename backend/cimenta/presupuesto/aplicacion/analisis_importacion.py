@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
 
 import structlog
 from sqlalchemy.orm import Session, sessionmaker
@@ -13,9 +14,11 @@ from cimenta.presupuesto.dominio.importacion import (
     error_de_interrupcion,
     estado_tras_analisis,
     mapa_de_insumos_existentes,
+    progreso_de_lectura,
     puede_analizarse,
 )
 from cimenta.presupuesto.infraestructura import repositorio_importacion as repositorio
+from cimenta.presupuesto.infraestructura.ejecutor_analisis import EjecutorAnalisis, EjecutorCerrado
 from cimenta.presupuesto.infraestructura.trabajo_analisis import ResultadoAnalisis
 from contrato_error import ConflictoEstado, NoEncontrado
 
@@ -109,3 +112,48 @@ def obtener_preparacion(
     """Lee la preparación persistida sin abrir el archivo."""
     with fabrica_sesiones.begin() as sesion_bd:
         return repositorio.leer_preparacion(sesion_bd, importacion_id)
+
+
+def solicitar_analisis(
+    fabrica_sesiones: sessionmaker[Session],
+    ejecutor: EjecutorAnalisis,
+    importacion_id: uuid.UUID,
+) -> None:
+    """Reserva la importación y encola su análisis sin esperarlo (CA-12).
+
+    Si el ejecutor ya se cerró, la importación queda `CON_ERRORES` con `REINICIO` y se relanza
+    `EjecutorCerrado`.
+    """
+    trabajo = iniciar_analisis(fabrica_sesiones, importacion_id)
+    try:
+        ejecutor.encolar(trabajo)
+    except EjecutorCerrado:
+        registrar_interrupcion(fabrica_sesiones, importacion_id, MotivoInterrupcion.REINICIO)
+        raise
+
+
+class SeguimientoImportacion:
+    """Persistencia del avance del ejecutor: una transacción corta por llamada."""
+
+    def __init__(self, fabrica_sesiones: sessionmaker[Session]) -> None:
+        self._fabrica_sesiones = fabrica_sesiones
+
+    def latir(self, ids: Sequence[uuid.UUID]) -> None:
+        if not ids:
+            return
+        with self._fabrica_sesiones.begin() as sesion_bd:
+            repositorio.refrescar_latido(sesion_bd, ids)
+
+    def avanzar(self, importacion_id: uuid.UUID, hojas_leidas: int, hojas_totales: int) -> None:
+        with self._fabrica_sesiones.begin() as sesion_bd:
+            repositorio.registrar_progreso(
+                sesion_bd,
+                importacion_id,
+                progreso_de_lectura(hojas_leidas, hojas_totales),
+            )
+
+    def terminar(self, importacion_id: uuid.UUID, resultado: ResultadoAnalisis) -> None:
+        registrar_resultado(self._fabrica_sesiones, importacion_id, resultado)
+
+    def interrumpir(self, importacion_id: uuid.UUID, motivo: MotivoInterrupcion) -> None:
+        registrar_interrupcion(self._fabrica_sesiones, importacion_id, motivo)

@@ -314,6 +314,20 @@ def comprobar_tc01(trabajos: dict[str, list[str]]) -> list[str]:
     return problemas
 
 
+def comprobar_cov_trabajos(trabajos: dict[str, list[str]]) -> list[str]:
+    """TKT-015b · B1b — el paso pytest de `backend` incluye `--cov=trabajos` junto al resto de paquetes medidos."""
+    if "backend" not in trabajos:
+        return ["'backend': trabajo ausente en ci.yml"]
+    lista = pasos(trabajos["backend"])
+    paso_pytest = next((p for p in lista if re.search(r"\buv run pytest\b", comando(p))), None)
+    if paso_pytest is None:
+        return ["'backend': falta un paso `uv run pytest`"]
+    orden = comando(paso_pytest).replace("\\\n", " ").split("\n")[0]
+    if not re.search(r"--cov=trabajos(?:\s|$)", orden):
+        return ["'backend': la orden de pytest no lleva --cov=trabajos"]
+    return []
+
+
 def comprobar_tc05(trabajos: dict[str, list[str]]) -> list[str]:
     """CA-3 esc. 1."""
     problemas, _ = comprobar_secuencia(
@@ -1107,6 +1121,10 @@ class DefinicionDeCI(unittest.TestCase):
     def test_tc01_backend_ejecuta_formato_lint_tipos_float_pruebas_y_sube_el_informe(self):
         """CA-1 esc. 1 · TC-01 — `backend`, en orden: sync, ruff format --check, ruff check, mypy, verificar_float, pytest con --cov y --junitxml, y upload-artifact con if: always()."""
         self.assertEqual(comprobar_tc01(_trabajos_de_ci(self)), [])
+
+    def test_tkt015_b1b_backend_pytest_mide_cobertura_de_trabajos(self):
+        """TKT-015b · B1b — el `ci.yml` real declara `--cov=trabajos` en el paso pytest de backend."""
+        self.assertEqual(comprobar_cov_trabajos(_trabajos_de_ci(self)), [])
 
     def test_tc05_fronteras_ejecuta_lint_imports_desde_backend(self):
         """CA-3 esc. 1 · TC-05 — `fronteras` ejecuta `uv run lint-imports` con working-directory: backend."""

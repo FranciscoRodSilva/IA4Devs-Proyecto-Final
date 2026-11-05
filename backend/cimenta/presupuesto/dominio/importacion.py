@@ -7,10 +7,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from decimal import ROUND_DOWN, Decimal
 from enum import StrEnum
 from uuid import UUID
 
 from cimenta.presupuesto.dominio.lectura_analisis import normalizar_clave_insumo
+from tipos_base import Porcentaje
 
 
 class TipoErrorImportacion(StrEnum):
@@ -106,6 +108,18 @@ def error_de_interrupcion(motivo: MotivoInterrupcion) -> ErrorImportacion:
         mensaje=_MENSAJES_INTERRUPCION[motivo],
         valor_original=None,
     )
+
+
+def progreso_de_lectura(hojas_leidas: int, hojas_totales: int) -> Porcentaje:
+    """HDU-001 esc. 4 · CA-13 — avance parcial de lectura en [0, 0.9]; el cierre fija 1."""
+    if hojas_totales <= 0:
+        return Porcentaje(0)
+    leidas = min(hojas_leidas, hojas_totales)
+    fraccion = (Decimal(9 * leidas) / Decimal(10 * hojas_totales)).quantize(
+        Decimal("0.000001"),
+        rounding=ROUND_DOWN,
+    )
+    return Porcentaje(fraccion)
 
 
 def mapa_de_insumos_existentes(insumos: Iterable[tuple[str, str]]) -> dict[str, str]:

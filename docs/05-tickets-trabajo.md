@@ -521,7 +521,7 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 
 | | |
 |---|---|
-| **Tipo** | Fundación · **Talla** M · **Depende de** TKT-002, TKT-003, TKT-005, TKT-007, TKT-015 · **Sprint 2** |
+| **Tipo** | Fundación · **Talla** M · **Depende de** TKT-002, TKT-003, TKT-005, TKT-007, TKT-015b · **Sprint 2** |
 
 **Qué hace.** Implementa el **camino mínimo** del módulo `archivos` que HDU-001 necesita para que el Excel de la línea base no pase por el API: alta de la fila en `PENDIENTE` con una URL prefirmada de subida, confirmación que verifica tamaño y hash contra el objeto almacenado, tipo leído de los bytes, URL prefirmada de lectura de vida corta y barrido de los `PENDIENTE` caducados ([ADR-016](adr/20261001-almacenamiento-de-objetos.md), `RNF-06`, `RNF-19`). Galería, anulación, evidencia de campo y expediente de obra son de la fase 2.
 
@@ -538,7 +538,7 @@ Criterios que cierra: CA-1 a CA-5, CA-7, CA-8, CA-10, CA-11 (esc. 1 y 2), CA-S1 
 - [ ] La confirmación determina el tipo **leyendo los bytes** con `puremagic` contra la lista blanca cerrada del [stack §4.6](06-stack-tecnologico.md#46-los-archivos-no-viven-en-postgresql); para hoja de cálculo —solo `.xlsx`; un `.xls` no se admite— y XML la comprobación es **estructural** —abrir el ZIP y exigir la parte de libro en `[Content_Types].xml`; parsear el XML con `defusedxml` (dependencia ya declarada desde TKT-013b)—. Un tipo fuera de la lista, **SVG incluido**, se rechaza con `409` `CONFLICTO` `ARCHIVO_TIPO_NO_PERMITIDO`, el tipo detectado y los admitidos, y el archivo no pasa a `DISPONIBLE` (HDU-001 esc. 26). Es `409` y no `422` porque la petición está bien formada: lo que no cuadra es el objeto almacenado con lo declarado, igual que en el hash del esc. 25
 - [ ] Al pasar a `DISPONIBLE`, el sistema **reescribe el `Content-Type` del objeto** con el tipo que determinó, porque el que acompañó a la subida lo eligió el cliente (regla 4 de ADR-016), y asienta en la bitácora, **en la misma transacción**, el adjunto con su hash (`RNF-19`)
 - [ ] `GET /api/v1/archivos/{archivo_id}` devuelve los metadatos —nunca los bytes ni la clave del objeto—, y `GET /api/v1/archivos/{archivo_id}/descarga` emite una URL de lectura de **minutos**, servida desde el origen del almacén y nunca desde el de la SPA; todo lo que no es imagen ni video lleva `Content-Disposition: attachment`. El rol se comprueba **al emitirla**, nunca después
-- [ ] **Barrido al arrancar** de los `PENDIENTE` con la caducidad vencida, **reutilizando el mecanismo que construye TKT-015** para las importaciones con latido vencido (`RNF-17`), no uno nuevo: elimina el objeto que llegara a subirse y pasa la fila a **`CADUCADO`**, sin borrarla. `CADUCADO` y no `ANULADO` porque el barrido no tiene autor, y el invariante 24 exige autor y motivo para anular ([modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos))
+- [ ] **Barrido al arrancar** de los `PENDIENTE` con la caducidad vencida, **reutilizando el mecanismo que construye TKT-015b** —`trabajos.barrido.DefinicionBarrido` con `columna_marca="creado_en"`, [ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)— para las importaciones con latido vencido (`RNF-17`), no uno nuevo: elimina el objeto que llegara a subirse y pasa la fila a **`CADUCADO`**, sin borrarla. `CADUCADO` y no `ANULADO` porque el barrido no tiene autor, y el invariante 24 exige autor y motivo para anular ([modelo de datos §12](03-modelo-datos.md#12-archivos-adjuntos))
 - [ ] Ninguna ruta del API devuelve los bytes de un archivo: un test recorre el enrutador y falla si alguna respuesta de `archivos` es un flujo binario (regla 15 de `CLAUDE.md`)
 - [ ] Tests de `RNF-06` y `RNF-19` del [stack §6.6](06-stack-tecnologico.md#66-qué-se-comprueba-solo) contra **MinIO real**: un `.svg` renombrado a `.jpg` se rechaza por su tipo real, un tamaño excedido se rechaza, la URL de lectura caduca, un PDF se sirve como descarga, un hash que no coincide no pasa a `DISPONIBLE`, y el hash confirmado aparece en la bitácora
 - [ ] Añade el servicio y las pruebas de MinIO al trabajo `backend` del pipeline. TKT-009 deja ese trabajo sin MinIO hasta este ticket, porque antes no hay almacén que probar (ver su ficha)
@@ -690,7 +690,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] El resultado válido se guarda en `importacion.preparacion` (`jsonb`, formato 1, [ADR-036](adr/20261105-preparacion-de-importacion-en-jsonb.md)) para no repetir el análisis completo
 - [ ] Se prueba contra el catálogo de Union Square, que tiene `#REF!` en todas las columnas de precio: debe reportarlo fila a fila, no fallar en bloque
 - [ ] El análisis corre en un `ProcessPoolExecutor` de un trabajador: openpyxl retiene el intérprete y degradaría la latencia del resto de la aplicación
-- [ ] El trabajo refresca `importacion.latido` y `importacion.progreso` mientras analiza, y al arrancar la aplicación un barrido pasa a `CON_ERRORES` toda importación en `ANALIZANDO` con latido vencido, con un error `PROCESO_INTERRUMPIDO` (`RNF-17`)
+- [ ] El proceso del API refresca `importacion.latido` del trabajo en curso y de los que esperan turno, y el trabajo informa el progreso ([ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)); al arrancar la aplicación un barrido pasa a `CON_ERRORES` toda importación en `ANALIZANDO` con latido vencido, con un error `PROCESO_INTERRUMPIDO` (`RNF-17`)
 - [ ] Un test simula la interrupción y verifica que la obra vuelve a admitir importaciones
 - [ ] El barrido de arranque se construye como **mecanismo reutilizable** —trabajos en dos pasos cuyo segundo puede no ocurrir—: TKT-059 lo reutiliza para pasar a `CADUCADO` los `PENDIENTE` vencidos de `archivo`
 
@@ -730,7 +730,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 | | |
 |---|---|
-| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-015, TKT-016, TKT-007 |
+| **Tipo** | Funcionalidad · **Talla** M · **Depende de** TKT-015b, TKT-016, TKT-007 |
 
 **Criterios técnicos**
 
