@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN
+ARCHIVADO
 
 ## Ficha
 
@@ -40,6 +40,7 @@ PENDIENTE FUSIÓN
 | 2026-11-05 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Migración `0010`, fábricas, 34 pruebas TKT-072, regresión TKT-011, documentación y ADR. Suite: 2051 passed, 26 skipped. Mutación M-1…M-11 y auditorías formales pendientes en `/sdd-revisar` |
 | 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite 2051 passed; mutación M-1,M-3,M-4,M-5,M-11,M-12 verificada; auditorías arquitectura/SQL/docs APROBADO. Menor: sin rojo TDD archivado; M-2,M-6–M-10 sin spot-check |
 | 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | `delta.md`, evolución; PR abierto; espera CI y aprobación de fusión |
+| 2026-11-05 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar` | PR [#50](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/50) fusionado; planificación archivada. Registro: [#6670630517](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/50#issuecomment-6670630517) |
 
 ## Decisiones registradas
 
