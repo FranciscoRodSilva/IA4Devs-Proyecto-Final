@@ -35,7 +35,7 @@ jobs:
         run: uv run python -m herramientas.verificar_float
       - name: Pruebas con cobertura
         if: ${{ !cancelled() }}
-        run: uv run pytest --cov=cimenta --cov=tipos_base --cov=contrato_error --cov=servidor --cov-report=term --cov-report=xml:cobertura.xml --junitxml=pytest.xml
+        run: uv run pytest --cov=cimenta --cov=tipos_base --cov=contrato_error --cov=trabajos --cov=servidor --cov-report=term --cov-report=xml:cobertura.xml --junitxml=pytest.xml
       - name: Publicar informe de pruebas
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -11,7 +11,7 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
 4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 38 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 36 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 37 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
@@ -27,7 +27,7 @@ El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-ticket
 8. **La bitácora se escribe en la misma transacción que el cambio**, y no admite `UPDATE` ni `DELETE`.
 9. **La sesión tiene estado en el servidor.** La cookie lleva un identificador opaco contra la tabla `sesion`, nunca datos del usuario. Ni JWT ni cookie firmada autocontenida: quitar un rol tiene que surtir efecto en la petición siguiente ([ADR-014](docs/adr/20260919-sesion-con-estado.md)).
 10. **En la obra no hay internet.** Solo `avance` y `entrada_almacen` se capturan sin conexión y se sincronizan después; todo lo demás exige servidor. **El cliente nunca evalúa una regla**: lo encolado entra por los mismos casos de uso y puede volver rechazado. No se inicia sesión sin conexión ([ADR-015](docs/adr/20260919-captura-diferida-sin-conexion.md)).
-11. **SQLAlchemy es síncrono y las rutas se declaran `def`.** Nunca `async def`. Una llamada bloqueante en una corrutina congela el bucle entero y no lo detecta ningún linter ([ADR-013](docs/adr/20260919-sqlalchemy-sincrono.md)).
+11. **SQLAlchemy es síncrono y las rutas se declaran `def`.** Nunca `async def`. Una llamada bloqueante en una corrutina congela el bucle entero y no lo detecta ningún linter ([ADR-013](docs/adr/20260919-sqlalchemy-sincrono.md)). La única excepción es el `lifespan` de `servidor/`, que FastAPI admite solo como corrutina y que se limita a delegar en `run_in_threadpool` ([ADR-037](docs/adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)).
 12. **El avance físico se divide entre el alcance, nunca entre lo ya medido.** El denominador es `alcance_destajo` —los m² contratados de todas las áreas por todas las etapas—, no `SUM(avance.m2_contrato)`, que es el índice de desviación de volumen y da siempre cerca del 100 %. Sin avance validado el porcentaje es `NULL`, no cero, o la desviación sale igual al ejercido.
 13. **Quien mide no fija el número contra el que se le mide.** El residente captura `m2_real`; `m2_contrato` se copia del alcance y solo el Director de Proyectos lo corrige, con motivo.
 14. **Ningún criterio de aceptación cubre solo el camino feliz.** Cada regla necesita su escenario de rechazo.
@@ -60,7 +60,7 @@ backend/cimenta/<modulo>/
 └── interfaz.py       Interfaz publicada: lo único que otro módulo importa
 ```
 
-Fuera de `cimenta/`, en `backend/`, viven `tipos_base/` (`Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje`, que importa cualquier capa de cualquier módulo), `contrato_error/` (las excepciones del contrato de error, que lanza el caso de uso de cualquier módulo), `servidor/` (la fábrica de la aplicación y raíz de composición, el *middleware* de correlación y los manejadores de error), `migraciones/` (Alembic), `herramientas/` (operación y verificadores propios, como fijar las contraseñas de los roles o buscar `float` en el dominio) y `tests/`. `import-linter` analiza `cimenta/` y `tipos_base/`; los demás, no: la pureza de `contrato_error` la comprueba una prueba.
+Fuera de `cimenta/`, en `backend/`, viven `tipos_base/` (`Dinero`, `Cantidad`, `Rendimiento` y `Porcentaje`, que importa cualquier capa de cualquier módulo), `contrato_error/` (las excepciones del contrato de error, que lanza el caso de uso de cualquier módulo), `servidor/` (la fábrica de la aplicación y raíz de composición, el *middleware* de correlación y los manejadores de error), `trabajos/` (el barrido genérico de filas vencidas, que solo importa la biblioteca estándar y `sqlalchemy`: [ADR-037](docs/adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)), `migraciones/` (Alembic), `herramientas/` (operación y verificadores propios, como fijar las contraseñas de los roles o buscar `float` en el dominio) y `tests/`. `import-linter` analiza `cimenta/`, `tipos_base/` y `trabajos/`; los demás, no: la pureza de `contrato_error` la comprueba una prueba.
 
 Módulos: `identidad`, `auditoria`, `archivos`, `presupuesto`, `compras`, `almacen`, `avance`, `personal`, `proveedores`, `analitica`.
 

@@ -121,7 +121,7 @@ Es la capa HTTP, y solo eso.
 
 ### 3.3. Trabajos en segundo plano
 
-**Dentro del proceso, con el estado en base de datos.** La importación de presupuestos es la única operación pesada —8 MB, 25 hojas, 5,988 filas— y su estado ya vive en las tablas `importacion` e `importacion_error`. FastAPI ejecuta la tarea en segundo plano y la interfaz consulta el progreso.
+**Dentro del proceso, con el estado en base de datos.** La importación de presupuestos es la única operación pesada —8 MB, 25 hojas, 5,988 filas— y su estado ya vive en las tablas `importacion` e `importacion_error`. Un hilo despachador del proceso del API la envía a un `ProcessPoolExecutor` de un trabajador, y la interfaz consulta el progreso ([ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)).
 
 No hay cola externa ni trabajador separado. El umbral que obligaría a introducirlos está en [ADR-001](adr/20260918-monolito-modular.md): si la importación supera los cinco minutos o bloquea peticiones de usuario.
 
@@ -129,7 +129,7 @@ No hay cola externa ni trabajador separado. El umbral que obligaría a introduci
 
 **El parseo se va a un proceso aparte.** openpyxl es Python puro y retiene el intérprete mientras lee; en un hilo del servidor, eso degrada la latencia de todo lo demás durante la importación. Se ejecuta en un `ProcessPoolExecutor` de un solo trabajador, que lo aísla sin introducir infraestructura. Es un cambio de dos líneas frente a montar una cola.
 
-**Un reinicio no puede dejar la fila colgada** (`RNF-17`). El trabajo actualiza `importacion.latido` mientras analiza, y al arrancar la aplicación un barrido marca `CON_ERRORES` toda importación en `ANALIZANDO` con el latido vencido, añadiendo un `importacion_error` de tipo `PROCESO_INTERRUMPIDO`. Sin eso, un reinicio a mitad de análisis deja la obra sin poder importar de nuevo y sin nadie a quien reclamarle: la fase de análisis no escribe en el modelo real, así que el único daño posible es exactamente ese.
+**Un reinicio no puede dejar la fila colgada** (`RNF-17`). El proceso del API refresca `importacion.latido` mientras el trabajo está en cola o en curso, y al arrancar la aplicación, antes de servir y si hay base configurada, el barrido de `trabajos/` marca `CON_ERRORES` toda importación en `ANALIZANDO` con el latido vencido, añadiendo un `importacion_error` de tipo `PROCESO_INTERRUMPIDO`. Sin eso, un reinicio a mitad de análisis deja la obra sin poder importar de nuevo y sin nadie a quien reclamarle: la fase de análisis no escribe en el modelo real, así que el único daño posible es exactamente ese.
 
 ### 3.4. Autenticación
 
@@ -363,7 +363,7 @@ La tabla cubre los **diecinueve** requisitos no funcionales, no solo los de segu
 | `RNF-14` agregación de errores | **No.** Depende de un servicio externo | ❌ manual |
 | `RNF-15` semáforo < 2 s | Prueba de rendimiento con volumen sembrado | ✅ |
 | `RNF-16` sin esperas indefinidas | Prueba: una transacción retiene el bloqueo, la segunda vence y responde con el contrato de error | ✅ |
-| `RNF-17` trabajo interrumpido | Prueba: importación con latido vencido, barrida a `CON_ERRORES` | ✅ |
+| `RNF-17` trabajo interrumpido | Prueba: importación con latido vencido, barrida a `CON_ERRORES` (TC-46 del barrido y TC-63 del arranque de TKT-015b) | ✅ |
 | `RNF-18` captura sin conexión | Prueba: se encola una captura sin red, se sincroniza y **no se duplica** al reenviarla; otra prueba encola una entrada que excede lo ordenado y verifica que vuelve con el contrato de error de `RN-07`, no aceptada | ✅ |
 | `RNF-19` integridad de la evidencia | Prueba: un objeto cuyo hash no coincide con lo declarado **no pasa** a `DISPONIBLE`; el hash del adjunto confirmado aparece en el asiento de bitácora. **El respaldo del almacén de objetos, no**: es procedimiento, igual que `RNF-10` | ✅ parcial |
 

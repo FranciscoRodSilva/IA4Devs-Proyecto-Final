@@ -19,6 +19,7 @@ from cimenta.presupuesto.dominio.importacion import (
     TipoErrorImportacion,
 )
 from cimenta.presupuesto.infraestructura.tablas import importacion, importacion_error, insumo
+from tipos_base import Porcentaje
 
 
 class FilaImportacion(NamedTuple):
@@ -157,6 +158,35 @@ def insertar_errores(
         for error in errores
     ]
     sesion_bd.execute(insert(importacion_error), filas)
+
+
+def refrescar_latido(sesion_bd: Session, ids: Sequence[uuid.UUID]) -> None:
+    """TKT-015b · CA-13 — renueva el latido de las importaciones que siguen `ANALIZANDO`."""
+    if not ids:
+        return
+    sesion_bd.execute(
+        update(importacion)
+        .where(
+            importacion.c.id.in_(list(ids)),
+            importacion.c.estado == EstadoImportacion.ANALIZANDO.value,
+        )
+        .values(latido=func.now())
+    )
+
+
+def registrar_progreso(sesion_bd: Session, importacion_id: uuid.UUID, progreso: Porcentaje) -> None:
+    """TKT-015b · CA-13 — el progreso nunca baja: `GREATEST` con el valor guardado."""
+    sesion_bd.execute(
+        update(importacion)
+        .where(
+            importacion.c.id == importacion_id,
+            importacion.c.estado == EstadoImportacion.ANALIZANDO.value,
+        )
+        .values(
+            progreso=func.greatest(func.coalesce(importacion.c.progreso, 0), progreso.valor),
+            latido=func.now(),
+        )
+    )
 
 
 def leer_preparacion(sesion_bd: Session, importacion_id: uuid.UUID) -> dict[str, object] | None:

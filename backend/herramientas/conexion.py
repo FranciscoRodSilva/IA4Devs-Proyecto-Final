@@ -6,6 +6,7 @@ solo salen del entorno, y nunca hay un valor por omisión.
 """
 
 import os
+from collections.abc import Mapping
 from typing import Final
 
 from sqlalchemy import URL, Engine, create_engine
@@ -24,6 +25,18 @@ def leer_variable(nombre: str) -> str:
             "Cópiala de .env.example a .env y ejecuta con: uv run --env-file ../.env …"
         )
     return valor
+
+
+def variables_de_base_presentes(entorno: Mapping[str, str]) -> bool:
+    """Verdadero si el destino de la base (host, puerto y nombre) está definido y no vacío en `entorno`.
+
+    P16 (TKT-015b): el arranque de la aplicación decide con esto si barre las importaciones
+    interrumpidas o lo omite. No lee `os.environ` ni abre conexión.
+    """
+    return all(
+        entorno.get(nombre, "")
+        for nombre in ("CIMENTA_DB_HOST", "CIMENTA_DB_PUERTO", "CIMENTA_DB_NOMBRE")
+    )
 
 
 def url_migracion() -> URL:

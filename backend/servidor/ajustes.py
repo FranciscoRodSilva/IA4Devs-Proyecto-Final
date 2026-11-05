@@ -15,7 +15,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
-from pydantic import SecretStr, ValidationError, field_validator
+from pydantic import SecretStr, ValidationError, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
 PREFIJO_VARIABLES = "CIMENTA_"
@@ -46,6 +46,29 @@ class AjustesServidor(BaseSettings):
 
     db_contrasena_aplicacion: SecretStr
     almacen_origen: str | None = None
+    trabajos_intervalo_latido: int = 5
+    trabajos_umbral_vencimiento: int = 60
+
+    @field_validator("trabajos_intervalo_latido")
+    @classmethod
+    def validar_intervalo_latido(cls, valor: int) -> int:
+        """TKT-015b · PA-15.4 — el latido se emite cada 1 a 60 segundos."""
+        if 1 <= valor <= 60:
+            return valor
+        raise ValueError("debe estar entre 1 y 60 segundos")
+
+    @field_validator("trabajos_umbral_vencimiento")
+    @classmethod
+    def validar_umbral_vencimiento(cls, valor: int, info: ValidationInfo) -> int:
+        """TKT-015b · PA-15.4 — el umbral es al menos tres intervalos de latido.
+
+        Tolerante: si el intervalo ya falló, no está en `info.data` y no se compara, para que el
+        error nombre solo la variable del intervalo.
+        """
+        intervalo = info.data.get("trabajos_intervalo_latido")
+        if intervalo is None or valor >= 3 * intervalo:
+            return valor
+        raise ValueError("debe ser al menos tres veces el intervalo de latido")
 
     @field_validator("almacen_origen")
     @classmethod

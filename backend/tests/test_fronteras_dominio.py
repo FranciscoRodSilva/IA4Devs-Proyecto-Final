@@ -4,7 +4,7 @@ Sin Docker (CA-13). Cada violación se escribe en una copia del árbol bajo `tmp
 el árbol que se revisa; la configuración que se prueba es la `pyproject.toml` del repositorio.
 `lint-imports` se identifica por el `id` del contrato (`--contract`) y no por su `name`, que es
 texto libre y cambia con el contrato. Cuando se cuentan contratos, el total es el de la
-configuración real: con el contrato propio y `tipos-base-puro` son quince.
+configuración real: con el contrato propio y `tipos-base-puro` son dieciséis.
 """
 
 import os
@@ -37,8 +37,10 @@ def copia(tmp_path: Path) -> Path:
     destino = tmp_path / "copia"
     destino.mkdir()
     shutil.copy(BACKEND / "pyproject.toml", destino / "pyproject.toml")
-    for paquete in ("cimenta", "tipos_base", "herramientas"):
-        shutil.copytree(BACKEND / paquete, destino / paquete, ignore=IGNORAR)
+    for paquete in ("cimenta", "tipos_base", "herramientas", "trabajos"):
+        origen = BACKEND / paquete
+        if origen.is_dir():
+            shutil.copytree(origen, destino / paquete, ignore=IGNORAR)
     return destino
 
 
@@ -80,7 +82,7 @@ def afirmar_contrato_roto(corrida: Corrida) -> None:
 
 
 def test_tkt004_ca10_dominio_importa_estandar_y_tipos_base(copia: Path) -> None:
-    """TC-90 · CA-10 esc. 1 — un dominio con decimal y tipos_base cumple los 15 contratos."""
+    """TC-90 · CA-10 esc. 1 — un dominio con decimal y tipos_base cumple los 16 contratos."""
     escribir(
         copia / DOMINIO_DE_COMPRAS,
         "from __future__ import annotations\n\n"
@@ -91,7 +93,7 @@ def test_tkt004_ca10_dominio_importa_estandar_y_tipos_base(copia: Path) -> None:
     corrida = correr_linter(copia)
 
     assert corrida.codigo == 0, corrida.salida
-    assert contratos_cumplidos_y_rotos(corrida) == (15, 0), corrida.salida
+    assert contratos_cumplidos_y_rotos(corrida) == (16, 0), corrida.salida
 
 
 @pytest.mark.parametrize("tercero", ["requests", "numpy"])
@@ -253,8 +255,8 @@ def test_tkt004_ca10_modulo_con_prefijo_de_permitido_rompe_el_contrato(copia: Pa
 
 
 def test_tkt004_ca10_arbol_real() -> None:
-    """TC-98 · CA-10, CA-R3 — el árbol real cumple los 15 contratos."""
+    """TC-98 · CA-10, CA-R3 — el árbol real cumple los 16 contratos."""
     corrida = correr_linter(BACKEND)
 
     assert corrida.codigo == 0, corrida.salida
-    assert contratos_cumplidos_y_rotos(corrida) == (15, 0), corrida.salida
+    assert contratos_cumplidos_y_rotos(corrida) == (16, 0), corrida.salida

@@ -110,7 +110,12 @@ def test_tkt057_ca15_esc2_el_servidor_solo_recibe_la_contrasena_de_aplicacion() 
     )
 
     campos = set(AjustesServidor.model_fields)
-    assert campos == {"db_contrasena_aplicacion", "almacen_origen"}
+    assert campos == {
+        "db_contrasena_aplicacion",
+        "almacen_origen",
+        "trabajos_intervalo_latido",
+        "trabajos_umbral_vencimiento",
+    }
     assert not any("migracion" in campo or "lectura" in campo for campo in campos)
     assert ajustes.db_contrasena_aplicacion.get_secret_value() == CONTRASENA_APLICACION
     assert ajustes.almacen_origen is None

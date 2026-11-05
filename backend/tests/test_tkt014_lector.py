@@ -140,10 +140,15 @@ def test_hdu001_esc05_leer_libro_no_escribe(libro_catalogo: LibroCatalogo) -> No
     """TC-38 · HDU-001 esc. 5 · CA-15."""
     from cimenta.presupuesto.infraestructura.lector_catalogo import leer_libro_presupuesto
 
-    assert tuple(inspect.signature(leer_libro_presupuesto).parameters) == (
+    firma = inspect.signature(leer_libro_presupuesto)
+    assert tuple(firma.parameters) == (
         "contenido",
         "insumos_existentes",
+        "al_avanzar",
     )
+    parametro_avance = firma.parameters["al_avanzar"]
+    assert parametro_avance.default is None
+    assert parametro_avance.kind is inspect.Parameter.KEYWORD_ONLY
 
     raiz = Path(__file__).resolve().parents[1] / "cimenta" / "presupuesto" / "infraestructura"
     fuente = (raiz / "lector_catalogo.py").read_text(encoding="utf-8")

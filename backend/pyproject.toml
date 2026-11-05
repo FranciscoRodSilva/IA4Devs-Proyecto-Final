@@ -47,7 +47,15 @@ warn_redundant_casts = true
 exclude = ['^\.venv/']
 
 [[tool.mypy.overrides]]
-module = ["cimenta.*.dominio.*", "cimenta.auditoria.*", "cimenta.identidad.*", "tipos_base.*", "contrato_error.*", "servidor.*"]
+module = [
+    "cimenta.*.dominio.*",
+    "cimenta.auditoria.*",
+    "cimenta.identidad.*",
+    "tipos_base.*",
+    "contrato_error.*",
+    "servidor.*",
+    "trabajos.*",
+]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_untyped_calls = true
@@ -64,7 +72,7 @@ implicit_reexport = false
 entrypoint = "servidor.principal:app"
 
 [tool.importlinter]
-root_packages = ["cimenta", "tipos_base"]
+root_packages = ["cimenta", "tipos_base", "trabajos"]
 include_external_packages = true
 exclude_type_checking_imports = false
 contract_types = ["lista_blanca: herramientas.contrato_lista_blanca.ContratoListaBlanca"]
@@ -106,6 +114,14 @@ name = "tipos_base solo importa la biblioteca estándar, ni directa ni indirecta
 type = "lista_blanca"
 origen = ["tipos_base"]
 broken_contract_guidance = "tipos_base lo importan todos los módulos: no puede depender de ninguno ni de un tercero."
+
+[[tool.importlinter.contracts]]
+id = "trabajos-solo-sqlalchemy"
+name = "trabajos solo importa la biblioteca estándar y sqlalchemy, ni directa ni indirectamente"
+type = "lista_blanca"
+origen = ["trabajos"]
+permitidos = ["sqlalchemy"]
+broken_contract_guidance = "El barrido recibe definiciones y no conoce a quien las define (ADR-037). No se arregla con una excepción en el contrato."
 
 [[tool.importlinter.contracts]]
 id = "solo-por-interfaz"
