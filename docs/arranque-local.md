@@ -190,6 +190,16 @@ $env:CIMENTA_CATALOGO_UNION = 'D:\ruta\AP-058-25 SEGUNDA ETAPA P.U UNION SQUERE.
 
 Union debe ser el libro de **precios unitarios** (`AP-058-25 SEGUNDA ETAPA P.U UNION SQUERE.xlsx`) con la hoja `CATALOGO DE CONCEPTOS`, `#REF!` en P.U. e importe (CA-7) **y las hojas de APU** (TKT-014). ENITI debe incluir sus hojas de APU numeradas. Sin esas variables, esas pruebas hacen `pytest.skip` con el motivo en el resumen (`pytest -ra`).
 
+### Oráculo de explosión Union (TKT-016)
+
+Para `tests/test_tkt016_archivo_real.py` (CA-10), define además un CSV UTF-8 con encabezado `clave,cantidad,importe` (punto decimal, sin separador de miles), extraído a mano del libro `AP-058-25 EXPLOSION DE INSUMOS` y guardado **fuera del repositorio** junto a los `.xlsx` del cliente:
+
+```powershell
+$env:CIMENTA_EXPLOSION_UNION = 'D:\ruta\explosion-union.csv'
+```
+
+Requiere también `CIMENTA_CATALOGO_UNION` apuntando al libro P.U. de la misma obra. Si falta alguna variable, la reconciliación hace `pytest.skip` con el motivo explícito. Con el libro Union medido en TKT-014 (cero asociaciones catálogo↔APU, `PA-T3`), TC-26 sigue omitida aunque existan las rutas: el skip indica «PA-16.6 · PA-T3».
+
 ## Lo que todavía no arranca
 
 Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que se habilitan. Hasta entonces fallan por diseño: el código que ejecutan todavía no existe.
