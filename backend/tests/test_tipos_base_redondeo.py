@@ -1,8 +1,8 @@
 """Redondeo explícito y serialización de los tipos base (TKT-004, fila 3): TC-50 a TC-61.
 
 Sin Docker: ninguna prueba de este archivo pide `contenedor_postgres` ni nada que dependa de
-él (CA-13). Todo importe se construye desde cadena. El redondeo es `ROUND_HALF_UP` (asumido,
-PA-T5) y `serializar` no redondea nunca: rechaza lo que no se ha cuantizado (PA-T7).
+él (CA-13). Todo importe se construye desde cadena. El redondeo es `ROUND_HALF_UP` (`PA-23`) y
+`serializar` no redondea nunca: rechaza lo que no se ha cuantizado (PA-T7).
 """
 
 import json

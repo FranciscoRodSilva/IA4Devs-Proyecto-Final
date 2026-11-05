@@ -25,7 +25,7 @@ from decimal import (
 )
 from typing import ClassVar, Self, overload
 
-# Cambiar el modo de redondeo es cambiar esta constante (PA-T5 de TKT-004).
+# Modo de redondeo confirmado en PA-23 (TKT-016); antes PA-T5 de TKT-004.
 _MODO_REDONDEO = ROUND_HALF_UP
 
 # Suma, resta y producto exactos. Inexact y Rounded atrapados: si algo redondeara, falla.
@@ -182,7 +182,7 @@ class _Numero:
         return self._nuevo(_EXACTO.subtract(self.valor, otro.valor))
 
     def cuantizar(self) -> Self:
-        """Lleva el valor a la escala de su columna con ROUND_HALF_UP (asumido, PA-T5)."""
+        """Lleva el valor a la escala de su columna con ROUND_HALF_UP (PA-23)."""
         return self._nuevo(self._en_columna(self._a_escala()))
 
     def serializar(self) -> str:
@@ -284,13 +284,39 @@ def _producto(a: _Numero, b: _Numero) -> Decimal:
     return _EXACTO.multiply(a.valor, b.valor)
 
 
-def _cociente(a: _Numero, b: _Numero) -> Porcentaje:
+def _dividir(a: _Numero, b: _Numero) -> Decimal:
     if b.valor.is_zero():
         raise ZeroDivisionError(
             f"{type(a).__name__} entre {type(b).__name__} cero: quien necesita «sin dato» "
             "decide antes de dividir (regla 12 de CLAUDE.md)"
         )
-    return Porcentaje._nuevo(_DIVISION.divide(a.valor, b.valor))
+    return _DIVISION.divide(a.valor, b.valor)
+
+
+def _cociente(a: _Numero, b: _Numero) -> Porcentaje:
+    return Porcentaje._nuevo(_dividir(a, b))
+
+
+def cociente_rendimiento(cantidad: Cantidad, base: Cantidad) -> Rendimiento:
+    """Cociente cantidad/base como Rendimiento (28 dígitos, sin cuantizar). TKT-016."""
+    if type(cantidad) is not Cantidad:
+        raise TypeError(f"cociente_rendimiento espera Cantidad y recibió {type(cantidad).__name__}")
+    if type(base) is not Cantidad:
+        raise TypeError(f"cociente_rendimiento espera Cantidad y recibió {type(base).__name__}")
+    return Rendimiento._nuevo(_dividir(cantidad, base))
+
+
+def cociente_precio_unitario(importe: Dinero, cantidad: Cantidad) -> Dinero:
+    """Cociente importe/cantidad como Dinero (28 dígitos, sin cuantizar). TKT-016."""
+    if type(importe) is not Dinero:
+        raise TypeError(
+            f"cociente_precio_unitario espera Dinero y recibió {type(importe).__name__}"
+        )
+    if type(cantidad) is not Cantidad:
+        raise TypeError(
+            f"cociente_precio_unitario espera Cantidad y recibió {type(cantidad).__name__}"
+        )
+    return Dinero._nuevo(_dividir(importe, cantidad))
 
 
 def sumar[T: _Numero](valores: Iterable[T], tipo: type[T]) -> T:

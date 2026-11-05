@@ -29,7 +29,7 @@ Este registro se escribe porque TKT-004 fija estas decisiones antes de que el pr
 
 **Redondeo**
 
-* `cuantizar()` explícito, con `ROUND_HALF_UP`. **Elegida**, como supuesto `(asumido)`: negocio no ha confirmado el modo, y la pregunta sigue abierta en la especificación de TKT-004 (`PA-T5`).
+* `cuantizar()` explícito, con `ROUND_HALF_UP`. **Elegida**; `PA-23` lo confirmó el 2026-11-03 (TKT-016).
 * `ROUND_HALF_EVEN`. Descartada por ahora: es la alternativa que negocio debe confirmar o descartar.
 * Redondear en el constructor, como decía el ejemplo antiguo de la convención de dominio. Descartada: un operando ya redondeado arrastra un error que el cálculo posterior no puede deshacer.
 
@@ -71,7 +71,8 @@ Se elige un paquete `backend/tipos_base/` con cuatro objetos de valor (`Dinero`,
 * El verificador de `float` tiene límites conocidos, y `RUF032` solo cubre la construcción desde un literal. El verificador no detecta un alias `Tasa = float` ni `type Tasa = float` usados como anotación; `TypeVar(bound=float)` ni el límite de un parámetro de tipo (`def g[U: float]`); `b.float` tras `import builtins as b`; un valor por omisión `x=0.5`; `float(x)` en el cuerpo de una función, ni comentarios `# type:`. Da falso positivo con `Literal["float"]` y `Annotated[int, "float"]`. Son huecos que la revisión debe vigilar.
 * La huella de `float` de la entrada pública (`_viene_de_float`, D-1 de TKT-004) es una heurística: más de 18 dígitos significativos y exactamente un `double`. Un `Decimal` legítimo de 19 o más dígitos que sea exactamente un `double`, como 2⁻²⁷ (`7.450580596923828125E-9`), se rechaza si se vuelve a envolver el `.valor` de un resultado. Los valores leídos de PostgreSQL tienen 18 dígitos o menos y no lo alcanzan.
 * Los tipos rechazan al construir un valor con más de 40 decimales o con una magnitud de 10^41 o más (asumido, decisión del usuario en la revisión de TKT-004, hallazgo M-01), para impedir el consumo desmedido de memoria y tiempo con `Decimal('1E+999999999')`.
-* Si negocio elige otro modo de redondeo, el cambio toca una sola constante, pero cambia cifras de todos los importes ya calculados.
+* Si negocio revierte `PA-23` y elige otro modo de redondeo, el cambio toca una sola constante, pero cambia cifras de todos los importes ya calculados.
+* TKT-016 añadió `cociente_rendimiento` y `cociente_precio_unitario` como funciones con nombre, sin nuevos operadores entre tipos.
 
 **Cuándo revisar esta decisión**
 
