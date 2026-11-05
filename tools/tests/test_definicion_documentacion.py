@@ -20,7 +20,7 @@ Qué cubren:
   `if: ${{ !cancelled() }}` (regla común 6), también los de preparación (`setup-node`, `setup-uv`, la instalación de
   `mermaid-cli`): si fallase uno anterior y el de preparación se saltara, el paso siguiente correría sin su
   herramienta y taparía el hallazgo real con un «comando no encontrado». `mermaid-cli` no se instala suelto
-  (`zizmor` marca `adhoc-packages`): `.github/mermaid/package.json` lo declara en la versión exacta `12.0.0`,
+  (`zizmor` marca `adhoc-packages`): `.github/mermaid/package.json` lo declara en la versión exacta `12.2.0`,
   `.github/mermaid/package-lock.json` la fija con su `integrity` y el trabajo ejecuta `npm ci` sobre ese directorio.
 * TC-64 (`CA-14` esc. 1): `.github/workflows/enlaces.yml` se dispara un día por semana (`schedule`) y a mano
   (`workflow_dispatch`), con `permissions: contents: read`, y usa la misma configuración de `lychee` que el PR.
@@ -47,7 +47,7 @@ Formas que aceptan estos casos (la de la fila D5 tiene que ser una de ellas):
   `$GITHUB_WORKSPACE`), con la llamada negada y sola (`if ! mmdc ...; then`, o `mmdc ... || { ...; }`); escribe
   `::error file=$archivo::diagrama Mermaid inválido`, pone `fallos=1` en la rama que falla (con `fallos=0` antes del
   bucle) y, tras el `done`, termina con `exit 1` condicionado por `fallos` (`-ne 0` o `-eq 1`), como último comando del paso.
-  Los archivos reales: `.github/mermaid/package.json` (`"private": true` y `@mermaid-js/mermaid-cli` en `12.0.0`
+  Los archivos reales: `.github/mermaid/package.json` (`"private": true` y `@mermaid-js/mermaid-cli` en `12.2.0`
   exacta, sin `^` ni `~`), `.github/mermaid/package-lock.json` (`lockfileVersion` 3 con esa versión e `integrity`),
   `.github/puppeteer-config.json` (`--no-sandbox` en `args`) y `.gitignore` con `node_modules`.
 * `enlaces.yml`: `on:` es exactamente `schedule` y `workflow_dispatch`; declara `concurrency` con un `group` y
@@ -140,7 +140,7 @@ ALCANCE_DE_DIRECTORIOS = ("docs", "sdd", "README.md", "CLAUDE.md", "tools/README
 VERSION_DE_MARKDOWNLINT = "0.24.0"
 VERSION_DE_VALE = "3.25.1.0"
 VERSION_DE_LYCHEE = "v0.24.2"
-VERSION_DE_MMDC = "12.0.0"
+VERSION_DE_MMDC = "12.2.0"
 CRON_SEMANAL = "0 13 * * 1"
 ARCHIVO_DE_NODE = "frontend/package.json"
 DISPARADORES_DE_ENLACES = {"schedule", "workflow_dispatch"}
@@ -635,7 +635,7 @@ def _leer_json(texto: str, archivo: str) -> tuple[dict | None, list[str]]:
 
 def comprobar_package_json_de_mermaid(texto: str) -> list[str]:
     """CA-16 esc. 1 · TC-65. `.github/mermaid/package.json`: `"private": true` y `@mermaid-js/mermaid-cli` en `dependencies` o
-    `devDependencies` con la versión EXACTA `12.0.0` (sin `^`, `~`, rangos ni etiquetas)."""
+    `devDependencies` con la versión EXACTA `12.2.0` (sin `^`, `~`, rangos ni etiquetas)."""
     archivo = f"{DIRECTORIO_DE_MERMAID}/package.json"
     datos, problemas = _leer_json(texto, archivo)
     if datos is None:
@@ -664,7 +664,7 @@ def comprobar_package_json_de_mermaid(texto: str) -> list[str]:
 
 def comprobar_package_lock_de_mermaid(texto: str) -> list[str]:
     """CA-16 esc. 1 · TC-65. `.github/mermaid/package-lock.json`: `lockfileVersion` 3, `node_modules/@mermaid-js/mermaid-cli` en
-    `12.0.0` con `integrity`, y la raíz del lock (`packages[""]`) declarando la misma versión exacta que el `package.json`."""
+    `12.2.0` con `integrity`, y la raíz del lock (`packages[""]`) declarando la misma versión exacta que el `package.json`."""
     archivo = f"{DIRECTORIO_DE_MERMAID}/package-lock.json"
     datos, problemas = _leer_json(texto, archivo)
     if datos is None:
@@ -1989,7 +1989,7 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             "vuelve npm install con el paquete suelto": (
                 en_documentacion(
                     LINEAS_INSTALAR_MMDC,
-                    '        run: npm install --no-save --prefix "$RUNNER_TEMP/mmdc" @mermaid-js/mermaid-cli@12.0.0\n',
+                    '        run: npm install --no-save --prefix "$RUNNER_TEMP/mmdc" @mermaid-js/mermaid-cli@12.2.0\n',
                 ),
                 "debe ser `npm ci`",
             ),
@@ -2010,7 +2010,7 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
                 "ejecuta `npm install`",
             ),
             "npm ci con el paquete como argumento": (
-                en_documentacion("run: npm ci\n", "run: npm ci @mermaid-js/mermaid-cli@12.0.0\n"),
+                en_documentacion("run: npm ci\n", "run: npm ci @mermaid-js/mermaid-cli@12.2.0\n"),
                 "no instala paquetes sueltos",
             ),
             "npm ci sin working-directory": (
@@ -2510,16 +2510,16 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
                 self.assertEqual(comprobar_gitignore_de_node_modules(texto), [])
 
     def test_tc65_mutantes_package_json_de_mermaid_cli_fija_la_version_exacta(self):
-        """CA-16 esc. 1 · TC-65 — `package.json`: `private: true` y `@mermaid-js/mermaid-cli` en `12.0.0` exacta, no `^`, `~`, rango ni etiqueta."""
+        """CA-16 esc. 1 · TC-65 — `package.json`: `private: true` y `@mermaid-js/mermaid-cli` en `12.2.0` exacta, no `^`, `~`, rango ni etiqueta."""
         ruta = ("dependencies", PAQUETE_DE_MMDC)
-        fragmento_de_version = "debe ser la versión exacta '12.0.0'"
+        fragmento_de_version = "debe ser la versión exacta '12.2.0'"
         casos = {
             "con acento circunflejo": (
-                json_mutado(PACKAGE_JSON_BASE, ruta, "^12.0.0"),
+                json_mutado(PACKAGE_JSON_BASE, ruta, "^12.2.0"),
                 fragmento_de_version,
             ),
-            "con tilde": (json_mutado(PACKAGE_JSON_BASE, ruta, "~12.0.0"), fragmento_de_version),
-            "con rango": (json_mutado(PACKAGE_JSON_BASE, ruta, ">=12.0.0"), fragmento_de_version),
+            "con tilde": (json_mutado(PACKAGE_JSON_BASE, ruta, "~12.2.0"), fragmento_de_version),
+            "con rango": (json_mutado(PACKAGE_JSON_BASE, ruta, ">=12.2.0"), fragmento_de_version),
             "con comodín": (json_mutado(PACKAGE_JSON_BASE, ruta, "12.x"), fragmento_de_version),
             "latest": (json_mutado(PACKAGE_JSON_BASE, ruta, "latest"), fragmento_de_version),
             "otra versión": (json_mutado(PACKAGE_JSON_BASE, ruta, "12.0.1"), fragmento_de_version),
@@ -2547,7 +2547,7 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
             ),
             "exacta en dependencies y con ^ en devDependencies": (
                 json_mutado(
-                    {**PACKAGE_JSON_BASE, "devDependencies": {PAQUETE_DE_MMDC: "^12.0.0"}},
+                    {**PACKAGE_JSON_BASE, "devDependencies": {PAQUETE_DE_MMDC: "^12.2.0"}},
                     ("name",),
                     "otro",
                 ),
@@ -2569,7 +2569,7 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
         exigir_rojo_en_todos(self, comprobar_package_json_de_mermaid, casos)
 
     def test_tc65_mutantes_package_lock_de_mermaid_cli_fija_la_version_y_su_integridad(self):
-        """CA-16 esc. 1 · TC-65 — `package-lock.json`: `lockfileVersion` 3, la entrada de mermaid-cli en `12.0.0` con `integrity`, y la raíz del lock con la misma versión exacta."""
+        """CA-16 esc. 1 · TC-65 — `package-lock.json`: `lockfileVersion` 3, la entrada de mermaid-cli en `12.2.0` con `integrity`, y la raíz del lock con la misma versión exacta."""
         entrada = ("packages", ENTRADA_DEL_LOCK)
         raiz = ("packages", "", "dependencies", PAQUETE_DE_MMDC)
         casos = {
@@ -2613,9 +2613,9 @@ class PruebasDeMutantesDeLaFilaD5ParaTC65(unittest.TestCase):
                 json_mutado(PACKAGE_LOCK_BASE, (*entrada, "integrity"), "md5-abcd"),
                 "no lleva `integrity`",
             ),
-            "la raíz del lock declara ^12.0.0": (
-                json_mutado(PACKAGE_LOCK_BASE, raiz, "^12.0.0"),
-                "la raíz del lock declara @mermaid-js/mermaid-cli en '^12.0.0'",
+            "la raíz del lock declara ^12.2.0": (
+                json_mutado(PACKAGE_LOCK_BASE, raiz, "^12.2.0"),
+                "la raíz del lock declara @mermaid-js/mermaid-cli en '^12.2.0'",
             ),
             "la raíz del lock declara otra versión": (
                 json_mutado(PACKAGE_LOCK_BASE, raiz, "11.12.0"),
@@ -3299,7 +3299,7 @@ class DefinicionDeCIFilaD5(unittest.TestCase):
 
     def test_tc65_documentacion_ejecuta_verificador_markdownlint_vale_lychee_y_mmdc_en_orden(self):
         """CA-13 esc. 1 y CA-16 esc. 1 · convenciones §10 · TC-65 — `documentacion`: verificar_docs, markdownlint-cli2@0.24.0, Vale 3.25.1.0
-        con la guarda de salida vacía, lychee-action por SHA con `fail: true` y mmdc 12.0.0 por cada Markdown con un diagrama."""
+        con la guarda de salida vacía, lychee-action por SHA con `fail: true` y mmdc 12.2.0 por cada Markdown con un diagrama."""
         self.assertEqual(comprobar_tc65_texto(_leer_flujos(self)["ci.yml"]), [])
 
     def test_tc65_el_paso_de_mermaid_ejecutado_rechaza_el_diagrama_invalido_y_acepta_el_valido(
@@ -3329,8 +3329,8 @@ class DefinicionDeCIFilaD5(unittest.TestCase):
             with self.subTest(regla=regla.__name__):
                 self.assertEqual(regla(trabajos), [])
 
-    def test_tc65_mermaid_cli_package_json_declara_la_version_exacta_12_0_0(self):
-        """CA-16 esc. 1 · TC-65 · regla común 3 — `.github/mermaid/package.json` es privado y declara `@mermaid-js/mermaid-cli` en `12.0.0`, sin `^` ni `~`;
+    def test_tc65_mermaid_cli_package_json_declara_la_version_exacta_12_2_0(self):
+        """CA-16 esc. 1 · TC-65 · regla común 3 — `.github/mermaid/package.json` es privado y declara `@mermaid-js/mermaid-cli` en `12.2.0`, sin `^` ni `~`;
         así `npm ci` no instala un paquete suelto (zizmor: adhoc-packages)."""
         texto = _texto_de_archivo(
             self,
@@ -3339,9 +3339,9 @@ class DefinicionDeCIFilaD5(unittest.TestCase):
         )
         self.assertEqual(comprobar_package_json_de_mermaid(texto), [])
 
-    def test_tc65_mermaid_cli_package_lock_fija_la_version_12_0_0_con_su_integridad(self):
+    def test_tc65_mermaid_cli_package_lock_fija_la_version_12_2_0_con_su_integridad(self):
         """CA-16 esc. 1 · TC-65 · regla común 3 — `.github/mermaid/package-lock.json` (`lockfileVersion` 3) fija `node_modules/@mermaid-js/mermaid-cli`
-        en `12.0.0` con `integrity` y su raíz declara la misma versión exacta que el `package.json`."""
+        en `12.2.0` con `integrity` y su raíz declara la misma versión exacta que el `package.json`."""
         texto = _texto_de_archivo(
             self,
             PACKAGE_LOCK_DE_MERMAID,

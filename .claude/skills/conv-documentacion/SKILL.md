@@ -70,7 +70,7 @@ Se escribe uno cuando alguien que llegara hoy se preguntaría *«¿por qué lo h
 
 ## 8 · Diagramas
 
-Mermaid por defecto, dentro del Markdown. En local se validan con `tools/extraer_mermaid.py`, una página HTML con el parser de Mermaid 11 que necesita navegador. En el pipeline los valida `@mermaid-js/mermaid-cli` 12.0.0, instalado con `npm ci` desde `.github/mermaid/`. Un diagrama con error de sintaxis no se ve como un diagrama roto en GitHub, se ve como un bloque de error en medio del documento.
+Mermaid por defecto, dentro del Markdown. En local se validan con `tools/extraer_mermaid.py`, una página HTML con el parser de Mermaid 11 que necesita navegador. En el pipeline los valida `@mermaid-js/mermaid-cli` 12.2.0, instalado con `npm ci` desde `.github/mermaid/`. Un diagrama con error de sintaxis no se ve como un diagrama roto en GitHub, se ve como un bloque de error en medio del documento.
 
 ## 9 · Docstrings
 

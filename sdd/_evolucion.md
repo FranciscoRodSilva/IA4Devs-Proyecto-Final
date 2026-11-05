@@ -8,6 +8,8 @@
 
 | Fecha | Ticket | Tema | Observación | Severidad |
 |---|---|---|---|---|
+| 2026-11-05 | TKT-071 | `comando` | Tickets de locks en Windows: rutas con espacio rompen `bash -lc` anidado en PowerShell; conviene scripts `.sh` fuera del repo o `working_directory` + Git Bash directo (D-6 del diseño) | Baja |
+| 2026-11-05 | TKT-071 | `documentación` | Fichas que citan «15 contratos» de `import-linter` desfasadas respecto al repo (16 kept); alinear en tickets de mantenimiento | Baja |
 | 2026-11-05 | TKT-016b | `guardrail` | `pytest` importado en `herramientas/soporte_tkt016.py` en ejecución; `/sdd-revisar` lo movió a tests antes del PR | Baja |
 | 2026-11-05 | TKT-016a | `comando` | A8 mutación M-1…M-15 no barrida completa; design e impl marcan ⚠ con M-4, M-10, M-14 cubiertos; deuda en delta para 016b | Media |
 | 2026-11-05 | TKT-016a | `documentación` | P-4 del diseño decía «ADR-036» pero el ordinal 036 ya es JSONB (TKT-015a); el ADR de explosión va por slug/fecha | Media |
