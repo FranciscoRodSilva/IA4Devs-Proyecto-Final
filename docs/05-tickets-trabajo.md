@@ -709,6 +709,8 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 ### TKT-016 · Cálculo de la explosión por tipo de partida
 
+**Partición en dos tickets hermanos** (aprobada 2026-11-03; fusión fija **TKT-016a → TKT-016b**). TKT-016 queda como paraguas; la regla pura y `M1`–`M4` cierran en **TKT-016a**; el libro sintético y la reconciliación real (`CA-8`, `CA-10`) van en **TKT-016b**.
+
 | | |
 |---|---|
 | **Tipo** | Funcionalidad · **Talla** S · **Depende de** TKT-014b |
@@ -720,7 +722,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Calcula el importe de venta y un **importe sugerido** de control quitando utilidad e indirectos, marcado explícitamente como sugerencia
 - [ ] El importe sugerido **no** se guarda como presupuesto de control: ese lo captura Dirección (**PA-03**)
 - [ ] Sin redondeo intermedio: precisión completa en el cálculo, redondeo solo al presentar
-- [ ] Un test verifica que la explosión agregada de toda la obra reproduce los 27 insumos y el total de $2,755,187.21 del archivo real
+- [ ] Un test verifica que la explosión agregada de toda la obra reproduce los 27 insumos y el total de $2,755,187.21 del archivo real (TKT-016b; hoy se omite con `skip` si el libro de Union no asocia análisis — `PA-T3` / `PA-16.6`)
 
 **Non-goals** — No congela nada ni captura el presupuesto de control: solo calcula.
 

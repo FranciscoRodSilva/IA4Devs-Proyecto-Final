@@ -3,6 +3,22 @@
 Paquete fuera de `cimenta/`: lo importan todos los módulos y solo alcanza la biblioteca estándar.
 """
 
-from tipos_base.numericos import Cantidad, Dinero, Porcentaje, Rendimiento, sumar
+from tipos_base.numericos import (
+    Cantidad,
+    Dinero,
+    Porcentaje,
+    Rendimiento,
+    cociente_precio_unitario,
+    cociente_rendimiento,
+    sumar,
+)
 
-__all__ = ["Cantidad", "Dinero", "Porcentaje", "Rendimiento", "sumar"]
+__all__ = [
+    "Cantidad",
+    "Dinero",
+    "Porcentaje",
+    "Rendimiento",
+    "cociente_precio_unitario",
+    "cociente_rendimiento",
+    "sumar",
+]

@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · TKT-016a
+PENDIENTE FUSIÓN · entrega **TKT-016a**
 
 ## Ficha
 
@@ -27,8 +27,8 @@ LISTO PARA EJECUTAR · TKT-016a
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-03 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-03 |
-| Impl | `impl.md` | `/sdd-ejecutar` | Pendiente |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | TKT-016a escrito el 2026-11-05 |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-05 |
 
 ## Log de estados
 
@@ -37,6 +37,9 @@ LISTO PARA EJECUTAR · TKT-016a
 | 2026-11-03 | — | `SPEC PENDIENTE` | `/sdd-definir` | Spec creada. Must M1 a M5 validados por la persona dueña. Doce criterios `[M]`, dos de ellos de regresión; tres criterios de rechazo (`CA-6`, `CA-7` y `CA-9`) con seis escenarios. INVEST sin fallos y con dos reservas (V y T). Cuatro objeciones adversariales resueltas por la persona dueña |
 | 2026-11-03 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito por `arquitecto-tecnico` (opus): función pura `calcular_explosion` en `presupuesto/dominio/explosion.py` y dos cocientes con nombre en `tipos_base`. 13 filas (A0 a A8, B1 a B4), ~1,080 líneas (~300 de producción); condición de parada 3, se propone partir en TKT-016a y TKT-016b. `revisor-impacto`: sin frontera cruzada, `lint-imports` 15 contratos en verde; once omisiones de documentación incorporadas. Siete preguntas (P-1 a P-7) esperan a la persona dueña; B2 no se ejecuta sin `P-1` |
 | 2026-11-03 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las respuestas a P-1 a P-7 (ver «Decisiones registradas»). Partición en TKT-016a (filas A0 a A8) y TKT-016b (B1 a B4), fusión a → b. Siguiente: `/sdd-ejecutar TKT-016` (entrega a, fila A0) |
+| 2026-11-05 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | TKT-016a implementado en rama `tkt-016a-explosion-dominio`: `calcular_explosion`, cocientes, 29 tests, `PA-23` y ADR explosión. Pendiente TKT-016b y `/sdd-revisar` |
+| 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite 2017 passed; auditorías con REQUIERE CAMBIOS; ciclo 1 corrige F001 (sugerido por fila), F002/M-14 (test dos tipos), docs ADR/README. Menores abiertos (TC-10, aserciones laxas). A8 mutación parcial documentada. Siguiente: `/sdd-completar` |
+| 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN · TKT-016a` | `/sdd-completar` | `delta.md`, evolución; PR pendiente de apertura |
 
 ## Decisiones registradas
 

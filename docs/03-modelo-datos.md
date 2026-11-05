@@ -299,8 +299,8 @@ erDiagram
 
 | Control | Tabla | Origen del dato |
 |---|---|---|
-| **Por importe** | `presupuesto_control.importe_tope` | **Capturado** por Dirección (PA-03). El sistema calcula un `importe_sugerido` quitando utilidad e indirectos, pero es solo una sugerencia en pantalla |
-| **Por volumen** | `explosion_presupuesto.cantidad_presupuestada` | **Derivado**: `Σ cantidad_concepto × rendimiento` de todos los conceptos del tipo de partida |
+| **Por importe** | `presupuesto_control.importe_tope` | **Capturado** por Dirección (PA-03). El sistema calcula un `importe_sugerido` como `Σ cantidad × (P.U. del análisis − Σ UTILIDAD − Σ INDIRECTOS)`, sin restar IVA; es solo una sugerencia en pantalla |
+| **Por volumen** | `explosion_presupuesto.cantidad_presupuestada` | **Derivado**: `Σ cantidad_concepto × rendimiento` de todos los conceptos del tipo de partida. El `rendimiento_congelado` y el `costo_unitario` congelados son promedios ponderados por cantidad de concepto (TKT-016, [explosión por tipo de partida](adr/20261103-explosion-por-tipo-de-partida.md)) |
 
 Antes eran una sola tabla porque se asumía que el control se derivaba del precio de venta. Al confirmarse que se captura, separarlos es obligado: un importe capturado por una persona y una cantidad derivada de un cálculo no pueden compartir fila sin que quede ambiguo cuál es la fuente de verdad de cada uno.
 
