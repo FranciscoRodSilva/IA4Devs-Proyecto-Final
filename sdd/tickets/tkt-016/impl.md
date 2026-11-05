@@ -126,9 +126,9 @@ test_tkt016_* → 31 passed in 0.12s (post-corrección)
 
 > Entrega hermana; cierra el paraguas TKT-016 tras `/sdd-completar TKT-016b`.
 
-## Qué se implementó
+## Alcance entregado (016b)
 
-- `libro_explosion_sintetico`, `conceptos_a_explotar`, `cargar_oraculo_explosion_union` en `herramientas/soporte_tkt016.py` (sin código de producción).
+- `libro_explosion_sintetico`, `conceptos_a_explotar`, `leer_oraculo_explosion_union` en `herramientas/soporte_tkt016.py` (sin código de producción).
 - `tests/test_tkt016_libro_sintetico.py` (TC-24, TC-25).
 - `tests/test_tkt016_archivo_real.py` (TC-26, TC-27); fixture `oraculo_explosion_union` en el mismo módulo.
 - `docs/arranque-local.md`: variable `CIMENTA_EXPLOSION_UNION` y formato CSV (B3).
