@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega TKT-015b
+ARCHIVADO · paraguas TKT-015 cerrado (entregas a y b en `Produccion`)
 
 ## Ficha
 
@@ -45,6 +45,8 @@ PENDIENTE FUSIÓN · entrega TKT-015b
 | 2026-11-05 | `LISTO PARA EJECUTAR · TKT-015b` | `EN EJECUCIÓN · TKT-015b` | `/sdd-ejecutar` | Rama `tkt-015b-ejecutor-barrido`; filas B0–B7 cerradas |
 | 2026-11-05 | `EN EJECUCIÓN · TKT-015b` | `EN REVISIÓN · TKT-015b` | `/sdd-revisar` | Auditorías en paralelo; suite completa |
 | 2026-11-05 | `EN REVISIÓN · TKT-015b` | `LISTO PARA PR · TKT-015b` | `/sdd-revisar` | Ciclo 1: `cerrar()` con REINICIO, robustez ejecutor, LF en `fabrica.py`; 2013 tests. Siguiente: `/sdd-completar TKT-015b` |
+| 2026-11-05 | `LISTO PARA PR · TKT-015b` | `PENDIENTE FUSIÓN · entrega TKT-015b` | `/sdd-completar` | [delta.md](delta.md), PR [#46](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/46) |
+| 2026-11-05 | `PENDIENTE FUSIÓN · entrega TKT-015b` | `ARCHIVADO` | fusión PR #46 | Entrega b y paraguas TKT-015 cerrados; registro en comentario del PR |
 
 ## Decisiones registradas
 
