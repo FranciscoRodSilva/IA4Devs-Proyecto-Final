@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega TKT-015a
+LISTO PARA EJECUTAR · TKT-015b
 
 ## Ficha
 
@@ -41,6 +41,7 @@ PENDIENTE FUSIÓN · entrega TKT-015a
 | 2026-11-05 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` (A9) | TKT-015a cerrado en ejecución: mutantes M-01…M-12, ADR-036, suite 81+5 skip, CAR2 en verde. Siguiente: `/sdd-revisar TKT-015a` |
 | 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` (TKT-015a) | Auditorías + ciclo de corrección; veredicto en `impl.md`. Siguiente: `/sdd-completar TKT-015a` |
 | 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` (TKT-015a) | `delta.md`, PR abierto; archivos reales verificados localmente (5/5). Siguiente: fusión tras aprobación |
+| 2026-11-05 | `PENDIENTE FUSIÓN` | `LISTO PARA EJECUTAR · TKT-015b` | fusión PR #44 | Entrega a en `Produccion`. Siguiente: `/sdd-ejecutar TKT-015b` |
 
 ## Decisiones registradas
 
