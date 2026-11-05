@@ -434,4 +434,3 @@ uv run pytest tests/ -k tkt015 -q → 129 passed
 ```
 
 **Estado:** [delta.md](delta.md) · entrega en PR (TKT-015b).
-
