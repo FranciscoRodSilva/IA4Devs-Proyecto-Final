@@ -105,10 +105,14 @@ TABLAS_DE_NULABILIDAD: dict[str, tuple[FilaDeTabla, ...]] = {
     "concepto": (
         ("id", "uuid", "no", None),
         ("obra_id", "uuid", "no", None),
-        ("partida_id", "uuid", "no", None),
         ("codigo", "text", "no", None),
         ("descripcion", "text", "no", None),
         ("unidad", "text", "no", None),
+    ),
+    "partida_concepto": (
+        ("id", "uuid", "no", None),
+        ("concepto_id", "uuid", "no", None),
+        ("partida_id", "uuid", "no", None),
         ("cantidad", "numeric(14,4)", "no", None),
         ("precio_unitario", "numeric(14,4)", "no", None),
         ("importe", "numeric(18,4)", "no", None),
@@ -333,7 +337,9 @@ def test_tkt011_ca01_claves_foraneas_sin_cascada(
             "JOIN pg_class t ON t.oid = c.conrelid "
             "WHERE c.contype = 'f' AND t.relnamespace = 'public'::regnamespace "
             "AND t.relname = ANY(%s) ORDER BY c.conname",
-            (list(COLUMNAS_ESPERADAS),),
+            # Las tablas de `estructura_esperada`: `partida_concepto` es de `0010` (TKT-072) y sus
+            # claves las prueba `test_tkt072_esquema.py` (TC-17).
+            (list(estructura_esperada),),
         ).fetchall()
 
     assert {str(nombre) for nombre, _ in filas} == claves_esperadas
@@ -613,13 +619,10 @@ def test_tkt011_ca12_concepto_repetido_en_la_obra_lo_rechaza_la_base(
 ) -> None:
     """TC-11 · CA-12 esc. 1 · HDU-001 esc. 9 — dos conceptos `620001` en la obra A violan `uq_concepto_obra_id_codigo`."""
     obra_a = datos_presupuesto.obra(codigo="AP-058-25")
-    partida_id = datos_presupuesto.partida(
-        area_id=datos_presupuesto.area(nivel_id=datos_presupuesto.nivel(obra_id=obra_a))
-    )
-    original = datos_presupuesto.concepto(obra_id=obra_a, partida_id=partida_id, codigo="620001")
+    original = datos_presupuesto.concepto(obra_id=obra_a, codigo="620001")
 
     with pytest.raises(psycopg.errors.UniqueViolation) as rechazo:
-        datos_presupuesto.concepto(obra_id=obra_a, partida_id=partida_id, codigo="620001")
+        datos_presupuesto.concepto(obra_id=obra_a, codigo="620001")
 
     afirmar_rechazo(rechazo.value, "23505", "uq_concepto_obra_id_codigo", "concepto")
     with conectar("aplicacion", base_de_prueba) as aplicacion:
@@ -648,11 +651,10 @@ def test_tkt011_ca12_el_mismo_codigo_en_otra_obra_se_acepta(
 # --------------------------------------------------------------------------- TC-13
 
 # (tabla, columna, cómo crear una fila con ese valor en esa columna). La restricción esperada es
-# `ck_<tabla>_<columna>_no_negativo`. Son las diecisiete columnas con `CHECK` de no negatividad.
+# `ck_<tabla>_<columna>_no_negativo`. Son las catorce columnas con `CHECK` de no negatividad que
+# conserva la migración `0006`: las tres de `concepto` pasaron a `partida_concepto` en `0010` y las
+# prueba `test_tkt072_esquema.py` (TC-07 y TC-08).
 NO_NEGATIVOS: list[tuple[str, str, Callable[[DatosPresupuesto, Decimal], uuid.UUID]]] = [
-    ("concepto", "cantidad", lambda datos, valor: datos.concepto(cantidad=valor)),
-    ("concepto", "precio_unitario", lambda datos, valor: datos.concepto(precio_unitario=valor)),
-    ("concepto", "importe", lambda datos, valor: datos.concepto(importe=valor)),
     (
         "precio_insumo",
         "costo_unitario",
@@ -695,7 +697,7 @@ def test_tkt011_ca13_negativo_lo_rechaza_la_base(
     conectar: Conectar,
     datos_presupuesto: DatosPresupuesto,
 ) -> None:
-    """TC-13 · CA-13 · invariante 8 — un valor negativo en una de las diecisiete columnas de importes, precios, cantidades y rendimientos de la migración 0006 responde `23514`."""
+    """TC-13 · CA-13 · invariante 8 — un valor negativo en una de las catorce columnas de importes, precios, cantidades y rendimientos que conserva la migración 0006 responde `23514`."""
     with pytest.raises(psycopg.errors.CheckViolation) as rechazo:
         crear(datos_presupuesto, negativo_minimo(tabla, columna))
 

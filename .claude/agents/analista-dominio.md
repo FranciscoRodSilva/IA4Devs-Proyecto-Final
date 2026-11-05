@@ -24,7 +24,7 @@ En este dominio el vocabulario engaña. *Concepto*, *partida*, *APU*, *rendimien
 2. El ticket en [`docs/05-tickets-trabajo.md`](../../docs/05-tickets-trabajo.md): alcance, non-goals, tipo, su DoD y **su fase**
 3. La historia en [`docs/04-historias-usuario.md`](../../docs/04-historias-usuario.md): escenarios numerados, reglas implicadas
 4. [`docs/01-descripcion-producto.md`](../../docs/01-descripcion-producto.md): el texto exacto de cada `RN-xx` citada, y el [alcance por fases (§7)](../../docs/01-descripcion-producto.md#7-alcance-mvp-y-evolución)
-5. [`docs/03-modelo-datos.md`](../../docs/03-modelo-datos.md): cuáles de los 38 invariantes tocan las tablas en juego
+5. [`docs/03-modelo-datos.md`](../../docs/03-modelo-datos.md): cuáles de los 39 invariantes tocan las tablas en juego
 6. [`docs/api/openapi.yaml`](../../docs/api/openapi.yaml): las operaciones cuyo `x-tickets` incluye este ticket, con sus `x-roles`, `x-reglas`, `x-escenarios` y los rechazos que enumera su descripción. Si el ticket tiene endpoint y ninguna operación lo nombra, dilo
 7. [`docs/08-wireframes.md`](../../docs/08-wireframes.md), si el ticket toca una pantalla
 8. [`docs/02-arquitectura.md`](../../docs/02-arquitectura.md) y los [ADR](../../docs/adr/) relevantes

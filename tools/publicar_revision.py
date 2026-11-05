@@ -32,7 +32,7 @@ CITA_VALIDA = re.compile(
     r"|CLAUDE\.md «Qué no hacer»"
     r"|\bRN-(?:0[1-9]|1\d|2[0-5])(?!\d)"
     r"|\bRNF-(?:0[1-9]|1\d)(?!\d)"
-    r"|\binvariante (?:3[0-8]|[12]\d|[1-9])(?!\d)"
+    r"|\binvariante (?:39|3[0-8]|[12]\d|[1-9])(?!\d)"
     r"|convenciones §12 punto (?:1[01]|[1-9])(?!\d)"
     r"|non-goal de TKT-\d{3}[a-z]?\b"
 )

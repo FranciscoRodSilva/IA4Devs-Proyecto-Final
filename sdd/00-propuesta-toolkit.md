@@ -14,7 +14,7 @@
 
 Tres razones, en orden de peso:
 
-**1. OpenSpec crearía una segunda fuente de verdad.** OpenSpec instala `openspec/specs/` como «el estado actual del sistema» y `openspec/changes/` como propuestas de cambio. CIMENTA ya tiene esa capa, y está validada en CI: el PRD con `RN-01`…`RN-25`, las historias con escenarios Gherkin numerados, los tickets `TKT-001`…`TKT-069`, 38 invariantes de datos, 17 ADRs, el borrador OpenAPI, y `tools/verificar_docs.py` comprobando que ningún identificador citado sea inexistente. Montar `openspec/` encima significa mantener dos catálogos de reglas que se desincronizan en el tercer ticket. El problema que OpenSpec resuelve —*que haya spec antes que código*— aquí ya está resuelto.
+**1. OpenSpec crearía una segunda fuente de verdad.** OpenSpec instala `openspec/specs/` como «el estado actual del sistema» y `openspec/changes/` como propuestas de cambio. CIMENTA ya tiene esa capa, y está validada en CI: el PRD con `RN-01`…`RN-25`, las historias con escenarios Gherkin numerados, los tickets `TKT-001`…`TKT-069`, 39 invariantes de datos, 17 ADRs, el borrador OpenAPI, y `tools/verificar_docs.py` comprobando que ningún identificador citado sea inexistente. Montar `openspec/` encima significa mantener dos catálogos de reglas que se desincronizan en el tercer ticket. El problema que OpenSpec resuelve —*que haya spec antes que código*— aquí ya está resuelto.
 
 **2. OpenSpec no orquesta agentes.** Es deliberadamente agnóstico: soporta más de 30 herramientas, lo que lo obliga al mínimo común denominador —comandos slash que escriben Markdown—. No tiene agentes especializados, ni ciclo auditor→corrector→reauditoría, ni veredictos bloqueantes, ni routing por stack. El requisito central de este encargo es exactamente eso: un orquestador que despliegue agentes especializados y decida si el trabajo va en lote o de uno en uno. Eso no se le puede pedir a OpenSpec; habría que construirlo igual, encima.
 
@@ -256,7 +256,7 @@ Cuatro desarrolladores, no uno, porque las cuatro capas tienen reglas incompatib
 | `desarrollador-dominio` | Hay reglas de negocio en alcance | Escribe `dominio/`: objetos de valor, reglas puras, resultados. `Decimal`, cero imports, docstring con `RN-xx`. | Es la capa donde está el valor y la que más fácil se contamina. Merece un agente que no sepa hacer otra cosa | A |
 | `desarrollador-aplicacion` | Hay caso de uso en alcance | Escribe `aplicacion/`: abre transacción, orquesta repositorios y reglas, escribe la bitácora en la misma transacción, aplica el bloqueo pesimista. **No decide reglas.** | La frontera entre orquestar y decidir se borra sola si el mismo agente hace las dos | A |
 | `desarrollador-api` | Hay endpoints en alcance | Escribe `api/`: rutas `def`, DTO Pydantic v2, códigos de estado, contrato de error, OpenAPI. | Rutas `async` y mensajes de error sueltos son los dos errores que este stack produce por defecto | A |
-| `desarrollador-sql` | Hay esquema, migración o consulta en alcance | Escribe migraciones Alembic, DDL, disparadores, vistas, índices, roles y las consultas no triviales (la del semáforo). | El esquema sostiene 38 invariantes. Escribirlo «de paso» mientras se escribe el modelo es como se pierden la mitad | A |
+| `desarrollador-sql` | Hay esquema, migración o consulta en alcance | Escribe migraciones Alembic, DDL, disparadores, vistas, índices, roles y las consultas no triviales (la del semáforo). | El esquema sostiene 39 invariantes. Escribirlo «de paso» mientras se escribe el modelo es como se pierden la mitad | A |
 
 ### 6.3 · Frontend
 

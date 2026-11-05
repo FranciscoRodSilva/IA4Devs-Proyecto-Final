@@ -58,6 +58,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-11-03 | [Explosión por tipo de partida: promedios ponderados y rechazo todo o nada](20261103-explosion-por-tipo-de-partida.md) | Aceptado | presupuesto · TKT-016a |
 | 2026-11-05 | [Preparación de importación en una columna `jsonb`](20261105-preparacion-de-importacion-en-jsonb.md) | Aceptado | presupuesto · TKT-015a |
 | 2026-11-05 | [Trabajos en dos pasos: el API gobierna el latido, un proceso hijo parsea y un barrido de arranque cierra lo interrumpido](20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md) | Aceptado | presupuesto, servidor, trabajos · TKT-015b · excepción del `lifespan` a [ADR-013](20260919-sqlalchemy-sincrono.md) · retoma la alternativa de [ADR-022](20261020-contrato-de-error-y-raiz-de-composicion.md) |
+| 2026-11-05 | [El concepto es único por obra; su cantidad y su precio viven en el concepto de partida](20261105-concepto-unico-y-concepto-de-partida.md) | Aceptado | presupuesto · TKT-072 · completa [la copia física](20260918-snapshot-linea-base.md) |
 
 ## Plantilla
 

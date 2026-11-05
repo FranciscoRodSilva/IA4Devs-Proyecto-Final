@@ -417,7 +417,7 @@ Resueltas el 2026-11-03 por la persona dueña: sin rutas en este ticket; `DUPLIC
 | **PA-15.12** | El mecanismo de persistencia de la preparación (columna `jsonb` en `importacion` o tabla propia) | Una migración y un ADR en el diseño; el criterio `CA-11` no cambia | Resuelta el 2026-11-03 (P4 del diseño): columna `importacion.preparacion jsonb` con su `CHECK` y ADR-036 |
 | **PA-15.13** | La normalización de la descripción de `DUPLICADO` es la del ADR-035 (recortada, mayúsculas, espacios interiores colapsados) | Falsos duplicados o duplicados sin detectar | `(asumido)` |
 | **PA-15.14** | Un `SIN_APU` lleva la hoja y la fila de la **primera** aparición del código en el catálogo, y el código como valor original | La navegación de TKT-018 apunta a otra fila | `(asumido)` |
-| **PA-15.15** | `PA-T1` de TKT-013 sigue abierta para TKT-017: los dos archivos reales no se pueden confirmar mientras el modelo no admita el código repetido por área | TKT-017 no puede materializar ninguno de los dos archivos reales | Escalada; previa a TKT-017 |
+| **PA-15.15** | `PA-T1` de TKT-013 sigue abierta para TKT-017: los dos archivos reales no se pueden confirmar mientras el modelo no admita el código repetido por área | TKT-017 no puede materializar ninguno de los dos archivos reales | Resuelta el 2026-11-05: `PA-T1` la cierra TKT-072 |
 
 ## Pasada adversarial
 

@@ -8,6 +8,9 @@
 
 | Fecha | Ticket | Tema | Observación | Severidad |
 |---|---|---|---|---|
+| 2026-11-05 | TKT-072 | `comando` | Ticket grande (~1,2k líneas) sin partir: A1+A2 migración+guardas juntos; mutación M-2…M-10 sin barrido completo en revisión | Media |
+| 2026-11-05 | TKT-072 | `comando` | Sin captura de rojo TDD en `impl.md` cuando el orquestador escribe migración antes del tester | Baja |
+| 2026-11-05 | TKT-072 | `documentación` | Invariante 39 obliga a sincronizar conteos en agentes, skills, `publicar_revision.py` y regenerar `.cursor/agents/` | Baja |
 | 2026-11-05 | TKT-071 | `comando` | Tickets de locks en Windows: rutas con espacio rompen `bash -lc` anidado en PowerShell; conviene scripts `.sh` fuera del repo o `working_directory` + Git Bash directo (D-6 del diseño) | Baja |
 | 2026-11-05 | TKT-071 | `documentación` | Fichas que citan «15 contratos» de `import-linter` desfasadas respecto al repo (16 kept); alinear en tickets de mantenimiento | Baja |
 | 2026-11-05 | TKT-016b | `guardrail` | `pytest` importado en `herramientas/soporte_tkt016.py` en ejecución; `/sdd-revisar` lo movió a tests antes del PR | Baja |

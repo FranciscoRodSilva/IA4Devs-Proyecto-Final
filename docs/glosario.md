@@ -18,7 +18,7 @@ Modalidad de contrato en la que el importe total se fija al firmar y la construc
 
 ### Catálogo de conceptos
 
-Documento que lista todo el trabajo contratado de una obra, desglosado jerárquicamente, con cantidad, precio unitario e importe por concepto. Es el presupuesto de venta. En el archivo de ENITI Torre 5 suma $25,330,785.90.
+Documento que lista todo el trabajo contratado de una obra, desglosado jerárquicamente, con la cantidad, el precio unitario y el importe de cada concepto en cada partida (*concepto de partida*). Es el presupuesto de venta. En el archivo de ENITI Torre 5 suma $25,330,785.90.
 
 ### Nivel
 
@@ -36,9 +36,13 @@ La misma partida se repite en cada área: hay una partida `MUROS` por departamen
 
 ### Concepto
 
-Unidad elemental de trabajo contratado, con código, descripción técnica completa, unidad de medida, cantidad y precio unitario. Ejemplo: código `620001`, *"Suministro y fabricación de Muro falso 10 cm…"*, unidad `M2`, cantidad `77.39`, P.U. `$668.69`.
+Unidad elemental de trabajo contratado, con código, descripción técnica completa y unidad de medida; es **único por obra** (invariante 13). Ejemplo: código `620001`, *"Suministro y fabricación de Muro falso 10 cm…"*, unidad `M2`.
 
-Los códigos de concepto se repiten entre obras (`620001` es el mismo muro estándar en Union Square y en ENITI), pero **el precio unitario cambia por obra**.
+Los códigos de concepto se repiten entre obras (`620001` es el mismo muro estándar en Union Square y en ENITI), pero **el precio unitario cambia por obra**. Dentro de una obra, el mismo código aparece en muchas áreas; el precio puede cambiar también por área (`620040-A` en ENITI vale distinto según el departamento).
+
+### Concepto de partida
+
+La aparición de un concepto en la partida de un área, con su cantidad, su precio unitario y su importe. Un concepto aparece a lo sumo una vez en cada partida (invariante 39). En el esquema es la fila de `partida_concepto`; es lo que la línea base copia al congelar, para conservar partida, área y nivel.
 
 ### Unidad de medida
 
