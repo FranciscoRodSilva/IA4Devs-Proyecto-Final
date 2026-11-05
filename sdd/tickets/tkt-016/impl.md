@@ -122,7 +122,7 @@ test_tkt016_* → 31 passed in 0.12s (post-corrección)
 
 ---
 
-# Impl · TKT-016b · Libro sintético y reconciliación Union
+## Impl · TKT-016b · Libro sintético y reconciliación Union
 
 > Entrega hermana; cierra el paraguas TKT-016 tras `/sdd-completar TKT-016b`.
 
