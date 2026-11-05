@@ -69,6 +69,6 @@ Ninguno en esta entrega: no hay API ni pantalla. TKT-017 expondrá la explosión
 
 ## Pull request
 
-**Título:** `TKT-016a · Regla pura de explosión por tipo de partida`
+**PR:** [#47](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/47) (fusionado el 2026-11-05)
 **Origen:** `agent+human-review`
-**Cuerpo:** ver PR en GitHub tras apertura.
+**Registro:** [comentario de fusión](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/47#issuecomment-6665325465)

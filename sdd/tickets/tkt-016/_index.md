@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega **TKT-016a**
+LISTO PARA EJECUTAR · **TKT-016b**
 
 ## Ficha
 
@@ -40,6 +40,7 @@ PENDIENTE FUSIÓN · entrega **TKT-016a**
 | 2026-11-05 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | TKT-016a implementado en rama `tkt-016a-explosion-dominio`: `calcular_explosion`, cocientes, 29 tests, `PA-23` y ADR explosión. Pendiente TKT-016b y `/sdd-revisar` |
 | 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite 2017 passed; auditorías con REQUIERE CAMBIOS; ciclo 1 corrige F001 (sugerido por fila), F002/M-14 (test dos tipos), docs ADR/README. Menores abiertos (TC-10, aserciones laxas). A8 mutación parcial documentada. Siguiente: `/sdd-completar` |
 | 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN · TKT-016a` | `/sdd-completar` | `delta.md`, evolución; PR pendiente de apertura |
+| 2026-11-05 | `PENDIENTE FUSIÓN · TKT-016a` | `LISTO PARA EJECUTAR · TKT-016b` | `/sdd-completar` | Entrega **TKT-016a** fusionada · [PR #47](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/47) · registro en comentario del PR. Siguiente: `/sdd-ejecutar TKT-016` (entrega b, filas B1–B4) |
 
 ## Decisiones registradas
 
