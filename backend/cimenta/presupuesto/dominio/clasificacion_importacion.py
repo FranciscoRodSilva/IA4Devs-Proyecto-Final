@@ -367,13 +367,10 @@ def _filas_y_hojas_rechazadas(
                 filas.add(c.fila)
 
     for error in errores:
-        if (
-            (error.tipo is TipoErrorImportacion.SIN_APU and error.valor_original)
-            or (
-                error.tipo is TipoErrorImportacion.DUPLICADO
-                and error.hoja == hoja_cat
-                and error.valor_original
-            )
+        if (error.tipo is TipoErrorImportacion.SIN_APU and error.valor_original) or (
+            error.tipo is TipoErrorImportacion.DUPLICADO
+            and error.hoja == hoja_cat
+            and error.valor_original
         ):
             filas_del_codigo(error.valor_original)
         elif error.hoja is not None and error.hoja != hoja_cat:

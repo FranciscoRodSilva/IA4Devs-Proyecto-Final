@@ -14,7 +14,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from cimenta.presupuesto.dominio.catalogo import (
     CatalogoLeido,
-    CausaHallazgo,
     ConceptoLeido,
     Ruta,
 )
@@ -35,7 +34,6 @@ from contrato_error import ConflictoEstado, NoEncontrado
 from herramientas.soporte_tkt015 import (
     CampoConcepto,
     catalogo_con_descripciones,
-    hallazgo,
     hallazgo_ejemplo,
     libro_sintetico,
 )

@@ -72,17 +72,17 @@ El `CHECK` solo ata **presencia de preparación** a **estado terminal o intermed
 
 **Positivas**
 
-* Una migración pequeña; permisos heredados de `importacion`.
-* Reintento sin preparación huérfana: imposible dejar JSON con estado `RECIBIDO` o `ANALIZANDO`.
-* TKT-017 lee un solo campo; explosión y confirmación no repiten el parseo del Excel.
+- Una migración pequeña; permisos heredados de `importacion`.
+- Reintento sin preparación huérfana: imposible dejar JSON con estado `RECIBIDO` o `ANALIZANDO`.
+- TKT-017 lee un solo campo; explosión y confirmación no repiten el parseo del Excel.
 
 **Negativas o costes aceptados**
 
-* No hay consultas SQL parciales sobre conceptos dentro de la preparación.
-* Documentos muy grandes van a TOAST; si `pg_column_size` superara ~20 MB en un libro real, habría que escalar a tabla 1:1 (condición de parada del diseño).
-* El dinero en JSON no está cuantizado: TKT-017 debe respetar la escala al materializar (`RN-01`, ADR-020).
+- No hay consultas SQL parciales sobre conceptos dentro de la preparación.
+- Documentos muy grandes van a TOAST; si `pg_column_size` superara ~20 MB en un libro real, habría que escalar a tabla 1:1 (condición de parada del diseño).
+- El dinero en JSON no está cuantizado: TKT-017 debe respetar la escala al materializar (`RN-01`, ADR-020).
 
 **Cuándo revisar esta decisión**
 
-* Si la confirmación necesita indexar insumos o conceptos dentro de la preparación antes de materializar.
-* Si el tamaño medido en producción obliga a normalizar.
+- Si la confirmación necesita indexar insumos o conceptos dentro de la preparación antes de materializar.
+- Si el tamaño medido en producción obliga a normalizar.

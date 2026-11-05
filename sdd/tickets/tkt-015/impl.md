@@ -1,6 +1,6 @@
 # Impl · TKT-015 · Validaciones y reporte de errores por fila
 
-> [← index](_index.md) | [← design](design.md) | Siguiente: `delta.md` (se enlaza en `/sdd-completar`)
+> [← index](_index.md) | [← design](design.md) | [delta](delta.md)
 
 ## Qué se implementó
 
@@ -85,8 +85,8 @@ uv run python -m herramientas.verificar_float → hallazgos: 0
 
 ## Bloqueos
 
-| Bloqueo | Impacto | Acción |
-|---|---|---|
+Ninguno en TKT-015a.
+
 ### Fila A2b · clasificación de libro
 
 **Verde:** `uv run pytest tests/test_tkt015_clasificacion_libro.py tests/test_tkt015_clasificacion.py -q` → 11 passed
