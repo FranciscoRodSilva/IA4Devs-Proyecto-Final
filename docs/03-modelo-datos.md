@@ -1023,6 +1023,7 @@ erDiagram
         int filas_validas
         int filas_rechazadas
         jsonb resumen "totales de la previsualización"
+        jsonb preparacion "resultado del análisis, formato 1 · nula en RECIBIDO y ANALIZANDO"
         uuid importado_por_id FK
         timestamptz creado_en "NOT NULL · DEFAULT now()"
         timestamptz latido "lo refresca el trabajo mientras analiza"
@@ -1042,6 +1043,8 @@ erDiagram
 **El Excel ya no cuelga de esta tabla con dos cadenas sueltas.** `archivo_nombre` y `archivo_url` eran el hueco que `C8` cierra: no decían quién subió el archivo, ni cuánto pesaba, ni si seguía siendo el mismo. El adjunto vive ahora en [`archivo`](#12-archivos-adjuntos) con `referencia_tipo = 'IMPORTACION'`, y la importación no empieza a analizar hasta que ese adjunto está `DISPONIBLE`. `importacion.archivo_id` lo señala en sentido contrario, como identificador lógico **sin clave foránea**: en el esquema `presupuesto` no depende de `archivos`; en el código lo usa solo por su interfaz publicada, que valida la referencia al crear la importación.
 
 **`progreso` es un `Porcentaje` que el trabajo actualiza mientras analiza**, junto con el `latido`; nulo fuera de `ANALIZANDO`. Es lo que pinta la barra de la pantalla de carga sin que el cliente adivine.
+
+**`preparacion` guarda lo que el análisis conservó del libro** —catálogo, nodos, conceptos, análisis, asociaciones e insumos por crear— en **formato 1** ([ADR-036](adr/20261105-preparacion-de-importacion-en-jsonb.md)): cifras como cadena sin cuantizar, ausentes como `null`, clave `formato: 1`. Va en el mismo `UPDATE` que cierra el análisis y en la misma transacción que los errores; si la importación queda `VALIDADO` o `CON_ERRORES` con filas válidas, la preparación refleja solo esas filas (Union puede dejarla con cero conceptos). La restricción **`ck_importacion_preparacion_tras_analisis`** exige `preparacion IS NULL` mientras el estado es `RECIBIDO` o `ANALIZANDO`, así el reintento no puede dejar un JSON viejo junto a un análisis nuevo. No es una tabla aparte: el documento es opaco para SQL hasta que TKT-017 lo materializa.
 
 **`SIN_CONCEPTOS` es el error de un archivo que abre pero no trae nada.** Una hoja con formato válido y sin ninguna fila de concepto no es un error de forma —el archivo pasó la comprobación estructural—, así que no se rechaza con `422` al crear: la importación queda `CON_ERRORES` con un error de este tipo, igual que la que trae filas rotas.
 

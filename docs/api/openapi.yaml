@@ -890,7 +890,7 @@ paths:
           csrf: []
       x-roles: [DIRECTOR_PROYECTOS]
       x-reglas: []
-      x-escenarios: ['HDU-001 esc. 4', 'HDU-001 esc. 6', 'HDU-001 esc. 7', 'HDU-001 esc. 8', 'HDU-001 esc. 9', 'HDU-001 esc. 24', 'HDU-001 esc. 25', 'HDU-001 esc. 27']
+      x-escenarios: ['HDU-001 esc. 4', 'HDU-001 esc. 6', 'HDU-001 esc. 7', 'HDU-001 esc. 8', 'HDU-001 esc. 9', 'HDU-001 esc. 24', 'HDU-001 esc. 25', 'HDU-001 esc. 27', 'HDU-001 esc. 28', 'HDU-001 esc. 29']
       x-tickets: [TKT-018, TKT-015]
       responses:
         '202':
@@ -933,7 +933,7 @@ paths:
       summary: Lista los errores por fila del análisis
       x-roles: [DIRECTOR_PROYECTOS, DIRECCION_GENERAL]
       x-reglas: []
-      x-escenarios: ['HDU-001 esc. 6', 'HDU-001 esc. 7', 'HDU-001 esc. 8', 'HDU-001 esc. 9', 'HDU-001 esc. 27']
+      x-escenarios: ['HDU-001 esc. 6', 'HDU-001 esc. 7', 'HDU-001 esc. 8', 'HDU-001 esc. 9', 'HDU-001 esc. 27', 'HDU-001 esc. 28', 'HDU-001 esc. 29']
       x-tickets: [TKT-018, TKT-015]
       parameters:
         - name: hoja
