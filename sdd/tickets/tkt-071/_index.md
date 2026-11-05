@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN
+ARCHIVADO
 
 ## Ficha
 
@@ -40,6 +40,7 @@ PENDIENTE FUSIÓN
 | 2026-11-05 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Locks y TC-65 actualizados; suites backend (2022) y tools (510) en verde; e2e y Linux pendientes del PR |
 | 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite local en verde; auditorías APROBADO; humo/e2e y mmdc Linux quedan para el PR |
 | 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | `delta.md`, registro de evolución; PR en curso |
+| 2026-11-05 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar` | PR [#49](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/49) fusionado; planificación archivada |
 
 ## Decisiones registradas
 

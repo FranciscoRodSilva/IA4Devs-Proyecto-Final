@@ -230,11 +230,17 @@ git diff Produccion -- frontend/eslint.config.js → sin cambios
 
 ### Veredicto de revisión
 
-**LISTO PARA PR** — Must verificables en local cumplidos; M3/CA-R5 (humo/e2e) y mmdc en Linux quedan como compuerta del PR (`/sdd-completar` no fusiona sin ellos).
+**LISTO PARA PR** → fusionado en PR #49.
 
-## Pendiente del PR (`/sdd-completar`)
+## Verificación final (`/sdd-completar`)
 
-- Ejecutor Linux: paso «Diagramas con mermaid-cli» con `mmdc` 12.2.0.
-- Trabajo `humo`: Playwright e2e.
-- Cierre alerta GitHub y PR Dependabot (#22, #16, #13, #12) tras fusión.
-- Incluir `sdd/tickets/tkt-071/impl.md` en el commit del PR (O001).
+PR [#49](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/49): **10/10** comprobaciones en verde (incl. Documentación · mermaid-cli y Humo · Playwright).
+
+Comentario de registro: [#issuecomment-6667143099](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/49#issuecomment-6667143099).
+
+Merge commit: `7ff7cb8eda826cf9ef7a438570da41fa4aeaf7a8`.
+
+## Seguimiento post-fusión
+
+- Comprobar cierre de alerta `katex` y PR Dependabot #22, #16, #13, #12 en GitHub (supuesto A-1).
+- Decidir saltos mayor pendientes (`typescript` 7, etc.) — ver `delta.md`.

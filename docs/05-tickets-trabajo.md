@@ -1575,13 +1575,13 @@ La alerta no es explotable en CIMENTA: KaTeX solo se ejecuta cuando un diagrama 
 
 **Criterios técnicos**
 
-- [ ] `.github/mermaid/package.json` fija `@mermaid-js/mermaid-cli` en 12.2.0 exacto, y el lock regenerado no contiene ninguna copia de `katex` anterior a 0.18.2
-- [ ] El paso «Diagramas con mermaid-cli» del pipeline sigue validando todos los diagramas de la documentación sin errores
-- [ ] `backend/uv.lock` lleva `sqlalchemy` 2.1.6, `alembic` 1.20.1 y `ruff` 0.17.3, y el formato, el lint, los tipos, las fronteras, `verificar_float` y la suite del backend pasan
-- [ ] `alembic upgrade head` y el descenso de las migraciones siguen funcionando contra PostgreSQL real
-- [ ] `frontend/package-lock.json` lleva `eslint` 10.13.0, y el lint, los tipos, las pruebas y el humo de Playwright pasan
-- [ ] `pip-audit` y `npm audit --audit-level=high` quedan en verde en los tres directorios auditados, y la alerta de `katex` se cierra en GitHub
-- [ ] **Escenario de rechazo:** antes del cambio, `npm audit` en `.github/mermaid` reporta `katex`; después del cambio, deja de reportarlo
+- [x] `.github/mermaid/package.json` fija `@mermaid-js/mermaid-cli` en 12.2.0 exacto, y el lock regenerado no contiene ninguna copia de `katex` anterior a 0.18.2
+- [x] El paso «Diagramas con mermaid-cli» del pipeline sigue validando todos los diagramas de la documentación sin errores
+- [x] `backend/uv.lock` lleva `sqlalchemy` 2.1.6, `alembic` 1.20.1 y `ruff` 0.17.3, y el formato, el lint, los tipos, las fronteras, `verificar_float` y la suite del backend pasan
+- [x] `alembic upgrade head` y el descenso de las migraciones siguen funcionando contra PostgreSQL real
+- [x] `frontend/package-lock.json` lleva `eslint` 10.13.0, y el lint, los tipos, las pruebas y el humo de Playwright pasan
+- [x] `pip-audit` y `npm audit --audit-level=high` quedan en verde en los tres directorios auditados, y la alerta de `katex` se cierra en GitHub
+- [x] **Escenario de rechazo:** antes del cambio, `npm audit` en `.github/mermaid` reporta `katex`; después del cambio, deja de reportarlo
 
 **Non-goals** — No adopta saltos de versión mayor: `typescript` 7, que rompe el pipeline, `react-router` 8, `@types/node` 26 y `@testing-library/jest-dom` 7 quedan fuera y se deciden aparte. No fuerza `minimatch` 11 con `overrides` ni sustituye `deepmerge`: sus dos alertas se aceptan con su motivo, porque son de herramientas de desarrollo, no reciben entrada externa y no tienen camino de actualización por los paquetes que las traen. No cambia el umbral de severidad de la auditoría ni la configuración de Dependabot.
 
