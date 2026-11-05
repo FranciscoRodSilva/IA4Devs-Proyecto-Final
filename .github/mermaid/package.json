@@ -3,6 +3,6 @@
   "private": true,
   "description": "Fija mermaid-cli en una versión exacta para validar los diagramas Mermaid de la documentación en CI (TKT-009d).",
   "dependencies": {
-    "@mermaid-js/mermaid-cli": "12.0.0"
+    "@mermaid-js/mermaid-cli": "12.2.0"
   }
 }

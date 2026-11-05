@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+PENDIENTE FUSIÓN
 
 ## Ficha
 
@@ -27,8 +27,8 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-03 |
-| Impl | `impl.md` (se enlaza en `/sdd-ejecutar`) | `/sdd-ejecutar` | Pendiente |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito |
 
 ## Log de estados
 
@@ -37,6 +37,9 @@ LISTO PARA EJECUTAR
 | 2026-11-03 | — | `SPEC PENDIENTE` | `/sdd-definir` | Spec creada con 12 criterios `[M]`, 6 de ellos con escenario de rechazo; la persona dueña validó el Must |
 | 2026-11-03 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño de 10 filas en `haiku`, apoyado en cinco experimentos ejecutados al diseñar; la revisión de impacto no encontró omisiones |
 | 2026-11-03 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | Aprobación humana | La persona dueña aprobó el diseño, incluida la excepción E-1 del lock del frontend |
+| 2026-11-05 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Locks y TC-65 actualizados; suites backend (2022) y tools (510) en verde; e2e y Linux pendientes del PR |
+| 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite local en verde; auditorías APROBADO; humo/e2e y mmdc Linux quedan para el PR |
+| 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | `delta.md`, registro de evolución; PR en curso |
 
 ## Decisiones registradas
 

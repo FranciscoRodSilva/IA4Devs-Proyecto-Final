@@ -63,3 +63,5 @@ Se elige el **estilo propio mínimo** porque:
 * Si el glosario añade términos que Vale debe exigir, se amplía `accept.txt` y se revisa esta decisión en el mismo cambio.
 
 El lock instala `katex` 0.16.47, dentro de ese rango. Según `npm audit`, todas las versiones de `@mermaid-js/mermaid-cli` desde la 11.15.0 dependen de `katex` vulnerable; el arreglo sugerido es rebajar a la 11.14.0, un cambio de ruptura. La decisión es de la persona que aprueba.
+
+**Nota del 2026-11-03 (TKT-071).** `@mermaid-js/mermaid-cli` 12.2.0, publicada el 2026-11-02, declara `katex ^0.18.10`, fuera del rango afectado por GHSA-238p-pmpm-9mq7. TKT-071 fija esa versión en `.github/mermaid/package.json`: el lock ya no contiene ninguna copia de `katex` anterior a 0.18.2 y `npm audit` en `.github/mermaid/` no reporta vulnerabilidades. Las pruebas TC-65 exigen ahora la versión exacta 12.2.0. Lo que este ADR dice de `katex` y de la versión 12.0.0 se conserva tal como era cierto el 2026-10-29.
