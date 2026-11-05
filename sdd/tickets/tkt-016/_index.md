@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · **TKT-016b**
+PENDIENTE FUSIÓN · entrega **TKT-016b**
 
 ## Ficha
 
@@ -27,8 +27,8 @@ LISTO PARA EJECUTAR · **TKT-016b**
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-03 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-03 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | TKT-016a escrito el 2026-11-05 |
-| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-05 |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | 016a + 016b · 2026-11-05 |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | TKT-016b · 2026-11-05 |
 
 ## Log de estados
 
@@ -41,6 +41,9 @@ LISTO PARA EJECUTAR · **TKT-016b**
 | 2026-11-05 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Suite 2017 passed; auditorías con REQUIERE CAMBIOS; ciclo 1 corrige F001 (sugerido por fila), F002/M-14 (test dos tipos), docs ADR/README. Menores abiertos (TC-10, aserciones laxas). A8 mutación parcial documentada. Siguiente: `/sdd-completar` |
 | 2026-11-05 | `LISTO PARA PR` | `PENDIENTE FUSIÓN · TKT-016a` | `/sdd-completar` | `delta.md`, evolución; PR pendiente de apertura |
 | 2026-11-05 | `PENDIENTE FUSIÓN · TKT-016a` | `LISTO PARA EJECUTAR · TKT-016b` | `/sdd-completar` | Entrega **TKT-016a** fusionada · [PR #47](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/47) · registro en comentario del PR. Siguiente: `/sdd-ejecutar TKT-016` (entrega b, filas B1–B4) |
+| 2026-11-05 | `LISTO PARA EJECUTAR · TKT-016b` | `EN REVISIÓN · TKT-016b` | `/sdd-ejecutar` | Filas B1–B4: libro sintético TC-24/25, CA-10 TC-26/27, arranque-local, suite 2022 passed. Siguiente: `/sdd-revisar TKT-016` |
+| 2026-11-05 | `EN REVISIÓN · TKT-016b` | `LISTO PARA PR · TKT-016b` | `/sdd-revisar` | 34 tests TKT-016; suite 2022 passed; auditorías APROBADO; ciclo 1 quitó pytest de soporte. Siguiente: `/sdd-completar TKT-016b` |
+| 2026-11-05 | `LISTO PARA PR · TKT-016b` | `PENDIENTE FUSIÓN · TKT-016b` | `/sdd-completar` | `delta.md` 016b; PR pendiente |
 
 ## Decisiones registradas
 

@@ -1,28 +1,25 @@
-# Delta · TKT-016a · Regla pura de explosión por tipo de partida
+# Delta · TKT-016b · Libro sintético y reconciliación Union
 
 > [← index](_index.md) | [← impl](impl.md)
 
-Entrega **intermedia** del paraguas TKT-016. Pendiente **TKT-016b** (`M5`, `CA-8`, `CA-10`: libro sintético y reconciliación `AP-058-25`). El hub **no** se archiva hasta fusionar 016b.
+Entrega hermana **TKT-016b** del paraguas [TKT-016](_index.md). **TKT-016a** ya está en `Produccion` ([PR #47](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/47): regla `calcular_explosion`, cocientes, ADR explosión, `PA-23`). Con la fusión de este PR **cierra la planificación del paraguas TKT-016** (hub → `ARCHIVADO`).
 
 ## Añadido
 
 | Qué | Dónde | Para qué |
 |---|---|---|
-| `calcular_explosion` y objetos de valor (entrada, salida, rechazo) | `backend/cimenta/presupuesto/dominio/explosion.py` | Implementar `RN-24`, `PA-01`, `PA-03`; datos que consumirá TKT-017 |
-| `cociente_rendimiento`, `cociente_precio_unitario` | `backend/tipos_base/numericos.py` | Promedios ponderados sin mezclar `Cantidad/Cantidad` con `Rendimiento` |
-| Ayudantes de prueba | `backend/herramientas/soporte_tkt016.py` | Construir `ConceptoLeido` / `AnalisisLeido` en memoria |
-| 31 tests de dominio | `backend/tests/test_tkt016_*.py` | TC-01–TC-23 de la parte a |
-| ADR explosión por tipo de partida | `docs/adr/20261103-explosion-por-tipo-de-partida.md` | Promedio ponderado, P.U. del análisis, rechazo todo-o-nada |
+| Libro sintético CA-8 y emparejamiento catálogo↔APU | `backend/herramientas/soporte_tkt016.py` | `M5`, TC-24/25 |
+| Lectura CSV oráculo AP-058-25 | `leer_oraculo_explosion_union` en soporte | `CA-10` (P-1 opción A) |
+| Pruebas libro sintético | `backend/tests/test_tkt016_libro_sintetico.py` | TC-24, TC-25 |
+| Pruebas reconciliación real | `backend/tests/test_tkt016_archivo_real.py` | TC-26, TC-27 |
 
 ## Modificado
 
 | Qué | Dónde | Antes → después |
 |---|---|---|
-| Redondeo documentado | `CLAUDE.md`, PRD, arquitectura §7.4, ADR-020, `conv-dominio-python` | `ROUND_HALF_UP (asumido)` → **`PA-23` cerrada** (2026-11-03) |
-| Cocientes en arquitectura §7.4 | `docs/02-arquitectura.md` | Solo operadores → **+ dos funciones con nombre** |
-| Fórmula sugerido y promedios | `docs/03-modelo-datos.md` | Texto genérico → fórmula explícita y enlace al ADR de explosión |
-| Partición 016a/016b | `docs/05-tickets-trabajo.md` | Nota de entrega hermana |
-| Conteos ADR / preguntas | `README.md`, `llms.txt`, `CLAUDE.md` | 37 → **38 ADR**; `PA-23` en respondidas; **3** preguntas abiertas |
+| Soporte TKT-016 | `soporte_tkt016.py` | Solo ayudantes manuales → **+ libro, `conceptos_a_explotar`, oráculo** |
+| Arranque local | `docs/arranque-local.md` | **+ `CIMENTA_EXPLOSION_UNION`** y formato CSV |
+| Hub, design, impl SDD | `sdd/tickets/tkt-016/*` | Cierre 016b |
 
 ## Eliminado
 
@@ -30,45 +27,42 @@ Ninguno.
 
 ## Comportamiento observable nuevo
 
-Ninguno en esta entrega: no hay API ni pantalla. TKT-017 expondrá la explosión al congelar la línea base.
+Ninguno en producción (sin API). El paraguas TKT-016 deja en el repo la **regla pura** de explosión (016a) y **evidencia automatizada**: libro sintético que recorre lectores TKT-013/014b y reconciliación opcional contra Union cuando existan variables y asociaciones (`PA-T3`).
 
 ## Contrato público tocado
 
 | Superficie | Cambio | ¿Rompe compatibilidad? |
 |---|---|---|
-| `tipos_base` exporta dos funciones nuevas | Sí, aditivo | No |
-| OpenAPI / esquema PostgreSQL | Sin cambio | No |
+| OpenAPI / esquema | Sin cambio | No |
+| `tipos_base` / dominio en este PR | Sin cambio (016a ya fusionada) | No |
 
 ## Decisiones (ADR)
 
-→ [20261103-explosion-por-tipo-de-partida.md](../../../docs/adr/20261103-explosion-por-tipo-de-partida.md) (índice ADR). Opciones: detalle por concepto vs promedio ponderado; P.U. catálogo vs análisis; cargos ausentes como cero vs rechazo.
+Sin ADR nuevo en 016b. Sigue vigente [explosión por tipo de partida](../../../docs/adr/20261103-explosion-por-tipo-de-partida.md) (016a).
 
 ## Aprendizajes
 
 | Aprendizaje | Evidencia | Dónde aplica |
 |---|---|---|
-| Excluir tipos del sugerido por **`fila`**, no por `codigo_concepto` | Códigos repetidos en catálogos reales y en libro sintético 016b | Cualquier agregación por tipo con rechazo parcial |
-| Test de agregación debe usar **dos `tipo_partida_id`** | Mutante M-14 sobrevivía con solo MUROS | Reglas `PA-01` |
+| `pytest.skip` en **`tests/`**, no en `herramientas/` | Revisión 016b quitó import de `pytest` del soporte | Cualquier helper de oráculo/archivo real |
 
 ## Observaciones para `_evolucion.md`
 
 | Tema | Observación | Severidad |
 |---|---|---|
-| `comando` | A8 mutación M-1…M-15 no barrida completa; design marcado ⚠ con M-4, M-10, M-14 cubiertos | Media |
-| `documentación` | P-4 del diseño decía «ADR-036» pero **036** ya es preparación JSONB (TKT-015a); el ADR de explosión va por **fecha/slug**, no reutilizar ordinal | Media |
+| `guardrail` | Importar `pytest` en `herramientas/soporte_*` pasó en ejecución; la revisión lo corrigió antes del PR | Baja |
 
 ## Deuda que queda abierta
 
 | Qué | Por qué se dejó | Ticket sugerido |
 |---|---|---|
-| `M5`, libro sintético, oráculo Union | Partición P-3 | **TKT-016b** |
-| Barrido mutantes M-1…M-13, M-15 restantes | A8 ⚠ | Cerrar en 016b o antes de fusionar 016b |
-| Hallazgos menores de código (TC-10, aserciones laxas) | No bloquean 016a | Opcional en 016b |
-| `frontend/.../dinero.ts` cita `PA-T5` | Residuo P-7 | Anotado |
-| Mapeo partida → `tipo_partida` | `PA-T8` | Ticket futuro del hub |
+| TC-26 en verde contra Union real | `PA-T3` (cero asociaciones) + oráculo fuera del repo | Ticket futuro / resolver `PA-T8`+`PA-T3` |
+| Mutación A8 parcial, menores TC-10 | Heredado 016a | Opcional |
+| `dinero.ts` / `PA-T5` | P-7 | Anotado |
+| Mapeo partida → `tipo_partida` | `PA-T8` | Hub «tickets futuros» |
 
 ## Pull request
 
-**PR:** [#47](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/47) (fusionado el 2026-11-05)
+**Título:** `TKT-016b · Libro sintético y reconciliación Union`
 **Origen:** `agent+human-review`
-**Registro:** [comentario de fusión](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/47#issuecomment-6665325465)
+**Cuerpo:** ver PR en GitHub tras apertura.

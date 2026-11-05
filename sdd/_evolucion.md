@@ -8,6 +8,7 @@
 
 | Fecha | Ticket | Tema | Observación | Severidad |
 |---|---|---|---|---|
+| 2026-11-05 | TKT-016b | `guardrail` | `pytest` importado en `herramientas/soporte_tkt016.py` en ejecución; `/sdd-revisar` lo movió a tests antes del PR | Baja |
 | 2026-11-05 | TKT-016a | `comando` | A8 mutación M-1…M-15 no barrida completa; design e impl marcan ⚠ con M-4, M-10, M-14 cubiertos; deuda en delta para 016b | Media |
 | 2026-11-05 | TKT-016a | `documentación` | P-4 del diseño decía «ADR-036» pero el ordinal 036 ya es JSONB (TKT-015a); el ADR de explosión va por slug/fecha | Media |
 | 2026-11-03 | TKT-014a | `comando` | `/sdd-revisar` exigió mutación M-01…M-13 y E-2 que la ejecución inicial dejó pendientes; el corrector los cerró con guiones locales y ajustó TC-11 para subtotales **dentro** del rango material–pie (filas tras el pie no ejercitan M-11). Conviene que A5 no marque «Hecho» sin la tabla de mutación en `impl.md`. | Media |
