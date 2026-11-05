@@ -4,7 +4,7 @@
 
 ## Estado
 
-TKT-010a: ARCHIVADO (fusionado con el PR 33) · TKT-010b: LISTO PARA PR, ARCHIVADO al fusionarse su PR. El paraguas TKT-010 se archiva cuando se archivan los dos hermanos
+ARCHIVADO · paraguas **TKT-010** cerrado ([PR #33](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/33) + [PR #34](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/34))
 
 ## Ficha
 
@@ -42,7 +42,8 @@ TKT-010a: ARCHIVADO (fusionado con el PR 33) · TKT-010b: LISTO PARA PR, ARCHIVA
 | 2026-11-02 | `LISTO PARA PR` (solo TKT-010a) | `ARCHIVADO` (solo TKT-010a, al fusionarse su PR) | `/sdd-completar TKT-010a` | Delta escrito, observaciones anotadas en `sdd/_evolucion.md`. El ticket queda archivado al fusionarse el PR; el número consta en el comentario de registro del PR |
 | 2026-11-02 | `LISTO PARA EJECUTAR` (solo TKT-010b) | `EN REVISIÓN` (solo TKT-010b) | `/sdd-ejecutar TKT-010b` | Filas B1 a B5 hechas (B5 ajustada: sin `npm run e2e` contra la base local), suite de 1722 en verde, diez mutantes caídos, ADR-032 creado. `auditor-sql` aprobado tras un ciclo de corrección y `auditor-arquitectura` sin hallazgos de código pendientes |
 | 2026-11-02 | `EN REVISIÓN` (solo TKT-010b) | `LISTO PARA PR` (solo TKT-010b) | `/sdd-revisar TKT-010b` | Suite de 1734 en verde reejecutada y verificadores limpios; `auditor-seguridad` y `auditor-docs` aprobados, `auditor-codigo` aprobado con un último ajuste de pruebas que no se reauditó. Tres ciclos de corrección, sin Críticos ni Mayores vivos |
-| 2026-11-02 | `LISTO PARA PR` (solo TKT-010b) | `ARCHIVADO` (TKT-010b y el paraguas TKT-010, al fusionarse el PR de TKT-010b) | `/sdd-completar TKT-010b` | Delta de TKT-010b escrito y observaciones anotadas en `sdd/_evolucion.md`. El ticket queda archivado al fusionarse el PR; el número consta en el comentario de registro del PR |
+| 2026-11-02 | `LISTO PARA PR` (solo TKT-010b) | `ARCHIVADO` (solo TKT-010b, al fusionarse su PR) | `/sdd-completar TKT-010b` | Delta de TKT-010b escrito y observaciones anotadas en `sdd/_evolucion.md`. El ticket queda archivado al fusionarse el PR; el número consta en el comentario de registro del PR |
+| 2026-11-05 | `ARCHIVADO` (hermanos) | `ARCHIVADO` | cierre del paraguas | TKT-010a y TKT-010b ya fusionados en `Produccion` (orden a → b). El hub del paraguas se alinea con el cierre registrado el 2026-11-02 |
 
 ## Decisiones registradas
 

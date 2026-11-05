@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · partido en TKT-062a y TKT-062b
+ARCHIVADO · paraguas **TKT-062** cerrado ([PR #21](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/21) + [PR #26](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/26))
 
 > **Ticket paraguas.** No se ejecuta como un solo ticket: por la decisión del gate de diseño del 2026-10-29 se parte en dos hermanos, con la spec repartida. Se cierra al archivarse los dos. El orden de fusión es fijo: **a → b**.
 >
@@ -36,8 +36,8 @@ LISTO PARA EJECUTAR · partido en TKT-062a y TKT-062b
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita |
 | Design | [design.md](design.md) | `/sdd-disenar` | Aprobado el 2026-10-29 |
-| Impl | `impl.md` | `/sdd-ejecutar` | Pendiente |
-| Delta | `delta.md` | `/sdd-completar` | Pendiente |
+| Impl | — | `/sdd-ejecutar` | No aplica: lo ejecutaron TKT-062a y TKT-062b, cada uno con su `impl.md` |
+| Delta | — | `/sdd-completar` | No aplica: lo escribió cada hermano en su `delta.md` |
 
 ## Log de estados
 
@@ -47,6 +47,7 @@ LISTO PARA EJECUTAR · partido en TKT-062a y TKT-062b
 | 2026-10-29 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito; la revisión de impacto halló nueve puntos y se corrigieron. Esperan decisión humana D-1, D-2, D-3, I-1 a I-3 y la partición en a y b |
 | 2026-10-29 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | aprobación del gate | La persona responsable aprobó el diseño tras una auditoría independiente de preparación (`LISTO CON CORRECCIONES`, corregidas). Se parte en TKT-062a y TKT-062b; cada una tiene su `_index.md` y su `spec.md`, que reparten Must, criterios y filas del diseño sin redactar criterios nuevos. TKT-062 queda como paraguas |
 | 2026-10-30 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | cierre de TKT-062a | TKT-062a queda `ARCHIVADO` al fusionarse el PR de cierre de `tkt-062a-cierre`; su PR #21 ya está fusionado como `b2fd8f7`. Queda TKT-062b, que se ejecuta desde `Produccion` actualizada. TKT-062 sigue como paraguas hasta archivar las dos partes |
+| 2026-11-05 | `LISTO PARA EJECUTAR` | `ARCHIVADO` | cierre del paraguas | TKT-062a y TKT-062b ya `ARCHIVADO` y fusionados (orden a → b). El hub del paraguas se alinea con el cierre de las dos entregas |
 
 ## Decisiones registradas
 
