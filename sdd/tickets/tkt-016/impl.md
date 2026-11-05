@@ -184,4 +184,4 @@ python tools/verificar_docs.py → ✓ Sin problemas
 
 ## Siguiente
 
-[`delta.md`](delta.md) se actualiza en `/sdd-completar TKT-016b`.
+Paraguas **TKT-016** archivado tras PR #47 y #48. Siguiente ticket del hilo vertical: **TKT-017** (congelado y persistencia de explosión).

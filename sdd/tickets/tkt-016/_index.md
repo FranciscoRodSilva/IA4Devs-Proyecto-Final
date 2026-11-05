@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega **TKT-016b**
+ARCHIVADO
 
 ## Ficha
 
@@ -44,6 +44,7 @@ PENDIENTE FUSIÓN · entrega **TKT-016b**
 | 2026-11-05 | `LISTO PARA EJECUTAR · TKT-016b` | `EN REVISIÓN · TKT-016b` | `/sdd-ejecutar` | Filas B1–B4: libro sintético TC-24/25, CA-10 TC-26/27, arranque-local, suite 2022 passed. Siguiente: `/sdd-revisar TKT-016` |
 | 2026-11-05 | `EN REVISIÓN · TKT-016b` | `LISTO PARA PR · TKT-016b` | `/sdd-revisar` | 34 tests TKT-016; suite 2022 passed; auditorías APROBADO; ciclo 1 quitó pytest de soporte. Siguiente: `/sdd-completar TKT-016b` |
 | 2026-11-05 | `LISTO PARA PR · TKT-016b` | `PENDIENTE FUSIÓN · TKT-016b` | `/sdd-completar` | `delta.md` 016b; PR pendiente |
+| 2026-11-05 | `PENDIENTE FUSIÓN · TKT-016b` | `ARCHIVADO` | `/sdd-completar` | Entrega **TKT-016b** fusionada · [PR #48](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/48) · [registro](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/48#issuecomment-6666080506). Planificación del paraguas cerrada (#47 + #48). |
 
 ## Decisiones registradas
 

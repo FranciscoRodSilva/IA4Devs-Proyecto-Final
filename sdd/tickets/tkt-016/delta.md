@@ -63,6 +63,6 @@ Sin ADR nuevo en 016b. Sigue vigente [explosión por tipo de partida](../../../d
 
 ## Pull request
 
-**Título:** `TKT-016b · Libro sintético y reconciliación Union`
+**PR:** [#48](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/48) (fusionado el 2026-11-05)
 **Origen:** `agent+human-review`
-**Cuerpo:** ver PR en GitHub tras apertura.
+**Registro:** [comentario de fusión](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/48#issuecomment-6666080506)
