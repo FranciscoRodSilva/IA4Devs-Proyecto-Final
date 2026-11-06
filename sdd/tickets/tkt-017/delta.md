@@ -69,6 +69,8 @@ Ninguna ADR nueva en a1: la migración y la deserialización están cubiertas po
 
 ## Pull request
 
+**PR:** [#51](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/51)
+
 **Título:** `TKT-017a1 · Migración 0011 y preparación JSON`
 
 **Origen:** `agent` (código del agente en sesión Cursor; revisión humana según proceso del equipo)
