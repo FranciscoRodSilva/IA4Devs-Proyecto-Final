@@ -42,7 +42,7 @@ Los códigos de concepto se repiten entre obras (`620001` es el mismo muro está
 
 ### Concepto de partida
 
-La aparición de un concepto en la partida de un área, con su cantidad, su precio unitario y su importe. Un concepto aparece a lo sumo una vez en cada partida (invariante 39). En el esquema es la fila de `partida_concepto`; es lo que la línea base copia al congelar, para conservar partida, área y nivel.
+La aparición de un concepto en la partida de un área, con su cantidad, su precio unitario y su importe. El **precio unitario de la aparición es el del pie del análisis de precios** (no el P.U. que el catálogo pueda mostrar por área). Un concepto aparece a lo sumo una vez en cada partida (invariante 39). En el esquema es la fila de `partida_concepto`; es lo que la línea base copia al congelar, para conservar partida, área y nivel.
 
 ### Unidad de medida
 

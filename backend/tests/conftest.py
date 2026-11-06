@@ -764,7 +764,7 @@ class DatosPresupuesto:
         *,
         nivel_id: uuid.UUID | None = None,
         nombre: str = "Sala",
-        tipo_unidad: str = "M2",
+        tipo_unidad: str | None = "M2",
         conexion: psycopg.Connection[tuple[Any, ...]] | None = None,
     ) -> uuid.UUID:
         """Un área. Sin `nivel_id` crea el nivel (y su obra) que le falta."""
@@ -836,8 +836,8 @@ class DatosPresupuesto:
         self,
         *,
         concepto_id: uuid.UUID | None = None,
-        fecha_analisis: date = date(2026, 10, 1),
-        analista: str = "Analista de prueba",
+        fecha_analisis: date | None = date(2026, 10, 1),
+        analista: str | None = "Analista de prueba",
         costo_material: Decimal = Decimal("100.0000"),
         costo_mano_obra: Decimal = Decimal("50.0000"),
         costo_directo: Decimal = Decimal("150.0000"),
@@ -887,8 +887,8 @@ class DatosPresupuesto:
         *,
         apu_id: uuid.UUID | None = None,
         tipo: str = "IVA",
-        porcentaje: Decimal = Decimal("0.160000"),
-        base_calculo: Decimal = Decimal("150.0000"),
+        porcentaje: Decimal | None = Decimal("0.160000"),
+        base_calculo: Decimal | None = Decimal("150.0000"),
         importe: Decimal = Decimal("24.0000"),
     ) -> uuid.UUID:
         """Un cargo de APU. Sin `apu_id` crea el APU que le falta."""

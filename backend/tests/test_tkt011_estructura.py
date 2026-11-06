@@ -94,7 +94,7 @@ TABLAS_DE_NULABILIDAD: dict[str, tuple[FilaDeTabla, ...]] = {
         ("id", "uuid", "no", None),
         ("nivel_id", "uuid", "no", None),
         ("nombre", "text", "no", None),
-        ("tipo_unidad", "text", "no", None),
+        ("tipo_unidad", "text", "sí", None),
     ),
     "partida": (
         ("id", "uuid", "no", None),
@@ -137,8 +137,8 @@ TABLAS_DE_NULABILIDAD: dict[str, tuple[FilaDeTabla, ...]] = {
     "apu": (
         ("id", "uuid", "no", None),
         ("concepto_id", "uuid", "no", None),
-        ("fecha_analisis", "date", "no", None),
-        ("analista", "text", "no", None),
+        ("fecha_analisis", "date", "sí", None),
+        ("analista", "text", "sí", None),
         ("costo_material", "numeric(14,4)", "no", None),
         ("costo_mano_obra", "numeric(14,4)", "no", None),
         ("costo_directo", "numeric(14,4)", "no", None),
@@ -158,8 +158,8 @@ TABLAS_DE_NULABILIDAD: dict[str, tuple[FilaDeTabla, ...]] = {
         ("id", "uuid", "no", None),
         ("apu_id", "uuid", "no", None),
         ("tipo", "text", "no", None),
-        ("porcentaje", "numeric(9,6)", "no", None),
-        ("base_calculo", "numeric(14,4)", "no", None),
+        ("porcentaje", "numeric(9,6)", "sí", None),
+        ("base_calculo", "numeric(14,4)", "sí", None),
         ("importe", "numeric(14,4)", "no", None),
     ),
 }
