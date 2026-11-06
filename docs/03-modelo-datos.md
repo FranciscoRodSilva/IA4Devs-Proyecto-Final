@@ -155,7 +155,7 @@ erDiagram
         uuid id PK
         uuid nivel_id FK
         string nombre "DEPARTAMENTO 312 TIPO 2R+"
-        string tipo_unidad "DEPARTAMENTO|LOBBY|PASILLO|CUBO_ESCALERAS"
+        string tipo_unidad "DEPARTAMENTO|LOBBY|PASILLO|CUBO_ESCALERAS · admite NULL desde migración 0011 (TKT-017a1) hasta capturarlo en fase 2"
     }
     TIPO_PARTIDA {
         uuid id PK
@@ -180,8 +180,8 @@ erDiagram
         uuid concepto_id FK
         uuid partida_id FK "UNIQUE con concepto_id · invariante número 39"
         numeric cantidad
-        numeric precio_unitario "por área: 620040-A vale 414.93 y 428.19 en ENITI"
-        numeric importe "cantidad × P.U.; el motor no lo verifica"
+        numeric precio_unitario "precio de venta de la aparición: el del pie del análisis (420 en el ejemplo); el P.U. del catálogo por área (414.93 / 428.19 para 620040-A) se descarta al confirmar"
+        numeric importe "cantidad × P.U. del pie; cuantizado; el motor no lo verifica"
     }
     INSUMO {
         uuid id PK
@@ -203,8 +203,8 @@ erDiagram
     APU {
         uuid id PK
         uuid concepto_id FK "un APU por concepto · sin UNIQUE: lo sostiene el caso de uso (PA-T3 de TKT-011)"
-        date fecha_analisis
-        string analista
+        date fecha_analisis "admite NULL desde 0011 si la hoja no la trae; la materialización rechaza nulls en columnas obligatorias del costo (TKT-017a)"
+        string analista "admite NULL desde 0011"
         numeric costo_material
         numeric costo_mano_obra
         numeric costo_directo
@@ -224,8 +224,8 @@ erDiagram
         uuid id PK
         uuid apu_id FK
         enum tipo "HERRAMIENTA_MENOR|ANDAMIAJE|DESPERDICIO|VIATICOS|IVA|INDIRECTOS|UTILIDAD"
-        numeric porcentaje
-        numeric base_calculo
+        numeric porcentaje "admite NULL desde 0011"
+        numeric base_calculo "admite NULL desde 0011"
         numeric importe
     }
 ```
@@ -1052,6 +1052,8 @@ erDiagram
 **`progreso` es un `Porcentaje` que el trabajo informa mientras analiza** y que el proceso del API guarda junto con el `latido`: nulo antes del primer análisis, **1 al terminar** y **se conserva tras una interrupción**. Mientras se lee, la fracción llega a 0.9 como máximo y se redondea hacia abajo ([ADR-037](adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md)). Es lo que pinta la barra de la pantalla de carga sin que el cliente adivine.
 
 **`preparacion` guarda lo que el análisis conservó del libro** —catálogo, nodos, conceptos, análisis, asociaciones e insumos por crear— en **formato 1** ([ADR-036](adr/20261105-preparacion-de-importacion-en-jsonb.md)): cifras como cadena sin cuantizar, ausentes como `null`, clave `formato: 1`. Va en el mismo `UPDATE` que cierra el análisis y en la misma transacción que los errores; si la importación queda `VALIDADO` o `CON_ERRORES` con filas válidas, la preparación refleja solo esas filas (Union puede dejarla con cero conceptos). La restricción **`ck_importacion_preparacion_tras_analisis`** exige `preparacion IS NULL` mientras el estado es `RECIBIDO` o `ANALIZANDO`, así el reintento no puede dejar un JSON viejo junto a un análisis nuevo. No es una tabla aparte: el documento es opaco para SQL hasta que TKT-017 lo materializa.
+
+La migración **`0011`** (TKT-017a1) relaja cinco columnas que el Excel puede traer vacías hasta que el alcance de destajo las capture o el lector exija cabecera completa: `area.tipo_unidad`, `apu.fecha_analisis`, `apu.analista`, `apu_cargo.porcentaje` y `apu_cargo.base_calculo` pasan a admitir `NULL`. La bajada a `0010` se niega con `P0001` si alguna fila conserva `NULL` en alguna de ellas: la guarda toma `LOCK TABLE area, apu, apu_cargo IN ACCESS EXCLUSIVE MODE` antes de comprobar (`CA-A11`).
 
 **`SIN_CONCEPTOS` es el error de un archivo que abre pero no trae nada.** Una hoja con formato válido y sin ninguna fila de concepto no es un error de forma —el archivo pasó la comprobación estructural—, así que no se rechaza con `422` al crear: la importación queda `CON_ERRORES` con un error de este tipo, igual que la que trae filas rotas.
 

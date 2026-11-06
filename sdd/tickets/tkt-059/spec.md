@@ -13,10 +13,10 @@ El estado de partida, medido el 2026-11-05 por `analista-dominio`:
 - `servidor/ajustes.py` declara `almacen_origen` como opcional, y tres piezas exigen hoy arrancar sin variables de base: TC-51 de TKT-057, `CA-R4` de TKT-006 y [ADR-037](../../../docs/adr/20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md) §5.
 - El barrido genérico existe (`trabajos/barrido.py`, `DefinicionBarrido`) y TKT-015b lo compone en el `lifespan` de `servidor/fabrica.py`. Esa misma fábrica espera que alguien conecte la lectura del contenido de un archivo para que el analizador de TKT-015 lea el Excel del almacén.
 - Los seis códigos `ARCHIVO_*` existen en el catálogo cerrado, pero `ARCHIVO_NO_SUBIDO` y `ARCHIVO_CADUCADO` no tienen disparador documentado, y el esquema `EstadoArchivo` del borrador no incluye `CADUCADO`.
-- No hay evidencia en el repositorio de que MinIO y R2 admitan una suma SHA-256 firmada en una URL prefirmada de subida.
+- No hay evidencia en el repositorio de que MinIO admita una suma SHA-256 firmada en una URL prefirmada de subida.
 - La tabla de dueños de los tests de escenario de `docs/05-tickets-trabajo.md` no asigna HDU-001 esc. 24 a 26.
 
-**Costos.** El destino de producción previsto, Cloudflare R2, es un servicio externo de pago que exige una cuenta. La persona dueña decidió el 2026-11-05 que este ticket no lo necesita: el adaptador cambia de destino solo por `endpoint_url` y todas sus pruebas corren contra MinIO. Contratar R2, o usar MinIO también en el servidor, se decide en TKT-058 o TKT-070. **Disparador de recorte:** si no hay presupuesto para R2, producción usa MinIO en el servidor y el código de este ticket no cambia.
+**Destino y costos.** La persona dueña decidió el 2026-11-05 que este ticket no necesita R2, y el 2026-11-06 que los archivos vivirán en **MinIO autoalojado en la VPS de Database Mart** ([guía de la VPS](../../../docs/despliegue-prueba-vps.md), TKT-070), no en R2. Desplegar ese MinIO —nombre propio detrás de Caddy, bucket por entorno, CORS, respaldo propio (`RNF-19`), regla de ciclo de vida y el ADR que reemplaza la elección de destino de ADR-016— es un ticket nuevo, **TKT-073**, no este. Aquí, todas las pruebas corren contra MinIO en testcontainers y el adaptador separa la dirección interna con la que opera el servidor de la pública con la que firma las URL, que en la VPS serán distintas.
 
 ## Historia de usuario
 
@@ -43,7 +43,7 @@ El estado de partida, medido el 2026-11-05 por `analista-dominio`:
 | **Must** | **M9.** Documentación y borrador OpenAPI en el mismo cambio (detalle en `CA-13`) |
 | **Should** | — |
 | **Could** | — |
-| **Won't** | La cuenta de R2 y su verificación real · la regla de ciclo de vida del bucket en los servidores (TKT-058, TKT-070) · anulación con motivo, galería, miniaturas, visor y expediente (TKT-065 a TKT-067) · crear la importación con su archivo y exigir `DISPONIBLE` para analizar (TKT-018) · antivirus · interpretar el contenido más allá del tipo |
+| **Won't** | MinIO en la VPS: su nombre público, el bucket por entorno, el CORS, el respaldo, la regla de ciclo de vida y el ADR del destino (TKT-073) · anulación con motivo, galería, miniaturas, visor y expediente (TKT-065 a TKT-067) · crear la importación con su archivo y exigir `DISPONIBLE` para analizar (TKT-018) · antivirus · interpretar el contenido más allá del tipo |
 
 ## Non-goals
 
@@ -112,8 +112,9 @@ Escenario: La migración sube y baja
 ```gherkin
 Escenario: Con base configurada, el almacén es obligatorio
   Dado que las variables de base de datos están configuradas
-  Cuando falta cualquiera de las variables del almacén —destino, bucket, credenciales u origen—
+  Cuando falta cualquiera de las variables obligatorias del almacén —origen público, bucket o credenciales—
   Entonces la aplicación no arranca y el error nombra la variable que falta, sin mostrar ningún secreto
+  Y el endpoint interno no es obligatorio: si falta, vale el origen público
 
 Escenario: Sin base, la aplicación arranca sin almacén
   Dado que no hay variables de base de datos
@@ -123,7 +124,15 @@ Escenario: Sin base, la aplicación arranca sin almacén
 Escenario: El destino cambia solo por endpoint_url
   Cuando el adaptador se construye con el endpoint de MinIO local
   Entonces sube, lee y firma contra él sin ningún código específico del destino
+
+Escenario: Las URL llevan el origen público y el servidor usa el endpoint interno
+  Dado que el endpoint interno y el origen público del almacén son direcciones distintas del mismo MinIO
+  Cuando el sistema emite una URL de subida o de lectura
+  Entonces la URL lleva el esquema, el host y el puerto del origen público
+  Y las operaciones del servidor sobre el objeto —metadatos, lecturas por rango, lectura completa y reescritura del tipo— usan el endpoint interno
 ```
+
+Las dos variables son una decisión de la persona dueña del 2026-11-06: en la VPS el servidor alcanzará MinIO por la red interna de Docker y el navegador por un nombre público.
 
 ### CA-3 `[M]` · Alta del archivo `PENDIENTE` · `RNF-06` · `HDU-001 esc. 24`
 
@@ -338,11 +347,27 @@ Escenario: El enrutador no tiene respuestas binarias en archivos
 ### CA-13 `[M]` · Documentación y borrador
 
 - **Borrador OpenAPI:** `EstadoArchivo` incluye `CADUCADO`; `confirmar_archivo` documenta `ARCHIVO_NO_SUBIDO`, `ARCHIVO_CADUCADO` y el `403` `NO_ES_SOLICITANTE`; el ejemplo de `ARCHIVO_TIPO_NO_PERMITIDO` trae los tipos admitidos; el `409` de `obtener_url_descarga_archivo` nombra `ARCHIVO_NO_DISPONIBLE` y `ARCHIVO_CADUCADO`.
-- **ADR-016 y [stack](../../../docs/06-stack-tecnologico.md) §4.6:** la lista blanca admite solo `.xlsx` entre las hojas de cálculo; el barrido no borra el objeto, que recoge la regla de ciclo de vida del bucket.
+- **ADR-016 y [stack](../../../docs/06-stack-tecnologico.md) §4.6:** la lista blanca admite solo `.xlsx` entre las hojas de cálculo; el barrido no borra el objeto, que recoge la regla de ciclo de vida del bucket. ADR-016 recibe al inicio un aviso que remite a TKT-073 por el cambio de destino de producción.
 - **Modelo de datos §12 y ficha de TKT-059:** el barrido marca `CADUCADO` sin borrar el objeto; el rol de aplicación no tiene `DELETE` sobre `archivo`.
 - **Tabla de dueños de tests** de `docs/05-tickets-trabajo.md`: TKT-059 es dueño de HDU-001 esc. 25 y 26; TKT-018, del 24.
 - **`.env.example`, Compose y [arranque local](../../../docs/arranque-local.md):** MinIO y las variables del almacén, con valores locales.
 - La hoja de pruebas de `RNF-06` y `RNF-19` del stack §6.6 queda enlazada a los tests que la cumplen.
+
+### CA-14 `[M]` · CORS del almacén · `RNF-06`
+
+```gherkin
+Escenario: El navegador sube desde el origen de la SPA
+  Dado que el almacén local está configurado con el origen de la SPA (en local, http://localhost:5173)
+  Cuando el navegador envía el preflight OPTIONS del PUT firmado desde ese origen, con la cabecera de la suma
+  Entonces el almacén responde con Access-Control-Allow-Origin igual a ese origen y admite PUT
+  Y el PUT firmado desde ese origen se acepta
+
+Escenario: Rechazo · otro origen no recibe permiso
+  Cuando el preflight llega desde cualquier otro origen
+  Entonces la respuesta no trae Access-Control-Allow-Origin y el navegador no puede subir
+```
+
+Decisión de la persona dueña del 2026-11-06. Si MinIO lo admite por bucket o solo por una variable global del servidor lo decide un experimento del diseño; una prueba contra MinIO real lo comprueba. En la VPS, el CORS lo configura TKT-073.
 
 ### Regresión
 
@@ -380,13 +405,13 @@ La de fundación de `sdd/metodologia.md` §8, más:
 
 | # | Supuesto o pregunta | Impacto si es falso | Estado |
 |---|---|---|---|
-| `PA-T59.1` | Sin R2 en este ticket; pruebas contra MinIO; la contratación se decide en TKT-058 o TKT-070. Si no hay presupuesto, producción usa MinIO en el servidor | — | Resuelta por la persona dueña el 2026-11-05 |
+| `PA-T59.1` | Sin R2; pruebas contra MinIO. Producción usará MinIO autoalojado en la VPS de Database Mart, que despliega TKT-073 | — | Resuelta por la persona dueña el 2026-11-05 y actualizada el 2026-11-06 |
 | `PA-T59.2` | Variables del almacén obligatorias solo con base configurada | — | Resuelta el 2026-11-05 |
 | `PA-T59.3` | El barrido solo marca `CADUCADO`; no toca el almacén ni la bitácora. El objeto huérfano lo recoge una regla de ciclo de vida del bucket que nadie configura todavía | Hasta que TKT-058 o TKT-070 la configuren, los huérfanos se acumulan en el bucket | Resuelta el 2026-11-05; regla de ciclo de vida pendiente en despliegue |
 | `PA-T59.4` | Vida de la URL de subida 15 minutos, de lectura 5 minutos, umbral del barrido 24 horas, configurables | — | Resuelta el 2026-11-05 |
 | `PA-T59.5` | Solo `.xlsx` en la lista blanca; el tipo declarado elige el límite y no se guarda. Límites de `PA-15`: 15, 50 y 25 MB, **asumidos por el PRD** | Si `PA-15` cambia los límites, cambia la configuración | Resuelta el 2026-11-05; `PA-15` sigue abierta en el PRD |
 | `PA-T59.6` | MinIO verifica el SHA-256 firmado en la URL prefirmada y lo devuelve en los metadatos del objeto **(sin verificar)**. La primera fila del diseño lo comprueba; si falla, se escala antes de construir | Sin la suma del almacén, la confirmación tendría que calcular el hash leyendo el objeto en un trabajo, que es otro alcance | Abierta; experimento en el diseño |
-| `PA-T59.7` | R2 admite la misma suma firmada | Si no, producción en R2 necesitaría el cálculo en un trabajo | Abierta para TKT-058 o TKT-070 |
+| `PA-T59.7` | R2 admite la misma suma firmada | — | **Ya no aplica** desde el 2026-11-06: producción no usa R2. Que el MinIO de la VPS se comporte como el de las pruebas lo verifica TKT-073 |
 | `PA-T59.8` | Confirmar: solo el Director de Proyectos que subió; otro recibe `403` `NO_ES_SOLICITANTE` asentado `DENEGAR`. Leer y descargar: Dirección General y Director de Proyectos | — | Resuelta el 2026-11-05 |
 | `PA-T59.9` | Mapa de códigos: `ARCHIVO_NO_SUBIDO`, `ARCHIVO_CADUCADO`, `ARCHIVO_NO_DISPONIBLE` como en `CA-7` y `CA-9`; `CADUCADO` entra en `EstadoArchivo` | — | Resuelta el 2026-11-05 |
 | `PA-T59.10` | La bitácora solo asienta la confirmación y las denegaciones; el alta no se asienta aquí; el rol de aplicación no tiene `DELETE` sobre `archivo` | — | Resuelta el 2026-11-05 |

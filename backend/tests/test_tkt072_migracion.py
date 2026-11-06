@@ -12,7 +12,6 @@ ayudas siguen el patrón de `test_tkt011_migracion_linea_base.py`.
 
 from __future__ import annotations
 
-import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
@@ -22,6 +21,8 @@ import psycopg
 import pytest
 from sqlalchemy.exc import DBAPIError
 
+from herramientas.tiempo_de_prueba import esperar_hasta
+
 if TYPE_CHECKING:
     # `conftest` no es importable en tiempo de ejecución: pytest lo carga por su cuenta. Solo mypy
     # necesita el tipo de la fábrica, y las anotaciones no se evalúan.
@@ -30,7 +31,8 @@ if TYPE_CHECKING:
 Conexion = psycopg.Connection[tuple[Any, ...]]
 
 REVISION_ANTERIOR = "0009"
-REVISION_NUEVA = "0010"
+REVISION_0010 = "0010"
+CABEZA = "0011"
 FUNCION = "presupuesto_proteger_copia_congelada"
 
 # Las cuatro tablas que toca `0010` o que cuelgan de lo que toca.
@@ -48,16 +50,6 @@ def sqlstate_de(error: DBAPIError) -> str | None:
     origen = error.orig
     assert isinstance(origen, psycopg.Error), repr(origen)
     return origen.sqlstate
-
-
-def esperar_hasta(condicion: Callable[[], bool], limite: float = 30.0) -> None:
-    """Sondea `condicion` cada 50 ms hasta que se cumple o vence `limite` segundos.
-
-    No decide si la condición debía cumplirse: quien llama afirma después lo que observó.
-    """
-    vence = time.monotonic() + limite
-    while time.monotonic() < vence and not condicion():
-        time.sleep(0.05)
 
 
 def fotografia(conexion: Conexion) -> dict[str, Any]:
@@ -197,11 +189,11 @@ def test_tkt072_ca08_sube_baja_y_vuelve_a_subir(
     assert "partida_concepto" not in a["tablas"]
     assert len(columnas_de(a, "concepto")) == 9, "La precondición es el `concepto` de `0009`"
 
-    migrar(base_vacia, REVISION_NUEVA)
+    migrar(base_vacia, REVISION_0010)
     with conectar("migracion", base_vacia) as administrador:
         b = fotografia(administrador)
         version_b = version_de_alembic(administrador)
-    assert version_b == [(REVISION_NUEVA,)]
+    assert version_b == [(REVISION_0010,)]
     assert "partida_concepto" in b["tablas"], b["tablas"]
     assert columnas_de(b, "concepto") == ["id", "obra_id", "codigo", "descripcion", "unidad"]
     assert [d[0] for d in b["disparadores"]] == ["trg_linea_base_concepto_inmutable"]
@@ -215,11 +207,11 @@ def test_tkt072_ca08_sube_baja_y_vuelve_a_subir(
     assert "partida_concepto" not in c["tablas"]
     assert c == a
 
-    migrar(base_vacia, REVISION_NUEVA)
+    migrar(base_vacia, REVISION_0010)
     with conectar("migracion", base_vacia) as administrador:
         d = fotografia(administrador)
         version_d = version_de_alembic(administrador)
-    assert version_d == [(REVISION_NUEVA,)]
+    assert version_d == [(REVISION_0010,)]
     assert d == b
 
 
@@ -268,7 +260,7 @@ def test_tkt072_ca08_la_subida_se_niega_con_conceptos_escritos(
     assert filas_antes["concepto"], "La precondición es al menos un concepto escrito"
 
     with pytest.raises(DBAPIError) as rechazo:
-        migrar(base_vacia, REVISION_NUEVA)
+        migrar(base_vacia, REVISION_0010)
 
     texto = str(rechazo.value)
     assert sqlstate_de(rechazo.value) == "P0001", texto
@@ -329,12 +321,13 @@ def test_tkt072_ca08_la_bajada_se_niega_con_datos_escritos(
     `CONGELADA` y bajada hasta `0006`, el código no es `IN001`: la guarda de `0010` corre antes que
     la de `0007`. La versión sigue en `0010`, y la fotografía y las filas no cambian.
     """
+    migrar(base_de_prueba, REVISION_0010, "downgrade")
     sembrar(datos_presupuesto)
     with conectar("migracion", base_de_prueba) as administrador:
         foto_antes = fotografia(administrador)
         filas_antes = filas_de_las_tablas(administrador)
         version_antes = version_de_alembic(administrador)
-    assert version_antes == [(REVISION_NUEVA,)]
+    assert version_antes == [(REVISION_0010,)]
     assert filas_antes["concepto"], "La precondición es al menos un concepto escrito"
 
     with pytest.raises(DBAPIError) as rechazo:
@@ -349,7 +342,7 @@ def test_tkt072_ca08_la_bajada_se_niega_con_datos_escritos(
         version = version_de_alembic(administrador)
         foto_despues = fotografia(administrador)
         filas_despues = filas_de_las_tablas(administrador)
-    assert version == [(REVISION_NUEVA,)]
+    assert version == [(REVISION_0010,)]
     assert foto_despues == foto_antes
     assert filas_despues == filas_antes
 
@@ -394,10 +387,11 @@ def test_tkt072_ca08_la_guarda_toma_el_bloqueo_antes_de_comprobar(
     if sentido == "subida":
         base = str(request.getfixturevalue("base_vacia"))
         migrar(base, REVISION_ANTERIOR)
-        version_esperada, destino, direccion = REVISION_ANTERIOR, REVISION_NUEVA, "upgrade"
+        version_esperada, destino, direccion = REVISION_ANTERIOR, REVISION_0010, "upgrade"
     else:
         base = str(request.getfixturevalue("base_de_prueba"))
-        version_esperada, destino, direccion = REVISION_NUEVA, REVISION_ANTERIOR, "downgrade"
+        migrar(base, REVISION_0010, "downgrade")
+        version_esperada, destino, direccion = REVISION_0010, REVISION_ANTERIOR, "downgrade"
     datos = datos_presupuesto_en(base)
     observador = conectar("migracion", base)
 

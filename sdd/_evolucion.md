@@ -276,6 +276,7 @@ Con TKT-010b. Cruzan el umbral: las cifras de documentación sin verificador (`d
 | 2026-11-05 | TKT-015b | `mutación` | Scripts `ejecutar_mutantes_tkt015a/b` duplican la misma estructura; candidato a helper común si un tercer ticket repite | Baja |
 | 2026-11-05 | TKT-015b | `revisión` | El hueco RNF-17 «reinicio rápido vs barrido único» no estaba cerrado en diseño; la revisión obligó decisión explícita (`cerrar()` con REINICIO) | Media |
 | 2026-11-05 | TKT-015b | `guardrail` | Archivo `tools/historias_activas.tmp` apareció en el working tree durante revisión; no versionar | Baja |
+| 2026-11-06 | TKT-017a1 | `comando` | Gate de `/sdd-completar` paso 0 («ningún criterio [M] pendiente») choca con paraguas partido: la spec del paraguas lista [M] de todas las entregas; hace falta criterio explícito «solo [M] del alcance de esta entrega» o el paso 0 bloquea siempre la primera fusión | Media |
 
 Con TKT-015b. Cierra el paraguas TKT-015 (entrega b). Entra en vigilancia la raíz `mutación` (segundo ticket con script dedicado de mutantes por entrega).
 

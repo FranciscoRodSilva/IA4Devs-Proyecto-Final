@@ -54,10 +54,10 @@ Los tickets citan los endpoints por método y ruta con las convenciones del [bor
 | 1 | [HDU-004 · Proveedores y órdenes de compra](#tickets-de-hdu-004--proveedores-y-órdenes-de-compra) | TKT-029 … TKT-032 | HDU-004 | 5 |
 | 1 | [HDU-005 · Entrada de material, en línea](#tickets-de-hdu-005--entrada-de-material-con-recepción-parcial) | TKT-033 … TKT-038, TKT-054 | HDU-005 | 8 de 11 |
 | 1 | [HDU-006 · Semáforo de obra](#tickets-de-hdu-006--semáforo-de-obra) | TKT-039 … TKT-041, TKT-060 | HDU-006 | 6 |
-| 1 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057, TKT-058, TKT-061, TKT-070, TKT-071 | — | ~8 |
+| 1 | [Endurecimiento y operación](#endurecimiento-y-operación) | TKT-057, TKT-058, TKT-061, TKT-070, TKT-071, TKT-073 | — | ~8 |
 | 2 | [Fase 2 · HDU-007 a HDU-009 y captura en campo](#fase-2--mano-de-obra-y-campo) | TKT-042 … TKT-053, TKT-055, TKT-056, TKT-063 … TKT-069 | HDU-005 (3 de 11), HDU-007, HDU-008, HDU-009 | 33 + ~10 |
 
-**72 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
+**73 tickets · 79 SP en historias**, más ~60 fuera de ellas —~42 de fundación, ~8 de endurecimiento, ~8 del armazón de campo (TKT-063, TKT-065) y ~2 del adaptador real (TKT-069)—: **~96 SP en la fase 1** (46 + 50) y **~43 en la fase 2** (33 + 10). La numeración no es contigua: TKT-053 a TKT-056 se añadieron en revisiones posteriores y TKT-059 a TKT-068 en la revisión de la Entrega 1; todos se listan junto a la historia o al bloque al que sirven. TKT-053 es transversal a HDU-008 y HDU-009. El reparto en sprints de las dos fases está en el [plan de sprints](#plan-de-sprints).
 
 **TKT-057 y TKT-058 salieron de la revisión del stack del 2026-09-19**, que encontró que la especificación no declaraba ningún requisito de seguridad ni de recuperación. Los requisitos están ahora en el [PRD §9](01-descripcion-producto.md#9-requisitos-no-funcionales) y estos dos tickets los implementan.
 
@@ -66,6 +66,8 @@ Los tickets citan los endpoints por método y ruta con las convenciones del [bor
 **TKT-071 salió de la revisión de las alertas de Dependabot del 2026-11-03**, que encontró tres alertas de severidad baja o moderada, ninguna explotable en CIMENTA. Corrige la única con camino de actualización limpio y reúne los parches de dependencias pendientes. Tampoco tiene sprint asignado ni suma puntos de historia.
 
 **TKT-072 salió de la decisión de la persona dueña del 2026-11-05 sobre `PA-T1` de TKT-013**: los Excel reales repiten cada código de concepto en muchas áreas, y el invariante 13 impedía confirmar cualquiera de ellos. Separa el concepto de sus apariciones por área antes de TKT-017, que pasa a depender de él. Tampoco tiene sprint asignado ni suma puntos de historia.
+
+**TKT-073 salió de la decisión de la persona dueña del 2026-11-06** de alojar los archivos en MinIO dentro de la VPS de TKT-070, en lugar de Cloudflare R2, que no tiene presupuesto. Despliega el almacén de objetos que TKT-059 deja listo en código. Tampoco tiene sprint asignado ni suma puntos de historia.
 
 **TKT-059 a TKT-068 salieron de la revisión de LIDR del 2026-10-14**, que pidió tres cosas: detallar todos los tickets al nivel de los de HDU-001 y HDU-002, cerrar el bloque que estaba *pendiente de descomponer* y recortar el MVP a un hilo vertical. El bloque pendiente ya no existe: su contenido son ahora TKT-059 —el camino mínimo de `archivos`, en la fase 1— y TKT-063 a TKT-068, en la fase 2. TKT-060 sostiene las fuentes simuladas del semáforo ([ADR-017](adr/20261015-fuentes-simuladas-analitica.md)); TKT-061 convierte el borrador de [`docs/api/openapi.yaml`](api/openapi.yaml) en prueba de contrato; TKT-062 pone a la IA a revisar cada PR sin darle la aprobación.
 
@@ -1586,6 +1588,30 @@ Los nombres son `apbuildings.duckdns.org` para `prod` y `apbuildings-test.duckdn
 > **El entorno `prod` no recibe datos reales del cliente mientras este ticket sea todo lo que hay.** Se llama así porque es el destino del despliegue final, no porque cumpla ya la condición de salida de la fase 1: el sistema no se pone en manos del cliente sin respaldo con recuperación a un punto en el tiempo y sin un ensayo de restauración hecho, y eso es TKT-058. Hasta entonces, ambos entornos llevan solo datos de prueba. Tampoco se ejecuta la siembra local, que se niega a escribir fuera de una base local.
 
 **Non-goals** — No despliega la aplicación: el `Dockerfile` y la imagen única son de TKT-058. No monta respaldos ni restauración: se pospusieron por decisión expresa, y TKT-058 los exige antes de la entrega al cliente. No automatiza el despliegue desde el pipeline. No monta el almacén de objetos de TKT-059. No elige el proveedor definitivo de producción: esta VPS es de prueba, el destino final lo decide TKT-058 y la respuesta de `PA-12` sigue fijando el precio de la base gestionada. No resuelve `PA-T5` de TKT-057, el origen del cliente detrás del proxy: Caddy la activa en cuanto haya aplicación detrás, y la resuelve TKT-058.
+
+---
+
+### TKT-073 · Almacén de objetos MinIO en la VPS
+
+| | |
+|---|---|
+| **Tipo** | Fundación · **Talla** por estimar · **Depende de** TKT-059, TKT-070 · **Sprint** sin asignar |
+
+**Qué hace.** Despliega en la VPS de TKT-070 el almacén de objetos compatible con S3 que TKT-059 deja listo en código, para que los entornos `prod` y `test` guarden sus archivos en MinIO autoalojado. La persona dueña lo decidió el 2026-11-06: Cloudflare R2, el destino que eligió [ADR-016](adr/20261001-almacenamiento-de-objetos.md), no tiene presupuesto, y la VPS ya existe.
+
+**Criterios técnicos**
+
+- [ ] **MinIO corre en la VPS** con la imagen fijada en TKT-059, su volumen propio y una red interna, sin publicar ningún puerto hacia Internet. Cada entorno tiene su propio bucket y sus propias credenciales, distintas entre `prod` y `test`, y ninguno lee el bucket del otro
+- [ ] **El almacén se sirve desde un origen distinto al de la aplicación** (`RNF-06`): un nombre propio por entorno detrás del Caddy de TKT-070, con HTTPS por DNS-01, que es el `CIMENTA_ALMACEN_ORIGEN` de cada entorno; el servidor de la aplicación usa la red interna (`CIMENTA_ALMACEN_ENDPOINT`)
+- [ ] **CORS**: el almacén acepta el `PUT` firmado solo desde el origen de la SPA de su entorno, con el mecanismo que fijó el experimento de TKT-059; un preflight desde otro origen no recibe permiso
+- [ ] **Respaldo propio de los archivos** (`RNF-19`), independiente del de la base y del respaldo del proveedor cada cuatro semanas, con un ensayo de restauración documentado
+- [ ] **Regla de ciclo de vida** que elimina los objetos de los archivos `PENDIENTE` caducados, que el barrido de TKT-059 deja huérfanos sin borrarlos
+- [ ] **Los secretos viven solo en el `.env` de cada entorno** dentro de la VPS (`RNF-07`); la guía de operación añade las cuatro variables del almacén
+- [ ] **Escenario de rechazo:** desde Internet, la API de MinIO solo responde por el nombre del almacén con HTTPS, y una URL de lectura vencida o una subida con otro contenido se rechazan
+- [ ] **Un ADR registra el cambio de destino** frente a ADR-016 —MinIO autoalojado en lugar de R2— con lo que eso cuesta en operación: un contenedor con estado que hay que actualizar, vigilar y respaldar, que es justo por lo que ADR-016 lo había descartado
+- [ ] La [guía de la VPS](despliegue-prueba-vps.md), `despliegue/` y `tools/verificar_despliegue.py` cubren el almacén
+
+**Non-goals** — No cambia el código del módulo `archivos`: el adaptador ya cambia de destino solo por variables. No decide si la VPS es el destino final de la aplicación: eso sigue siendo de TKT-058. No despliega la aplicación.
 
 ---
 
