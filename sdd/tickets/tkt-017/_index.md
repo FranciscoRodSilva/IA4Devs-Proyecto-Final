@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega TKT-017a1
+LISTO PARA EJECUTAR · TKT-017a2
 
 Paraguas con seis entregas que se fusionan en este orden: TKT-017a1, TKT-017a2, TKT-017a3, TKT-017b1, TKT-017b2 y TKT-017c. `ARCHIVADO` solo al cerrar TKT-017c.
 
@@ -42,6 +42,7 @@ Paraguas con seis entregas que se fusionan en este orden: TKT-017a1, TKT-017a2, 
 | 2026-11-06 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | TKT-017a1: filas A0, A1, A2, A2d y A2c hechas; migración `0011`, `preparacion_desde_json`, libro sintético, tests TC-A01 a TC-A03, mutantes M-A8/M-A9 revertidos, suite `2062 passed`, linters y `verificar_docs` en verde. Siguiente: `/sdd-revisar` |
 | 2026-11-06 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Pytest `2062 passed`, `ruff`/`mypy`/`lint-imports`/`verificar_docs` en verde; auditorías arquitectura, SQL, código y docs **APROBADO** (reserva menor D001: casillas PA-T13/PA-T17 en fichas de ticket). Paraguas TKT-017 sigue abierto. Siguiente: `/sdd-completar` para el PR de a1 |
 | 2026-11-06 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | [delta.md](delta.md) escrito; artefactos enlazados; deuda D001 y **CA-A12** parcial documentados. Commit `9ee5d04`; PR [#51](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/51) · etiqueta `agent`. Siguiente: comprobaciones CI en verde y **aprobación explícita** para fusionar a `Produccion` con omisión de la protección |
+| 2026-11-06 | `PENDIENTE FUSIÓN` | `LISTO PARA EJECUTAR · TKT-017a2` | `/sdd-completar` | Entrega **TKT-017a1** fusionada a `Produccion` ([PR #51](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/51)): merge commit `5db87699184064118321ee9ebb117d872f32c7fc`; cabeza aprobada `c2abe5f8a062334850895bf483d412b8f4691087`. Registro en el PR: [comentario de fusión](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/51#issuecomment-6687763763). Paraguas sigue abierto. Siguiente: `/sdd-ejecutar` sobre la entrega **TKT-017a2** |
 
 ## Decisiones registradas
 
