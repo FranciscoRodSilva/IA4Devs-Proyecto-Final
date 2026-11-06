@@ -42,6 +42,7 @@ Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, T
 | 2026-11-05 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones de P-1 a P-14 (ver «Decisiones registradas»). Cinco entregas (`P-2`). Siguiente: `/sdd-ejecutar TKT-059a` (filas 0 a 4), que empieza por los experimentos `E-0` a `E-4` |
 | 2026-11-06 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | revisión independiente | Correcciones de ejecución en `design.md` sin reabrir decisiones del gate: filas 1 y 12 partidas (1a, 1b, 12a, 12b), agentes según sus definiciones, `interfaz.py` desde la fila 8, `evaluar_previa` sin `datetime` (`Ordenable`), vencimiento del bloqueo como `CONCURRENCIA`, `TC-25b` para los mutantes del detector, comandos para PowerShell, `pip-audit` en cada cierre y altas dentro del `TestClient` |
 | 2026-11-06 | `LISTO PARA EJECUTAR` | `LISTO PARA EJECUTAR` | persona dueña | Tres decisiones nuevas aplicadas en `spec.md` y `design.md`: destino de producción en MinIO de la VPS (TKT-073, sin R2; `PA-T59.1` actualizada y `PA-T59.7` sin efecto), dos variables del almacén (endpoint interno y origen público, sustituye a P-3) con un criterio nuevo en `CA-2`, y CORS por resultado (`CA-14`, experimento `E-5`, mutante `M-20`). Total ~1,375 líneas, misma partición. Pregunta nueva `P-15` (variable del origen de la SPA) para la persona dueña |
+
 ## Decisiones registradas
 
 Todas de la persona dueña, el 2026-11-05, durante `/sdd-definir`.
