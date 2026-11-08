@@ -277,8 +277,18 @@ Con TKT-010b. Cruzan el umbral: las cifras de documentación sin verificador (`d
 | 2026-11-05 | TKT-015b | `revisión` | El hueco RNF-17 «reinicio rápido vs barrido único» no estaba cerrado en diseño; la revisión obligó decisión explícita (`cerrar()` con REINICIO) | Media |
 | 2026-11-05 | TKT-015b | `guardrail` | Archivo `tools/historias_activas.tmp` apareció en el working tree durante revisión; no versionar | Baja |
 | 2026-11-06 | TKT-017a1 | `comando` | Gate de `/sdd-completar` paso 0 («ningún criterio [M] pendiente») choca con paraguas partido: la spec del paraguas lista [M] de todas las entregas; hace falta criterio explícito «solo [M] del alcance de esta entrega» o el paso 0 bloquea siempre la primera fusión | Media |
+| 2026-11-08 | TKT-017a2 | `guardrail` | `/sdd-ejecutar` desde Cursor no guardó la salida en rojo de las filas A3 y A4 y un mismo agente escribió tests y código: `/sdd-revisar` no pudo comprobar el rastro de rojo y hubo que reproducirlo apartando el módulo, lo que solo prueba que falta, no que los tests fallen por comportamiento. La persona dueña aceptó el riesgo declarado | Alta |
+| 2026-11-08 | TKT-017a2 | `agente` | La auditoría que `/sdd-ejecutar` anotó como `APROBADO` (sin sección «Qué verifiqué») no encontró nada de lo que las tres auditorías de `/sdd-revisar` marcaron como Mayor: `assert` como control de flujo, duplicado por nombre de partida, orden por UUID aleatorio, desbordes sin rechazo | Alta |
+| 2026-11-08 | TKT-017a2 | `guardrail` | Un auditor aplicó mutantes sobre el árbol de trabajo mientras corría la suite completa, que se contaminó, y el primer script de mutantes de un corrector dejó un mutante en el archivo. Las reauditorías con mutación deben trabajar sobre una copia del árbol | Alta |
+| 2026-11-08 | TKT-017a2 | `comando` | `/sdd-revisar` limita a 3 ciclos y pasa a `REQUIERE DECISIÓN` solo con críticos o mayores vivos, pero el bloqueo duro impide `LISTO PARA PR` con cualquier auditor en `REQUIERE CAMBIOS`: con un Menor vivo al tercer ciclo no hay camino escrito. Hizo falta que la persona dueña autorizara un ciclo extra | Media |
+| 2026-11-08 | TKT-017a2 | `comando` | El gate de `/sdd-completar` («todas las auditorías en `APROBADO`») no contempla el criterio de parada de redacción de `/sdd-revisar`, que cierra los últimos hallazgos de redacción sin reauditar. Se repite el gate de TKT-017a1 sobre el paraguas partido | Media |
+| 2026-11-08 | TKT-017a2 | `diseño` | `design.md` se contradecía en el orden de rechazos (línea 60 contra las líneas 169-171) y en «misma partida»; los dos auditores lo marcaron como Mayor solo al implementar | Media |
+| 2026-11-08 | TKT-017a2 | `entorno` | Docker Desktop se cayó a mitad de la suite y los `E` de fixtures parecían fallos del código; conviene comprobar `docker info` también durante la corrida | Baja |
+| 2026-11-08 | TKT-017a2 | `documentación` | `PA-T13` y `PA-T3` existen con significados distintos en varios tickets; las citas sin ticket son ambiguas (otra instancia de los `PA-T` locales que chocan, ya vigilada) | Baja |
 
 Con TKT-015b. Cierra el paraguas TKT-015 (entrega b). Entra en vigilancia la raíz `mutación` (segundo ticket con script dedicado de mutantes por entrega).
+
+Con TKT-017a2. Entran en vigilancia (un ticket cada una, salvo la última) la separación de roles y el rastro de rojo cuando se ejecuta desde otra herramienta, la mutación sobre una copia del árbol, y el camino escrito para un Menor vivo al tercer ciclo. El gate de `/sdd-completar` sobre paraguas partido sube a dos tickets (TKT-017a1 y TKT-017a2); los `PA-T` locales que chocan suben un ticket más.
 
 Estado: `Propuesto` · `Aprobado` · `Aplicado` · `Descartado` (con motivo).
 

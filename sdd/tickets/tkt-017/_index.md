@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · TKT-017a2
+PENDIENTE FUSIÓN · entrega **TKT-017a2** (`/sdd-completar` el 2026-11-08; el paraguas sigue vivo)
 
 Paraguas con seis entregas que se fusionan en este orden: TKT-017a1, TKT-017a2, TKT-017a3, TKT-017b1, TKT-017b2 y TKT-017c. `ARCHIVADO` solo al cerrar TKT-017c.
 
@@ -29,8 +29,8 @@ Paraguas con seis entregas que se fusionan en este orden: TKT-017a1, TKT-017a2, 
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-05 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-05 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrita el 2026-11-06 · TKT-017a1 (A0–A2c) |
-| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrita el 2026-11-06 · TKT-017a1 |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrita el 2026-11-06 · TKT-017a1 (A0–A2c); ampliada el 2026-11-06 · TKT-017a2 (A3, A4, A4c); reescrita en la revisión del 2026-11-08 |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrita el 2026-11-08 · TKT-017a2 (el de TKT-017a1 consta en el historial de Git, PR #51) |
 
 ## Log de estados
 
@@ -43,6 +43,9 @@ Paraguas con seis entregas que se fusionan en este orden: TKT-017a1, TKT-017a2, 
 | 2026-11-06 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Pytest `2062 passed`, `ruff`/`mypy`/`lint-imports`/`verificar_docs` en verde; auditorías arquitectura, SQL, código y docs **APROBADO** (reserva menor D001: casillas PA-T13/PA-T17 en fichas de ticket). Paraguas TKT-017 sigue abierto. Siguiente: `/sdd-completar` para el PR de a1 |
 | 2026-11-06 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | [delta.md](delta.md) escrito; artefactos enlazados; deuda D001 y **CA-A12** parcial documentados. Commit `9ee5d04`; PR [#51](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/51) · etiqueta `agent`. Siguiente: comprobaciones CI en verde y **aprobación explícita** para fusionar a `Produccion` con omisión de la protección |
 | 2026-11-06 | `PENDIENTE FUSIÓN` | `LISTO PARA EJECUTAR · TKT-017a2` | `/sdd-completar` | Entrega **TKT-017a1** fusionada a `Produccion` ([PR #51](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/51)): merge commit `5db87699184064118321ee9ebb117d872f32c7fc`; cabeza aprobada `c2abe5f8a062334850895bf483d412b8f4691087`. Registro en el PR: [comentario de fusión](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/51#issuecomment-6687763763). Paraguas sigue abierto. Siguiente: `/sdd-ejecutar` sobre la entrega **TKT-017a2** |
+| 2026-11-06 | `LISTO PARA EJECUTAR · TKT-017a2` | `EN REVISIÓN` | `/sdd-ejecutar` | TKT-017a2: filas A3 (`explosion_materializada`), A4 (`planificar_materializacion` + soporte), A4c mutantes M-A2/M-A3; suite `2073 passed`, `26 skipped`; [impl.md](impl.md) actualizado. Siguiente: `/sdd-revisar` |
+| 2026-11-08 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | TKT-017a2: pytest `2146 passed, 26 skipped`; `ruff`, `mypy`, `lint-imports`, `verificar_float` y `verificar_docs` en verde. Las tres auditorías devolvieron `REQUIERE CAMBIOS` en la primera pasada (aserciones como control de flujo, duplicado por nombre, orden por UUID, desbordes sin rechazo, pruebas circulares, rastro de rojo); cuatro ciclos de corrección (tres más uno extra autorizado). `auditor-arquitectura` **APROBADO**; código y documentación sin hallazgos vivos. Siete decisiones de la persona dueña (D1 a D7) y `D-001` aceptado como riesgo declarado ([impl.md](impl.md)). Siguiente: `/sdd-completar` para el PR de a2 |
+| 2026-11-08 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | [delta.md](delta.md) de TKT-017a2 escrito; observaciones de proceso en `sdd/_evolucion.md`; `meta-sdd` propone ocho mejoras al toolkit (sin aplicar, esperan decisión). Deuda hacia a3: mapeo de `ambiguas` y de los motivos de desborde al contrato de error, `numeric(14,4)` frente a `Dinero` `(18,4)`, `ORDER BY` de `insumos_registrados`. Siguiente: comprobaciones de CI en verde y **aprobación explícita** de la persona dueña para fusionar a `Produccion` con omisión de la protección; el número del PR consta en el comentario de registro |
 
 ## Decisiones registradas
 
@@ -71,4 +74,5 @@ Todas de la persona dueña, el 2026-11-05, durante el intake de `/sdd-definir`.
 ## Tickets futuros sugeridos
 
 - Corregir HDU-001 esc. 12 («vuelve a `VALIDADO`») y esc. 18 (asiento del intento) en el cambio de TKT-017a o TKT-017b que toque la historia; si no cabe, un ticket de documentación.
+- Deuda de TKT-017a2 para a3 (mapeo de `ambiguas`, `explosion_presupuesto` y `linea_base.importe_venta`; `numeric(14,4)` frente a `Dinero` `(18,4)`; `ORDER BY` de `insumos_registrados`): consta en [delta.md](delta.md) y la recoge la fila A5 o A6a de a3.
 - TKT-012 hereda la transición `PLANEACION` → `ACTIVA` escrita por el congelado (`PA-T17.8`).
