@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · entrega **TKT-017a2** (`/sdd-completar` el 2026-11-08; el paraguas sigue vivo)
+LISTO PARA EJECUTAR · TKT-017a3 (la entrega TKT-017a2 se fusionó el 2026-11-08; el paraguas sigue vivo)
 
 Paraguas con seis entregas que se fusionan en este orden: TKT-017a1, TKT-017a2, TKT-017a3, TKT-017b1, TKT-017b2 y TKT-017c. `ARCHIVADO` solo al cerrar TKT-017c.
 
@@ -46,6 +46,7 @@ Paraguas con seis entregas que se fusionan en este orden: TKT-017a1, TKT-017a2, 
 | 2026-11-06 | `LISTO PARA EJECUTAR · TKT-017a2` | `EN REVISIÓN` | `/sdd-ejecutar` | TKT-017a2: filas A3 (`explosion_materializada`), A4 (`planificar_materializacion` + soporte), A4c mutantes M-A2/M-A3; suite `2073 passed`, `26 skipped`; [impl.md](impl.md) actualizado. Siguiente: `/sdd-revisar` |
 | 2026-11-08 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | TKT-017a2: pytest `2146 passed, 26 skipped`; `ruff`, `mypy`, `lint-imports`, `verificar_float` y `verificar_docs` en verde. Las tres auditorías devolvieron `REQUIERE CAMBIOS` en la primera pasada (aserciones como control de flujo, duplicado por nombre, orden por UUID, desbordes sin rechazo, pruebas circulares, rastro de rojo); cuatro ciclos de corrección (tres más uno extra autorizado). `auditor-arquitectura` **APROBADO**; código y documentación sin hallazgos vivos. Siete decisiones de la persona dueña (D1 a D7) y `D-001` aceptado como riesgo declarado ([impl.md](impl.md)). Siguiente: `/sdd-completar` para el PR de a2 |
 | 2026-11-08 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | [delta.md](delta.md) de TKT-017a2 escrito; observaciones de proceso en `sdd/_evolucion.md`; `meta-sdd` propone ocho mejoras al toolkit (sin aplicar, esperan decisión). Deuda hacia a3: mapeo de `ambiguas`, `concepto.unidad` y de los motivos de desborde al contrato de error, `numeric(14,4)` frente a `Dinero` `(18,4)`, `ORDER BY` de `insumos_registrados`. Siguiente: comprobaciones de CI en verde y **aprobación explícita** de la persona dueña para fusionar a `Produccion` con omisión de la protección; el número del PR consta en el comentario de registro |
+| 2026-11-08 | `PENDIENTE FUSIÓN` | `LISTO PARA EJECUTAR · TKT-017a3` | `/sdd-completar` | Entrega **TKT-017a2** fusionada a `Produccion` ([PR #52](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/52)): merge commit `fe10aee53998fc2425acc27f5dfcc2ecdea5c4b7`; cabeza aprobada `765c062a6e5a394f14148ded905ad2cc054318e2`. Se fusionó **sin `--admin`** porque `Produccion` no tiene protección activa (repositorio privado, plan sin protección de ramas), con la autorización explícita de la persona dueña. Registro: [revisión](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/52#pullrequestreview-5819203918) y [comentario de fusión](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/52#issuecomment-6725725388). El PR incluyó las ocho mejoras de `meta-sdd` al toolkit. Paraguas sigue abierto. Siguiente: `/sdd-ejecutar` sobre la entrega **TKT-017a3** |
 
 ## Decisiones registradas
 
