@@ -30,6 +30,12 @@ Todo paso marcado `⚠ Ajustado` aparece aquí. Si no hubo: «Ninguno».
 
 Una entrada por fila del orden de implementación de `design.md`, en el orden en que se ejecutaron ([metodología §16](../metodologia.md#16--el-ciclo-tdd)).
 
+Resumen de evidencia por fila. Una fila no pasa a «Hecho» sin la salida literal de su rojo (`failed` por la razón esperada, cero `errors`), la de su verde y, si el diseño la pide, la tabla «mutante · test que cae». Si quien escribe el código es quien escribió los tests, la columna «Ejecutó» lo declara («ejecución de un solo agente») y la salida del rojo se guarda en `sdd/tickets/tkt-xxx/rojo/fila-N.txt` antes de escribir el código.
+
+| Fila | Rojo (salida o ruta) | Ejecutó (agente o herramienta) | Verde | Tabla «mutante · test que cae» |
+|---|---|---|---|---|
+| N | Fila N · Rojo, o `rojo/fila-N.txt` | `tester-backend` · `desarrollador-dominio` | Fila N · Verde | Sí · No aplica (motivo) |
+
 #### Fila N · <paso>
 
 **Rojo** — cada test de la fila falla, y por la razón esperada:
@@ -110,7 +116,7 @@ Detectados de paso. **No se implementan aquí** — se anotan para su propio tic
 - [ ] Suite en verde, con la salida pegada arriba
 - [ ] ≥1 test de rechazo por regla implicada
 - [ ] Mutación en rutas críticas, o «no aplica» justificado
-- [ ] Todas las auditorías `APROBADO`
+- [ ] Todas las auditorías `APROBADO` (o `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`, con la nota del paso 4 de `/sdd-revisar` en este archivo)
 - [ ] Sin hallazgo crítico o mayor pendiente
 - [ ] Documentación afectada actualizada en este mismo cambio
 - [ ] `ruff`, `mypy`, `lint-imports` limpios

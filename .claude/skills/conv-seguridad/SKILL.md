@@ -83,7 +83,7 @@ Se arranca en `REQUIERE CAMBIOS`. **Cero hallazgos en la primera pasada es bande
 Un `APROBADO` nombra qué se descartó y por qué:
 
 ```
-Validaciones realizadas:
+Qué verifiqué y por qué lo descarté:
 - IDOR por obra: descartado — `exigir_obra_asignada` en requisicion.py:31, probado en TC-07
 - Inyección: descartado — sin SQL literal; todo por select() parametrizado
 - Secretos: grep sobre el diff, ninguno
