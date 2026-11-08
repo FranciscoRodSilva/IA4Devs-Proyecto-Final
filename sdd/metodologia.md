@@ -44,7 +44,7 @@ Si falta cualquiera de los obligatorios → **STOP**. Se pide, no se rellena. Si
 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` produce `design.md` | Orquestador |
 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | el usuario aprueba el diseño | **Usuario** |
 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` produce `impl.md` | Orquestador |
-| `EN REVISIÓN` | `LISTO PARA PR` | todas las auditorías `APROBADO` | Auditores |
+| `EN REVISIÓN` | `LISTO PARA PR` | todas las auditorías `APROBADO` (o `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`, ver §4) | Auditores |
 | `EN REVISIÓN` | `REQUIERE CAMBIOS` | auditoría con hallazgos accionables | Auditores |
 | `EN REVISIÓN` | `REQUIERE DECISIÓN` · `RIESGOSO` | bloqueo | Auditores → escala |
 | `REQUIERE CAMBIOS` | `EN REVISIÓN` | `corrector-revision` arregla y se reaudita (máx. 3 ciclos) | Orquestador |
@@ -74,6 +74,10 @@ Cuatro transiciones tienen dueño humano a propósito: aprobar el diseño, resol
 **Evidencia citable, siempre.** Cada hallazgo nombra archivo y línea —`compras/dominio/disponibilidad.py:42`, no «en la validación»— y el modo de falla concreto, no «podría ser problemático». Un `APROBADO` sin decir qué se revisó y por qué se descartó no es un veredicto, es una opinión.
 
 **Continuidad entre ciclos.** Cada hallazgo lleva identificador (`F001`, `F002`…). Al reauditar, cada uno se clasifica `Resuelto` / `Persiste` / `Nuevo`.
+
+**`APROBADO CON MENORES RESUELTOS SIN REAUDITAR`.** Es el veredicto de un auditor cuyos últimos hallazgos, tras el segundo ciclo, fueron Menores u Observaciones que no cambian el comportamiento del producto (de redacción o de código de pruebas). El orquestador los resuelve con el texto literal del auditor, los anota en el log de estados con su identificador y se lo comunica a la persona dueña; no abre una tercera reauditoría. Un Crítico o un Mayor no entra aquí: obliga a reauditar o a `REQUIERE DECISIÓN`. El procedimiento está en el paso 4 de [`/sdd-revisar`](../.claude/skills/sdd-revisar/SKILL.md).
+
+**Un `APROBADO` sin la sección «Qué verifiqué» no es veredicto.** Cada auditor la entrega ítem por ítem; sin ella el orquestador lo trata como `REQUIERE CONTEXTO` y relanza la auditoría.
 
 **`corrector-revision` solo actúa sobre `REQUIERE CAMBIOS`.** Nunca sobre `RIESGOSO`.
 
@@ -289,6 +293,7 @@ Reglas del ciclo:
 - **El desarrollador no toca los tests.** Si un test le parece equivocado, lo devuelve al tester con el motivo; el tester lo corrige y lo anota en `impl.md`. Quien escribe el código no ajusta el oráculo que lo juzga.
 - **El tester no escribe código de producción**, ni siquiera un esqueleto para que el test compile. El rojo por «no existe» es un rojo válido.
 - **Un test que nace en verde se investiga** antes de seguir: o el comportamiento ya existía, o el test no afirma lo que dice.
+- **Una fila no pasa a «Hecho» sin su evidencia.** `impl.md` guarda la salida literal del rojo (`failed` por la razón esperada y cero `errors`), la del verde de la misma fila y, si el diseño la pide, la tabla «mutante · test que cae». Si quien escribe el código es quien escribió los tests, la fila lo declara «ejecución de un solo agente» y la salida del rojo se guarda en `sdd/tickets/tkt-xxx/rojo/fila-N.txt` antes del código. Una fila sin rojo registrado es un hallazgo Mayor en `/sdd-revisar`.
 - **El rechazo entra en el mismo ciclo que el camino feliz.** Cada regla implicada tiene su test de rechazo en rojo antes de que exista el código que rechaza.
 - **Corrección de error:** el ciclo arranca con el test que reproduce el fallo, y ese test se commitea en rojo **antes** del arreglo.
 - **Infraestructura sin lógica también tiene rojo.** Un disparador nace con el test que intenta el `UPDATE` prohibido y espera el rechazo; una compuerta del pipeline nace con la violación intencionada que debe hacerla fallar.

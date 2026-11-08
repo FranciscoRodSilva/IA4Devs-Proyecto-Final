@@ -40,6 +40,8 @@ Si al arreglar un hallazgo descubres **otro problema real**: lo **reportas**, no
    uv run lint-imports
    ```
 
+6. **No mutes el árbol de trabajo.** Copia lo necesario a una carpeta temporal fuera del repositorio, muta allí y borra al terminar. Al cerrar, `git status` y `git diff --stat` quedan idénticos a los del inicio, y lo anotas.
+
 ## Antes de devolver
 
 - **Copia el texto literal esperado.** Si el hallazgo trae el texto que debe quedar, lo copias tal cual, sin reformularlo: un texto aproximado vuelve como hallazgo nuevo.

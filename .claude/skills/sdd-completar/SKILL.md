@@ -15,8 +15,8 @@ Cierra el ticket. Sin cierre formal, el conocimiento del ticket desaparece.
 
 - `_index.md` del **paraguas** con la entrega en curso en **`LISTO PARA PR`** (puede ir calificado: `LISTO PARA PR · entrega TKT-xxxa`). Si el estado es otro, di el estado actual y para.
 - El argumento del comando es el id de **entrega** cuando el ticket está partido (`/sdd-completar TKT-014a`), no solo el paraguas.
-- Todas las auditorías en `APROBADO`.
-- Ningún criterio `[M]` pendiente.
+- Todas las auditorías en `APROBADO`, o en `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` con la nota del paso 4 de `/sdd-revisar` en `impl.md`.
+- Ningún criterio `[M]` pendiente **del alcance de esta entrega**. En un paraguas partido, el alcance de la entrega es el que declara su `_index.md` y su `design.md`; los `[M]` de las entregas siguientes figuran como «pendiente en TKT-xxxb», con su entrega, y no bloquean.
 
 ## Paso 1 · Delta
 
@@ -126,7 +126,7 @@ Tras la fusión: qué se añadió al sistema, qué contrato público cambió, qu
 ## Stop conditions
 
 1. El hub no está en `LISTO PARA PR` (con o sin calificador `· entrega TKT-xxxa`) → no cerrar.
-2. Alguna auditoría sin `APROBADO` → no cerrar.
+2. Alguna auditoría sin `APROBADO` → no cerrar, salvo `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` con la nota del paso 4 de `/sdd-revisar` en `impl.md`.
 3. `verificar_docs.py` falla → no cerrar.
 4. El diff contiene un secreto → **detener**, no commitear, avisar.
 5. Una comprobación requerida sigue en rojo tras 3 ciclos de corrección → `/sdd-escalar`.

@@ -247,6 +247,12 @@ class _ConceptoValidado:
 
 
 @dataclass(frozen=True, slots=True)
+class _Validados:
+    conceptos: tuple[_ConceptoValidado, ...]
+    importe_venta: Dinero
+
+
+@dataclass(frozen=True, slots=True)
 class _Jerarquia:
     niveles: tuple[NivelNuevo, ...]
     areas: tuple[AreaNueva, ...]
@@ -275,9 +281,10 @@ def planificar_materializacion(
     Orden de rechazos: estructura, asignación, insumos, explosión, plan de filas (P-4).
     Sin efectos secundarios salvo las llamadas a nuevo_id.
     """
-    validados = _validar_conceptos(preparacion)
-    if isinstance(validados, PreparacionInconsistente):
-        return validados
+    estructura = _validar_conceptos(preparacion)
+    if isinstance(estructura, PreparacionInconsistente):
+        return estructura
+    validados = estructura.conceptos
 
     tipo_por_nombre, ambiguas = _normalizar_asignacion(asignacion)
     rechazo_asignacion = _validar_asignacion(validados, tipo_por_nombre, ambiguas, tipos_partida)
@@ -305,7 +312,7 @@ def planificar_materializacion(
         return ExplosionRechazada(causas=explosion.causas)
 
     return _armar_plan(
-        validados,
+        estructura,
         tipo_por_nombre,
         resueltos_por_hoja,
         tuple(resolutor.insumos_nuevos),
@@ -340,17 +347,20 @@ def _requerido[T](valor: T | None, columna: str) -> T:
 
 def _validar_conceptos(
     preparacion: Preparacion,
-) -> tuple[_ConceptoValidado, ...] | PreparacionInconsistente:
+) -> _Validados | PreparacionInconsistente:
     """Estructura y valores de cada concepto en orden de fila (CA-A5, invariante 39).
 
     Un código solo puede aparecer una vez en cada nodo de partida: la clave de duplicado es la
-    ruta por filas más el código, no el nombre de la partida.
+    ruta por filas más el código, no el nombre de la partida. Un código repetido en otras partidas
+    conserva la unidad de su primera aparición; otra unidad es inconsistencia, otra descripción no.
+    Devuelve también el importe de venta, ya cuantizado a la escala de su columna.
     """
     if not preparacion.conceptos:
         return PreparacionInconsistente(motivo=_MSJ_PREPARACION, codigo_concepto=None)
 
     validados: list[_ConceptoValidado] = []
     vistos: set[tuple[int, int, int, str]] = set()
+    unidad_por_codigo: dict[str, str] = {}
     for concepto in sorted(preparacion.conceptos, key=lambda c: c.fila):
         inconsistente = PreparacionInconsistente(
             motivo=_MSJ_PREPARACION, codigo_concepto=concepto.codigo
@@ -362,6 +372,10 @@ def _validar_conceptos(
         if clave_duplicado in vistos:
             return inconsistente
         vistos.add(clave_duplicado)
+        if unidad_por_codigo.setdefault(concepto.codigo, concepto.unidad) != concepto.unidad:
+            return PreparacionInconsistente(
+                motivo="concepto.unidad", codigo_concepto=concepto.codigo
+            )
         analisis = _analisis_de_concepto(preparacion, concepto)
         if analisis is None:
             return inconsistente
@@ -373,10 +387,12 @@ def _validar_conceptos(
             return PreparacionInconsistente(motivo=error.columna, codigo_concepto=concepto.codigo)
         validados.append(validado)
     try:
-        _cuantizada(sumar((c.importe for c in validados), Dinero), "linea_base.importe_venta")
+        importe_venta = _cuantizada(
+            sumar((c.importe for c in validados), Dinero), "linea_base.importe_venta"
+        )
     except _ColumnaInvalida as error:
         return PreparacionInconsistente(motivo=error.columna, codigo_concepto=None)
-    return tuple(validados)
+    return _Validados(conceptos=tuple(validados), importe_venta=importe_venta)
 
 
 def _ubicacion_de(concepto: ConceptoLeido) -> _Ubicacion | None:
@@ -522,9 +538,10 @@ class _ResolutorDeInsumos:
         nuevo_id: Callable[[], UUID],
     ) -> None:
         self._altas = {alta.clave: alta for alta in altas}
-        self._registrados = tuple(registrados)
+        self._por_codigo: dict[str, InsumoRegistrado] = {}
         self._por_descripcion: dict[str, InsumoRegistrado] = {}
-        for registrado in self._registrados:
+        for registrado in registrados:
+            self._por_codigo.setdefault(registrado.codigo, registrado)
             self._por_descripcion.setdefault(
                 normalizar_clave_insumo(registrado.descripcion), registrado
             )
@@ -548,10 +565,11 @@ class _ResolutorDeInsumos:
     def _desde_alta(
         self, insumo: _InsumoValidado, alta: InsumoPorCrear
     ) -> InsumoRegistrado | InsumoEnConflicto:
-        registrado = next((r for r in self._registrados if r.codigo == insumo.clave), None)
+        registrado = self._por_codigo.get(insumo.clave)
         if registrado is not None:
             return _sin_conflicto(insumo, registrado)
-        if insumo.clave not in self._dados_de_alta:
+        dada_de_alta = self._dados_de_alta.get(insumo.clave)
+        if dada_de_alta is None:
             nuevo = InsumoNuevo(
                 id=self._nuevo_id(),
                 codigo=insumo.clave,
@@ -561,14 +579,15 @@ class _ResolutorDeInsumos:
                 creado_en_importacion=True,
             )
             self.insumos_nuevos.append(nuevo)
-            self._dados_de_alta[insumo.clave] = InsumoRegistrado(
+            dada_de_alta = InsumoRegistrado(
                 id=nuevo.id,
                 codigo=nuevo.codigo,
                 descripcion=nuevo.descripcion,
                 unidad=nuevo.unidad,
                 tipo=nuevo.tipo,
             )
-        return self._dados_de_alta[insumo.clave]
+            self._dados_de_alta[insumo.clave] = dada_de_alta
+        return _sin_conflicto(insumo, dada_de_alta)
 
 
 def _sin_conflicto(
@@ -630,13 +649,14 @@ def _fila_explotable(
 
 
 def _armar_plan(
-    validados: Sequence[_ConceptoValidado],
+    estructura: _Validados,
     tipo_por_nombre: Mapping[str, UUID],
     resueltos_por_hoja: Mapping[str, tuple[InsumoRegistrado, ...]],
     insumos_nuevos: tuple[InsumoNuevo, ...],
     explosion: ExplosionCalculada,
     nuevo_id: Callable[[], UUID],
 ) -> PlanMaterializacion:
+    validados = estructura.conceptos
     jerarquia = _armar_jerarquia(validados, tipo_por_nombre, nuevo_id)
     conceptos = _armar_conceptos(validados, nuevo_id)
     concepto_id_por_codigo = {concepto.codigo: concepto.id for concepto in conceptos}
@@ -651,7 +671,7 @@ def _armar_plan(
         partidas_concepto=partidas_concepto,
         insumos_insertar=insumos_nuevos,
         apus=_armar_apus(validados, resueltos_por_hoja, concepto_id_por_codigo, nuevo_id),
-        importe_venta=sumar((p.importe for p in partidas_concepto), Dinero),
+        importe_venta=estructura.importe_venta,
         explosion=explosion,
     )
 

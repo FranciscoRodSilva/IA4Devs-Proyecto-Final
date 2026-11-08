@@ -630,3 +630,19 @@ def preparacion_con_partidas(nombres: tuple[str, ...]) -> Preparacion:
             ),
         ),
     )
+
+
+# Any: ver el comentario de preparacion_con_concepto
+def preparacion_con_alta(**cambios: Any) -> Preparacion:
+    """`preparacion_sintetica` con otros valores en el alta del insumo `PANEL YESO 1/2` (CA-A6)."""
+    base = preparacion_sintetica()
+    return replace(base, insumos_por_crear=(replace(base.insumos_por_crear[0], **cambios),))
+
+
+# Any: ver el comentario de preparacion_con_concepto
+def preparacion_alta_compartida_con_segundo_insumo(**cambios: Any) -> Preparacion:
+    """Alta compartida por dos hojas; el panel de la segunda lleva otros valores (CA-A6)."""
+    base = preparacion_dos_conceptos_con_alta_compartida()
+    segundo = base.analisis[1]
+    insumos = _reemplazar_en_tuple(segundo.insumos, 0, replace(segundo.insumos[0], **cambios))
+    return replace(base, analisis=(base.analisis[0], replace(segundo, insumos=insumos)))

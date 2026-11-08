@@ -11,7 +11,7 @@ Entrega hermana **TKT-017a2** del paraguas [TKT-017](_index.md). **TKT-017a1** y
 | `explotar_filas`, `FilaExplotable`, `InsumoDeApu`, `CargoDeApu` | `backend/cimenta/presupuesto/dominio/explosion_materializada.py` | Adaptador puro que arma la entrada de `calcular_explosion` desde valores ya cuantizados y devuelve la explosión cuantizada o su rechazo. Es la misma función que usarán la confirmación (a3) y el congelado (b1), de modo que la explosión validada y la congelada salen de la misma regla |
 | `planificar_materializacion` y sus objetos de valor (`PlanMaterializacion`, `NivelNuevo`, `AreaNueva`, `PartidaNueva`, `ConceptoNuevo`, `PartidaConceptoNueva`, `InsumoNuevo`, `ApuNuevo`, `ApuInsumoNuevo`, `ApuCargoNuevo`) | `backend/cimenta/presupuesto/dominio/materializacion.py` | Convierte una preparación validada en el plan de filas de la línea base en borrador, sin efectos secundarios: recibe el generador de identificadores. Aplica `CA-A1`, `CA-A3`, `CA-A5` y `CA-A6` en dominio |
 | Rechazos tipados `AsignacionInvalida` (`faltantes`, `inexistentes`, `ambiguas`), `PreparacionInconsistente` (`motivo`, `codigo_concepto`), `InsumoEnConflicto`, `ExplosionRechazada`, unidos en `ResultadoMaterializacion` | `materializacion.py` | Cada regla del planificador tiene su rechazo con las cifras que el caso de uso de a3 convertirá en el contrato de error |
-| 84 tests nuevos: `test_tkt017_plan.py` (81, 43 de ellos casos de un parametrizado) y `test_tkt017_explosion_materializada.py` (3) | `backend/tests/` | `TC-A04` a `TC-A09`, con literales de `CA-A1`, rechazos con `motivo` y `codigo_concepto` literales, orden del catálogo repetido con `uuid4` real y mutantes de los auditores muertos |
+| 91 tests nuevos: `test_tkt017_plan.py` (88, 43 de ellos casos de un parametrizado) y `test_tkt017_explosion_materializada.py` (3) | `backend/tests/` | `TC-A04` a `TC-A09`, con literales de `CA-A1`, rechazos con `motivo` y `codigo_concepto` literales, orden del catálogo repetido con `uuid4` real y mutantes de los auditores muertos |
 | Ayudantes `preparacion_con_*`, `preparacion_dos_niveles`, `preparacion_con_partidas`, `preparacion_dos_conceptos_con_alta_compartida`, `insumos_registrados_sinteticos`, `contar_filas_de_obra` | `backend/herramientas/soporte_tkt017.py` | Variantes del libro sintético; `contar_filas_de_obra` lo usa a3 |
 
 ## Modificado
@@ -31,7 +31,7 @@ Entrega hermana **TKT-017a2** del paraguas [TKT-017](_index.md). **TKT-017a1** y
 ## Comportamiento observable nuevo
 
 - **Ninguno para una persona usuaria ni para un integrador.** La entrega es de dominio puro: no hay endpoint, tabla ni migración, y nada llama todavía a `planificar_materializacion`. Lo llamará el caso de uso de confirmación en TKT-017a3.
-- Comportamiento del dominio, que a3 expondrá: una preparación malformada se rechaza con el nombre de la columna en `motivo`, también cuando un valor no cabe en su columna (`NUMERIC`), incluidos los agregados (`explosion_presupuesto`, `linea_base.importe_venta`); el mismo código de concepto bajo partidas homónimas de áreas distintas es válido; una preparación sin conceptos se rechaza; el orden de niveles, áreas y partidas es el del catálogo, no el de los identificadores.
+- Comportamiento del dominio, que a3 expondrá: una preparación malformada se rechaza con el nombre de la columna en `motivo`, también cuando un valor no cabe en su columna (`NUMERIC`), incluidos los agregados (`explosion_presupuesto`, `linea_base.importe_venta`); el mismo código de concepto bajo partidas homónimas de áreas distintas es válido; un mismo código de concepto con distinta unidad se rechaza (`concepto.unidad`; la descripción distinta se tolera y gana la primera aparición); toda alta de insumo se contrasta con la unidad y el tipo del análisis en toda aparición; una preparación sin conceptos se rechaza; el orden de niveles, áreas y partidas es el del catálogo, no el de los identificadores.
 
 ## Contrato público tocado
 
@@ -71,14 +71,11 @@ Ninguna ADR nueva. La decisión de detectar el código repetido por nodo de part
 
 | Qué | Por qué se dejó | Ticket sugerido |
 |---|---|---|
-| Mapear `ambiguas`, `explosion_presupuesto` y `linea_base.importe_venta` al contrato de error | Es de la capa de aplicación | TKT-017a3, filas A5 y A6a |
+| Mapear `ambiguas`, `concepto.unidad`, `explosion_presupuesto` y `linea_base.importe_venta` al contrato de error | Es de la capa de aplicación | TKT-017a3, filas A5 y A6a |
 | `numeric(14,4)` de las columnas `apu.*` frente a `Dinero` `(18,4)`: el rechazo de PostgreSQL (`22003`) debe traducirse | Es del traductor del motor | TKT-017a3, fila A5 |
 | Fijar el `ORDER BY` de `insumos_registrados` por `codigo` | Decide qué insumo gana en la resolución por descripción; es de infraestructura | TKT-017a3, fila A6a |
-| `except ValueError` amplio alrededor de `explotar_filas` | Hoy solo lo dispara el desborde de `cuantizar()`; vigilar en a3 | TKT-017a3 |
+| `except ValueError` amplio alrededor de `explotar_filas` (hallazgo de `code-review`) | Hoy solo lo dispara el desborde de `cuantizar()`; vigilar en a3 | TKT-017a3 |
 | `CHECK >= 0` de `apu_insumo` sin contraparte en dominio | Un costo negativo pasaría el plan y fallaría en la base | TKT-017a3 |
-| Una alta de insumo de la importación no se contrasta con la unidad y el tipo que trae el análisis, ni en su primera aparición ni en las siguientes (`_desde_alta`): un mismo insumo con PZA en un concepto y KG en otro pasa sin `InsumoEnConflicto`. Hallazgo de `code-review`; contradice la comprobación de `P-6` para todo insumo del análisis | Se detectó al cerrar, después de la revisión; corregirlo exige test en rojo y reauditoría, y cambia el comportamiento del plan | TKT-017a3, antes de A6a, o una corrección previa si la persona dueña lo pide |
-| Un código de concepto repetido con distinta unidad o descripción conserva los de la primera aparición sin rechazo (`_armar_conceptos`). Hallazgo de `code-review` | Es una regla de negocio que el PRD no fija y que la persona dueña debe confirmar (no se asumió) | Pregunta para la persona dueña en TKT-017a3 |
-| `_desde_alta` recorre linealmente los insumos registrados; la suma de importes se valida y se recalcula; el `except ValueError` alrededor de `explotar_filas` es amplio. Hallazgos Menores de `code-review` | Eficiencia y simplificación sin efecto funcional hoy | TKT-017a3 |
 | Pruebas con el archivo real del catálogo (26 omitidas) | Dependen de variables de entorno (`PA-T3`) | TKT-018 |
 | `CA-A12` completo (OpenAPI `ConfirmacionImportacion`, corrección de `HDU-001` esc. 12, casillas `PA-T13` y `PA-T17` en las fichas) | Alcance de a3 y TKT-018 | TKT-017a3 |
 

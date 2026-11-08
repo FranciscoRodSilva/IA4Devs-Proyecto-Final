@@ -249,14 +249,14 @@ python tools/verificar_docs.py
 
 > [← index](_index.md) | [← design](design.md) | Siguiente: [delta](delta.md) al cerrar la entrega con `/sdd-completar`
 
-Entrega **TKT-017a2** (filas **A3**, **A4**, **A4c**): `explosion_materializada.explotar_filas`, `materializacion.planificar_materializacion` con objetos de valor y rechazos del diseño, extensiones de `herramientas/soporte_tkt017.py` y pruebas `TC-A04` a `TC-A09`. Los mutantes **M-A2** y **M-A3** se ejecutaron en manual y se revirtieron. La revisión del 2026-11-08 devolvió la entrega a corrección cuatro veces: tres ciclos de corrección y un ciclo extra autorizado por la persona dueña (ver «Ciclo de corrección de `/sdd-revisar`»); lo que sigue describe el estado final.
+Entrega **TKT-017a2** (filas **A3**, **A4**, **A4c**): `explosion_materializada.explotar_filas`, `materializacion.planificar_materializacion` con objetos de valor y rechazos del diseño, extensiones de `herramientas/soporte_tkt017.py` y pruebas `TC-A04` a `TC-A09`. Los mutantes **M-A2** y **M-A3** se ejecutaron en manual y se revirtieron. La revisión del 2026-11-08 devolvió la entrega a corrección cinco veces: tres ciclos de corrección, un ciclo extra autorizado por la persona dueña y un quinto, pedido por ella al ver los hallazgos de `code-review` (ver «Ciclo de corrección de `/sdd-revisar`»); lo que sigue describe el estado final.
 
 ### Qué se implementó
 
 - **`explosion_materializada`:** `FilaExplotable`, `InsumoDeApu`, `CargoDeApu`; `explotar_filas` arma `ConceptoAExplotar` y un `AnalisisLeido` sintético según `design.md` § Dominio y devuelve `calcular_explosion(…).cuantizar()` o `RechazoExplosion`. No cambió durante la revisión.
 - **`materializacion`:** `planificar_materializacion` valida y cuantiza en un solo sitio (`_validar_conceptos`, `_validar_valores`, `_validar_insumo`, `_validar_cargo`) y rechaza por fases globales: estructura y valores de todos los conceptos, asignación de tipos, insumos de todos los conceptos y explosión. Después arma el plan (`_armar_jerarquia`, `_armar_conceptos`, `_armar_partidas_concepto`, `_armar_apus`) con **un `ApuNuevo` por código de concepto**, según [el ADR del concepto único](../../../docs/adr/20261105-concepto-unico-y-concepto-de-partida.md). Ya no hay `assert` ni `# type: ignore` en el módulo. Devuelve la unión `ResultadoMaterializacion`.
 - **Soporte de prueba:** variantes del libro sintético para `TC-A04` a `TC-A08`, los ayudantes `preparacion_con_*` (basados en `dataclasses.replace`), `insumos_registrados_sinteticos`, `contar_filas_de_obra` (lo usa a3) y la clave del panel alineada con `insumo_por_crear` (`PANEL YESO 1/2`).
-- **Pruebas:** `test_tkt017_explosion_materializada.py` (3 tests) y `test_tkt017_plan.py` (81 tests, 43 de ellos casos de `test_tkt017_caa05_preparacion_inconsistente`).
+- **Pruebas:** `test_tkt017_explosion_materializada.py` (3 tests) y `test_tkt017_plan.py` (88 tests, 43 de ellos casos de `test_tkt017_caa05_preparacion_inconsistente`).
 
 ### Decisiones de la persona dueña durante la revisión (2026-11-08)
 
@@ -271,6 +271,8 @@ Todas con la recomendación del orquestador aceptada.
 | D5 | Dos claves de la asignación que normalizan igual con distinto tipo (`ambiguas`) se rechazan **solo si afectan a una partida requerida**; una ambigua sobrante se ignora (`P-12`) |
 | D6 | El desborde de `NUMERIC` en los agregados es `PreparacionInconsistente` con `motivo` `explosion_presupuesto` (explosión) o `linea_base.importe_venta` (suma), `codigo_concepto` nulo |
 | D7 | `insumo.unidad` no nula se exige a todo tipo de insumo, también a la mano de obra |
+| D8 | Un mismo código de concepto en varias filas del catálogo con distinta **unidad** es `PreparacionInconsistente` con `motivo` `concepto.unidad`; la descripción distinta se tolera y gana la primera aparición (hallazgo de `code-review`, decisión del 2026-11-08 tras tu pregunta) |
+| D9 | Toda alta de insumo de la importación se contrasta con la unidad y el tipo del insumo del análisis en **toda** aparición, también en la primera (`P-6`, ya aprobada; hallazgo de `code-review`) |
 
 ### Ajustes respecto al design
 
@@ -285,6 +287,7 @@ Sustantivos, todos reflejados en `design.md` en este mismo cambio (líneas 60, 1
 | 2026-11-08 | `AsignacionInvalida` gana `ambiguas`; `faltantes` e `inexistentes` pasan a nombres | D5 y D3. a3 mapea `ambiguas` a `422` `VALOR_NO_PERMITIDO` en `asignacion_tipos_partida.{nombre}` (opción que la persona dueña aceptó el 2026-11-08; `design.md` línea 157 lo recoge) |
 | 2026-11-08 | Motivo con el nombre de la columna para cada nulo o valor que no cabe; `totales.precio_unitario` deja de exigirse | El mapeo del diseño toma `apu.precio_unitario` del pie del análisis |
 | 2026-11-08 | Rechazos nuevos: cero conceptos, `insumo.unidad` nula, desborde de agregados | D4, D7 y D6 |
+| 2026-11-08 | Rechazo nuevo `concepto.unidad` y contraste de la alta de insumo con el análisis en toda aparición; un solo total de importes (`_Validados`); búsqueda de registrados por código en un diccionario | D8, D9 y los hallazgos Menores de `code-review` |
 
 ### Archivos tocados
 
@@ -342,8 +345,8 @@ ERROR tests/test_tkt017_plan.py
 
 | Mutante | Cambio temporal (código final) | Tests en rojo | Revertido |
 |---|---|---|---|
-| M-A2 | El precio unitario del concepto de partida sale del catálogo (`concepto.precio_unitario`) en lugar del pie del análisis | `8 failed, 73 passed in 0.31s`: `test_hdu001_esc11_el_plan_crea_un_concepto_con_dos_apariciones`, `test_hdu001_esc11_variante_733335`, `test_tkt017_caa05_el_precio_de_los_totales_no_se_exige` y cinco casos de `test_tkt017_caa05_preparacion_inconsistente` (`precio_del_pie_nulo`, `precio_del_pie_que_no_cabe`, `importe_que_no_cabe` y los dos de `importe_de_venta_que_no_cabe`) | sí · md5 idéntico |
-| M-A3 | `importe` = `concepto.cantidad × analisis.precio_unitario` sin cuantizar antes ninguno de los dos | `1 failed, 80 passed in 0.26s`: `test_hdu001_esc11_variante_733335` | sí · md5 idéntico |
+| M-A2 | El precio unitario del concepto de partida sale del catálogo (`concepto.precio_unitario`) en lugar del pie del análisis | `8 failed, 80 passed in 0.33s`: `test_hdu001_esc11_el_plan_crea_un_concepto_con_dos_apariciones`, `test_hdu001_esc11_variante_733335`, `test_tkt017_caa05_el_precio_de_los_totales_no_se_exige` y cinco casos de `test_tkt017_caa05_preparacion_inconsistente` (`precio_del_pie_nulo`, `precio_del_pie_que_no_cabe`, `importe_que_no_cabe` y los dos de `importe_de_venta_que_no_cabe`) | sí · md5 idéntico |
+| M-A3 | `importe` = `concepto.cantidad × analisis.precio_unitario` sin cuantizar antes ninguno de los dos | `1 failed, 87 passed in 0.28s`: `test_hdu001_esc11_variante_733335` | sí · md5 idéntico |
 
 #### Ciclo de corrección de `/sdd-revisar` (2026-11-08)
 
@@ -352,6 +355,7 @@ Cada ciclo escribió primero los tests y los corrió contra el código anterior.
 - **Ciclo 1** (`corrector-revision`, `sonnet`): contra el código anterior, `test_tkt017_plan.py` terminó con `37 failed, 31 passed`. Los fallos se agruparon en estas causas: el código lanzaba `AssertionError` ante cantidad nula y ante mano de obra sin rendimiento o sin cargo; lanzaba `ValueError` porque la cantidad no cabía en `NUMERIC(14,4)`; el código repetido en áreas distintas devolvía `PreparacionInconsistente` en lugar de un plan; el orden del catálogo fallaba las diez veces con `uuid4`; los motivos citaban la columna equivocada; el código lanzaba `TypeError` porque el campo `ambiguas` no existía; `inexistentes` devolvía UUID; cero conceptos devolvía un plan vacío; una unidad nula se volvía cadena vacía. El mutante de `.cuantizar()` en `explotar_filas` dejó `1 failed, 2 passed`: lo mató el test nuevo de escala.
 - **Ciclo 2** (`corrector-revision`, `sonnet`): contra el código anterior, el archivo terminó con `4 failed, 75 passed`; fallaron los casos de ambigua sobrante, `importe_venta` que no cabe en dos conceptos y en doce partidas, y explosión que no cabe. Los demás tests del ciclo (conflictos, orden de fases, alta compartida, normalización del catálogo, orden con seis nombres) ya pasaban y se comprobaron con mutantes que los ponen en rojo (M4b, M6, M7, M9, M16 y el intercambio de fases).
 - **Ciclo 3** (`corrector-revision`, `haiku`): el test nuevo `test_tkt017_caa03_las_ambiguas_van_ordenadas` pasaba contra el código anterior. Con el mutante M35 (`tuple(sorted(ambiguas))` → `tuple(ambiguas)`) falla con `PYTHONHASHSEED` 1, 5 y 7 y pasa con 2, 3, 4, 6 y 8; el refactor posterior (derivar `ambiguas` de `requeridas`, ya ordenada) elimina la dependencia del orden de un conjunto.
+- **Ciclo 5** (tras `code-review`; `corrector-revision`, `sonnet`): contra el código anterior, `test_tkt017_plan.py` terminó con `5 failed, 83 passed`; los cinco fallos devolvían un plan donde debía haber un rechazo: la alta con otra unidad o tipo en la primera aparición (2), la alta compartida con otra unidad o tipo en la segunda (2) y el mismo código con otra unidad (`concepto.unidad`). El test de «gana el primero» del diccionario por código y el de descripción distinta ya pasaban y se probaron con mutantes que los ponen en rojo.
 
 ### Modelo por paso
 
@@ -362,6 +366,7 @@ Cada ciclo escribió primero los tests y los corrió contra el código anterior.
 | A4c | `tester-backend` | `sonnet` | Ídem | Mutación manual |
 | Corrección, ciclos 1 y 2 | `corrector-revision` | `haiku` por omisión | `sonnet` | El hallazgo raíz (validación duplicada) pedía reestructurar el módulo, no solo parchar |
 | Corrección, ciclo 3 | `corrector-revision` | `haiku` por omisión | `haiku` | Texto literal del auditor |
+| Corrección, ciclo 5 | `corrector-revision` | `haiku` por omisión | `sonnet` | Dos reglas de negocio de dominio con tests nuevos y un refactor del resolutor de insumos |
 
 ### Resultado contra criterios de aceptación (alcance a2)
 
@@ -384,6 +389,7 @@ La auditoría que `/sdd-ejecutar` anotó el 2026-11-06 («`auditor-arquitectura`
 | Ciclo 2 | **APROBADO** · tres observaciones de `design.md`, aplicadas | **REQUIERE CAMBIOS** · `N-4` (`N-1`, `N-2` y `N-3` resueltos) | — |
 | Ciclo 3 | — | **REQUIERE CAMBIOS** · `N-4` persiste (el test con dos ambiguas solo mata el mutante con la mitad de las semillas) | — |
 | Ciclo 4 (extra, autorizado) | — | `N-4` y `N-5` **resueltos**; `F-001` Menor (docstring) | Reauditoría 1: resueltos `D-002`, `D-003`, `D-005` a `D-010`, `D-013`, `D-014`, `O-001` y `O-003`; quedaron `D-004`, `D-012`, `O-004` y hallazgos nuevos `F001` a `F006` y `F009`, que se corrigieron. Reauditoría 2: **REQUIERE CAMBIOS** solo por redacción (`H-01`, `O-04`, `O-N1`, `O-N2`, `O-N3`), aplicada con el texto literal del auditor; todo lo demás **resuelto** |
+| Ciclo 5 (tras `code-review`) | **APROBADO** · observación `F001` (trazabilidad de la alta en `design.md`) aplicada | **APROBADO** · observaciones `O2` y `O3` aplicadas; mutantes (a) a (f) muertos, el (g) equivalente | — |
 
 El ciclo 4 se abrió porque los tres ciclos de corrección ya estaban gastados con un Menor vivo: la persona dueña autorizó, el 2026-11-08, un ciclo extra acotado a ese test. `F-001` es un docstring del test que prometía más de lo que comprobaba; lo resolvió el orquestador con el texto literal del auditor (opción A: «seis ambiguas salen ordenadas aunque el catálogo las lea de mayor a menor») y no abrió otra reauditoría, por el criterio de parada de redacción de `/sdd-revisar`.
 
@@ -409,6 +415,7 @@ El ciclo 4 se abrió porque los tres ciclos de corrección ya estaban gastados c
 | `D-011` | docs | Menor | `PA-T13` ambiguo entre tickets | Resuelto: esta sección no lo cita sin su ticket |
 | `O-001` | docs | Observación | Archivos nuevos en CRLF | Resuelto: LF |
 | `O-002` | docs | Observación | «posteriors» en la sección de a1 | Corregido a «posteriores» |
+| `CR-1` a `CR-5` | `code-review` | Mayor y Menor | Alta de insumo sin contraste con el análisis (`CR-1`); código de concepto repetido con otra unidad (`CR-2`); búsqueda lineal de registrados (`CR-3`); suma de importes duplicada (`CR-4`); `except ValueError` amplio (`CR-5`) | `CR-1` a `CR-4` resueltos en el ciclo 5 (D8, D9); `CR-5` queda como deuda para a3 |
 | `N-005`, `N-5`, `F-001` | arquitectura, código | Observación y Menor | Supuestos del diseño sin marca `(asumido)`; ambigua con tipos inválidos; docstring | Resuelto: marcados con la confirmación del 2026-11-08 |
 
 ### Hallazgos fuera de alcance
@@ -417,7 +424,7 @@ El ciclo 4 se abrió porque los tres ciclos de corrección ya estaban gastados c
 |---|---|---|
 | `migraciones/versions/v0006_…py:178-183` y `tipos_base/numericos.py:216` | Las columnas `apu.costo_material`, `costo_mano_obra`, `costo_directo`, `total_cargos`, `total_indirectos` y `precio_unitario` son `numeric(14,4)` y `Dinero` cuantiza a `NUMERIC(18,4)`: un valor entre 10^10 y 10^14 pasa el dominio y lo rechaza PostgreSQL (`22003`). Anotarlo en la fila A5 (traductor) o A6a de a3 | Media |
 | a3, fila A6a | El orden de `insumos_registrados` por `codigo` decide qué insumo gana en la resolución por descripción: fijar el `ORDER BY` | Media |
-| a3, API | Definir cómo se traducen `ambiguas` y los motivos `explosion_presupuesto` y `linea_base.importe_venta` al contrato de error | Media |
+| a3, API | Definir cómo se traducen `ambiguas` y los motivos `explosion_presupuesto`, `linea_base.importe_venta` y `concepto.unidad` al contrato de error | Media |
 | `materializacion.py` | El `except ValueError` alrededor de `explotar_filas` es amplio: hoy solo lo dispara el desborde de `cuantizar()`; vigilarlo en a3 | Baja |
 | `migraciones` | El `CHECK >= 0` de `apu_insumo` no tiene contraparte en el dominio: un costo negativo pasaría el plan y fallaría en la base | Baja |
 | `herramientas/soporte_tkt017.py` | Los ayudantes de prueba viven en un paquete de producción (patrón heredado de A2) | Baja |
@@ -438,7 +445,7 @@ El ciclo 4 se abrió porque los tres ciclos de corrección ya estaban gastados c
 
 ### Verificación final
 
-Salida real de los comandos, desde `backend/` salvo `verificar_docs`, sobre el estado final (cuatro ciclos de corrección). `docker info`: Docker 29.9.2 con el servidor en marcha. Una corrida anterior de la suite se descartó porque el demonio de Docker se cayó a mitad de la ejecución (los `E` eran de fixtures, no del código); se volvió a levantar Docker Desktop y se repitió.
+Salida real de los comandos, desde `backend/` salvo `verificar_docs`, sobre el estado final (cinco ciclos de corrección). `docker info`: Docker 29.9.2 con el servidor en marcha. Una corrida anterior de la suite se descartó porque el demonio de Docker se cayó a mitad de la ejecución (los `E` eran de fixtures, no del código); se volvió a levantar Docker Desktop y se repitió.
 
 ```text
 uv run ruff format --check .      → 246 files already formatted
@@ -446,24 +453,24 @@ uv run ruff check .               → All checks passed!
 uv run mypy .                     → Success: no issues found in 246 source files
 uv run lint-imports               → Contracts: 16 kept, 0 broken.
 uv run python -m herramientas.verificar_float → verificar_float: archivos revisados: 31; hallazgos: 0
-uv run pytest tests/test_tkt017_plan.py tests/test_tkt017_explosion_materializada.py tests/test_tkt017_preparacion.py -q --no-cov → 88 passed
-uv run pytest -q -ra --tb=short   → 2146 passed, 26 skipped in 388.97s (0:06:28)
+uv run pytest tests/test_tkt017_plan.py tests/test_tkt017_explosion_materializada.py tests/test_tkt017_preparacion.py -q --no-cov → 95 passed
+uv run pytest -q -ra --tb=short   → 2153 passed, 26 skipped in 356.70s (0:05:56)
 python tools/verificar_docs.py    → ✓ Sin problemas.
 ```
 
-Los 26 omitidos son las pruebas contra el archivo real del catálogo (`CIMENTA_CATALOGO_UNION` y `CIMENTA_CATALOGO_ENITI` sin definir; `PA-T3` de TKT-013 y de TKT-014, archivos reales). Después de la suite completa solo cambiaron docstrings: el de `test_tkt017_caa03_las_ambiguas_van_ordenadas` (`F-001`), la cita «invariante 39» de `materializacion.py` (antes escrita `INV-39`, forma que no existe en `docs/`) y la frase de `_validar_conceptos` que `code-review` señaló como contradictoria. Tras ellos se repitieron `ruff`, `mypy` y los 88 tests de los tres archivos de a2, en verde; el módulo `materializacion.py` queda con md5 `2ce10229eabb930849190bb8e8776cec`.
+Los 26 omitidos son las pruebas contra el archivo real del catálogo (`CIMENTA_CATALOGO_UNION` y `CIMENTA_CATALOGO_ENITI` sin definir; `PA-T3` de TKT-013 y de TKT-014, archivos reales). La suite completa se corrió con el estado final del código; después solo cambiaron documentos. El módulo `materializacion.py` queda con md5 `0c3c3639f457e1b659b9ff0abb79136d`. Antes de esa corrida, la corrección del quinto ciclo se verificó con `ruff`, `mypy`, `lint-imports`, `verificar_float` y los 95 tests de los tres archivos de a2.
 
 #### Resultado `/sdd-revisar`
 
 - [x] Criterios `[M]` de a2 con evidencia (tabla «Resultado contra criterios de aceptación»); `CA-B1` solo en lo que le toca a a2
-- [x] Suite completa en verde: **2146 passed, 26 skipped**
+- [x] Suite completa en verde: **2153 passed, 26 skipped**
 - [x] `ruff`, `mypy`, `lint-imports`, `verificar_float` y `verificar_docs` en verde
 - [x] Cada test de rechazo de dominio afirma el rechazo completo (`motivo` y `codigo_concepto`, o el objeto de valor entero con `==`); el contrato de error HTTP es de a3
 - [x] Mutantes `M-A2` y `M-A3` en rojo con el código final; mutantes de los auditores M1 a M37 muertos, salvo el equivalente M25
 - [x] Rastro de rojo por fila: real para A3 y A4 desde 2026-11-08; el de 2026-11-06 no se guardó y está declarado
-- [x] Auditorías: `auditor-arquitectura` **APROBADO** (ciclo 2); `auditor-codigo` sin hallazgos vivos (`N-4` y `N-5` resueltos en el ciclo 4, `F-001` resuelto por el orquestador); `auditor-docs` sin más hallazgos que de redacción, aplicados con el texto literal del auditor y sin tercera reauditoría, por el criterio de parada de redacción de `/sdd-revisar`
+- [x] Auditorías: `auditor-arquitectura` **APROBADO** (ciclo 5, tras `code-review`); `auditor-codigo` **APROBADO** (ciclo 5; antes, `N-4` y `N-5` resueltos en el ciclo 4 y `F-001` resuelto por el orquestador); `auditor-docs` sin más hallazgos que de redacción, aplicados con el texto literal del auditor y sin tercera reauditoría, por el criterio de parada de redacción de `/sdd-revisar`
 - [x] `D-001` (rastro de rojo y roles) aceptado como está declarado por la persona dueña el 2026-11-08
 - [ ] CI completo de GitHub Actions: se verifica en `/sdd-completar` al abrir el PR
 - [ ] `CA-A1`, `CA-A3`, `CA-A5` y `CA-A6` de punta a punta (transacción, bitácora, `422` con el campo, `409`): son de TKT-017a3
 
-**Veredicto:** **LISTO PARA PR** · entrega **TKT-017a2**. Cuatro ciclos de corrección (tres más uno extra autorizado). Riesgo aceptado por la persona dueña: `D-001` (rastro de rojo y separación de roles de A3 y A4). Supuestos confirmados el 2026-11-08 y marcados en `design.md`: `D1` a `D7`. Deuda anotada para a3: mapeo de `ambiguas`, `explosion_presupuesto` y `linea_base.importe_venta` al contrato de error, `numeric(14,4)` frente a `Dinero` `(18,4)`, `ORDER BY` de `insumos_registrados`.
+**Veredicto:** **LISTO PARA PR** · entrega **TKT-017a2**. Cinco ciclos de corrección (tres, uno extra autorizado y uno posterior a `code-review`). Riesgo aceptado por la persona dueña: `D-001` (rastro de rojo y separación de roles de A3 y A4). Supuestos confirmados el 2026-11-08 y marcados en `design.md`: `D1` a `D7`. Deuda anotada para a3: mapeo de `ambiguas`, `explosion_presupuesto` y `linea_base.importe_venta` al contrato de error, `numeric(14,4)` frente a `Dinero` `(18,4)`, `ORDER BY` de `insumos_registrados`.

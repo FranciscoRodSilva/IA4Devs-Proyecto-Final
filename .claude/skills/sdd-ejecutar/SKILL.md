@@ -33,7 +33,9 @@ Despacha al tester de la capa —**`tester-backend`** por omisión, **`tester-ap
 - **Al menos un test de rechazo por regla implicada**, y el test de rechazo comprueba **el contrato de error completo** —`tipo`, `regla` o `codigo`, cifras como cadena y `acciones`—, no solo el código de estado.
 - Concurrencia donde hay bloqueo pesimista: dos transacciones simultáneas, pasa una; el vencimiento responde `CONCURRENCIA`.
 
-**Pega en `impl.md` la salida en rojo**: cada test falla por la razón esperada (la función o la ruta no existe, el rechazo no ocurre), no por un error de importación, de sintaxis o de entorno. Un test que nace en verde se investiga antes de seguir.
+**Pega en `impl.md` la salida en rojo**: cada test falla por la razón esperada (la función o la ruta no existe, el rechazo no ocurre), no por un error de importación, de sintaxis o de entorno. Un test que nace en verde se investiga antes de seguir. Un `ModuleNotFoundError` por un módulo ausente no cuenta como rojo «por la razón esperada» cuando el test debe fallar por comportamiento.
+
+**Evidencia de la fila.** Una fila no pasa a «Hecho» sin tres cosas en `impl.md`: la salida literal del rojo con `failed` por la razón esperada y cero `errors`, la salida del verde de la misma fila, y la tabla «mutante · test que cae» si el diseño la pide. Si quien escribe el código es quien escribió los tests (ejecución desde otra herramienta o sin subagentes), la fila lo declara «ejecución de un solo agente» y guarda la salida del rojo en `sdd/tickets/tkt-xxx/rojo/fila-N.txt` antes de escribir una línea de código.
 
 ### 2b · Verde
 
@@ -97,6 +99,7 @@ Despacha **`auditor-arquitectura`** y, si hubo esquema, **`auditor-sql`**, en `s
 
 - `REQUIERE CAMBIOS` → **`corrector-revision`** (`haiku`; `sonnet` si algún hallazgo es Mayor y toca un disparador del paso 3) con los hallazgos → reauditar. Máximo 3 ciclos.
 - Rigen el criterio de parada para la redacción y el informe previo literal de [`/sdd-revisar`](../sdd-revisar/SKILL.md), paso 4: se entrega a cada reauditoría el informe anterior con sus identificadores, y un hallazgo de redacción de una sección de cierre no abre un tercer ciclo.
+- Un `APROBADO` sin la sección «Qué verifiqué» ítem por ítem no es veredicto: se trata como `REQUIERE CONTEXTO` y se relanza. El orquestador copia esa sección a `impl.md`.
 - `RIESGOSO` → detener **todo** el flujo → `/sdd-escalar`.
 
 ## Paso 7 · Cerrar

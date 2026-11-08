@@ -20,6 +20,7 @@ Si el diseño partió el ticket en entregas a/b: califica el estado (`LISTO PARA
 | **Invariantes en riesgo** | `INV-xx` |
 | **Módulos en alcance** | `presupuesto`, `compras`, … |
 | **Capas en alcance** | dominio · aplicación · api · infraestructura · frontend |
+| **Criterios `[M]` de esta entrega** | `CA-1`, `CA-2`… En un paraguas partido, cada entrega lista los suyos y los de las entregas siguientes figuran como «pendiente en TKT-xxxb»; `/sdd-completar` solo exige los de la entrega en curso |
 | **Depende de** | TKT-yyy (estado: …) |
 | **Rama** | `tkt-xxx-<slug>` |
 

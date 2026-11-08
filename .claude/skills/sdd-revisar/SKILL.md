@@ -26,6 +26,8 @@ Tres comprobaciones. Si alguna falla, **no corras auditorías sobre un `impl.md`
 
 Si falla: documenta los huecos en `impl.md`, estado `REQUIERE CAMBIOS`, devuelve.
 
+Cada fila del orden de implementación debe traer en `impl.md` la salida literal de su rojo. Una fila sin salida de rojo registrada es hallazgo Mayor. La reproducción apartando el módulo prueba que el test falta, no que falla por comportamiento, y no la sustituye. Solo la acepta la persona dueña con el riesgo escrito en `impl.md`.
+
 ## Paso 2 · Correr la suite de verdad
 
 No te fíes de lo que dice `impl.md`: ejecútala.
@@ -49,7 +51,7 @@ Comprueba además, en el diff:
 
 ## Paso 3 · Auditorías
 
-Despacha las que apliquen. **En paralelo**: son de solo lectura e independientes entre sí. Con `--paralelo` es el comportamiento por defecto; sin el modificador, en secuencia.
+Despacha las que apliquen. **En paralelo**: son de solo lectura e independientes entre sí. Con `--paralelo` es el comportamiento por defecto; sin el modificador, en secuencia. La auditoría que además aplica mutantes es la excepción y se despacha en serie, como dice el paso 4.
 
 | Auditor | Cuándo | Modelo |
 |---|---|---|
@@ -61,6 +63,7 @@ Despacha las que apliquen. **En paralelo**: son de solo lectura e independientes
 
 El orquestador pasa el modelo en el parámetro `model` de `Agent`. La primera pasada de una auditoría nunca baja de la columna; una reauditoría acotada a hallazgos Menores ya corregidos puede ir en `haiku` ([metodología §14.2](../../../sdd/metodologia.md#142--el-orquestador-elige-el-modelo-en-cada-despacho)).
 A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE CONTEXTO` y no emite veredicto** — no audites en vacío.
+Comprueba también cada veredicto recibido: un `APROBADO` sin la sección «Qué verifiqué» ítem por ítem no es veredicto. Se trata como `REQUIERE CONTEXTO` y se relanza.
 
 ## Paso 4 · Ciclo de corrección
 
@@ -68,6 +71,8 @@ A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE C
 - Reauditar. Cada hallazgo se reclasifica `Resuelto` / `Persiste` / `Nuevo` por su identificador.
 - **Máximo 3 ciclos.** Al tercero con hallazgos críticos o mayores vivos → `REQUIERE DECISIÓN` → `/sdd-escalar`.
 - **Criterio de parada para la redacción.** Las secciones de cierre (`Verificación final`, `Resultado`, resúmenes de corrección) se generan copiando la salida real de los comandos, sin reformularla, y el auditor las compara con esa salida. Cada hallazgo trae el **texto literal esperado** y el corrector lo copia sin reformular. Tras el segundo ciclo, un hallazgo que solo afecte a la redacción de una sección de cierre no abre una tercera reauditoría: lo resuelve el orquestador con la salida real, lo anota en el log de estados y se lo comunica a la persona dueña. Un hallazgo sobre código, un criterio o un contrato sí obliga a reauditar.
+- **Menor vivo al tercer ciclo.** Tras el segundo ciclo, un hallazgo Menor u Observación que no cambie el comportamiento del producto, sea de redacción o de código de pruebas, no abre una tercera reauditoría. Lo resuelve el orquestador con el texto literal del auditor, lo anota en el log de estados con su identificador y se lo comunica a la persona dueña. Ese auditor queda en `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`. Un Crítico o un Mayor sí obliga a reauditar o a `REQUIERE DECISIÓN`.
+- **Sin mutación sobre el árbol en uso.** Mientras corre la suite completa no se despacha ningún agente que escriba en el árbol. Una auditoría con mutación se despacha en serie, tras la suite, y muta sobre una copia fuera del repositorio.
 - **La reauditoría recibe el informe previo literal**, con sus identificadores, para poder reclasificar cada hallazgo. Sin el informe previo, un auditor no puede decir `Resuelto`, `Persiste` o `Nuevo` y encuentra menudencias nuevas en cada ciclo.
 - `RIESGOSO` o `BLOQUEAR` → **`corrector-revision` no actúa**. Estado `RIESGOSO` → `/sdd-escalar`.
 
@@ -85,7 +90,8 @@ A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE C
 - algún criterio `[M]` no tiene cobertura de test verificada. Quedan fuera los que solo pueden verificarse con el pipeline de un PR real (por ejemplo, «los nueve trabajos de `ci.yml` en verde»): se anotan en `impl.md` como «se verifica en `/sdd-completar`» y ese comando no fusiona sin esa evidencia. Este comando no abre PR;
 - no hay **ningún test de rechazo** para una regla implicada;
 - hay ruta crítica sin mutación probada ni justificación;
-- cualquier auditor quedó en `REQUIERE CAMBIOS` o `RIESGOSO`;
+- cualquier auditor quedó en `REQUIERE CAMBIOS` o `RIESGOSO`, salvo el caso del paso 4: Menores resueltos sin reauditar y comunicados a la persona dueña;
+- alguna fila no tiene registrada la salida literal de su rojo, salvo que la persona dueña acepte el riesgo y conste escrito en `impl.md` (paso 1);
 - la documentación afectada no se actualizó en este mismo cambio;
 - el alcance cambió sin autorización registrada.
 

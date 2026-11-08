@@ -36,7 +36,9 @@ from herramientas.soporte_tkt017 import (
     UUID_TBR,
     asignacion_tipos_hdu001_esc11,
     insumos_registrados_sinteticos,
+    preparacion_alta_compartida_con_segundo_insumo,
     preparacion_codigo_duplicado_en_misma_partida,
+    preparacion_con_alta,
     preparacion_con_analisis,
     preparacion_con_cargo,
     preparacion_con_concepto,
@@ -511,6 +513,64 @@ def test_tkt017_caa06_dos_conceptos_comparten_el_insumo_dado_de_alta_una_sola_ve
     assert [apu.insumos[0].insumo_id for apu in plan.apus] == [plan.insumos_insertar[0].id] * 2
 
 
+@pytest.mark.parametrize(
+    ("unidad", "tipo"),
+    [("KG", TipoInsumo.MATERIAL), ("PZA", TipoInsumo.MANO_OBRA)],
+    ids=["otra_unidad", "otro_tipo"],
+)
+def test_tkt017_caa06_alta_que_no_coincide_con_el_insumo_del_analisis(
+    unidad: str, tipo: TipoInsumo
+) -> None:
+    """TC-A06 · CA-A6 — la alta se contrasta con el insumo del análisis desde su primera aparición."""
+    r = _planificar(preparacion_con_alta(unidad=unidad, tipo=tipo))
+    assert r == InsumoEnConflicto(
+        codigo="PANEL YESO 1/2",
+        unidad_importacion="PZA",
+        tipo_importacion=TipoInsumo.MATERIAL,
+        unidad_registrada=unidad,
+        tipo_registrado=tipo,
+    )
+
+
+@pytest.mark.parametrize(
+    ("unidad", "tipo"),
+    [("KG", TipoInsumo.MATERIAL), ("PZA", TipoInsumo.MANO_OBRA)],
+    ids=["otra_unidad", "otro_tipo"],
+)
+def test_tkt017_caa06_alta_compartida_con_otra_unidad_o_tipo_en_la_segunda_aparicion(
+    unidad: str, tipo: TipoInsumo
+) -> None:
+    """TC-A06 · CA-A6 — el segundo concepto que usa la alta también se contrasta con ella."""
+    r = _planificar(preparacion_alta_compartida_con_segundo_insumo(unidad=unidad, tipo=tipo))
+    assert r == InsumoEnConflicto(
+        codigo="PANEL YESO 1/2",
+        unidad_importacion=unidad,
+        tipo_importacion=tipo,
+        unidad_registrada="PZA",
+        tipo_registrado=TipoInsumo.MATERIAL,
+    )
+
+
+def test_tkt017_caa06_con_dos_registrados_del_mismo_codigo_gana_el_primero() -> None:
+    """TC-A06 · CA-A6 — el insumo registrado se localiza por código y la primera fila manda."""
+    primero = InsumoRegistrado(
+        id=UUID_TBR,
+        codigo="PANEL YESO 1/2",
+        descripcion="PANEL YESO 1/2",
+        unidad="PZA",
+        tipo=TipoInsumo.MATERIAL,
+    )
+    segundo = replace(primero, id=UUID_OTRO, unidad="KG")
+    plan = _plan(
+        _planificar(
+            preparacion_sintetica(),
+            insumos_registrados=insumos_registrados_sinteticos() + (primero, segundo),
+        )
+    )
+    assert plan.insumos_insertar == ()
+    assert plan.apus[0].insumos[0].insumo_id == UUID_TBR
+
+
 def test_tkt017_caa05_explosion_rechazada() -> None:
     """TC-A07 · CA-A5 esc. 2."""
     r1 = _planificar(preparacion_sintetica_cargos_utilidad_indirectos_altos())
@@ -804,3 +864,16 @@ def test_tkt017_caa05_concepto_nuevo_conserva_la_descripcion_de_la_primera_apari
             unidad="M2",
         ),
     )
+
+
+def test_tkt017_caa05_el_mismo_codigo_con_otra_unidad_es_inconsistente() -> None:
+    """TC-A08 · CA-A5 — la unidad del concepto es del código: otra unidad en otra fila se rechaza."""
+    r = _planificar(preparacion_con_concepto(1, unidad="PZA"))
+    assert r == PreparacionInconsistente(motivo="concepto.unidad", codigo_concepto=_CODIGO)
+
+
+def test_tkt017_caa05_el_mismo_codigo_con_otra_descripcion_se_tolera() -> None:
+    """TC-A04 · CA-A5 — la descripción distinta no rechaza: gana la primera aparición."""
+    plan = _plan(_planificar(preparacion_con_concepto(1, descripcion="Otra descripción")))
+    assert [c.descripcion for c in plan.conceptos] == ["Tablaroca en muros"]
+    assert [c.unidad for c in plan.conceptos] == ["M2"]
