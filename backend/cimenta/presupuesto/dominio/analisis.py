@@ -15,6 +15,8 @@ from tipos_base import Dinero, Porcentaje, Rendimiento
 class TipoInsumo(StrEnum):
     MATERIAL = "MATERIAL"
     MANO_OBRA = "MANO_OBRA"
+    HERRAMIENTA = "HERRAMIENTA"
+    CONSUMIBLE = "CONSUMIBLE"
 
 
 class TipoCargo(StrEnum):

@@ -29,6 +29,10 @@ from cimenta.presupuesto.dominio.explosion import (
 from tipos_base import Cantidad, Dinero, Rendimiento
 
 
+class ExplosionFueraDeEscala(Exception):
+    """Un total de la explosión no cabe en la escala de su columna al cuantizar (PA-23)."""
+
+
 @dataclass(frozen=True, slots=True)
 class InsumoDeApu:
     codigo: str
@@ -133,11 +137,15 @@ def explotar_filas(
     resultado = calcular_explosion(conceptos)
     if isinstance(resultado, RechazoExplosion):
         return resultado
-    return resultado.cuantizar()
+    try:
+        return resultado.cuantizar()
+    except ValueError as error:
+        raise ExplosionFueraDeEscala from error
 
 
 __all__ = [
     "CargoDeApu",
+    "ExplosionFueraDeEscala",
     "FilaExplotable",
     "InsumoDeApu",
     "explotar_filas",

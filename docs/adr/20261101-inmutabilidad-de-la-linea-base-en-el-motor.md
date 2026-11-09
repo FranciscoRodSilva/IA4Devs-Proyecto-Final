@@ -66,6 +66,19 @@ La prueba del disparador se ejecuta con el rol de migración, que sí tiene el p
 * **TKT-017 tiene que traducir varios códigos**, no solo este. `IN001` se traduce a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)`. Además llegan `23505` (una segunda línea base `CONGELADA` por obra, o una `CONGELADA` que no pasa a `SUPERSEDIDA` antes de congelar la nueva), `23503` (una copia que apunta a una línea base o a un concepto inexistente) y `23001` (borrar un padre con hijos, porque la clave foránea es `ON DELETE RESTRICT`; la fila A2 comprobó que PostgreSQL responde `23001` y no `23503`).
 * **El `FOR SHARE` exige `UPDATE` sobre `linea_base` para el rol de aplicación**, y respeta el `lock_timeout` de ese rol. Una transacción larga que modifique la línea base hace fallar la inserción de copias con `55P03`, en lugar de esperar sin fin (E-9).
 * **Las copias solo se escriben en la transacción del congelado.** El rol de aplicación no tiene `DELETE` sobre `linea_base_concepto`, así que una copia escrita en un `BORRADOR` no se puede retirar después. Si el congelado falla, la transacción no deja nada.
+* **La traducción vive en un solo punto: `cimenta/presupuesto/aplicacion/traduccion_motor.py`** (TKT-017a3). El caso de uso envuelve su transacción en `try/except DBAPIError` y el traductor lee `error.orig.sqlstate` y `error.orig.diag.constraint_name`. Vive en `aplicacion/` y no en `contrato_error/` porque el detalle de `RN-01` necesita leer la obra, y `contrato_error/` es puro y no conoce `sqlalchemy`. La tabla:
+
+  | `SQLSTATE` | Respuesta |
+  |---|---|
+  | `IN001` | `409` `REGLA_NEGOCIO` con `regla` `RN-01` («La línea base congelada no se modifica.») |
+  | `23505` de `uq_linea_base_obra_id_congelada` | `409` `CONFLICTO` con el código `ESTADO_NO_PERMITE_OPERACION`, con el mismo mensaje que la confirmación con congelada vigente |
+  | Otro `23505`, `23503` o `23001` | `409` `CONFLICTO` con el código `ESTADO_NO_PERMITE_OPERACION` y la restricción en el detalle |
+  | `55P03` | `409` `CONCURRENCIA` con el código `BLOQUEO_VENCIDO` y la acción `REINTENTAR` |
+  | `57014` | `409` `CONCURRENCIA` con el código `TIEMPO_EJECUCION_VENCIDO` y la acción `REINTENTAR` |
+  | `22003` (un valor no cabe en su columna, por ejemplo `numeric(14,4)` en `apu.*`) | `409` `CONFLICTO` con el código `ESTADO_NO_PERMITE_OPERACION`: la importación debe analizarse de nuevo |
+  | Cualquier otro, incluido `42501` | Sin traducción: se relanza y responde `500` |
+
+  El `42501` queda sin traducir a propósito: es una decisión del diseño de TKT-017 (`M-A6` la vigila). Ninguna ruta emite `UPDATE` ni `DELETE` sobre `linea_base_concepto`, así que un `42501` sería un error de programa y debe llegar como `500` a Sentry, no disfrazarse de regla de negocio.
 * **La `CONGELADA` anterior pasa a `SUPERSEDIDA` antes de congelar la nueva**, en la misma transacción. Si no, el índice único parcial responde `23505`. `BORRADOR` a `SUPERSEDIDA` está prohibido.
 * **La bajada de la migración `0007` se niega mientras exista una línea base `CONGELADA` o `SUPERSEDIDA`.** Así lo fija la guarda de la bajada, y el plan de reversa queda escrito en la migración. La guarda de la bajada reutiliza `IN001`; no llega a la API.
 * **`SELECT … FOR UPDATE` no dispara el disparador** (E-2). El bloqueo pesimista de [ADR-004](20260918-bloqueo-pesimista-presupuesto.md) funciona sobre una línea base congelada, y el rol de aplicación ya tiene el `UPDATE` que ese bloqueo exige.

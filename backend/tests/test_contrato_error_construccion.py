@@ -245,9 +245,9 @@ def argumentos_validos(nombre: str) -> dict[str, Any]:
 
 
 def afirmar_json_llano(valor: object, ruta: str = "cuerpo") -> None:
-    """Todo nodo del cuerpo es exactamente dict, list, str, int o bool: ni enumerados ni Decimal."""
+    """Todo nodo del cuerpo es exactamente dict, list, str, int, bool o None (`null`): ni enumerados ni Decimal."""
     tipo = type(valor)
-    assert tipo in (dict, list, str, int, bool), f"{ruta} es {tipo.__name__}: {valor!r}"
+    assert tipo in (dict, list, str, int, bool, type(None)), f"{ruta} es {tipo.__name__}: {valor!r}"
     if isinstance(valor, dict):
         for clave, interior in valor.items():
             assert type(clave) is str, f"La clave {clave!r} de {ruta} no es str"
@@ -520,6 +520,33 @@ def test_tkt005_ca03_detalle_admite_los_tipos_del_contrato() -> None:
     afirmar_json_llano(cuerpo)
 
 
+@pytest.mark.parametrize("nombre", ["RechazoRegla", "ConflictoEstado"])
+def test_tkt017_ca03_detalle_admite_none_y_lo_conserva_como_null(nombre: str) -> None:
+    """TKT-017a3 (decisión de la persona dueña) · CA-3 — `None` es un valor válido del detalle y viaja como `null`.
+
+    Lo necesitan las causas de la explosión (`concepto` o `tipo_partida_id` nulos), `formato` nulo y
+    `codigo_concepto` nulo en los desbordes de los agregados. Admitirlo no relaja nada más: un float o
+    un Decimal suelto, aun junto a un `None`, siguen sin construirse (ver `DETALLES_NO_ADMITIDOS`).
+    """
+    detalle = {
+        "formato": None,
+        "causas": [{"concepto": None, "causa": "SUGERIDO_NEGATIVO", "tipo_partida_id": None}],
+        "anidado": {"valor": None},
+        "lista": [None, 1],
+    }
+
+    cuerpo = clase(nombre)(**{**argumentos_validos(nombre), "detalle": detalle}).cuerpo(
+        frozenset(), CID
+    )
+
+    assert cuerpo["detalle"] == detalle
+    assert cuerpo["detalle"]["formato"] is None
+    assert cuerpo["detalle"]["causas"][0]["concepto"] is None
+    afirmar_json_llano(cuerpo)
+    assert '"formato": null' in json.dumps(cuerpo)
+    assert json.loads(json.dumps(cuerpo)) == cuerpo
+
+
 DETALLES_NO_ADMITIDOS = [
     pytest.param({"consumido": 33000.0}, ("float", "detalle.consumido"), id="float"),
     pytest.param(
@@ -531,7 +558,11 @@ DETALLES_NO_ADMITIDOS = [
     pytest.param(
         {"consumido": Decimal("33000.0000")}, ("Decimal", "detalle.consumido"), id="decimal_suelto"
     ),
-    pytest.param({"x": None}, ("NoneType", "detalle.x"), id="none"),
+    pytest.param(
+        {"formato": None, "consumido": 33000.0},
+        ("float", "detalle.consumido"),
+        id="float_junto_a_none",
+    ),
     pytest.param({1: "a"}, ("clave", "detalle"), id="clave_que_no_es_cadena"),
     pytest.param([("consumido", 1)], ("list", "detalle"), id="detalle_que_es_lista"),
 ]
@@ -542,7 +573,7 @@ DETALLES_NO_ADMITIDOS = [
 def test_tkt005_ca03_detalle_rechaza_float_y_decimal(
     nombre: str, detalle: object, citado: tuple[str, str]
 ) -> None:
-    """TC-15 · CA-3 esc. 2 — un float, un Decimal suelto o un None en el detalle no se construye y el error los nombra."""
+    """TC-15 · CA-3 esc. 2 — un float o un Decimal suelto en el detalle no se construye y el error los nombra."""
     argumentos = argumentos_validos(nombre)
     clase(nombre)(**argumentos)
 

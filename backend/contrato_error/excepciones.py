@@ -58,7 +58,7 @@ def _entero_no_negativo(valor: object, nombre: str) -> int:
 
 
 def _a_json(valor: object, ruta: str) -> object:
-    if isinstance(valor, bool | str | int):
+    if valor is None or isinstance(valor, bool | str | int):
         return valor
     if isinstance(valor, _NUMERICOS):
         return valor.serializar()  # rechaza lo no cuantizado: nunca redondea aquí

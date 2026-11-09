@@ -981,7 +981,7 @@ paths:
       x-escenarios: ['HDU-001 esc. 6', 'HDU-001 esc. 7', 'HDU-001 esc. 8', 'HDU-001 esc. 9', 'HDU-001 esc. 11', 'HDU-001 esc. 12', 'HDU-001 esc. 13']
       x-tickets: [TKT-018, TKT-017]
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1000,7 +1000,14 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          description: Con errores, sin confirmar el reemplazo, o fallo a mitad de la escritura (la importación vuelve a VALIDADO).
+          description: >-
+            La importación tiene errores bloqueantes (`IMPORTACION_CON_ERRORES`); la obra
+            ya tiene una línea base en borrador y no se confirmó el reemplazo
+            (`REEMPLAZO_NO_CONFIRMADO`); la importación, la obra o la línea base vigente
+            no admiten la operación en su estado (`ESTADO_NO_PERMITE_OPERACION`); o un
+            bloqueo venció (`CONCURRENCIA`, con `BLOQUEO_VENCIDO` o
+            `TIEMPO_EJECUCION_VENCIDO` y la acción `REINTENTAR`). En todos los casos no
+            se escribe nada y la importación sigue en su estado.
           content:
             application/json:
               schema:
@@ -4791,7 +4798,13 @@ components:
           $ref: '#/components/schemas/MetaPagina'
     ConfirmacionImportacion:
       type: object
+      required: [asignacion_tipos_partida]
       properties:
+        asignacion_tipos_partida:
+          type: object
+          description: Una entrada por nombre de partida leído; vale en todas las áreas donde aparece.
+          additionalProperties:
+            $ref: '#/components/schemas/Uuid'
         reemplazar_borrador:
           type: boolean
           default: false
