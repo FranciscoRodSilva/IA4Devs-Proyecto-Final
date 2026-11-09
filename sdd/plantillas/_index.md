@@ -6,7 +6,7 @@
 
 <SPEC PENDIENTE | … | LISTO PARA PR | PENDIENTE FUSIÓN | ARCHIVADO>
 
-Si el diseño partió el ticket en entregas a/b: califica el estado (`LISTO PARA PR · entrega TKT-xxxa`, `PENDIENTE FUSIÓN · entrega TKT-xxxa`). **`ARCHIVADO` solo al cerrar la última entrega**; la entrega a fusiona su PR pero el paraguas sigue vivo hasta b.
+Si el diseño partió el ticket en entregas a/b: califica el estado mientras se ejecutan y se revisan (`LISTO PARA EJECUTAR · TKT-xxxb`, `EN REVISIÓN · entrega TKT-xxxa`). Las entregas son solo de ejecución y revisión: se acumulan en una rama y **hay un único PR por ticket**. `LISTO PARA PR` sin calificador solo llega al aprobar la última entrega, y entonces `/sdd-completar` abre el PR del ticket entero.
 
 ## Ficha
 
@@ -20,9 +20,9 @@ Si el diseño partió el ticket en entregas a/b: califica el estado (`LISTO PARA
 | **Invariantes en riesgo** | `INV-xx` |
 | **Módulos en alcance** | `presupuesto`, `compras`, … |
 | **Capas en alcance** | dominio · aplicación · api · infraestructura · frontend |
-| **Criterios `[M]` de esta entrega** | `CA-1`, `CA-2`… En un paraguas partido, cada entrega lista los suyos y los de las entregas siguientes figuran como «pendiente en TKT-xxxb»; `/sdd-completar` solo exige los de la entrega en curso |
+| **Criterios `[M]`** | `CA-1`, `CA-2`… En un ticket partido, cada entrega lista los suyos y `/sdd-revisar` solo exige los de la entrega en curso; `/sdd-completar` exige los de todas |
 | **Depende de** | TKT-yyy (estado: …) |
-| **Rama** | `tkt-xxx-<slug>` |
+| **Rama** | `tkt-xxx-<slug>` (una sola por ticket, también si está partido en entregas) |
 
 ## Artefactos
 

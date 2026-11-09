@@ -9,18 +9,19 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash, PowerShell, Agent, Skill
 
 Cierra el ticket. Sin cierre formal, el conocimiento del ticket desaparece.
 
-**Este comando es el único punto del pipeline que abre y fusiona un pull request.** Hay **un PR por unidad que se fusiona**: el ticket entero, o **cada entrega hermana** (TKT-014a, TKT-014b) cuando el diseño partió el paraguas en dos PR con fusión a → b. Ese PR lleva el código, el `delta.md` de **esa entrega**, los artefactos SDD tocados y el registro de evolución. Ni `/sdd-ejecutar` ni `/sdd-revisar` abren PR, y la persona usuaria no ejecuta ningún comando de `gh` ni de Git del flujo de entrega: los ejecuta `git-entrega` y, en la fusión, el orquestador. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. La única intervención humana es una pregunta, antes de fusionar.
+**Este comando es el único punto del pipeline que abre y fusiona un pull request.** Hay **un solo PR por ticket**, también cuando el diseño lo partió en entregas (TKT-014a, TKT-014b…): las entregas son una división de la **ejecución y la revisión**, no de la entrega a `Produccion`. Cada entrega se ejecuta y se revisa por separado y acumula su trabajo en la rama única del ticket; este comando **no se ejecuta al cerrar cada entrega, sino una sola vez, cuando todas están ejecutadas y revisadas**. Ese PR lleva el código de todas las entregas, el `delta.md` del ticket entero, los artefactos SDD tocados y el registro de evolución. Ni `/sdd-ejecutar` ni `/sdd-revisar` abren PR, y la persona usuaria no ejecuta ningún comando de `gh` ni de Git del flujo de entrega: los ejecuta `git-entrega` y, en la fusión, el orquestador. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. La única intervención humana es una pregunta, antes de fusionar.
 
 ## Paso 0 · Gate — si falla, STOP
 
-- `_index.md` del **paraguas** con la entrega en curso en **`LISTO PARA PR`** (puede ir calificado: `LISTO PARA PR · entrega TKT-xxxa`). Si el estado es otro, di el estado actual y para.
-- El argumento del comando es el id de **entrega** cuando el ticket está partido (`/sdd-completar TKT-014a`), no solo el paraguas.
-- Todas las auditorías en `APROBADO`, o en `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` con la nota del paso 4 de `/sdd-revisar` en `impl.md`.
-- Ningún criterio `[M]` pendiente **del alcance de esta entrega**. En un paraguas partido, el alcance de la entrega es el que declara su `_index.md` y su `design.md`; los `[M]` de las entregas siguientes figuran como «pendiente en TKT-xxxb», con su entrega, y no bloquean.
+- `_index.md` del ticket en **`LISTO PARA PR`**, sin calificador de entrega. Si el estado es otro, di el estado actual y para. En un ticket partido, ese estado solo lo alcanza `/sdd-revisar` al aprobar la **última** entrega; mientras quede una entrega por ejecutar o por revisar, el hub lleva `LISTO PARA EJECUTAR · TKT-xxxb` o `EN REVISIÓN · entrega TKT-xxxb`, y este comando no corre.
+- El argumento del comando es el id del **ticket** (`/sdd-completar TKT-014`), nunca el de una entrega. Si recibe `TKT-014a`, di que el PR es del ticket entero, y usa el id del ticket.
+- En un ticket partido, **cada entrega** consta en el Log del hub como ejecutada y revisada (`/sdd-revisar` en `APROBADO`), y el `impl.md` tiene la «Verificación final» de cada una. Falta una → no cerrar, y di cuál.
+- Todas las auditorías de la **última** revisión en `APROBADO`, o en `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` con la nota del paso 4 de `/sdd-revisar` en `impl.md`. La última entrega cierra con la suite completa sobre la rama acumulada, así que esa suite cubre a todas las anteriores.
+- Ningún criterio `[M]` pendiente **del ticket entero**: los de todas las entregas, no solo los de la última.
 
 ## Paso 1 · Delta
 
-Escribe `delta.md` desde [la plantilla](../../../sdd/plantillas/delta.md), con `design.md` e `impl.md` como insumos.
+Escribe `delta.md` desde [la plantilla](../../../sdd/plantillas/delta.md), con `design.md` e `impl.md` como insumos. Es **un solo delta por ticket**: si el ticket se partió en entregas, el título es `Delta · TKT-xxx · …` y recoge lo que cambió en todas, con una línea por entrega que diga qué aportó. Las entregas intermedias no escriben delta propio, así que sus datos salen del `impl.md` de cada una.
 
 Al escribirlo, **convierte en enlace** las menciones de texto plano a `delta.md` que dejan las plantillas: la fila «Delta» de la tabla de artefactos del hub (`_index.md`) y la cabecera «Siguiente» de `impl.md` pasan a ser enlaces relativos al propio `delta.md`, con el mismo formato que ya usan las filas de los demás artefactos. Las plantillas lo dejan en texto plano para que `verificar_docs.py` no falle desde `/sdd-definir` hasta aquí por un enlace a un archivo que aún no existe (patrón de ocho tickets en `sdd/_evolucion.md`); este paso lo cierra, y el verificador tiene que quedar en verde antes del paso 2.
 
@@ -52,23 +53,17 @@ Después despacha **`meta-sdd`**. Agrupa por tema y, si algún patrón aparece *
 
 Esto se hace **antes** del commit, para que viaje dentro del PR:
 
-1. `_index.md` del **paraguas** (`sdd/tickets/tkt-xxx/_index.md`): fila de Log y tabla de artefactos actualizadas (delta de la entrega, PR, alcance pendiente).
+1. `_index.md` del ticket (`sdd/tickets/tkt-xxx/_index.md`): fila de Log y tabla de artefactos actualizadas (delta, PR).
 2. Mueve los tickets futuros sugeridos a donde corresponda para que no se pierdan.
 
-**Estado del hub según tipo de cierre**
+**Estado del hub**
 
-| Situación | Estado en `_index.md` **antes** de abrir el PR | Tras **fusionar** el PR de la entrega |
-|---|---|---|
-| Ticket **único** (no partido) | `PENDIENTE FUSIÓN` (o `LISTO PARA PR` hasta el commit de cierre) | `ARCHIVADO` — el Log dice que la planificación queda archivada y que el número del PR consta en el comentario de registro |
-| **Entrega intermedia** (p. ej. TKT-014a; falta TKT-014b) | `PENDIENTE FUSIÓN · entrega **TKT-xxxa**` (paraguas **sigue vivo**) | **`LISTO PARA EJECUTAR · TKT-xxxb`** (o la siguiente entrega que toque). **No** uses `ARCHIVADO` en el paraguas hasta `/sdd-completar` de la **última** entrega |
-| **Última entrega** de un paraguas partido | `PENDIENTE FUSIÓN · entrega **TKT-xxxb**` | `ARCHIVADO` — cierra la planificación del paraguas entero |
+| Momento | Estado en `_index.md` |
+|---|---|
+| Antes de abrir el PR | `PENDIENTE FUSIÓN` (o `LISTO PARA PR` hasta el commit de cierre) |
+| Tras **fusionar** el PR | `ARCHIVADO` — el Log dice que la planificación queda archivada y que el número del PR consta en el comentario de registro |
 
-Reglas que evitan el error de TKT-011a (hub en `ARCHIVADO` con la mitad b pendiente):
-
-- **`ARCHIVADO` cierra la planificación del paraguas**, no de una sola entrega hermana. TKT-014a cierra su **PR**; TKT-014 sigue en el hub hasta 014b.
-- El **`delta.md`** lleva en el título el id de entrega (`Delta · TKT-014a · …`) y declara explícitamente qué entrega queda pendiente.
-- El **título del PR** usa el id de entrega: `TKT-014a · …`, no solo `TKT-014`.
-- Tras fusionar una entrega intermedia, el orquestador **actualiza el hub en `Produccion`** (commit de seguimiento si hace falta): log «entrega a fusionada · PR #N», estado listo para la siguiente entrega.
+Un ticket partido sigue exactamente esta tabla: como solo hay una fusión, no existe un estado intermedio posterior a ella. Los estados por entrega (`LISTO PARA EJECUTAR · TKT-xxxb`, `EN REVISIÓN · entrega TKT-xxxb`) pertenecen a `/sdd-ejecutar` y `/sdd-revisar`, y desaparecen antes de que este comando corra. Con esto no puede repetirse el error de TKT-011a (hub en `ARCHIVADO` con la mitad b pendiente): el hub no llega a `LISTO PARA PR` mientras falte una entrega.
 
 > `ARCHIVADO` cierra la **planificación**. El despliegue es un evento posterior: un ticket puede estar archivado y aún sin desplegar.
 
@@ -82,7 +77,7 @@ Despacha **`git-entrega`** en modo cierre. La fusión no la hace un subagente: l
 - Revisa el diff: ningún secreto, ningún archivo fuera de alcance, ningún artefacto temporal. El escaneo se repite en cada commit, también en los del ciclo de corrección.
 - Commit con el formato del proyecto. La línea de atribución la fija el orquestador en el encargo; `git-entrega` nunca escribe la de su propio modelo.
 - Push de la rama del ticket, nunca de `Produccion`.
-- Abre el PR con `gh pr create`: título `TKT-xxx · <título>` o, si el ticket está partido, **`TKT-xxxa · <título>`** (id de la entrega que fusiona este PR), cuerpo (qué, por qué, criterios cubiertos y cómo verificarlo) y **una** de las cuatro etiquetas de origen, `human`, `human+copilot`, `agent` o `agent+human-review`. Es el origen del código, es decir, quién lo escribió, no el estado de la revisión, y no cambia al aprobar. Es una métrica declarada del proyecto: sin ella la velocity miente.
+- Abre el PR con `gh pr create`: título `TKT-xxx · <título>` (el id del ticket, nunca el de una entrega), cuerpo (qué, por qué, criterios cubiertos y cómo verificarlo; si el ticket se partió en entregas, una línea por entrega con lo que aportó) y **una** de las cuatro etiquetas de origen, `human`, `human+copilot`, `agent` o `agent+human-review`. Es el origen del código, es decir, quién lo escribió, no el estado de la revisión, y no cambia al aprobar. Es una métrica declarada del proyecto: sin ella la velocity miente.
 - La base es `Produccion`. Si el ticket depende de otro cuyo PR aún no está fusionado, la base es la rama de ese ticket.
 
 ### 5b · Comprobaciones
@@ -105,7 +100,7 @@ Cuando las diez comprobaciones están en verde, el orquestador presenta a la per
 - Si el PR modifica las compuertas que lo validan (`.github/`, `.claude/`, `tools/`, `docs/adr/`, la configuración de linters, tipos y contratos, los `package.json` y `pyproject.toml`, `compose.yaml` y `docs/api/` (el borrador OpenAPI); `git-entrega` calcula la lista con un único patrón), el resumen lo dice expresamente: **«modifica las compuertas»**, porque en ese caso «las diez en verde» prueba menos.
 - El sí tiene que ser posterior a ese resumen. Sin un sí explícito **no se fusiona**. Un resultado ambiguo, o una pregunta sin respuesta, es un no.
 - Lo que se publica en el PR es un resumen **sin hallazgos de seguridad abiertos**: el repositorio es público.
-- Si no aprueba, el PR queda abierto y `_index.md` vuelve a `LISTO PARA PR` (con el calificador de entrega si aplica) con un commit en la rama, que hace el orquestador con `git-entrega` en modo cierre (reutiliza el PR abierto).
+- Si no aprueba, el PR queda abierto y `_index.md` vuelve a `LISTO PARA PR` con un commit en la rama, que hace el orquestador con `git-entrega` en modo cierre (reutiliza el PR abierto).
 
 ### 5e · Fusión y registro
 
@@ -117,19 +112,18 @@ Con el sí, el orquestador ejecuta **él mismo**, en el hilo principal, el proce
 4. Si el PR fusionado añade `.github/workflows/revision-ia.yml` y el repositorio no tiene el secreto `ANTHROPIC_API_KEY` (`gh secret list`), ejecuta `gh workflow disable revision-ia.yml` justo después de fusionar, para que ningún PR siguiente muestre una ejecución en rojo (ADR-028, «Estado de la activación»), y lo anota en el comentario de registro del paso siguiente.
 5. Deja el comentario de registro: si la base es `Produccion`, es el de la **Fusión con omisión**, con la frase «fusionado con omisión de la protección»; si la base es la rama de otro ticket, va sin esa frase. Lleva la fecha, el número del PR, la etiqueta de origen, el enlace a la revisión en el PR y el enlace a la ejecución con las diez comprobaciones requeridas en verde. Los enlaces se obtienen y comprueban antes de fusionar; un enlace que falte aborta sin tocar `Produccion`.
 6. Vuelve a `Produccion`, la actualiza con `--ff-only` y borra la rama del ticket, en local y en el remoto, salvo que haya PR apilados abiertos sobre ella.
-7. Si era una **entrega intermedia** de un paraguas partido: en `Produccion`, deja el hub en **`LISTO PARA EJECUTAR · TKT-xxxb`** (siguiente entrega), fila de Log con el PR fusionado, y **no** borres la carpeta `sdd/tickets/tkt-xxx/` ni marques `ARCHIVADO`.
 
 ## Paso 6 · Reportar
 
-Tras la fusión: qué se añadió al sistema, qué contrato público cambió, qué ADR se creó, qué deuda queda abierta y con qué ticket sugerido, el número del PR y el enlace a su comentario de registro. Si el paraguas sigue vivo, dilo explícitamente y cuál es la siguiente entrega.
+Tras la fusión: qué se añadió al sistema, con una línea por entrega si el ticket se partió, qué contrato público cambió, qué ADR se creó, qué deuda queda abierta y con qué ticket sugerido, el número del PR y el enlace a su comentario de registro.
 
 ## Stop conditions
 
-1. El hub no está en `LISTO PARA PR` (con o sin calificador `· entrega TKT-xxxa`) → no cerrar.
+1. El hub no está en `LISTO PARA PR`, o queda una entrega sin ejecutar o sin revisar → no cerrar.
 2. Alguna auditoría sin `APROBADO` → no cerrar, salvo `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` con la nota del paso 4 de `/sdd-revisar` en `impl.md`.
 3. `verificar_docs.py` falla → no cerrar.
 4. El diff contiene un secreto → **detener**, no commitear, avisar.
 5. Una comprobación requerida sigue en rojo tras 3 ciclos de corrección → `/sdd-escalar`.
-6. La persona dueña no aprueba, o no contesta → no fusionar: el PR queda abierto, `_index.md` vuelve a `LISTO PARA PR` (con calificador de entrega si aplica) y se informa.
+6. La persona dueña no aprueba, o no contesta → no fusionar: el PR queda abierto, `_index.md` vuelve a `LISTO PARA PR` y se informa.
 7. Un PR de ensayo nunca se fusiona.
 8. El arnés de permisos bloquea la fusión → no se rodea: se informa y se pide la autorización explícita de la persona dueña.

@@ -61,7 +61,7 @@ Invoca **`abogado-del-diablo`** sobre el diseño. Registra objeciones y acciones
 
 1. Estado distinto de `SPEC PENDIENTE` → no diseñar.
 2. Un invariante registrado estorba al cambio → escalar.
-3. El orden de implementación suma más de ~400 líneas estimadas → proponer partir el ticket antes de aprobar.
+3. El orden de implementación suma más de ~400 líneas estimadas → proponer partir el ticket en entregas (TKT-xxxa, TKT-xxxb…) antes de aprobar. La partición es solo de **ejecución y revisión**: cada entrega declara sus filas y sus criterios `[M]`, se ejecuta y se revisa por separado, pero todas se acumulan en una rama y salen en **un único PR por ticket**, que abre `/sdd-completar` al final. El diseño no propone un PR por entrega.
 4. El diseño necesita cruzar una frontera entre módulos → rediseñar o escalar.
 5. La escalera obliga a crear un objeto nuevo no trivial que la spec no previó → escalar.
 
