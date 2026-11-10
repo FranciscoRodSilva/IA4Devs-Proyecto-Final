@@ -45,6 +45,10 @@ def test_hdu002_esc04_api_requisicion_excede_responde_409_con_excedente(...):
     """HDU-002 esc. 4 · RN-03 — 409 REGLA_NEGOCIO con excedente y acciones filtradas."""
 ```
 
+## Mutación al cerrar
+
+Si tu fila cierra una entrega, aplica el protocolo de mutación de [`tester-backend`](tester-backend.md#mutación-en-rutas-críticas) sobre las rutas y los DTO de la fila: copia previa de lo que mutas fuera del repositorio, huella SHA-256 de los `.py` de `backend/` antes y después de cada mutante, un mutante a la vez y `git status` idéntico al terminar. Mutantes que valen la pena en una ruta: quitar `verificar_origen` o invertir su orden con `exigir_rol`, ampliar los roles, quitar un patrón o un límite del DTO, cambiar un código de estado.
+
 ## Prohibido
 
 - Comprobar solo el código de estado en un rechazo.

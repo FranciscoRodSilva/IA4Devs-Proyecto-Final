@@ -82,8 +82,10 @@ Mermaid por defecto, dentro del Markdown. En local se validan con `tools/extraer
 
 - [ ] La documentación afectada se actualizó en **este mismo** cambio
 - [ ] `python tools/verificar_docs.py` en verde
+- [ ] Ningún archivo de `backend/`, `sdd/`, `docs/`, `tools/` o `.claude/` se guarda en CRLF en el índice de Git (lo comprueba `verificar_docs.py`; el recuento manual fiable, en Git Bash, es `tr -cd '\r' < archivo | wc -c`)
 - [ ] Ningún identificador citado que no exista
 - [ ] Si el cambio cerró una decisión con alternativas: hay ADR y está en el índice
 - [ ] Si el cambio añadió escenarios: el conteo del Definition of Done cuadra
 - [ ] Ningún supuesto nuevo sin `(asumido)` y sin su pregunta abierta
 - [ ] Los fragmentos de código son ejecutables
+- [ ] Las cifras de las secciones de cierre de `impl.md` (`passed`, casos por archivo, líneas) se copian de la salida de un comando de esa corrida, con su fecha, y se vuelven a copiar tras cada ciclo de corrección que cambie código o pruebas; un número escrito a mano se desactualiza

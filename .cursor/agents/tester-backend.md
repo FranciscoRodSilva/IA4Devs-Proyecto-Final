@@ -57,13 +57,14 @@ Recuerda: una requisición `EVALUADA` **sí** consume.
 
 ## Mutación en rutas críticas
 
-En reglas de dinero, límites, congelado de línea base y cálculo de avance:
+En reglas de dinero, límites, congelado de línea base y cálculo de avance. Un mutante olvidado en el árbol contamina la suite y a cualquier agente que lo lea, así que la mutación sigue este protocolo:
 
-1. Muta un operador (`>` por `>=`), un umbral o un signo.
-2. Corre la suite.
-3. Si **ningún** test se pone rojo, falta un test: añádelo.
-4. Deshaz la mutación.
-5. Anota qué mutaste y qué test cayó.
+1. **Antes del primer mutante**, copia fuera del repositorio los archivos de producción que vas a mutar y calcula la huella SHA-256 de todos los `.py` de `backend/`.
+2. Aplica **un** mutante a la vez (un operador como `>` por `>=`, un umbral o un signo) y corre solo los tests que deberían caer. Mutar en el sitio solo vale si el orquestador no tiene ningún otro agente ni la suite corriendo; si los hay, trabaja en una copia completa del árbol.
+3. Si **ningún** test se pone rojo, falta un test: añádelo y deja el mutante anclado.
+4. **Revierte desde la copia**, recalcula la huella y comprueba que es idéntica a la inicial antes del siguiente mutante. Al terminar, `git status` y `git diff --stat` quedan como al empezar.
+5. Anota en `impl.md` la tabla «mutante · test que cae» y las dos huellas.
+6. En un ticket partido en entregas, la mutación de cada entrega corre la tabla completa de mutantes del diseño contra la **suite acumulada**, no solo los mutantes de su propio código: un mutante puede morir en la suite de otra entrega y sobrevivir en la de esta (`M-C5` en TKT-017c).
 
 ## Qué se prueba en cada capa
 

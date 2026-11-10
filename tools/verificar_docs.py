@@ -8,6 +8,9 @@ proyecto necesita porque su documentación es el entregable:
 2. Anclas internas (#seccion), reproduciendo el algoritmo de GitHub.
 3. Consistencia de identificadores: RN, RNF, PA, F, HDU, TKT, ADR e invariantes,
    más la aritmética de story points y el conteo de escenarios.
+4. Codificación: UTF-8 sin BOM en los documentos y con BOM en los `.ps1`.
+5. Finales de línea: lo que el índice de Git guarda en `backend/`, `sdd/`, `docs/`, `tools/`
+   y `.claude/` va en LF; una copia de trabajo en CRLF solo se avisa.
 
 Uso:
     python tools/verificar_docs.py            # desde la raíz del repositorio
@@ -21,6 +24,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import subprocess
 import sys
 import unicodedata
 import urllib.parse
@@ -292,6 +296,66 @@ def verificar_codificacion(raiz: str) -> int:
     return revisados
 
 
+# ------------------------------------------------ 5. finales de línea
+CARPETAS_CON_FINALES_DE_LINEA = ('backend', 'sdd', 'docs', 'tools', '.claude')
+EXTENSIONES_CON_FINALES_DE_LINEA = ('.md', '.py', '.yml', '.yaml', '.toml', '.json')
+
+
+def finales_de_linea_de_git(raiz: str) -> str | None:
+    """Devuelve la salida de `git ls-files --eol`, o `None` si git no está disponible."""
+    try:
+        resultado = subprocess.run(
+            ['git', '-c', 'core.quotePath=false', '-C', raiz, 'ls-files', '--eol'],
+            capture_output=True, text=True, encoding='utf-8', check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return resultado.stdout
+
+
+def verificar_finales_de_linea(raiz: str, salida_git: str | None = None) -> int:
+    """Garantiza que lo que el índice de Git guarda en `backend/`, `sdd/`, `docs/`, `tools/` y `.claude/` va en LF.
+
+    Aprendizaje de once tickets (`herramienta` en sdd/_evolucion.md): en Windows la copia de
+    trabajo queda en CRLF y los agentes escriben con uno u otro, pero lo que cuenta es lo que se
+    guarda. `.gitattributes` pide LF (`* text=auto eol=lf`), así que Git normaliza al commitear y
+    una copia de trabajo en CRLF solo se avisa; es problema que el **índice** tenga `crlf` o `mixed`.
+    Lee `git ls-files --eol` (o `salida_git`, para las pruebas) y devuelve el número de archivos
+    revisados. Sin git disponible, avisa y no comprueba nada.
+    """
+    if salida_git is None:
+        salida_git = finales_de_linea_de_git(raiz)
+        if salida_git is None:
+            avisos.append('Finales de línea · no se pudo ejecutar git: se omite la comprobación')
+            return 0
+    revisados = 0
+    copias_en_crlf = 0
+    for linea in salida_git.splitlines():
+        campos, _, ruta = linea.partition('\t')
+        partes = campos.split()
+        if len(partes) < 2:
+            continue
+        indice, trabajo = partes[0], partes[1]
+        componentes = ruta.strip().split('/')
+        if componentes[0] not in CARPETAS_CON_FINALES_DE_LINEA:
+            continue
+        if any(c in EXCLUIR for c in componentes):
+            continue
+        if not ruta.strip().lower().endswith(EXTENSIONES_CON_FINALES_DE_LINEA):
+            continue
+        revisados += 1
+        if indice in ('i/crlf', 'i/mixed'):
+            problemas.append(
+                f'Finales de línea · {ruta.strip()} se guarda en el índice de Git con '
+                f'{indice[2:]}; el repositorio guarda LF (.gitattributes)')
+        elif indice == 'i/lf' and trabajo in ('w/crlf', 'w/mixed'):
+            copias_en_crlf += 1
+    if copias_en_crlf:
+        avisos.append(
+            f'Finales de línea · {copias_en_crlf} archivos tienen CRLF en la copia de trabajo y '
+            'LF en el índice; Git los normaliza al commitear')
+    return revisados
+
+
 def main() -> int:
     # La consola de Windows usa cp1252 por omisión y no sabe escribir ✓ ni ✗.
     # Sin esto el verificador revienta al imprimir el resultado, pase o no pase.
@@ -312,12 +376,14 @@ def main() -> int:
     n_anclas = verificar_anclas(raiz, docs)
     resumen = verificar_identificadores(raiz, docs)
     n_codificacion = verificar_codificacion(raiz)
+    n_finales = verificar_finales_de_linea(raiz)
 
     print(f'  enlaces relativos  {n_enlaces:>5}')
     print(f'  anclas internas    {n_anclas:>5}')
     for k, v in resumen.items():
         print(f'  {k:<18} {v:>5}')
     print(f'  codificación       {n_codificacion:>5}')
+    print(f'  finales de línea   {n_finales:>5}')
 
     print()
     if problemas:
