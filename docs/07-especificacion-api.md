@@ -283,7 +283,7 @@ Base `/api/v1`. **Roles**: DG Dirección General · DP Director de Proyectos · 
 | `GET` | `/lineas-base/{linea_base_id}` | DG, DP, CO | RN-01 | HDU-001 · 14, 18 | TKT-017 |
 | `POST` | `/lineas-base/{linea_base_id}/congelacion` | DP | RN-01, RN-24 | HDU-001 · 14, 19 | TKT-017 |
 | `GET` | `/lineas-base/{linea_base_id}/conceptos` | DG, DP, CO | RN-01 | HDU-001 · 14 | TKT-017 |
-| `GET` | `/lineas-base/{linea_base_id}/explosion` | DG, DP, CO | RN-24 | HDU-001 · 14 | TKT-016, TKT-017 |
+| `GET` | `/lineas-base/{linea_base_id}/explosion` | DG, DP, CO | RN-24 | HDU-001 · 14 | TKT-017 |
 | `GET` | `/lineas-base/{linea_base_id}/presupuesto-control` | DG, DP, CO | RN-03 | HDU-001 · 15 | TKT-017 |
 | `PUT` | `/lineas-base/{linea_base_id}/presupuesto-control/{tipo_partida_id}` | DG | RN-03, RN-04 | HDU-001 · 15, 17, 22, 23 | TKT-017 |
 

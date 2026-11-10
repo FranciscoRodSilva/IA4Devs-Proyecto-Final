@@ -39,32 +39,51 @@ from __future__ import annotations
 import functools
 import inspect
 import io
-import os
 import re
 import secrets
 import uuid
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta
-from http.cookies import SimpleCookie
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 import pytest
-import yaml
 from fastapi import FastAPI
-from fastapi.dependencies.models import Dependant
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
-from jsonschema import Draft202012Validator
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
-from starlette.routing import BaseRoute
 
-from cimenta.presupuesto.aplicacion.contexto import construir_contexto
 from cimenta.presupuesto.infraestructura import repositorio_linea_base
 from cimenta.presupuesto.interfaz import LineaBaseMaterializada
 from herramientas.soporte_tkt017 import preparacion_dos_niveles
+from herramientas.soporte_tkt017_api import (
+    CONTRASENA_DE_PRUEBA,
+    NOMBRE_DEL_DIRECTOR,
+    OTRO_TOKEN_CSRF,
+    TOKEN_CSRF,
+    VENTA_POR_TIPO,
+    Sesion,
+    abrir_sesion,  # noqa: F401
+    base,  # noqa: F401
+    borrador,
+    cabeceras_de,
+    componentes_duplicados,
+    construir_aplicacion,
+    contexto,  # noqa: F401
+    diferencias_de_forma,
+    entorno,  # noqa: F401
+    exigir_denegacion,
+    exigir_error,
+    forma_de_componente,
+    iniciar_sesion,
+    llamadas,
+    rutas_de,
+    tipos_de_partida,
+    validar_contra,
+)
+from herramientas.soporte_tkt017_api import publicado as contrato_publicado
 from herramientas.soporte_tkt017_entorno import (
+    CODIGO_OBRA,
     MOTIVO_DE_CONGELADO,
     NOMBRE_COMPLETO_OBRA,
     Base,
@@ -74,23 +93,12 @@ from herramientas.soporte_tkt017_entorno import (
 
 if TYPE_CHECKING:
     # `conftest` no es importable en tiempo de ejecución: pytest lo carga por su cuenta.
-    from conftest import Conectar, DatosPresupuesto, RelojDePrueba, SembrarUsuario
+    from conftest import Conectar, RelojDePrueba, SembrarUsuario
 
-RAIZ = Path(__file__).resolve().parents[2]
-CABECERA_CORRELACION = "X-Correlacion-Id"
-RUTA_SESION = "/api/v1/sesion"
 RUTA_CONGELACION = "/api/v1/lineas-base/{linea_base_id}/congelacion"
-COOKIE_SESION = "cimenta_sesion"
-COOKIE_CSRF = "cimenta_csrf"
-CABECERA_CSRF = "X-CSRF-Token"
-TOKEN_CSRF = "csrf-de-la-prueba-0f3a9c71"
-OTRO_TOKEN_CSRF = "csrf-otro-7b21d4e8"
 
 CORREO_DEL_DIRECTOR = "diana@cimenta.test"
-NOMBRE_DEL_DIRECTOR = "Diana Directora"
-CONTRASENA_DEL_DIRECTOR = "Clave-Del-Director-1"
 MOTIVO = MOTIVO_DE_CONGELADO
-CODIGO_OBRA = "AP-058-25"
 
 MENSAJE_RN01 = (
     "La obra {codigo} ya tiene una línea base congelada; para sustituirla hay que crear una versión "
@@ -129,59 +137,23 @@ SIN_PAR_VALIDO = [
 CON_FECHA_Y_ZONA = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$")
 
 RUTAS_SIN_SESION = frozenset({"GET /api/v1/sesion/csrf", "POST /api/v1/sesion"})
-IMPLEMENTADAS_DE_PRESUPUESTO = frozenset({"congelar_linea_base"})  # B4 y C3 añaden las suyas.
+# B3 publica la congelación; B4, las cuatro lecturas de la línea base; C3 añade las suyas.
+IMPLEMENTADAS_DE_PRESUPUESTO = frozenset(
+    {
+        "congelar_linea_base",
+        "listar_lineas_base",
+        "obtener_linea_base",
+        "listar_conceptos_linea_base",
+        "obtener_explosion_insumos",
+    }
+)
 
 
 # --------------------------------------------------------------------------- ayudas de la prueba
 
 
-@functools.cache
-def borrador() -> dict[str, Any]:
-    return yaml.safe_load((RAIZ / "docs" / "api" / "openapi.yaml").read_text(encoding="utf-8"))
-
-
-def validar_contra(esquema: str, cuerpo: object) -> None:
-    """Valida un cuerpo contra un esquema de `components.schemas` del borrador (ayuda de TKT-005)."""
-    raiz = {"$ref": f"#/components/schemas/{esquema}", "components": borrador()["components"]}
-    Draft202012Validator(raiz, format_checker=Draft202012Validator.FORMAT_CHECKER).validate(cuerpo)
-
-
 def ruta_de(linea_base_id: uuid.UUID | str) -> str:
     return f"/api/v1/lineas-base/{linea_base_id}/congelacion"
-
-
-def cabeceras_de(
-    sesion_id: uuid.UUID | None, cookie_csrf: str | None, cabecera_csrf: str | None
-) -> dict[str, str]:
-    """La cabecera `Cookie` (sesión y, si se pide, `cimenta_csrf`) y, si se pide, `X-CSRF-Token`."""
-    cookies = []
-    if sesion_id is not None:
-        cookies.append(f"{COOKIE_SESION}={sesion_id}")
-    if cookie_csrf is not None:
-        cookies.append(f"{COOKIE_CSRF}={cookie_csrf}")
-    cabeceras: dict[str, str] = {}
-    if cookies:
-        cabeceras["Cookie"] = "; ".join(cookies)
-    if cabecera_csrf is not None:
-        cabeceras[CABECERA_CSRF] = cabecera_csrf
-    return cabeceras
-
-
-def iniciar_sesion(cliente: TestClient, correo: str, contrasena: str) -> uuid.UUID:
-    """Inicia sesión por HTTP con un par CSRF coincidente y vacía el almacén de cookies del cliente."""
-    respuesta = cliente.post(
-        RUTA_SESION,
-        json={"email": correo, "contrasena": contrasena},
-        headers=cabeceras_de(None, TOKEN_CSRF, TOKEN_CSRF),
-    )
-    assert respuesta.status_code == 200, respuesta.text
-    cliente.cookies.clear()
-    for cabecera in respuesta.headers.get_list("set-cookie"):
-        galleta: SimpleCookie = SimpleCookie()
-        galleta.load(cabecera)
-        if COOKIE_SESION in galleta:
-            return uuid.UUID(galleta[COOKIE_SESION].value)
-    pytest.fail(f"La respuesta no fija {COOKIE_SESION}: {respuesta.headers.get_list('set-cookie')}")
 
 
 def congelar_por_http(
@@ -220,28 +192,6 @@ def _estado_de_negocio(base: Base) -> dict[str, object]:
     }
 
 
-def exigir_error(
-    respuesta: Any,
-    *,
-    estado: int,
-    esperado: dict[str, Any],
-    esquema: str,
-    cabeceras: dict[str, str] | None = None,
-) -> dict[str, Any]:
-    """El contrato de error completo: código, cuerpo exacto con la correlación de la cabecera, esquema del
-    borrador, cabeceras propias, y ninguna traza ni nombre interno."""
-    assert respuesta.status_code == estado, respuesta.text
-    assert respuesta.headers["content-type"].startswith("application/json")
-    cuerpo = respuesta.json()
-    assert cuerpo == {**esperado, "correlacion_id": respuesta.headers[CABECERA_CORRELACION]}
-    validar_contra(esquema, cuerpo)
-    for clave, valor in (cabeceras or {}).items():
-        assert respuesta.headers[clave] == valor
-    for pista in ("Traceback", "sqlalchemy", "psycopg", "cimenta."):
-        assert pista not in respuesta.text
-    return cuerpo
-
-
 def exigir_conflicto_de_estado(respuesta: Any, mensaje: str, detalle: dict[str, Any]) -> None:
     exigir_error(
         respuesta,
@@ -257,78 +207,7 @@ def exigir_conflicto_de_estado(respuesta: Any, mensaje: str, detalle: dict[str, 
     )
 
 
-def exigir_denegacion(
-    base: Base,
-    *,
-    usuario_id: uuid.UUID,
-    ocurrido_en: datetime,
-    motivo: str,
-    ruta: str,
-    roles_requeridos: list[str],
-) -> None:
-    """Un solo asiento `DENEGAR`, a nombre de quien llamó, con método, ruta y roles exigidos."""
-    assert base.filas(
-        "SELECT accion::text, usuario_id, ocurrido_en, motivo, regla_negocio, entidad_tipo, entidad_id, "
-        "obra_id, datos_antes IS NULL, datos_despues FROM bitacora WHERE accion = 'DENEGAR'"
-    ) == [
-        (
-            "DENEGAR",
-            usuario_id,
-            ocurrido_en,
-            motivo,
-            None,
-            "usuario",
-            usuario_id,
-            None,
-            True,
-            {"metodo": "POST", "ruta": ruta, "roles_requeridos": roles_requeridos},
-        )
-    ]
-
-
-class Sesion(NamedTuple):
-    usuario_id: uuid.UUID
-    sesion_id: uuid.UUID
-
-
-# --------------------------------------------------------------------------- el entorno
-
-
-@pytest.fixture
-def base(base_de_prueba: str, conectar: Conectar) -> Base:
-    return Base(conectar("aplicacion", base_de_prueba))
-
-
-@pytest.fixture
-def entorno(datos_presupuesto: DatosPresupuesto, base: Base) -> Entorno:
-    """La obra en planeación, los cuatro tipos sembrados, el usuario que confirma y la mano de obra."""
-    entorno = Entorno(datos_presupuesto, base)
-    entorno.registrar_mano_obra()
-    return entorno
-
-
-@pytest.fixture
-def contexto(motor_aplicacion: Engine, reloj_de_prueba: RelojDePrueba) -> Contexto:
-    """El `ContextoPresupuesto` con el que la prueba confirma, sobre el mismo reloj que la aplicación."""
-    return functools.cache(
-        lambda: construir_contexto(proveedor_motor=lambda: motor_aplicacion, reloj=reloj_de_prueba)
-    )
-
-
-@pytest.fixture
-def abrir_sesion(cliente: TestClient, sembrar_usuario: SembrarUsuario) -> Callable[..., Sesion]:
-    """Siembra un usuario con los roles pedidos e inicia sesión con él por HTTP."""
-
-    def abrir(
-        roles: tuple[str, ...] = ("DIRECTOR_PROYECTOS",),
-        *,
-        correo: str = CORREO_DEL_DIRECTOR,
-        nombre: str = NOMBRE_DEL_DIRECTOR,
-    ) -> Sesion:
-        usuario_id = sembrar_usuario(correo, CONTRASENA_DEL_DIRECTOR, roles=roles, nombre=nombre)
-        return Sesion(usuario_id, iniciar_sesion(cliente, correo, CONTRASENA_DEL_DIRECTOR))
-
-    return abrir
+# --------------------------------------------------------------------------- el congelado por la API
 
 
 class Congelado(NamedTuple):
@@ -360,7 +239,7 @@ def congelado_por_api(
         momento_de_la_confirmacion = reloj_de_prueba.ahora
         borrador = entorno.confirmar(contexto)
         reloj_de_prueba.avanzar(timedelta(minutes=5))
-        director = abrir_sesion()
+        director = abrir_sesion(nombre=NOMBRE_DEL_DIRECTOR)
         reloj_de_prueba.avanzar(timedelta(minutes=5))
         respuesta = congelar_por_http(cliente, borrador.linea_base_id, director.sesion_id)
         return Congelado(
@@ -375,24 +254,6 @@ def congelado_por_api(
 
 
 # --------------------------------------------------------------------------- TC-B01 · CA-B1
-
-
-def _tipos_de_partida(base: Base) -> list[tuple[uuid.UUID, str, str]]:
-    """Las cuatro filas de `tipo_partida`, ordenadas por `id` como las devuelve el borrador."""
-    filas = base.conexion.execute(
-        "SELECT id, clave, nombre FROM tipo_partida ORDER BY id"
-    ).fetchall()
-    assert len(filas) == 4
-    return [(f[0], f[1], f[2]) for f in filas]
-
-
-# Seis apariciones de 12.5 × 420.0000 en cada uno de MUROS y PLAFONES_Y_CAJILLOS.
-VENTA_POR_TIPO = {
-    "MUROS": "31500.0000",
-    "PLAFONES_Y_CAJILLOS": "31500.0000",
-    "ENCHAPES": "0.0000",
-    "GENERALES": "0.0000",
-}
 
 
 def test_hdu001_esc14_congelar_la_linea_base(
@@ -438,7 +299,7 @@ def test_hdu001_esc14_congelar_la_linea_base(
                 "tipo_partida": {"id": str(id_tipo), "clave": clave, "nombre": nombre},
                 "importe_venta": VENTA_POR_TIPO[clave],
             }
-            for id_tipo, clave, nombre in _tipos_de_partida(base)
+            for id_tipo, clave, nombre in tipos_de_partida(base)
         ],
     }
     validar_contra("LineaBase", cuerpo)
@@ -596,7 +457,7 @@ def test_hdu001_esc14_el_importe_por_tipo_de_una_congelada_es_la_suma_de_las_cop
     """
     congelado = congelado_por_api()
     assert congelado.respuesta.status_code == 200, congelado.respuesta.text
-    esperado = [VENTA_POR_TIPO[clave] for _, clave, _ in _tipos_de_partida(base)]
+    esperado = [VENTA_POR_TIPO[clave] for _, clave, _ in tipos_de_partida(base)]
     base.ejecutar(
         "UPDATE partida_concepto SET importe = 999999.0000 WHERE id IN "
         "(SELECT pc.id FROM partida_concepto pc JOIN concepto c ON c.id = pc.concepto_id "
@@ -914,6 +775,7 @@ def test_tkt017_cab04_congelar_sin_rol(
     assert _estado_de_negocio(base) == antes
     exigir_denegacion(
         base,
+        metodo="POST",
         usuario_id=usuario.usuario_id,
         ocurrido_en=reloj_de_prueba.ahora,
         motivo="ROL_INSUFICIENTE",
@@ -1011,6 +873,7 @@ def test_tkt017_cab04_congelar_sin_par_csrf(
     assert base.filas("SELECT estado FROM linea_base WHERE id = %s", borrador) == [("BORRADOR",)]
     exigir_denegacion(
         base,
+        metodo="POST",
         usuario_id=director.usuario_id,
         ocurrido_en=reloj_de_prueba.ahora,
         motivo="ORIGEN_NO_VERIFICADO",
@@ -1051,6 +914,7 @@ def test_tkt017_cab04_el_origen_se_verifica_antes_que_el_rol(
     )
     exigir_denegacion(
         base,
+        metodo="POST",
         usuario_id=usuario.usuario_id,
         ocurrido_en=reloj_de_prueba.ahora,
         motivo="ORIGEN_NO_VERIFICADO",
@@ -1100,11 +964,11 @@ def test_tkt017_cab06_congelado_con_bloqueo_vencido(
     borrador = entorno.datos.linea_base(estado="BORRADOR", obra_id=entorno.obra_id)
     sembrar_usuario(
         CORREO_DEL_DIRECTOR,
-        CONTRASENA_DEL_DIRECTOR,
+        CONTRASENA_DE_PRUEBA,
         roles=("DIRECTOR_PROYECTOS",),
         nombre=NOMBRE_DEL_DIRECTOR,
     )
-    sesion_id = iniciar_sesion(cliente_espera_corta, CORREO_DEL_DIRECTOR, CONTRASENA_DEL_DIRECTOR)
+    sesion_id = iniciar_sesion(cliente_espera_corta, CORREO_DEL_DIRECTOR, CONTRASENA_DE_PRUEBA)
     antes = _estado_de_negocio(base)
     retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
     try:
@@ -1133,39 +997,6 @@ def test_tkt017_cab06_congelado_con_bloqueo_vencido(
 
 
 # --------------------------------------------------------------------------- TC-B17 · CA-R1
-
-# Las ayudas de recorrido son las de `test_tkt006_enrutador.py` y `test_tkt057_csrf.py`, copiadas como hacen
-# los demás archivos de la suite (los módulos de prueba no se importan entre sí).
-
-
-def construir_aplicacion(monkeypatch: pytest.MonkeyPatch) -> FastAPI:
-    """La aplicación real completa, sin motor y sin variables de base en el entorno (sin Docker)."""
-    for nombre in [n for n in os.environ if n.startswith("CIMENTA_DB_")]:
-        monkeypatch.delenv(nombre)
-    from servidor.fabrica import crear_aplicacion
-
-    return crear_aplicacion(
-        destino_registro=io.StringIO(),
-        entorno={"CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16)},
-    )
-
-
-def rutas_de(rutas: Iterable[BaseRoute]) -> Iterator[APIRoute]:
-    """Las `APIRoute` de la aplicación, también las de un `APIRouter` incluido."""
-    for ruta in rutas:
-        original = getattr(ruta, "original_router", None)
-        if original is not None:
-            yield from rutas_de(original.routes)
-        elif isinstance(ruta, APIRoute):
-            yield ruta
-
-
-def llamadas(dependant: Dependant) -> Iterator[Callable[..., Any]]:
-    """Cada `call` de la cadena de dependencias de una ruta, bajando por las sub-dependencias."""
-    for sub in dependant.dependencies:
-        if sub.call is not None:
-            yield sub.call
-        yield from llamadas(sub)
 
 
 def la_ruta_de_congelacion(aplicacion: FastAPI) -> APIRoute:
@@ -1265,8 +1096,7 @@ def test_tkt017_car1_openapi_publica_la_congelacion_con_sesion_y_csrf(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """TC-B17 · CA-R1 · M4 — `/openapi.json` declara `sesion` y `csrf` en la congelación y el cuerpo `Motivo` acotado."""
-    aplicacion = construir_aplicacion(monkeypatch)
-    publicado = TestClient(aplicacion, base_url="https://testserver").get("/openapi.json").json()
+    publicado = contrato_publicado(monkeypatch)
 
     operacion = publicado["paths"][RUTA_CONGELACION]["post"]
 
@@ -1289,8 +1119,8 @@ def test_tkt017_operation_id_de_las_rutas_de_presupuesto(
 
     En el patrón de TC-52 de `test_tkt006_enrutador.py`: el cliente TypeScript se genera de los
     `operationId`. Solo cuentan las operaciones de TKT-017 ya implementadas (`IMPLEMENTADAS_DE_PRESUPUESTO`;
-    B4 y C3 añaden las suyas). Las publicadas son las de la etiqueta `presupuesto`, que el borrador asigna a
-    cada operación de línea base. La fila B3 publica `congelar_linea_base`.
+    C3 añade las suyas). Las publicadas son las de la etiqueta `presupuesto`, que el borrador asigna a
+    cada operación de línea base. La fila B3 publica `congelar_linea_base`; la B4, las cuatro lecturas.
     """
     esperadas = {
         (metodo.upper(), f"/api/v1{ruta}", operacion["operationId"])
@@ -1304,9 +1134,7 @@ def test_tkt017_operation_id_de_las_rutas_de_presupuesto(
         "Anti-verde vacío: el borrador debe tener cada operación implementada con TKT-017 en x-tickets"
     )
     assert ("POST", RUTA_CONGELACION, "congelar_linea_base") in esperadas
-    aplicacion = construir_aplicacion(monkeypatch)
-
-    contrato = TestClient(aplicacion, base_url="https://testserver").get("/openapi.json").json()
+    contrato = contrato_publicado(monkeypatch)
 
     publicadas = {
         (metodo.upper(), ruta, operacion["operationId"])
@@ -1320,70 +1148,6 @@ def test_tkt017_operation_id_de_las_rutas_de_presupuesto(
 # --------------------------------------------------------------------------- TC-B20 · CA-B8, CA-R1
 
 
-def _aplanar(
-    documento: dict[str, Any],
-    nodo: dict[str, Any],
-    ruta: str,
-    salida: dict[str, object],
-    componentes: set[str],
-) -> None:
-    """Vuelca la forma de un esquema (con sus `$ref` resueltos) en `salida`, ruta a ruta.
-
-    Cada hoja es un hecho comparable: el `type`, el `format`, el `enum` ordenado, el conjunto de
-    propiedades y el de `required`. `oneOf`/`anyOf` con `null` y `type: [x, 'null']` se normalizan
-    a `nulable`, porque OpenAPI 3.1 admite las dos formas y Pydantic escribe la segunda. Los
-    nombres de los componentes de objeto o enumerado que se cruzan se acumulan en `componentes`.
-    """
-    if "$ref" in nodo:
-        nombre = nodo["$ref"].rsplit("/", 1)[-1]
-        resuelto = documento["components"]["schemas"][nombre]
-        if resuelto.get("type") == "object" or "enum" in resuelto:
-            componentes.add(nombre)
-        _aplanar(documento, resuelto, ruta, salida, componentes)
-        return
-    variantes = nodo.get("oneOf") or nodo.get("anyOf")
-    if variantes is not None:
-        no_nulas = [v for v in variantes if v.get("type") != "null"]
-        salida[f"{ruta}.nulable"] = len(no_nulas) != len(variantes)
-        for variante in no_nulas:
-            _aplanar(documento, variante, ruta, salida, componentes)
-        return
-    tipo = nodo.get("type")
-    if isinstance(tipo, list):
-        salida[f"{ruta}.nulable"] = "null" in tipo
-        tipo = next(t for t in tipo if t != "null")
-    salida[f"{ruta}.type"] = tipo
-    if "format" in nodo:
-        salida[f"{ruta}.format"] = nodo["format"]
-    if "enum" in nodo:
-        salida[f"{ruta}.enum"] = sorted(nodo["enum"])
-    if tipo == "object":
-        propiedades = nodo.get("properties", {})
-        salida[f"{ruta}.propiedades"] = sorted(propiedades)
-        salida[f"{ruta}.required"] = sorted(nodo.get("required", []))
-        for nombre, hijo in propiedades.items():
-            _aplanar(documento, hijo, f"{ruta}.{nombre}", salida, componentes)
-    elif tipo == "array":
-        _aplanar(documento, nodo["items"], f"{ruta}[]", salida, componentes)
-
-
-def _forma_de_linea_base(documento: dict[str, Any]) -> tuple[dict[str, object], set[str]]:
-    salida: dict[str, object] = {}
-    componentes: set[str] = set()
-    _aplanar(
-        documento, {"$ref": "#/components/schemas/LineaBase"}, "LineaBase", salida, componentes
-    )
-    return salida, componentes
-
-
-def _publicado(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
-    aplicacion = construir_aplicacion(monkeypatch)
-    return cast(
-        "dict[str, Any]",
-        TestClient(aplicacion, base_url="https://testserver").get("/openapi.json").json(),
-    )
-
-
 def test_tkt017_cab08_los_enums_de_linea_base_publicados_coinciden_con_el_borrador(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1393,7 +1157,7 @@ def test_tkt017_cab08_los_enums_de_linea_base_publicados_coinciden_con_el_borrad
     cliente deja pasar un estado o una clave que el contrato no admite. Validar la respuesta
     contra el borrador no lo detecta, porque `string` también cumple el enumerado.
     """
-    del_borrador, _ = _forma_de_linea_base(borrador())
+    del_borrador, _ = forma_de_componente(borrador(), "LineaBase")
     enums_del_borrador = {
         ruta: valores for ruta, valores in del_borrador.items() if ruta.endswith(".enum")
     }
@@ -1403,7 +1167,7 @@ def test_tkt017_cab08_los_enums_de_linea_base_publicados_coinciden_con_el_borrad
     }, "Anti-verde vacío: el borrador debe declarar los dos enumerados de la línea base"
     assert enums_del_borrador["LineaBase.estado.enum"] == ["BORRADOR", "CONGELADA", "SUPERSEDIDA"]
 
-    publicado, _ = _forma_de_linea_base(_publicado(monkeypatch))
+    publicado, _ = forma_de_componente(contrato_publicado(monkeypatch), "LineaBase")
 
     enums_publicados = {ruta: publicado.get(ruta) for ruta in enums_del_borrador}
     assert enums_publicados == enums_del_borrador
@@ -1419,29 +1183,17 @@ def test_tkt017_cab08_la_forma_de_linea_base_publicada_coincide_con_el_borrador(
     del borrador deben existir con su nombre en el publicado, y el publicado no debe duplicar
     ninguno bajo otro nombre con la misma forma.
     """
-    del_borrador, componentes_borrador = _forma_de_linea_base(borrador())
-    contrato = _publicado(monkeypatch)
-    publicado, componentes_publicados = _forma_de_linea_base(contrato)
+    del_borrador, componentes_borrador = forma_de_componente(borrador(), "LineaBase")
+    contrato = contrato_publicado(monkeypatch)
+    publicado, componentes_publicados = forma_de_componente(contrato, "LineaBase")
 
-    diferencias = [
-        f"{ruta}: borrador={del_borrador.get(ruta)!r} publicado={publicado.get(ruta)!r}"
-        for ruta in sorted(del_borrador.keys() | publicado.keys())
-        if del_borrador.get(ruta) != publicado.get(ruta)
-    ]
+    diferencias = diferencias_de_forma(del_borrador, publicado)
     assert diferencias == []
 
     assert componentes_borrador <= set(contrato["components"]["schemas"]), (
         f"Faltan componentes con el nombre del borrador: {sorted(componentes_borrador - set(contrato['components']['schemas']))}"
     )
-    formas: dict[str, str] = {}
-    duplicados: list[tuple[str, str]] = []
-    for nombre in sorted(componentes_publicados):
-        forma: dict[str, object] = {}
-        _aplanar(contrato, {"$ref": f"#/components/schemas/{nombre}"}, "", forma, set())
-        huella = repr(sorted(forma.items(), key=lambda par: par[0]))
-        if huella in formas:
-            duplicados.append((formas[huella], nombre))
-        formas[huella] = nombre
+    duplicados = componentes_duplicados(contrato, componentes_publicados)
     assert duplicados == []
 
 

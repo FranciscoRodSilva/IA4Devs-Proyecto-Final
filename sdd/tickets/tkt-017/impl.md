@@ -1014,3 +1014,202 @@ Todos los criterios `[M]` de b1 (`CA-B1` a `CA-B7` y `CA-R1`) quedan cumplidos c
 ##### Veredicto
 
 **LISTO PARA EJECUTAR · TKT-017b2.** La entrega TKT-017b1 queda revisada y acumulada en la rama `tkt-017a3-materializacion`, sin pull request.
+
+## TKT-017b2 · Lecturas de la línea base (`/sdd-ejecutar` y `/sdd-revisar` 2026-11-10)
+
+> [← index](_index.md) | [← design](design.md) | Siguiente: `/sdd-ejecutar` sobre TKT-017c. `/sdd-completar` no corre al cerrar esta entrega: según la regla de un solo PR por ticket, corre una vez, al aprobarse la última entrega (TKT-017c).
+
+Entrega **TKT-017b2** (filas **B4**, **B5** y **B6**): las cuatro lecturas de la línea base (`listar_lineas_base`, `obtener_linea_base`, `listar_conceptos_linea_base` y `obtener_explosion_insumos`), con sus filtros y su paginación, y la corrección del borrador de `PA-16.7`. Se ejecutó en la rama `tkt-017a3-materializacion`, con tester y desarrollador separados. La entrega pasó por un ciclo de corrección de los cinco auditores (ver «Revisión»).
+
+### Qué se implementó
+
+- **`infraestructura/repositorio_linea_base.py`:** `lineas_base_completas_de_obra` (versión descendente y, a igual versión, `id`), `conceptos_de_linea_base` (filtros por tipo de partida, por nivel con igualdad exacta y por texto con `icontains(autoescape=True)`; paginación con `total`; orden `nivel.orden`, `area.nombre`, `partida.orden`, `concepto.codigo`, `linea_base_concepto.id`; página vacía cuando el desplazamiento no alcanza filas), `renglones_de_explosion` (orden por tipo de partida y código de insumo; `importe_costo` es la columna `explosion_presupuesto.importe_venta`) y `importes_venta_de`, que calcula los importes por tipo sobre la fila ya leída. `importes_venta_por_tipo` lee la fila y delega. Hay un solo `SELECT` de línea base.
+- **`aplicacion/consulta_linea_base.py`:** `listar_lineas_base`, `obtener_linea_base`, `listar_conceptos` y `obtener_explosion`, una transacción de lectura por llamada, sin bloqueo. Entregan tipos propios de la capa (`TipoPartidaConsultado`, `ConceptoConsultado`, `InsumoConsultado`, `RenglonConsultado`). `MENSAJE_LINEA_BASE_NO_EXISTE` es único.
+- **`api/esquemas.py` y `api/rutas_linea_base.py`:** los esquemas `ListaConceptosLineaBase`, `ConceptoLineaBase`, `MetaPagina`, `InsumoResumen`, `ExplosionInsumos` y `RenglonExplosion` (con `importe_costo`) y las cuatro rutas `GET`, con `exigir_rol("DIRECCION_GENERAL", "DIRECTOR_PROYECTOS", "COMPRAS")` en el orden de `x-roles`, sin `verificar_origen`, `pagina` mínima 1, `tamano_pagina` de 1 a 200 y `q` y `nivel` sin el carácter `NUL`. `api/` ya no importa nada de `infraestructura/`.
+- **Cliente:** `frontend/src/api/generado/servidor.ts` regenerado; `npm run tipos:verificar`, `typecheck` y `lint` en verde.
+- **Soporte de pruebas:** `herramientas/soporte_tkt017_api.py` reúne los ayudantes, las fixtures y las constantes de las pruebas de la API; `test_tkt017_api_congelado.py` y `test_tkt017_api_lecturas.py` los importan.
+- **Borrador (B5):** `RenglonExplosion.importe_venta` pasó a `importe_costo`; `obtener_explosion_insumos` quedó en `x-tickets: [TKT-017]`; las dos lecturas con filtros declaran el `422` y el patrón sin `NUL`; las tres lecturas describen su comportamiento en `BORRADOR`. `PA-16.7` de TKT-016 consta como resuelta.
+
+### Decisiones de la persona dueña durante la ejecución (2026-11-10)
+
+| # | Decisión |
+|---|---|
+| `D17` | `x-tickets` de `obtener_explosion_insumos` queda en `[TKT-017]`, como pedían `CA-B9` y la decisión del 2026-11-03 |
+| `D18` | El filtro `nivel` es igualdad exacta sensible a mayúsculas; `nivel=""` da cero conceptos y `q=""` da todos |
+| `D19` | Se unifican en este ciclo los ayudantes de las pruebas de la API (hallazgo `F003` de código) |
+| `D20` | Una `pagina` cuyo desplazamiento no alcanza filas responde `200` con la página vacía y el `total`, sin tope y sin tocar el borrador; el tope general lo decide TKT-027 |
+| `D21` | `R-2` (rojo por ruta o nombre ausente) se extiende a la fila B4 de b2 |
+
+### Riesgo declarado
+
+| # | Riesgo | Por qué se acepta | Quién y cuándo |
+|---|---|---|---|
+| `R-2` (extendido a b2) | **Desviación del rojo.** Los 90 tests de B4 nacieron en rojo (88 fallos, dos regresiones del borrador en verde) porque las cuatro rutas `GET` no existían: el enrutador respondía `404` | Una ruta que no existe no admite otro fallo sin escribir producción. Los tests cayeron por la razón esperada y los protegen los mutantes `M-B8` y `M-B14` a `M-B24` | Orquestador, 2026-11-10; confirmado por la persona dueña, 2026-11-10 |
+| `R-3` (extendido a b2) | Los tests nacidos en verde (`T4`, `T6`, `T7`, el test del `NUL` en `q` y `nivel`, el del orden de la explosión) | Los protegen mutantes (`M-B16`, `M-B19`, `M-B21a` a `M-B22`) | Persona dueña, 2026-11-09 (criterio de `R-3` de a3) |
+| Publicado frente al borrador | La aplicación publica el `422` como `HTTPValidationError` de FastAPI y no publica `401`, `403` ni `404` | Es sistémico (también pasa en `congelar_linea_base`) y TKT-005 lo dejó diferido a TKT-061 | Auditoría de arquitectura y de pruebas; sin cambio |
+
+### Ajustes respecto al design
+
+Reflejados en `design.md` en este mismo cambio (sección «Ajustes de la ejecución de TKT-017b2» y las filas B4 a B6).
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-10 | `RenglonExplosion.importe_costo` con descripción exacta; `422` y patrón sin `NUL` en el borrador; descripciones de `BORRADOR` | Hallazgos de documentación y de arquitectura |
+| 2026-11-10 | `x-tickets` a `[TKT-017]` | `D17` |
+| 2026-11-10 | Página vacía para un desplazamiento inalcanzable | Hallazgos de seguridad, SQL y código; `D20` |
+| 2026-11-10 | Orden total de las líneas base (`version` e `id`) y de los renglones de la explosión | Hallazgos de SQL y mutante `M-B19` |
+| 2026-11-10 | Tipos propios de `aplicacion` para `api/` | Hallazgos de arquitectura y de código |
+| 2026-11-10 | `per-file-ignores` de `F811` para `tests/test_tkt017_api_*.py` en `backend/pyproject.toml` | Las fixtures importadas y pedidas por parámetro disparan `F811`; alternativa descartada: enlazarlas con una asignación |
+
+### Archivos tocados
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/presupuesto/infraestructura/repositorio_linea_base.py` | modificado | infraestructura |
+| `backend/cimenta/presupuesto/aplicacion/{consulta_linea_base,congelado}.py` | modificados | aplicación |
+| `backend/cimenta/presupuesto/api/{esquemas,rutas_linea_base}.py` | modificados | api |
+| `backend/herramientas/soporte_tkt017_api.py` | nuevo | herramientas |
+| `backend/tests/test_tkt017_api_lecturas.py` | nuevo | pruebas |
+| `backend/tests/test_tkt017_api_congelado.py` | modificado (importa el soporte, `IMPLEMENTADAS_DE_PRESUPUESTO`) | pruebas |
+| `backend/pyproject.toml` | modificado (`per-file-ignores` de `F811`) | configuración |
+| `frontend/src/api/generado/servidor.ts` | regenerado | cliente |
+| `docs/api/openapi.yaml`, `docs/07-especificacion-api.md`, `docs/glosario.md` | modificados | documentación |
+| `sdd/tickets/tkt-016/spec.md`, `sdd/tickets/tkt-017/{design,impl,_index}.md` | modificados | SDD |
+
+### Pruebas
+
+| # | Tests | Tipo | Criterio | Antes del código | Al cerrar |
+|---|---|---|---|---|---|
+| TC-B13 | `test_hdu001_esc14_lecturas_de_la_linea_base` y los de filtros, paginación, comodines, explosión y `BORRADOR` | feliz | `CA-B8` esc. 1 | FALLA (ruta ausente) | PASA |
+| TC-B14 | `test_tkt017_cab08_lecturas_sin_rol` y compañeros (rol antes que existencia, `404`, `401`, CSRF, `422`) | **rechazo** | `CA-B8` esc. 2 | FALLA (ruta ausente) | PASA |
+| TC-B16 | Borrador con `importe_costo`, `x-tickets` exacto, enums y forma publicada igual a la del borrador | regresión | `CA-B9` | Dos nacen en verde; el resto FALLA | PASA |
+| TC-B17, TC-B19 | Recorrido de rutas, OpenAPI publicado y `IMPLEMENTADAS_DE_PRESUPUESTO` con las cuatro lecturas | regresión | `CA-R1` | FALLA | PASA |
+| Ciclo de revisión | Página enorme (5 casos), orden total de líneas base, códigos y patrón del borrador, `x-tickets` exacto | **rechazo** y regresión | `CA-B8`, `CA-B9` | FALLA (12 de 12) | PASA |
+| Nacen en verde | `NUL` en `q` y `nivel` (4), orden de la explosión, `nivel` y `q` vacíos o con mayúsculas, `Unidad` frente al dominio | **rechazo** | `CA-B8` | Nacen en verde | PASA (ver `R-3`) |
+
+### Ciclo TDD por fila
+
+Salida del rojo, recortada a su resumen literal:
+
+**Fila B4 · rojo** (`uv run pytest tests/test_tkt017_api_lecturas.py -q -ra --tb=line`): `88 failed, 2 passed in 55.60s`; unos 37 esperaban `200` y recibían el `404` del enrutador, unos 38 contratos de error recibían el mismo `404`, 13 fallaban sobre `/openapi.json` y el recorrido de rutas, y los dos que pasan son las regresiones del borrador (nacen en verde porque el orquestador renombró el campo antes del rojo). **Verde:** `90 passed in 43.85s`. Con el test del `NUL` en `q` y `nivel`, `94 passed`; con el del orden de la explosión, `95 passed`.
+
+**Fila B5 · documentación:** `python tools/verificar_docs.py` → «✓ Sin problemas.».
+
+**Ciclo de corrección de `/sdd-revisar`:** rojo `12 failed, 100 passed in 61.51s` (página enorme: 4 casos con `500`; orden total de líneas base; `x-tickets`; el `422` y el patrón del borrador); verde `112 passed`.
+
+### Mutantes
+
+La fila B6 y el cierre del ciclo los ejecutaron uno a uno, con copia previa fuera del repositorio y huella SHA-256 idéntica (242 archivos `.py`) tras cada reversión.
+
+| Mutante | Cambio | Tests que cayeron |
+|---|---|---|
+| `M-B8` (variante b2) | `importes_venta_por_tipo` suma `partida_concepto` también si está `CONGELADA` | `2 failed` (lecturas y congelado) |
+| `M-B14` | Quitar `autoescape=True` de los dos `icontains` | `4 failed`, los de `%` y `_` |
+| `M-B15` | Añadir `RESIDENTE` a los roles de `listar_conceptos_linea_base` | `4 failed` |
+| `M-B16` | Quitar el patrón sin `NUL` de `q` y, aparte, de `nivel` | `2 failed` cada uno |
+| `M-B17` | `importe_total` suma todos los renglones y no los devueltos | `4 failed` |
+| `M-B18` | `total` ignora los filtros | `17 failed` |
+| `M-B19` | Invertir el `ORDER BY` de la explosión | **Sobrevivía**; se añadió `test_tkt017_cab08_la_explosion_sale_ordenada_por_tipo_y_codigo_de_insumo`, que cae con la inversión total y con la del código de insumo (`1 failed, 1 passed` cada una) |
+| `M-B20` | Orden ascendente de las líneas base | `1 failed` |
+| `M-B21a` y `M-B21b` | `ilike` y `startswith` en el filtro `nivel` | `1 failed` y `2 failed` |
+| `M-B21c` | `nivel=""` sin filtro; `q=""` con cero resultados | `1 failed` cada uno |
+| `M-B22` | Quitar `JORNAL` del enum `Unidad` | `8 failed` |
+| `M-B23` | Quitar el guard de página vacía | `4 failed` |
+| `M-B24` | Quitar `id` del `ORDER BY` de las líneas base | `1 failed` |
+
+### Modelo por paso
+
+| Paso | Agente | Modelo |
+|---|---|---|
+| B4 (rojo, NUL y orden de la explosión) | `tester-api` | `sonnet` (disparador: permisos de un rol) |
+| B4 (verde) | `desarrollador-api` | `sonnet` (mismo disparador) |
+| B5 | El orquestador | — |
+| B6 y mutantes del ciclo | `tester-backend` y `tester-api` | `sonnet` |
+| Correcciones | `tester-api`, `corrector-revision` | `sonnet` |
+| Auditorías | `auditor-arquitectura`, `-sql`, `-codigo`, `-seguridad` y `-docs` | `sonnet`; `-docs` en `haiku`; reauditorías de `-sql` y `-docs` en `haiku` |
+
+### Resultado contra criterios de aceptación (alcance b2)
+
+| Criterio | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| `CA-B8` | `[M]` | Cumplido | `TC-B13` y `TC-B14`: las cuatro lecturas con los tres roles, sus formas validadas contra el borrador, los filtros, la paginación y las cadenas con su escala; `403` sin importes, `404`, `401` y `422` |
+| `CA-B9` | `[M]` | Cumplido | `TC-B16`: `x-tickets: [TKT-017]`, `importe_costo` en el borrador, el modelo de datos y el cliente generado |
+| `CA-R1` | `[M]` | Cumplido | `TC-B17`, `TC-B19` y `lint-imports` con 16 contratos |
+| `CA-B1` y `CA-B6` | `[M]` | Cumplido en b1 y a3 | Sin cambio |
+
+### Auditorías
+
+| Auditor | Primera pasada | Ciclo 1 |
+|---|---|---|
+| `auditor-arquitectura` | **REQUIERE CAMBIOS** (`F001` Mayor, dos Menores) | **APROBADO** |
+| `auditor-sql` | **REQUIERE CAMBIOS** (dos Menores) | **APROBADO** (seis observaciones) |
+| `auditor-codigo` | **REQUIERE CAMBIOS** (tres Mayores, cuatro Menores) | **REQUIERE CAMBIOS** (`F007` Menor); resuelto por el orquestador con el texto literal, sin reauditar: **APROBADO CON MENORES RESUELTOS SIN REAUDITAR** |
+| `auditor-seguridad` | **REQUIERE CAMBIOS** (`F001` Media) | **APROBADO** |
+| `auditor-docs` | **REQUIERE CAMBIOS** (tres Mayores) | **APROBADO** (observaciones `F004` y `F005` aplicadas) |
+
+#### Hallazgos y su resolución
+
+| Auditor y ID | Severidad | Hallazgo | Resolución |
+|---|---|---|---|
+| Seguridad `F001`, código `F001` y SQL `F002` | Media y Mayor | `pagina` sin tope superior: un `OFFSET` que desborda `bigint` daba `500` | Página vacía con el `total` cuando el desplazamiento no alcanza filas; cinco casos de test (`D20`) y mutante `M-B23` |
+| Arquitectura `F001` y docs `F001` | Mayor | `x-tickets` de `obtener_explosion_insumos` era `[TKT-016, TKT-017]` y `CA-B9` pide `[TKT-017]` | `D17`; el test exige igualdad exacta |
+| Código `F002` | Mayor | Falso fallo de ~0,9 % por corrida: los tests de `403` buscaban cifras de cuatro dígitos en un texto con un UUID aleatorio | La correlación se quita del texto antes de buscar |
+| Código `F003` | Mayor | El soporte de pruebas copiaba ayudantes y fixtures de `test_tkt017_api_congelado.py` | Unificados en `soporte_tkt017_api.py` (`D19`); mismos recuentos antes y después |
+| Docs `F002` y `F003`, arquitectura `F002` | Mayor y Menor | El borrador no decía qué devuelven las lecturas en `BORRADOR` ni declaraba el `422` y el patrón sin `NUL` | Texto literal de los auditores en `openapi.yaml` |
+| SQL `F001` | Menor | El orden de las líneas base no era total | `version DESC, id`; test que captura la sentencia |
+| Arquitectura `F003` y código `F005` | Menor | `api/` importaba `infraestructura/` | `TipoPartidaConsultado` y compañía en `aplicacion/` |
+| Código `F004`, `F006` y `F007` | Menores | `Any` suelto; faltaban tests de `nivel` y de vacíos; `importes_venta_por_tipo` con dos fuentes de verdad | `Row[*tuple[Any, ...]]`; tests y mutantes de `D18`; separada en dos funciones |
+| SQL `N1` y `N2` | Observaciones | Dos docstrings de test inexactos (una restricción inexistente y una atribución errónea) | Corregidos |
+| Docs `F004` y `F005` | Observaciones | Texto de `design.md` ambiguo y fórmula de la explosión sin el costo unitario | Corregidos en `design.md`, el borrador y `docs/glosario.md` |
+
+### Hallazgos fuera de alcance y deuda
+
+| Dónde | Observación | Hacia |
+|---|---|---|
+| `repositorio_linea_base.py` (`lineas_base_de_obra`) | Ordena solo por `version DESC`; lo usan el congelado y la confirmación (`N4` de SQL) | TKT-017c o la próxima pasada de a3 |
+| `consulta_linea_base.py` (`listar_lineas_base`) | N+1 con pocas versiones por obra | Cuando crezcan las versiones |
+| `repositorio_linea_base.py` (`conceptos_de_linea_base`) | Ordena por `concepto.codigo` vivo y no por la copia; la descripción y la unidad salen del concepto vivo | Cuando se permita editar la jerarquía |
+| `api/esquemas.py` (`MetaPagina.pagina`) | Devuelve enteros enormes como JSON entero; un cliente JavaScript perdería precisión | TKT-027, con el tope de `pagina` |
+| `rutas_linea_base.py` | `q` y `nivel` sin `max_length` (`F002` de seguridad, Baja) | Cuando se endurezca |
+| `aplicacion/materializacion.py` | Repite el literal «La obra no existe.» en lugar de importar `MENSAJE_OBRA_NO_EXISTE` | Cuando se toque ese archivo |
+| Copias de `rutas_de` y `llamadas` | `test_tkt006_enrutador.py`, `test_tkt007_consulta.py`, `test_tkt057_csrf.py` y `test_servidor_arranque.py` las repiten | Ticket de pruebas |
+| Fixtures `base`, `entorno` y `contexto` | `test_tkt017_congelado.py`, su concurrencia y `test_tkt017_materializacion.py` las definen por su cuenta | TKT-017c |
+| `backend/.coverage` | Sigue versionado | Higiene del repositorio |
+
+### Documentación actualizada
+
+| Documento | Qué cambió |
+|---|---|
+| `docs/api/openapi.yaml` | `RenglonExplosion.importe_costo`; `x-tickets`; `422` y patrón sin `NUL`; descripciones de `BORRADOR`; fórmula de la explosión; ejemplo de `importe_total` (**señalar a quien apruebe el PR**) |
+| `docs/07-especificacion-api.md` | Columna de tickets de la explosión |
+| `docs/glosario.md` | La explosión suma también el costo unitario |
+| `sdd/tickets/tkt-016/spec.md` | `PA-16.7` resuelta |
+| `sdd/tickets/tkt-017/design.md` | Filas B4 a B6 y los ajustes de b2 |
+
+### Verificación final (entrega TKT-017b2)
+
+Salida real de los comandos, desde `backend/` salvo los de documentación y el cliente, sobre el estado final tras un ciclo de corrección. `docker info`: Docker 29.9.3 con el servidor en marcha.
+
+```text
+uv run ruff format --check .      → 270 files already formatted
+uv run ruff check .               → All checks passed!
+uv run mypy .                     → Success: no issues found in 270 source files
+uv run lint-imports               → Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → verificar_float: archivos revisados: 32; hallazgos: 0
+uv run pytest -q -ra --tb=short   → 2509 passed, 26 skipped in 490.06s (0:08:10)
+npm run tipos:verificar (frontend) → Tipos al día.
+npm run typecheck y npm run lint (frontend) → sin errores
+python tools/verificar_docs.py    → ✓ Sin problemas.
+python tools/verificar_escenarios.py → Escenarios: 164 · exigidos 0 · cubiertos 0 · faltan 0 · pendientes 164 · retirados 0
+python -m unittest discover -s tools/tests → OK (510 tests)
+```
+
+Los 26 omitidos son las pruebas contra el archivo real del catálogo. `verificar_escenarios.py` no exige ningún test de HDU-001 mientras `tools/historias_activas.txt` la deje `PENDIENTE`: su verde no prueba la cobertura por nombre; la prueba la tabla de «Pruebas» y la activación es `P-13` en la fila C4. El CI completo de GitHub Actions se verifica en `/sdd-completar`, al abrir el PR único.
+
+##### Resultado por criterio (alcance b2)
+
+Todos los criterios `[M]` de b2 (`CA-B8`, `CA-B9` y `CA-R1`) quedan cumplidos con la evidencia de «Resultado contra criterios de aceptación (alcance b2)». Con esta entrega queda completo el alcance de TKT-017b; solo falta TKT-017c (presupuesto de control).
+
+##### Veredicto
+
+**LISTO PARA EJECUTAR · TKT-017c.** La entrega TKT-017b2 queda revisada y acumulada en la rama `tkt-017a3-materializacion`, sin pull request.

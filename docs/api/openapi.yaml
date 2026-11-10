@@ -1097,7 +1097,7 @@ paths:
       tags: [presupuesto]
       operationId: obtener_linea_base
       summary: Devuelve una línea base con sus totales por tipo de partida
-      description: No existe ninguna operación que modifique una línea base congelada; el disparador del invariante 14 lo garantiza en el motor.
+      description: No existe ninguna operación que modifique una línea base congelada; el disparador del invariante 14 lo garantiza en el motor. En BORRADOR, por_tipo_partida suma los conceptos de partida; en CONGELADA y SUPERSEDIDA, las copias congeladas.
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-01]
       x-escenarios: ['HDU-001 esc. 14', 'HDU-001 esc. 18']
@@ -1188,6 +1188,7 @@ paths:
       tags: [presupuesto]
       operationId: listar_conceptos_linea_base
       summary: Lista los conceptos copiados a la línea base
+      description: Vacía mientras la línea base está en BORRADOR; en CONGELADA y SUPERSEDIDA, las copias congeladas (RN-01).
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-01]
       x-escenarios: ['HDU-001 esc. 14']
@@ -1201,11 +1202,13 @@ paths:
           in: query
           schema:
             type: string
+            pattern: '^[^\x00]*$'
         - name: q
           in: query
           description: Busca por código o descripción.
           schema:
             type: string
+            pattern: '^[^\x00]*$'
         - $ref: '#/components/parameters/Pagina'
         - $ref: '#/components/parameters/TamanoPagina'
       responses:
@@ -1221,6 +1224,8 @@ paths:
           $ref: '#/components/responses/SinPermiso'
         '404':
           $ref: '#/components/responses/NoEncontrado'
+        '422':
+          $ref: '#/components/responses/ErrorDeForma'
 
   /lineas-base/{linea_base_id}/explosion:
     parameters:
@@ -1230,13 +1235,14 @@ paths:
       operationId: obtener_explosion_insumos
       summary: Devuelve la explosión de insumos por tipo de partida
       description: >-
-        `Σ cantidad_concepto × rendimiento` por tipo de partida e insumo, en toda la
+        `Σ cantidad_concepto × rendimiento × costo unitario` por tipo de partida e insumo, en toda la
         obra (PA-01). Sin redondeo intermedio: la suma de los 27 insumos de Union
-        Square reproduce `2755187.2112`.
+        Square reproduce `2755187.2112`. Vacía mientras la línea base está en
+        BORRADOR; en CONGELADA y SUPERSEDIDA, sale de la explosión congelada (RN-24).
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-24]
       x-escenarios: ['HDU-001 esc. 14']
-      x-tickets: [TKT-016, TKT-017]
+      x-tickets: [TKT-017]
       parameters:
         - name: tipo_partida_id
           in: query
@@ -1255,6 +1261,8 @@ paths:
           $ref: '#/components/responses/SinPermiso'
         '404':
           $ref: '#/components/responses/NoEncontrado'
+        '422':
+          $ref: '#/components/responses/ErrorDeForma'
 
   # ---------------------------------------------- presupuesto · presupuesto de control
   /lineas-base/{linea_base_id}/presupuesto-control:
@@ -4923,7 +4931,7 @@ components:
           $ref: '#/components/schemas/MetaPagina'
     RenglonExplosion:
       type: object
-      required: [tipo_partida, insumo, cantidad_presupuestada, rendimiento_congelado, costo_unitario, importe_venta]
+      required: [tipo_partida, insumo, cantidad_presupuestada, rendimiento_congelado, costo_unitario, importe_costo]
       properties:
         tipo_partida:
           $ref: '#/components/schemas/TipoPartida'
@@ -4935,7 +4943,11 @@ components:
           $ref: '#/components/schemas/Rendimiento'
         costo_unitario:
           $ref: '#/components/schemas/PrecioUnitario'
-        importe_venta:
+        importe_costo:
+          description: >-
+            Σ de cantidad × rendimiento × costo unitario del análisis, sin redondeos
+            intermedios; coincide con cantidad presupuestada × costo unitario salvo el
+            redondeo a cuatro decimales del costo. Es un costo, no un importe de venta.
           $ref: '#/components/schemas/Importe'
     ExplosionInsumos:
       type: object
@@ -4951,7 +4963,7 @@ components:
           $ref: '#/components/schemas/Importe'
       examples:
         - linea_base_id: 8f7e6d5c-4b3a-4291-8f7e-6d5c4b3a2918
-          importe_total: '2755187.2112'
+          importe_total: '364890.0000'
           renglones:
             - tipo_partida:
                 id: 0c9d8e7f-6a5b-4c3d-8e2f-1a0b9c8d7e6f
@@ -4965,7 +4977,7 @@ components:
               cantidad_presupuestada: '1459.5600'
               rendimiento_congelado: '0.673400'
               costo_unitario: '250.0000'
-              importe_venta: '364890.0000'
+              importe_costo: '364890.0000'
 
     # ------------------------------------- presupuesto · presupuesto de control
     PresupuestoControl:

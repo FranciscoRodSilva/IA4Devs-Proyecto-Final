@@ -91,7 +91,7 @@ Importe que un insumo aporta al precio unitario. `Cargo = Costo unitario × Rend
 
 ### Explosión de insumos
 
-Agregación de todos los insumos de la obra: para cada material, la cantidad total necesaria y su importe. Se calcula sumando `cantidad_concepto × rendimiento_insumo` sobre todos los conceptos. Es el documento contra el que hoy se autorizan las compras. El de Union Square Fase 2 suma $2,755,187.21 en 27 insumos.
+Agregación de todos los insumos de la obra: para cada material, la cantidad total necesaria y su importe. Se calcula sumando `cantidad_concepto × rendimiento_insumo × costo unitario` sobre todos los conceptos. Es el documento contra el que hoy se autorizan las compras. El de Union Square Fase 2 suma $2,755,187.21 en 27 insumos.
 
 ### Insumo
 

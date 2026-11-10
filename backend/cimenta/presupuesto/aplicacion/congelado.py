@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from cimenta.auditoria.interfaz import asentar
 from cimenta.presupuesto.aplicacion.causas_explosion import detalle_de_causas
+from cimenta.presupuesto.aplicacion.consulta_linea_base import MENSAJE_LINEA_BASE_NO_EXISTE
 from cimenta.presupuesto.aplicacion.contexto import ContextoPresupuesto
 from cimenta.presupuesto.aplicacion.traduccion_motor import traducir_error_del_motor
 from cimenta.presupuesto.dominio.congelado import (
@@ -37,9 +38,8 @@ from cimenta.presupuesto.infraestructura.repositorio_linea_base import (
 )
 from contrato_error import ConflictoEstado, ErrorContrato, NoEncontrado, RechazoRegla
 
-_ROLES_CONGELADO = ("DIRECTOR_PROYECTOS",)
+ROLES_CONGELADO = ("DIRECTOR_PROYECTOS",)
 
-_MENSAJE_NO_EXISTE = "La línea base no existe."
 _MENSAJE_ESTADO_LINEA_BASE = (
     "La línea base está en {estado}; solo se congela una línea base en BORRADOR."
 )
@@ -74,7 +74,7 @@ def congelar_linea_base(
             error,
             ruta_reintento=f"/api/v1/lineas-base/{linea_base_id}/congelacion",
             metodo_reintento="POST",
-            roles_reintento=_ROLES_CONGELADO,
+            roles_reintento=ROLES_CONGELADO,
             rechazo_vigente=lambda: _rechazo_vigente(contexto, linea_base_id),
         )
         if traducido is None:
@@ -90,19 +90,18 @@ def _congelar(
     motivo: str,
     usuario_id: uuid.UUID,
 ) -> uuid.UUID:
-    repositorio = repositorio_linea_base
-    previa = repositorio.leer_linea_base(sesion_bd, linea_base_id)
+    previa = repositorio_linea_base.leer_linea_base(sesion_bd, linea_base_id)
     if previa is None:
-        raise NoEncontrado(recurso="linea_base", mensaje=_MENSAJE_NO_EXISTE)
-    obra = repositorio.bloquear_obra(sesion_bd, previa.obra_id)
-    linea = repositorio.bloquear_linea_base(sesion_bd, linea_base_id)
+        raise NoEncontrado(recurso="linea_base", mensaje=MENSAJE_LINEA_BASE_NO_EXISTE)
+    obra = repositorio_linea_base.bloquear_obra(sesion_bd, previa.obra_id)
+    linea = repositorio_linea_base.bloquear_linea_base(sesion_bd, linea_base_id)
     if obra is None or linea is None:
-        raise NoEncontrado(recurso="linea_base", mensaje=_MENSAJE_NO_EXISTE)
+        raise NoEncontrado(recurso="linea_base", mensaje=MENSAJE_LINEA_BASE_NO_EXISTE)
 
-    lineas = repositorio.lineas_base_de_obra(sesion_bd, obra.id)
+    lineas = repositorio_linea_base.lineas_base_de_obra(sesion_bd, obra.id)
     _rechazar_si_no_se_congela(obra, linea, _vigente(lineas))
 
-    resultado = explotar_filas(repositorio.filas_explotables(sesion_bd, obra.id))
+    resultado = explotar_filas(repositorio_linea_base.filas_explotables(sesion_bd, obra.id))
     if isinstance(resultado, RechazoExplosion):
         raise ConflictoEstado(
             codigo="ESTADO_NO_PERMITE_OPERACION",
@@ -114,11 +113,11 @@ def _congelar(
         )
 
     ahora = contexto.reloj()
-    repositorio.copiar_conceptos(sesion_bd, linea_base_id, obra.id)
-    repositorio.insertar_explosion(sesion_bd, linea_base_id, resultado)
-    repositorio.insertar_controles(sesion_bd, linea_base_id, resultado)
-    repositorio.congelar(sesion_bd, linea_base_id, ahora, usuario_id, motivo)
-    repositorio.activar_obra(sesion_bd, obra.id, ahora, usuario_id)
+    repositorio_linea_base.copiar_conceptos(sesion_bd, linea_base_id, obra.id)
+    repositorio_linea_base.insertar_explosion(sesion_bd, linea_base_id, resultado)
+    repositorio_linea_base.insertar_controles(sesion_bd, linea_base_id, resultado)
+    repositorio_linea_base.congelar(sesion_bd, linea_base_id, ahora, usuario_id, motivo)
+    repositorio_linea_base.activar_obra(sesion_bd, obra.id, ahora, usuario_id)
     asentar(
         sesion_bd,
         accion="CONGELAR",
@@ -201,4 +200,4 @@ def _rechazo_vigente(contexto: ContextoPresupuesto, linea_base_id: uuid.UUID) ->
                     obra,
                     {"linea_base_vigente_id": vigente.id, "version_vigente": vigente.version},
                 )
-    return NoEncontrado(recurso="linea_base", mensaje=_MENSAJE_NO_EXISTE)
+    return NoEncontrado(recurso="linea_base", mensaje=MENSAJE_LINEA_BASE_NO_EXISTE)

@@ -87,6 +87,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/obras/{obra_id}/lineas-base": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Lineas Base
+         * @description RN-01: las versiones de línea base de la obra, la más reciente primero.
+         */
+        get: operations["listar_lineas_base"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lineas-base/{linea_base_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener Linea Base
+         * @description RN-01: una línea base con sus totales por tipo de partida.
+         */
+        get: operations["obtener_linea_base"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lineas-base/{linea_base_id}/conceptos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Conceptos Linea Base
+         * @description RN-01: una página de los conceptos copiados a la línea base; vacía en `BORRADOR`.
+         */
+        get: operations["listar_conceptos_linea_base"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lineas-base/{linea_base_id}/explosion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener Explosion Insumos
+         * @description RN-24: la explosión de insumos congelada; vacía en `BORRADOR`.
+         */
+        get: operations["obtener_explosion_insumos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -96,6 +176,39 @@ export interface components {
          * @enum {string}
          */
         ClaveTipoPartida: "MUROS" | "PLAFONES_Y_CAJILLOS" | "ENCHAPES" | "GENERALES";
+        /** ConceptoLineaBase */
+        ConceptoLineaBase: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Codigo */
+            codigo: string;
+            /** Descripcion */
+            descripcion: string;
+            unidad: components["schemas"]["Unidad"];
+            /**
+             * Cantidad
+             * Format: decimal
+             */
+            cantidad: string;
+            /**
+             * Precio Unitario
+             * Format: decimal
+             */
+            precio_unitario: string;
+            /**
+             * Importe
+             * Format: decimal
+             */
+            importe: string;
+            /** Nivel */
+            nivel: string;
+            /** Area */
+            area: string;
+            tipo_partida: components["schemas"]["TipoPartida"];
+        };
         /** CredencialesInicio */
         CredencialesInicio: {
             /**
@@ -111,6 +224,21 @@ export interface components {
          * @enum {string}
          */
         EstadoLineaBase: "BORRADOR" | "CONGELADA" | "SUPERSEDIDA";
+        /** ExplosionInsumos */
+        ExplosionInsumos: {
+            /**
+             * Linea Base Id
+             * Format: uuid
+             */
+            linea_base_id: string;
+            /** Renglones */
+            renglones: components["schemas"]["RenglonExplosion"][];
+            /**
+             * Importe Total
+             * Format: decimal
+             */
+            importe_total: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -124,6 +252,19 @@ export interface components {
              * Format: decimal
              */
             importe_venta: string;
+        };
+        /** InsumoResumen */
+        InsumoResumen: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Codigo */
+            codigo: string;
+            /** Descripcion */
+            descripcion: string;
+            unidad: components["schemas"]["Unidad"];
         };
         /** LineaBase */
         LineaBase: {
@@ -153,6 +294,21 @@ export interface components {
             /** Por Tipo Partida */
             por_tipo_partida: components["schemas"]["ImporteDeTipoPartida"][];
         };
+        /** ListaConceptosLineaBase */
+        ListaConceptosLineaBase: {
+            /** Elementos */
+            elementos: components["schemas"]["ConceptoLineaBase"][];
+            paginacion: components["schemas"]["MetaPagina"];
+        };
+        /** MetaPagina */
+        MetaPagina: {
+            /** Pagina */
+            pagina: number;
+            /** Tamano Pagina */
+            tamano_pagina: number;
+            /** Total */
+            total: number;
+        };
         /**
          * Motivo
          * @description Cuerpo de la congelación: el motivo es obligatorio y se guarda sin espacios en los extremos.
@@ -160,6 +316,31 @@ export interface components {
         Motivo: {
             /** Motivo */
             motivo: string;
+        };
+        /** RenglonExplosion */
+        RenglonExplosion: {
+            tipo_partida: components["schemas"]["TipoPartida"];
+            insumo: components["schemas"]["InsumoResumen"];
+            /**
+             * Cantidad Presupuestada
+             * Format: decimal
+             */
+            cantidad_presupuestada: string;
+            /**
+             * Rendimiento Congelado
+             * Format: decimal
+             */
+            rendimiento_congelado: string;
+            /**
+             * Costo Unitario
+             * Format: decimal
+             */
+            costo_unitario: string;
+            /**
+             * Importe Costo
+             * Format: decimal
+             */
+            importe_costo: string;
         };
         /**
          * Rol
@@ -183,6 +364,11 @@ export interface components {
             /** Token */
             token: string;
         };
+        /**
+         * Unidad
+         * @enum {string}
+         */
+        Unidad: "M2" | "ML" | "PZA" | "KG" | "CAJA" | "SACO" | "ROLLO" | "JORNAL";
         /** UsuarioActual */
         UsuarioActual: {
             /**
@@ -361,6 +547,138 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LineaBase"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_lineas_base: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineaBase"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_linea_base: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                linea_base_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineaBase"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_conceptos_linea_base: {
+        parameters: {
+            query?: {
+                tipo_partida_id?: string | null;
+                nivel?: string | null;
+                q?: string | null;
+                pagina?: number;
+                tamano_pagina?: number;
+            };
+            header?: never;
+            path: {
+                linea_base_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListaConceptosLineaBase"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_explosion_insumos: {
+        parameters: {
+            query?: {
+                tipo_partida_id?: string | null;
+            };
+            header?: never;
+            path: {
+                linea_base_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplosionInsumos"];
                 };
             };
             /** @description Validation Error */
