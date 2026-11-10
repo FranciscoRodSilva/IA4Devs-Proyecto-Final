@@ -1267,6 +1267,12 @@ CUERPOS_VALIDOS: dict[str, PeticionValida] = {
         {"email": CORREO_DE_ANA, "contrasena": CONTRASENA_DE_ANA}
     ),
     "POST /api/v1/sesion/cierre": PeticionValida(),
+    # TKT-017b1, fila B3 (TC-B17): la congelación de la línea base. Un identificador cualquiera basta, porque
+    # `verificar_origen` va antes que `exigir_rol` y que cualquier consulta: el `403` sale sin tocar la base.
+    "POST /api/v1/lineas-base/{linea_base_id}/congelacion": PeticionValida(
+        {"motivo": "Firma de contrato 2026-11-04"},
+        ruta="/api/v1/lineas-base/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e/congelacion",
+    ),
 }
 
 

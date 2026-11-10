@@ -793,3 +793,224 @@ Todos los criterios `[M]` de a3 (`CA-A1` a `CA-A10`, `CA-A12` y `CA-R1`) quedan 
 ##### Veredicto
 
 **LISTO PARA EJECUTAR · TKT-017b1.** La entrega TKT-017a3 queda revisada y acumulada en la rama `tkt-017a3-materializacion`, sin pull request.
+
+## TKT-017b1 · Congelado de la línea base (`/sdd-ejecutar` y `/sdd-revisar` 2026-11-09)
+
+> [← index](_index.md) | [← design](design.md) | Siguiente: `/sdd-ejecutar` sobre TKT-017b2. `/sdd-completar` no corre al cerrar esta entrega: según la regla de un solo PR por ticket, corre una vez, al aprobarse la última entrega (TKT-017c).
+
+Entrega **TKT-017b1** (filas **B0**, **B1**, **B2**, **B3**, **B3d** y **B3c**): el congelado de la línea base de extremo a extremo, desde las copias y la explosión hasta la ruta `POST /api/v1/lineas-base/{linea_base_id}/congelacion`. Se ejecutó en la rama `tkt-017a3-materializacion`, con tester y desarrollador separados en cada fila. La entrega pasó por un ciclo de corrección de `auditor-seguridad`, `auditor-sql`, `auditor-codigo` y `auditor-docs` (ver «Revisión»).
+
+### Qué se implementó
+
+- **`identidad` (B1):** `nombres_de_usuarios(sesion_bd, ids)` (repositorio `nombres_por_id`, caso `aplicacion/usuarios.py`) y `UsuarioResumen {id, nombre}` en `api/esquemas.py`, publicados en `interfaz.py` (nueve nombres en `__all__`). Ninguno de los dos existía.
+- **`dominio/congelado.py`:** `evaluar_congelado(estado_linea_base, otra_congelada, estado_obra)` con el orden del diseño (estado de la línea base, otra congelada, estado de la obra), `CongeladoAdmitido` y `CongeladoRechazado(causa, datos)`. Solo biblioteca estándar y `dominio`.
+- **`infraestructura/tablas.py` y `repositorio_linea_base.py` (B2 y B3):** tablas Core `linea_base_concepto`, `explosion_presupuesto` y `presupuesto_control`; columnas nuevas en `linea_base` y `obra`; `leer_linea_base`, `leer_linea_base_completa`, `bloquear_linea_base` (`FOR UPDATE`), `filas_explotables`, `copiar_conceptos` (`INSERT … SELECT gen_random_uuid()`), `insertar_explosion`, `insertar_controles`, `congelar`, `activar_obra` e `importes_venta_por_tipo`.
+- **`aplicacion/congelado.py`:** `congelar_linea_base(contexto, *, linea_base_id, motivo, usuario_id) -> UUID`, con una sola transacción, el bloqueo obra → línea base, las comprobaciones del dominio, la explosión desde las filas materializadas, la escritura en el orden del diseño y el asiento `CONGELAR` con `RN-01`, y el traductor del motor. `aplicacion/causas_explosion.py` comparte con la confirmación el detalle de las causas. `aplicacion/consulta_linea_base.py` trae `obtener_linea_base`, mínimo, para la respuesta del congelado; B4 lo reutiliza.
+- **`api/` (B3):** `Motivo` (con `strip`, de 1 a 2000 caracteres y sin `NUL`), `LineaBase` (con los enums `EstadoLineaBase` y `ClaveTipoPartida`), `rutas_linea_base.py` con la ruta de congelación (`verificar_origen` antes que `exigir_rol("DIRECTOR_PROYECTOS")`) y `montaje.py`. `servidor/fabrica.py` monta `presupuesto` con `montar_presupuesto`, perezoso, y su docstring lo dice.
+- **Cliente:** `frontend/src/api/generado/servidor.ts` regenerado con `npm run tipos:generar`; `npm run tipos:verificar` en verde.
+- **Soporte de pruebas:** `herramientas/soporte_tkt017_entorno.py` recibe `Base`, `Entorno` y `materializar` (movidos de `test_tkt017_materializacion.py` sin cambiar ninguna aserción) y `congelar()`.
+
+### Decisiones de la persona dueña durante la ejecución (2026-11-09)
+
+| # | Decisión |
+|---|---|
+| `D15` | El caso de uso `congelar_linea_base` no valida por sí mismo el motivo en blanco: lo rechazan el DTO en la ruta (`422`) y `asentar` (`OBLIGATORIO`, con rollback) en el caso de uso. Un test lo ancla y `M-B16` lo mata |
+| `D16` | `R-2` (rojo por nombre ausente) se extiende a las filas B1, B2 y B3 de b1 |
+
+### Riesgo declarado
+
+| # | Riesgo | Por qué se acepta | Quién y cuándo |
+|---|---|---|---|
+| `R-2` (extendido a b1) | **Desviación del rojo.** Los tests de B1 (7), B2 (38) y B3 (36) nacieron en rojo por el nombre ausente (el módulo `cimenta.presupuesto.aplicacion.congelado`, las funciones del repositorio, la ruta o `nombres_de_usuarios`), importando dentro del cuerpo del test | Un nombre que no existe no admite otro fallo sin escribir producción. El tester validó las expectativas de B2 contra una implementación de referencia fuera del repositorio (38 de 38 en verde, 3 de 3 corridas de concurrencia) y los mutantes `M-B1` a `M-B12` la protegen | Orquestador, 2026-11-09; confirmado por la persona dueña, 2026-11-09 |
+| `R-3` (extendido a b1) | Los tests nacidos en verde (`T4` del motivo en blanco, `T5` del `23505`, `T6` de dominio puro, y partes de `TC-B17`) | Los protegen mutantes (`M-B13a` a `M-B13c`, `M-B16`) y, para `T6`, tres mutantes en memoria del auditor | Persona dueña, 2026-11-09 (criterio de `R-3` de a3) |
+
+### Ajustes respecto al design
+
+Reflejados en `design.md` en este mismo cambio (sección «Ajustes de la ejecución de TKT-017b1», las filas B0 a B3c y `TC-B20`).
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-09 | `E-1` y `E-9`: la cabeza real era `0011` y el escape de `icontains` es `/` | Resultado de B0 |
+| 2026-11-09 | `nombres_de_usuarios` y `UsuarioResumen` se escriben en b1 | No existían ni en `identidad` ni en TKT-059 |
+| 2026-11-09 | `evaluar_congelado` vive en dominio | Mismo criterio que `F002` de a3 |
+| 2026-11-09 | `obtener_linea_base` e `importes_venta_por_tipo` llegan en B3 | La respuesta del congelado exige la forma completa de `LineaBase` |
+| 2026-11-09 | Esquema `LineaBase` publicado igual al borrador (enums, opcionales, `format: decimal`) y `TC-B20` | Regla: el borrador es el contrato |
+| 2026-11-09 | `Motivo` rechaza `NUL` | Hallazgo `F001` de seguridad y de código |
+| 2026-11-09 | `filas_explotables` desempata por `partida.id` y deduplica los `apu_id` | Hallazgos `F001` y `F003` de SQL |
+
+### Archivos tocados
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/identidad/{api/esquemas.py, infraestructura/repositorio.py, interfaz.py}`, `backend/cimenta/identidad/aplicacion/usuarios.py` | modificados y nuevo | identidad (por su interfaz) |
+| `backend/cimenta/presupuesto/dominio/congelado.py` | nuevo | dominio |
+| `backend/cimenta/presupuesto/aplicacion/{congelado,causas_explosion,consulta_linea_base}.py` | nuevos | aplicación |
+| `backend/cimenta/presupuesto/aplicacion/materializacion.py` | modificado (usa `detalle_de_causas`) | aplicación |
+| `backend/cimenta/presupuesto/api/{esquemas,rutas_linea_base,montaje}.py` | nuevos | api |
+| `backend/cimenta/presupuesto/infraestructura/{tablas,repositorio_linea_base}.py` | modificados | infraestructura |
+| `backend/servidor/fabrica.py` | modificado (`montar_presupuesto` y su docstring) | composición |
+| `backend/herramientas/soporte_tkt017_entorno.py` | nuevo | herramientas |
+| `backend/tests/test_tkt017_{congelado,congelado_concurrencia,dominio_congelado,api_congelado,identidad_nombres}.py` | nuevos | pruebas |
+| `backend/tests/{test_tkt006_enrutador,test_tkt057_csrf,test_tkt017_materializacion}.py` | modificados (`__all__` de identidad, una entrada de `CUERPOS_VALIDOS`, soporte extraído) | pruebas |
+| `frontend/src/api/generado/servidor.ts` | regenerado | cliente |
+| `docs/api/openapi.yaml`, `docs/03-modelo-datos.md`, `docs/04-historias-usuario.md`, `docs/05-tickets-trabajo.md` | modificados | documentación |
+| `docs/adr/20261101-inmutabilidad-de-la-linea-base-en-el-motor.md` | modificado | documentación |
+| `sdd/tickets/tkt-017/{design,spec,impl,_index}.md` | modificados | SDD |
+
+### Pruebas
+
+| # | Tests | Tipo | Criterio | Antes del código | Al cerrar |
+|---|---|---|---|---|---|
+| TC-B18 | `test_tkt017_nombres_de_usuarios` y cinco más (`test_tkt017_identidad_nombres.py`) | feliz y borde | `CA-B1` | FALLA (7 con el de `__all__`) | PASA |
+| TC-B02, TC-B07, TC-B12, TC-B15 y camino feliz | `test_tkt017_congelado.py` (37 al cerrar) | feliz y **rechazo** | `CA-B1`, `CA-B3`, `CA-B5`, `CA-B7` | FALLA (33 de 33) | PASA |
+| TC-B08, TC-B09, TC-B10 | `test_tkt017_congelado_concurrencia.py` (5) | concurrencia y **rechazo** | `CA-B6` | FALLA (5 de 5) | PASA, tres corridas seguidas |
+| TC-B01, TC-B03, TC-B04, TC-B05, TC-B06, TC-B11, TC-B17, TC-B19 | `test_tkt017_api_congelado.py` (40 al cerrar) | feliz y **rechazo** | `CA-B1` a `CA-B4`, `CA-B6`, `CA-R1` | FALLA (36 de 36) | PASA |
+| TC-B20 | dos tests `cab08_*` de forma publicada | regresión | `CA-B8`, `CA-R1` | FALLA (2 de 2) | PASA |
+| `F001` de revisión | `test_tkt017_cab04_congelar_motivo_con_nul` (2 casos) | **rechazo** | `CA-B4` | FALLA (2 de 2, `500`) | PASA |
+| SQL `F001` y `F003` | `…filas_explotables_desempata_las_apariciones_por_partida_id` y `…no_repite_el_apu_en_los_in` | regresión | `CA-B1` | FALLA (2 de 2) | PASA |
+| `T4`, `T5`, `T6` | `…congelar_sin_motivo_en_el_caso_de_uso`, `…esc19_el_indice_de_congelada_vigente_responde_rn01`, `test_tkt017_dominio_congelado.py` (12) | **rechazo** | `CA-B2`, `CA-B3`, `CA-B4` | Nacen en verde | PASA (ver `R-3`) |
+
+### Ciclo TDD por fila
+
+Salida del rojo, recortada a su resumen literal:
+
+**Fila B0 · apertura y experimentos** (sin código): `ruff check`, `mypy`, `lint-imports` (16 contratos), `verificar_float` y `alembic heads` (`0011 (head)`) en verde. `E-5` cumple: el `INSERT … SELECT` en `linea_base_concepto` pasa el `FOR SHARE` del disparador en 2.0 ms con `lock_timeout` de 200 ms; una segunda sesión sobre la misma línea base falla con `55P03` a los 203 ms. `E-8` cumple: `"   "` da `string_too_short` con `ctx.min_length == 1`, que el manejador traduce a `OBLIGATORIO`. `E-9` cumple: `icontains(autoescape=True)` escapa `%` y `_`, con `/` como carácter de escape.
+
+**Fila B1 · rojo** (`uv run pytest tests/test_tkt017_identidad_nombres.py tests/test_tkt006_enrutador.py -q`): `7 failed, 28 passed`; seis con `ImportError: cannot import name 'nombres_de_usuarios'` o `'UsuarioResumen'` de `cimenta.identidad.interfaz` y uno por la lista cerrada de `__all__`. **Verde:** `35 passed in 4.48s` (6 del archivo nuevo y 29 del enrutador).
+
+**Fila B2 · rojo** (`uv run pytest tests/test_tkt017_congelado.py tests/test_tkt017_congelado_concurrencia.py -q -ra --tb=no`): `38 failed in 26.16s`, 32 por `ModuleNotFoundError` de `cimenta.presupuesto.aplicacion.congelado` y 6 por `AttributeError` del `monkeypatch` sobre funciones del repositorio ausentes. **Verde:** `test_tkt017_congelado.py` `33 passed` y el de concurrencia `5 passed` en tres corridas seguidas (`5.68 s`, `5.56 s`, `5.57 s`); `test_tkt011_linea_base.py`, `test_tkt017_materializacion.py` y su concurrencia, `224 passed`.
+
+**Fila B3 · rojo** (`uv run pytest tests/test_tkt017_api_congelado.py -q -ra`): `36 failed in 21.76s`: 30 porque la ruta no existe (`404`), uno por contenido del `404`, dos del recorrido, uno del OpenAPI publicado, `TC-B19` y el docstring de `fabrica.py`. **Verde:** `36 passed in 15.67s`; `test_tkt006_enrutador.py` y `test_tkt057_csrf.py`, `102 passed`. Contrato publicado: `2 failed, 36 passed` (diferencias de enum, `required` y `format: decimal`), después `38 passed`.
+
+**Fila B3d · documentación:** `python tools/verificar_docs.py` → «✓ Sin problemas.».
+
+**Ciclo de corrección de `/sdd-revisar`:** rojo `4 failed` (`T1` dos casos con `assert 500 == 422`, `T2` y `T3` por el `ORDER BY` y el `IN` de `filas_explotables`); verde `40 passed` (API), `37 passed` (congelado), `12 passed` (dominio puro) y `5 passed` en tres corridas de concurrencia.
+
+### Mutantes
+
+La fila B3c los ejecutó uno a uno, con copia previa fuera del repositorio y huella SHA-256 idéntica (239 archivos `.py`) tras cada reversión.
+
+| Mutante | Cambio | Tests que cayeron |
+|---|---|---|
+| `M-B1` | Sustituir `bloquear_obra` por una lectura sin bloqueo en `congelar_linea_base` | `cab06_congelado_gana_al_reemplazo`, `cab06_reemplazo_gana_al_congelado` y `cab06_congelado_espera_el_bloqueo_de_la_obra_y_continua` (`3 failed, 2 passed`, a la primera) |
+| `M-B2` | Rendimiento ponderado por el del primer concepto | `esc14_la_explosion_congelada_es_la_validada[alta_compartida_en_muros]` (`0.500000` frente a `0.673400`) |
+| `M-B3` | No pasar la obra a `ACTIVA` | `esc14_congelar_pasa_la_obra_a_activa`, `cab07_…[activar_obra]` y el de la API (`3 failed`) |
+| `M-B4` | Asentar `CONGELAR` sin `RN-01` | Dos tests, caso de uso y API |
+| `M-B5` | `insertar_controles` solo para los tipos con conceptos | Siete tests |
+| `M-B6` | Comprobar la otra congelada después del estado de la obra | `esc19_segunda_linea_base_vigente` (API y caso de uso) |
+| `M-B7` | Quitar el `try/except DBAPIError` | `cab06_congelado_con_bloqueo_vencido` (API y caso de uso) |
+| `M-B8` | `importes_venta_por_tipo` suma `partida_concepto` también si está `CONGELADA` | `esc14_el_importe_por_tipo_de_una_congelada_es_la_suma_de_las_copias` |
+| `M-B9` | Quitar `verificar_origen` de la ruta | Siete tests de CSRF y de orden |
+| `M-B10` | Exigir `COMPRAS` en lugar de `DIRECTOR_PROYECTOS` | `23 failed` |
+| `M-B11b` | `nombres_de_usuarios` no ignora los ids ajenos | `2 failed` |
+| `M-B11a` | Quitar `list(set(ids))` | **Sobrevive**: mutante equivalente, la consulta usa `IN` y el resultado es un diccionario |
+| `M-B12` | Cuantizar antes de multiplicar en la explosión | `esc14_la_explosion_congelada_es_la_validada[alta_compartida_en_muros]` y `cab01_explotar_filas_devuelve_valores_en_la_escala_de_su_columna` |
+| `M-B13a` a `M-B13c` | `RN-03` en lugar de `RN-01`; `version` en lugar de `version_vigente`; `ConflictoEstado` en la rama del `23505` | Los tres de `esc19` (`3 failed`, `3 failed`, y solo `T5`: `1 failed`) |
+| `M-B16` | Quitar la validación del texto en blanco de `asentar` | `T4` (`1 failed`) y cuatro tests de `test_tkt007_dominio.py` |
+
+Además, `auditor-codigo` mutó `evaluar_congelado` en memoria (tres mutantes, los tres con test en rojo).
+
+### Modelo por paso
+
+| Paso | Agente | Modelo |
+|---|---|---|
+| B0 | `tester-backend` | `haiku` |
+| B1 (rojo y verde) | `tester-backend` y `desarrollador-aplicacion` | `sonnet` y `haiku` |
+| B2 (rojo y verde) | `tester-backend` y `desarrollador-aplicacion` | `sonnet` (disparadores: inmutabilidad y bloqueo pesimista) |
+| B3 (rojo, verde y contrato publicado) | `tester-api` y `desarrollador-api` | `sonnet` (disparador: permisos de un rol) |
+| B3c y mutantes del ciclo | `tester-backend` | `sonnet` |
+| Correcciones | `tester-api`, `corrector-revision` | `sonnet` |
+| Auditorías | `auditor-arquitectura`, `-sql`, `-codigo`, `-seguridad` | `sonnet`; `auditor-docs` en `haiku`; reauditorías de `-sql`, `-codigo` y `-docs` en `haiku` |
+
+### Resultado contra criterios de aceptación (alcance b1)
+
+| Criterio | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| `CA-B1` | `[M]` | Cumplido | `TC-B01`, `TC-B02` y `TC-B18` |
+| `CA-B2`, `CA-B3` | `[M]` | Cumplido | `TC-B03`, `TC-B04` y `T5` con el contrato de error completo y la base sin cambios |
+| `CA-B4` | `[M]` | Cumplido | `TC-B05` y `TC-B06` (cinco roles, `DENEGAR`), sin sesión, sin par CSRF y `NUL` |
+| `CA-B5` | `[M]` | Cumplido | `TC-B07`: `IN001` y `42501` sobre las copias, con el rol de aplicación |
+| `CA-B6` | `[M]` | Cumplido | `TC-B08` a `TC-B11` y el traductor de a3 |
+| `CA-B7` | `[M]` | Cumplido | `TC-B12`: el fallo a mitad del congelado no deja nada |
+| `CA-B8` | `[M]` | **Parcial** | Solo la forma de `LineaBase` publicada (`TC-B20`); las cuatro lecturas son de TKT-017b2 |
+| `CA-B9` | `[M]` | **Parcial** | `TC-B16` completo en b2 |
+| `CA-R1` | `[M]` | Cumplido | `TC-B17`, `TC-B19` y `lint-imports` con 16 contratos |
+
+### Auditorías
+
+`auditor-arquitectura` **APROBADO** en la primera pasada (cinco observaciones). `auditor-sql`, `auditor-codigo`, `auditor-seguridad` y `auditor-docs` devolvieron **REQUIERE CAMBIOS** y, tras un ciclo de corrección, **APROBADO** los cuatro.
+
+| Auditor | Primera pasada | Ciclo 1 |
+|---|---|---|
+| `auditor-arquitectura` | **APROBADO** (`F001` a `F005` observaciones) | — |
+| `auditor-sql` | **REQUIERE CAMBIOS** (`F001` Menor, tres observaciones) | **APROBADO** (`F001` y `F003` resueltos; observación nueva `N001`) |
+| `auditor-codigo` | **REQUIERE CAMBIOS** (`F001` Mayor, seis Menores) | **APROBADO** (`F001` a `F004`, `F006` y `F007` resueltos; `F005` diferido) |
+| `auditor-seguridad` | **REQUIERE CAMBIOS** (`F001` Media) | **APROBADO** |
+| `auditor-docs` | **REQUIERE CAMBIOS** (cuatro Mayores, un Menor) | **APROBADO** (cuatro observaciones) |
+
+#### Hallazgos y su resolución
+
+| Auditor y ID | Severidad | Hallazgo | Resolución |
+|---|---|---|---|
+| Seguridad `F001` y código `F001` | Media y Mayor | `{"motivo":"\u0000"}` pasa el DTO y psycopg lanza `DataError` sin `sqlstate`: `500` sin `tipo` | `AfterValidator(_sin_nul)` en `MotivoTexto` (`422` `FORMATO`); test `cab04_congelar_motivo_con_nul` y mutante |
+| SQL `F001` | Menor | El `ORDER BY` de `filas_explotables` no era determinista (`partida` sin `UNIQUE (area_id, orden)`) | `partida.id` entre `partida.orden` y `concepto.codigo`; test que captura la sentencia |
+| SQL `F003` | Observación | `apu_id` repetidos en el `IN` | Deduplicados con un conjunto; test |
+| Código `F002` | Menor | El caso `motivo="   "` en el caso de uso lo rechaza `asentar` sin test | `T4` y decisión `D15` |
+| Código `F003` | Menor | Guarda `and vigente is not None` solo para mypy | El rechazo se construye desde `resultado.datos` |
+| Código `F004` | Menor | `_rechazo_vigente` (`23505` → `RN-01`) sin test | `T5`, con espía sobre el traductor; `M-B13c` |
+| Código `F006`, `F007` y arquitectura `F001` | Menores | Docstrings obsoletos, aserciones redundantes y falta de un test puro de dominio | Limpieza de tests y docstrings; `test_tkt017_dominio_congelado.py` (12 casos) |
+| Docs `F001` a `F004` | Mayores | §4.2 sin el control ni la obra `ACTIVA`; fórmula de `importe_venta`; ADR de inmutabilidad (`23505` en el congelado y sustitución de la `CONGELADA`) | Texto literal del auditor |
+| Docs `F005` | Menor | Descripción del `409` de `congelar_linea_base` incompleta | Texto literal del auditor |
+| Código `F005` | Menor | Duplicación de constantes, alias y dos `SELECT` casi idénticos | **Diferido** a TKT-017b2, que reutiliza `consulta_linea_base.py` |
+
+### Hallazgos fuera de alcance y deuda
+
+| Dónde | Observación | Hacia |
+|---|---|---|
+| `aplicacion/materializacion.py` (`motivo_reemplazo`) | Misma exposición al `NUL` que `F001`, con una ruta que construye TKT-018 (severidad Media) | TKT-018: reutilizar `MotivoTexto` o equivalente, con un test igual |
+| Migración posterior | Índice `ix_linea_base_concepto_partida_concepto_id` y `UNIQUE (concepto_id)` en `apu` (el `LEFT JOIN` de `filas_explotables` duplicaría apariciones con dos análisis por concepto) | Migración de TKT-017c o de un ticket de esquema |
+| `repositorio_linea_base.py` (`filas_explotables` e `importes_venta_por_tipo`) | Filtran solo por `concepto.obra_id`, y la copia no guarda `tipo_partida_id` (`N001` y `F004` de SQL) | Defensa en profundidad en TKT-017b2 o la migración posterior |
+| `consulta_linea_base.py` | `obtener_linea_base` lee la fila y `importes_venta_por_tipo` la vuelve a leer sin bloqueo (`F003` de arquitectura) | TKT-017b2: pasar `estado` y `obra_id` ya leídos |
+| `traduccion_motor.py` | `detalle` con `tabla` y `restriccion` (`O1` de seguridad); la defensa en profundidad del manejador global ante un `DataError` sin `sqlstate` | Cuando se endurezca |
+| `repositorio_linea_base.py` (`congelar` y `activar_obra`) | Los `UPDATE` no llevan guardia de estado ni comprueban `rowcount` (defensa en profundidad) | TKT-017b2 |
+| `herramientas/soporte_tkt017_entorno.py` | Primer soporte de `herramientas/` con `import pytest` a nivel de módulo; no entrará en una imagen con `uv sync --no-dev` | Ticket de despliegue |
+| `identidad/api/montaje.py` | Su docstring dice «lo único de `api/` que importa `servidor/`» al revés; es de TKT-006 | Cuando se toque ese archivo |
+| `insertar_controles` | Sin guarda de lista vacía; hoy `tipo_partida` está sembrada en `0008` | Cuando cambie el catálogo |
+
+### Documentación actualizada
+
+| Documento | Qué cambió |
+|---|---|
+| `docs/api/openapi.yaml` | `409` de `congelar_linea_base`: `ErrorConflicto` y una descripción de todos los casos (**señalar a quien apruebe el PR**) |
+| `docs/03-modelo-datos.md` §4.2 | `importe_venta` de la explosión y lo que crea el congelado |
+| `docs/04-historias-usuario.md` | HDU-001 esc. 18: el intento no se asienta (`PA-T17.4`) |
+| `docs/05-tickets-trabajo.md` | Ficha de TKT-012: hereda `PLANEACION` → `ACTIVA` (`PA-T17.8`) |
+| `docs/adr/20261101-inmutabilidad-de-la-linea-base-en-el-motor.md` | `23505` de la vigente en el congelado y la sustitución de la `CONGELADA` como versionado de `F1.6` |
+| `sdd/tickets/tkt-017/{design,spec,_index}.md` | Filas B0 a B3c hechas, `TC-B20`, ajustes de b1 y `PA-T17.4` |
+
+### Verificación final (entrega TKT-017b1)
+
+Salida real de los comandos, desde `backend/` salvo los de documentación, sobre el estado final tras un ciclo de corrección. `docker info`: Docker 29.9.3 con el servidor en marcha.
+
+```text
+uv run ruff format --check .      → 268 files already formatted
+uv run ruff check .               → All checks passed!
+uv run mypy .                     → Success: no issues found in 268 source files
+uv run lint-imports               → Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → verificar_float: archivos revisados: 32; hallazgos: 0
+uv run pytest -q -ra --tb=short   → 2397 passed, 26 skipped in 440.92s (0:07:20)
+npm run tipos:verificar (frontend) → Tipos al día.
+python tools/verificar_docs.py    → ✓ Sin problemas.
+python tools/verificar_escenarios.py → Escenarios: 164 · exigidos 0 · cubiertos 0 · faltan 0 · pendientes 164 · retirados 0
+python -m unittest discover -s tools/tests → OK (510 tests)
+```
+
+Los 26 omitidos son las pruebas contra el archivo real del catálogo. `verificar_escenarios.py` no exige ningún test de HDU-001 mientras `tools/historias_activas.txt` la deje `PENDIENTE`: su verde no prueba la cobertura por nombre de los escenarios de este ticket; la prueba la tabla de «Pruebas» y la activación es `P-13` en la fila C4. Una primera suite de cierre dio `993 errors` porque el motor de Docker Desktop se había detenido con un reinicio; se repitió con Docker en marcha y es la de arriba. El CI completo de GitHub Actions se verifica en `/sdd-completar`, al abrir el PR único.
+
+##### Resultado por criterio (alcance b1)
+
+Todos los criterios `[M]` de b1 (`CA-B1` a `CA-B7` y `CA-R1`) quedan cumplidos con la evidencia de «Resultado contra criterios de aceptación (alcance b1)». `CA-B8` y `CA-B9` quedan parciales y se completan en TKT-017b2.
+
+##### Veredicto
+
+**LISTO PARA EJECUTAR · TKT-017b2.** La entrega TKT-017b1 queda revisada y acumulada en la rama `tkt-017a3-materializacion`, sin pull request.

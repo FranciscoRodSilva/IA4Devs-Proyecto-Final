@@ -1,7 +1,8 @@
 """Fábrica de la aplicación FastAPI: raíz de composición (ADR-018, CA-12, CA-14).
 
 Monta los enrutadores de `cimenta.<modulo>.api` y ningún módulo importa este paquete. Desde TKT-006
-monta `cimenta.identidad.api.montaje`. Desde TKT-015b también compone, por
+monta `cimenta.identidad.api.montaje`; desde TKT-017b también `cimenta.presupuesto.api.montaje`.
+Desde TKT-015b también compone, por
 `cimenta.presupuesto.interfaz` y `trabajos.barrido`, el barrido de las importaciones interrumpidas
 y el ejecutor del análisis, en el `lifespan`: nada de `aplicacion/` ni de `infraestructura/` de
 ningún módulo. Los manejadores de error se registran con `registrar_manejadores` (TKT-005, fila 6).
@@ -26,6 +27,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from cimenta.identidad.api.montaje import montar_identidad
+from cimenta.presupuesto.api.montaje import montar_presupuesto
 from cimenta.presupuesto.interfaz import (
     crear_ejecutor_analisis,
     definicion_barrido_importacion,
@@ -121,4 +123,5 @@ def crear_aplicacion(
         reloj=reloj,
         entorno=entorno_efectivo,
     )
+    montar_presupuesto(aplicacion, proveedor_motor=proveedor_motor, reloj=reloj)
     return aplicacion

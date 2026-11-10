@@ -10,12 +10,19 @@ from __future__ import annotations
 import uuid
 from collections.abc import Sequence
 from datetime import date, datetime
+from decimal import Decimal
 from typing import NamedTuple
 
-from sqlalchemy import delete, func, insert, select, update
+from sqlalchemy import Uuid, delete, func, insert, literal, select, update
 from sqlalchemy.orm import Session
 
-from cimenta.presupuesto.dominio.analisis import TipoInsumo
+from cimenta.presupuesto.dominio.analisis import TipoCargo, TipoInsumo
+from cimenta.presupuesto.dominio.explosion import ExplosionCalculada
+from cimenta.presupuesto.dominio.explosion_materializada import (
+    CargoDeApu,
+    FilaExplotable,
+    InsumoDeApu,
+)
 from cimenta.presupuesto.dominio.importacion import EstadoImportacion
 from cimenta.presupuesto.dominio.materializacion import (
     ApuNuevo,
@@ -33,16 +40,19 @@ from cimenta.presupuesto.infraestructura.tablas import (
     apu_insumo,
     area,
     concepto,
+    explosion_presupuesto,
     importacion,
     insumo,
     linea_base,
+    linea_base_concepto,
     nivel,
     obra,
     partida,
     partida_concepto,
+    presupuesto_control,
     tipo_partida,
 )
-from tipos_base import Dinero
+from tipos_base import Cantidad, Dinero, Rendimiento
 
 
 class FilaObra(NamedTuple):
@@ -56,6 +66,14 @@ class FilaLineaBase(NamedTuple):
     id: uuid.UUID
     version: int
     estado: str
+
+
+class FilaLineaBaseLeida(NamedTuple):
+    id: uuid.UUID
+    obra_id: uuid.UUID
+    version: int
+    estado: str
+    importe_venta: Dinero
 
 
 def bloquear_obra(sesion_bd: Session, obra_id: uuid.UUID) -> FilaObra | None:
@@ -334,3 +352,317 @@ def borrar_jerarquia(sesion_bd: Session, obra_id: uuid.UUID, linea_base_id: uuid
     )
     for sentencia in sentencias:
         sesion_bd.execute(sentencia)
+
+
+def leer_linea_base(sesion_bd: Session, linea_base_id: uuid.UUID) -> FilaLineaBaseLeida | None:
+    """Lectura de la línea base sin bloqueo, para conocer su obra antes de bloquearla."""
+    return _leer_linea_base(sesion_bd, linea_base_id, bloquear=False)
+
+
+def bloquear_linea_base(sesion_bd: Session, linea_base_id: uuid.UUID) -> FilaLineaBaseLeida | None:
+    """`FOR UPDATE` de la fila; sin fila si un reemplazo la borró mientras se esperaba la obra."""
+    return _leer_linea_base(sesion_bd, linea_base_id, bloquear=True)
+
+
+def _leer_linea_base(
+    sesion_bd: Session, linea_base_id: uuid.UUID, *, bloquear: bool
+) -> FilaLineaBaseLeida | None:
+    sentencia = select(
+        linea_base.c.id,
+        linea_base.c.obra_id,
+        linea_base.c.version,
+        linea_base.c.estado,
+        linea_base.c.importe_venta,
+    ).where(linea_base.c.id == linea_base_id)
+    if bloquear:
+        sentencia = sentencia.with_for_update()
+    fila = sesion_bd.execute(sentencia).one_or_none()
+    if fila is None:
+        return None
+    return FilaLineaBaseLeida(
+        id=fila.id,
+        obra_id=fila.obra_id,
+        version=fila.version,
+        estado=fila.estado,
+        importe_venta=Dinero(fila.importe_venta),
+    )
+
+
+class FilaLineaBaseCompleta(NamedTuple):
+    id: uuid.UUID
+    obra_id: uuid.UUID
+    version: int
+    estado: str
+    importe_venta: Dinero
+    congelada_en: datetime | None
+    congelada_por_id: uuid.UUID | None
+    motivo: str | None
+
+
+class FilaImporteTipo(NamedTuple):
+    tipo_partida_id: uuid.UUID
+    clave: str
+    nombre: str
+    importe_venta: Dinero
+
+
+def leer_linea_base_completa(
+    sesion_bd: Session, linea_base_id: uuid.UUID
+) -> FilaLineaBaseCompleta | None:
+    """La fila de la línea base con los datos de su congelado, sin bloqueo."""
+    fila = sesion_bd.execute(
+        select(
+            linea_base.c.id,
+            linea_base.c.obra_id,
+            linea_base.c.version,
+            linea_base.c.estado,
+            linea_base.c.importe_venta,
+            linea_base.c.congelada_en,
+            linea_base.c.congelada_por_id,
+            linea_base.c.motivo,
+        ).where(linea_base.c.id == linea_base_id)
+    ).one_or_none()
+    if fila is None:
+        return None
+    return FilaLineaBaseCompleta(
+        id=fila.id,
+        obra_id=fila.obra_id,
+        version=fila.version,
+        estado=fila.estado,
+        importe_venta=Dinero(fila.importe_venta),
+        congelada_en=fila.congelada_en,
+        congelada_por_id=fila.congelada_por_id,
+        motivo=fila.motivo,
+    )
+
+
+def importes_venta_por_tipo(sesion_bd: Session, linea_base_id: uuid.UUID) -> list[FilaImporteTipo]:
+    """Las filas de `tipo_partida`, por `id`, con su importe de venta.
+
+    Una línea base que ya no es `BORRADOR` suma sus copias de `linea_base_concepto`: lo congelado no
+    se entera de lo que cambie después en `partida_concepto`. Un `BORRADOR` suma los conceptos de la
+    obra. Donde no hay conceptos, `0.0000`.
+    """
+    leida = leer_linea_base(sesion_bd, linea_base_id)
+    if leida is None:
+        return []
+    if leida.estado == "BORRADOR":
+        sumas = (
+            select(
+                partida.c.tipo_partida_id.label("tipo_id"),
+                func.sum(partida_concepto.c.importe).label("total"),
+            )
+            .select_from(partida_concepto)
+            .join(concepto, concepto.c.id == partida_concepto.c.concepto_id)
+            .join(partida, partida.c.id == partida_concepto.c.partida_id)
+            .where(concepto.c.obra_id == leida.obra_id)
+            .group_by(partida.c.tipo_partida_id)
+        )
+    else:
+        sumas = (
+            select(
+                partida.c.tipo_partida_id.label("tipo_id"),
+                func.sum(linea_base_concepto.c.importe).label("total"),
+            )
+            .select_from(linea_base_concepto)
+            .join(
+                partida_concepto, partida_concepto.c.id == linea_base_concepto.c.partida_concepto_id
+            )
+            .join(partida, partida.c.id == partida_concepto.c.partida_id)
+            .where(linea_base_concepto.c.linea_base_id == linea_base_id)
+            .group_by(partida.c.tipo_partida_id)
+        )
+    totales = {f.tipo_id: f.total for f in sesion_bd.execute(sumas)}
+    tipos = sesion_bd.execute(
+        select(tipo_partida.c.id, tipo_partida.c.clave, tipo_partida.c.nombre).order_by(
+            tipo_partida.c.id
+        )
+    )
+    return [
+        FilaImporteTipo(
+            tipo_partida_id=t.id,
+            clave=t.clave,
+            nombre=t.nombre,
+            importe_venta=Dinero(totales.get(t.id, Decimal("0.0000"))).cuantizar(),
+        )
+        for t in tipos
+    ]
+
+
+def filas_explotables(sesion_bd: Session, obra_id: uuid.UUID) -> list[FilaExplotable]:
+    """Una fila por aparición de concepto de la obra, lo que consume `explotar_filas` (RN-24).
+
+    Orden: `nivel.orden`, `area.id`, `partida.orden`, `partida.id`, `concepto.codigo`. Solo los insumos de tipo
+    `MATERIAL` entran a la explosión, igual que al confirmar. Sin análisis, `insumos` es `None`.
+    """
+    apariciones = sesion_bd.execute(
+        select(
+            concepto.c.codigo,
+            partida.c.tipo_partida_id,
+            partida_concepto.c.cantidad,
+            partida_concepto.c.precio_unitario,
+            apu.c.id.label("apu_id"),
+        )
+        .select_from(partida_concepto)
+        .join(concepto, concepto.c.id == partida_concepto.c.concepto_id)
+        .join(partida, partida.c.id == partida_concepto.c.partida_id)
+        .join(area, area.c.id == partida.c.area_id)
+        .join(nivel, nivel.c.id == area.c.nivel_id)
+        .outerjoin(apu, apu.c.concepto_id == concepto.c.id)
+        .where(concepto.c.obra_id == obra_id)
+        .order_by(nivel.c.orden, area.c.id, partida.c.orden, partida.c.id, concepto.c.codigo)
+    ).all()
+    apus = list({a.apu_id for a in apariciones if a.apu_id is not None})
+    insumos_por_apu: dict[uuid.UUID, list[InsumoDeApu]] = {}
+    for fila in sesion_bd.execute(
+        select(
+            apu_insumo.c.apu_id,
+            insumo.c.codigo,
+            insumo.c.tipo,
+            insumo.c.unidad,
+            apu_insumo.c.costo_unitario,
+            apu_insumo.c.rendimiento,
+        )
+        .join(insumo, insumo.c.id == apu_insumo.c.insumo_id)
+        .where(apu_insumo.c.apu_id.in_(apus), insumo.c.tipo == TipoInsumo.MATERIAL.value)
+        .order_by(insumo.c.codigo, apu_insumo.c.id)
+    ):
+        insumos_por_apu.setdefault(fila.apu_id, []).append(
+            InsumoDeApu(
+                codigo=fila.codigo,
+                tipo=TipoInsumo(fila.tipo),
+                unidad=fila.unidad,
+                costo_unitario=Dinero(fila.costo_unitario),
+                rendimiento=Rendimiento(fila.rendimiento),
+            )
+        )
+    cargos_por_apu: dict[uuid.UUID, list[CargoDeApu]] = {}
+    for cargo in sesion_bd.execute(
+        select(apu_cargo.c.apu_id, apu_cargo.c.tipo, apu_cargo.c.importe)
+        .where(apu_cargo.c.apu_id.in_(apus))
+        .order_by(apu_cargo.c.id)
+    ):
+        cargos_por_apu.setdefault(cargo.apu_id, []).append(
+            CargoDeApu(tipo=TipoCargo(cargo.tipo), importe=Dinero(cargo.importe))
+        )
+    return [
+        FilaExplotable(
+            codigo_concepto=a.codigo,
+            tipo_partida_id=a.tipo_partida_id,
+            cantidad=Cantidad(a.cantidad),
+            precio_unitario=Dinero(a.precio_unitario),
+            insumos=None if a.apu_id is None else tuple(insumos_por_apu.get(a.apu_id, ())),
+            cargos=() if a.apu_id is None else tuple(cargos_por_apu.get(a.apu_id, ())),
+        )
+        for a in apariciones
+    ]
+
+
+def copiar_conceptos(sesion_bd: Session, linea_base_id: uuid.UUID, obra_id: uuid.UUID) -> None:
+    """Copia cada aparición de concepto de la obra a `linea_base_concepto` (invariante 14)."""
+    origen = (
+        select(
+            func.gen_random_uuid(),
+            literal(linea_base_id, Uuid),
+            partida_concepto.c.id,
+            concepto.c.codigo,
+            partida_concepto.c.cantidad,
+            partida_concepto.c.precio_unitario,
+            partida_concepto.c.importe,
+        )
+        .select_from(partida_concepto)
+        .join(concepto, concepto.c.id == partida_concepto.c.concepto_id)
+        .where(concepto.c.obra_id == obra_id)
+    )
+    sesion_bd.execute(
+        insert(linea_base_concepto).from_select(
+            [
+                "id",
+                "linea_base_id",
+                "partida_concepto_id",
+                "codigo",
+                "cantidad",
+                "precio_unitario",
+                "importe",
+            ],
+            origen,
+        )
+    )
+
+
+def insertar_explosion(
+    sesion_bd: Session, linea_base_id: uuid.UUID, explosion: ExplosionCalculada
+) -> None:
+    """Guarda los renglones tal como los devolvió `explotar_filas`: lo validado es lo congelado."""
+    if not explosion.renglones:
+        return
+    claves = {r.clave_insumo for r in explosion.renglones}
+    insumo_por_codigo = {
+        f.codigo: f.id
+        for f in sesion_bd.execute(
+            select(insumo.c.id, insumo.c.codigo).where(insumo.c.codigo.in_(claves))
+        )
+    }
+    sesion_bd.execute(
+        insert(explosion_presupuesto),
+        [
+            {
+                "id": uuid.uuid4(),
+                "linea_base_id": linea_base_id,
+                "tipo_partida_id": r.tipo_partida_id,
+                "insumo_id": insumo_por_codigo[r.clave_insumo],
+                "cantidad_presupuestada": r.cantidad_presupuestada.valor,
+                "rendimiento_congelado": r.rendimiento_congelado.valor,
+                "costo_unitario": r.costo_unitario.valor,
+                "importe_venta": r.importe.valor,
+            }
+            for r in explosion.renglones
+        ],
+    )
+
+
+def insertar_controles(
+    sesion_bd: Session, linea_base_id: uuid.UUID, explosion: ExplosionCalculada
+) -> None:
+    """Una fila por tipo de partida: el sugerido de la explosión o `0.0000`, y tope nulo."""
+    sugerido = {i.tipo_partida_id: i.importe_sugerido.valor for i in explosion.importes}
+    tipos = sesion_bd.scalars(select(tipo_partida.c.id).order_by(tipo_partida.c.id)).all()
+    sesion_bd.execute(
+        insert(presupuesto_control),
+        [
+            {
+                "id": uuid.uuid4(),
+                "linea_base_id": linea_base_id,
+                "tipo_partida_id": tipo_id,
+                "importe_tope": None,
+                "importe_sugerido": sugerido.get(tipo_id, Decimal("0.0000")),
+            }
+            for tipo_id in tipos
+        ],
+    )
+
+
+def congelar(
+    sesion_bd: Session,
+    linea_base_id: uuid.UUID,
+    ahora: datetime,
+    usuario_id: uuid.UUID,
+    motivo: str,
+) -> None:
+    """Pasa la línea base de `BORRADOR` a `CONGELADA` con fecha, usuario y motivo (RN-01)."""
+    sesion_bd.execute(
+        update(linea_base)
+        .where(linea_base.c.id == linea_base_id)
+        .values(estado="CONGELADA", congelada_en=ahora, congelada_por_id=usuario_id, motivo=motivo)
+    )
+
+
+def activar_obra(
+    sesion_bd: Session, obra_id: uuid.UUID, ahora: datetime, usuario_id: uuid.UUID
+) -> None:
+    """La obra pasa a `ACTIVA`; fija también quién y cuándo la actualizó."""
+    sesion_bd.execute(
+        update(obra)
+        .where(obra.c.id == obra_id)
+        .values(estado="ACTIVA", actualizado_en=ahora, actualizado_por_id=usuario_id)
+    )

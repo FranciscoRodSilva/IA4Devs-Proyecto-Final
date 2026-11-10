@@ -729,8 +729,8 @@ def test_tkt006_ca13_la_interfaz_publica_exigir_rol_y_evaluar_resolucion() -> No
 
     Un módulo solo habla con otro por su interfaz publicada: si estos nombres no están en `__all__` y
     como atributos del módulo, TKT-020, TKT-021 y TKT-026 tendrían que importar de `api/` o de `dominio/`
-    y romperían el contrato de fronteras. `__all__` es exactamente el de siete nombres del diseño: los
-    seis de TKT-006 y `verificar_origen` de TKT-057.
+    y romperían el contrato de fronteras. `__all__` es exactamente el de nueve nombres del diseño: los
+    seis de TKT-006, `verificar_origen` de TKT-057 y `nombres_de_usuarios` y `UsuarioResumen` de TKT-017b1.
     """
     import cimenta.identidad.interfaz as interfaz
     from cimenta.identidad.api import dependencias
@@ -746,6 +746,8 @@ def test_tkt006_ca13_la_interfaz_publica_exigir_rol_y_evaluar_resolucion() -> No
         "ResultadoResolucion",
         "MotivoNegacion",
         "verificar_origen",
+        "nombres_de_usuarios",
+        "UsuarioResumen",
     }
     assert all(hasattr(interfaz, nombre) for nombre in interfaz.__all__)
     assert interfaz.exigir_rol is dependencias.exigir_rol

@@ -17,12 +17,12 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from cimenta.auditoria.interfaz import asentar, consultar_bitacora
+from cimenta.presupuesto.aplicacion.causas_explosion import detalle_de_causas
 from cimenta.presupuesto.aplicacion.contexto import ContextoPresupuesto
 from cimenta.presupuesto.aplicacion.traduccion_motor import (
     MENSAJE_PREPARACION_ILEGIBLE,
     traducir_error_del_motor,
 )
-from cimenta.presupuesto.dominio.explosion import CausaRechazoExplosion
 from cimenta.presupuesto.dominio.importacion import EstadoImportacion
 from cimenta.presupuesto.dominio.materializacion import (
     AsignacionInvalida,
@@ -386,30 +386,9 @@ def _rechazo_explosion(importacion_id: uuid.UUID, rechazada: ExplosionRechazada)
         mensaje=_MENSAJE_EXPLOSION,
         detalle={
             "importacion_id": importacion_id,
-            "causas": [_causa(c) for c in _sin_repetidas(rechazada.causas)],
+            "causas": detalle_de_causas(rechazada.causas),
         },
     )
-
-
-def _sin_repetidas(causas: tuple[CausaRechazoExplosion, ...]) -> list[CausaRechazoExplosion]:
-    """Una causa por (concepto, causa, clave de insumo, tipo de partida), en orden de aparición."""
-    vistas: set[tuple[object, ...]] = set()
-    unicas: list[CausaRechazoExplosion] = []
-    for causa in causas:
-        clave = (causa.codigo_concepto, causa.motivo, causa.clave_insumo, causa.tipo_partida_id)
-        if clave not in vistas:
-            vistas.add(clave)
-            unicas.append(causa)
-    return unicas
-
-
-def _causa(causa: CausaRechazoExplosion) -> dict[str, object]:
-    return {
-        "concepto": causa.codigo_concepto,
-        "causa": causa.motivo.value,
-        "clave_insumo": causa.clave_insumo,
-        "tipo_partida_id": causa.tipo_partida_id,
-    }
 
 
 def _persistir(

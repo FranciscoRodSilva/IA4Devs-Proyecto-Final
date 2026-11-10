@@ -83,6 +83,8 @@ obra = Table(
     Column("codigo", Text, nullable=False),
     Column("nombre", Text, nullable=False),
     Column("estado", Text, nullable=False),
+    Column("actualizado_en", TIMESTAMP(timezone=True)),
+    Column("actualizado_por_id", Uuid),
 )
 
 tipo_partida = Table(
@@ -90,6 +92,7 @@ tipo_partida = Table(
     metadata,
     Column("id", Uuid, primary_key=True),
     Column("clave", Text, nullable=False),
+    Column("nombre", Text, nullable=False),
 )
 
 nivel = Table(
@@ -187,4 +190,42 @@ linea_base = Table(
     Column("importe_venta", Numeric(18, 4), nullable=False),
     Column("creado_en", TIMESTAMP(timezone=True), nullable=False),
     Column("creado_por_id", Uuid, nullable=False),
+    Column("congelada_en", TIMESTAMP(timezone=True)),
+    Column("congelada_por_id", Uuid),
+    Column("motivo", Text),
+)
+
+linea_base_concepto = Table(
+    "linea_base_concepto",
+    metadata,
+    Column("id", Uuid, primary_key=True),
+    Column("linea_base_id", Uuid, ForeignKey("linea_base.id"), nullable=False),
+    Column("partida_concepto_id", Uuid, ForeignKey("partida_concepto.id"), nullable=False),
+    Column("codigo", Text, nullable=False),
+    Column("cantidad", Numeric(14, 4), nullable=False),
+    Column("precio_unitario", Numeric(14, 4), nullable=False),
+    Column("importe", Numeric(18, 4), nullable=False),
+)
+
+explosion_presupuesto = Table(
+    "explosion_presupuesto",
+    metadata,
+    Column("id", Uuid, primary_key=True),
+    Column("linea_base_id", Uuid, ForeignKey("linea_base.id"), nullable=False),
+    Column("tipo_partida_id", Uuid, ForeignKey("tipo_partida.id"), nullable=False),
+    Column("insumo_id", Uuid, ForeignKey("insumo.id"), nullable=False),
+    Column("cantidad_presupuestada", Numeric(14, 4), nullable=False),
+    Column("rendimiento_congelado", Numeric(18, 6), nullable=False),
+    Column("costo_unitario", Numeric(14, 4), nullable=False),
+    Column("importe_venta", Numeric(18, 4), nullable=False),
+)
+
+presupuesto_control = Table(
+    "presupuesto_control",
+    metadata,
+    Column("id", Uuid, primary_key=True),
+    Column("linea_base_id", Uuid, ForeignKey("linea_base.id"), nullable=False),
+    Column("tipo_partida_id", Uuid, ForeignKey("tipo_partida.id"), nullable=False),
+    Column("importe_tope", Numeric(18, 4)),
+    Column("importe_sugerido", Numeric(18, 4), nullable=False),
 )

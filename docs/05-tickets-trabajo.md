@@ -619,7 +619,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Los dos porcentajes son **conceptos distintos** y se guardan en la obra: ninguna constante en el código (**PA-02**)
 - [ ] El indicador de IVA acreditable se guarda por obra porque varía entre ellas (**PA-05**, `RN-25`)
 - [ ] Código de obra único: el duplicado responde `409` `CONFLICTO` `CODIGO_OBRA_DUPLICADO` identificando la obra en conflicto
-- [ ] Máquina de estados `PLANEACION → ACTIVA → SUSPENDIDA/CERRADA`
+- [ ] Máquina de estados `PLANEACION → ACTIVA → SUSPENDIDA/CERRADA`. La transición `PLANEACION → ACTIVA` ya la escribe el congelado de la línea base dentro de `presupuesto` (TKT-017b, `PA-T17.8`): este ticket debe respetarla al construir la máquina de estados y no escribirla de nuevo; si la modela distinto, hay que mover esa escritura a su caso de uso
 - [ ] Una obra con línea base congelada o movimientos no se puede eliminar: responde `409` `CONFLICTO` `OBRA_CON_HISTORIAL` con las acciones de suspenderla o cerrarla
 - [ ] Interfaz con el componente de formulario de catálogo de TKT-008
 

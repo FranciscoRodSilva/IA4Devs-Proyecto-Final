@@ -1151,11 +1151,23 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          description: Ya existe una línea base congelada vigente.
+          description: >-
+            La obra ya tiene una línea base congelada vigente (`REGLA_NEGOCIO`, `RN-01`);
+            la línea base no está en `BORRADOR` o la obra no está en `PLANEACION`
+            (`CONFLICTO`, `ESTADO_NO_PERMITE_OPERACION`, con el estado en el detalle); la
+            explosión de los conceptos materializados no se puede calcular
+            (`CONFLICTO`, `ESTADO_NO_PERMITE_OPERACION`, con las causas); o un bloqueo
+            venció (`CONCURRENCIA`, con `BLOQUEO_VENCIDO` o `TIEMPO_EJECUCION_VENCIDO`,
+            la cabecera `Retry-After` y la acción `REINTENTAR`). Un choque del motor con
+            otra restricción, con un tipo de dato o con una referencia (`CONFLICTO`,
+            `ESTADO_NO_PERMITE_OPERACION`, con la restricción en el detalle), o un intento
+            de modificar una copia congelada (`REGLA_NEGOCIO`, `RN-01`), también responde
+            `409`. En ninguno de estos casos se escribe nada y la línea base sigue en
+            `BORRADOR`.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorReglaNegocio'
+                $ref: '#/components/schemas/ErrorConflicto'
               example:
                 tipo: REGLA_NEGOCIO
                 regla: RN-01
