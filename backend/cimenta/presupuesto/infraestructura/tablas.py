@@ -228,4 +228,9 @@ presupuesto_control = Table(
     Column("tipo_partida_id", Uuid, ForeignKey("tipo_partida.id"), nullable=False),
     Column("importe_tope", Numeric(18, 4)),
     Column("importe_sugerido", Numeric(18, 4), nullable=False),
+    Column("capturado_por_id", Uuid),
+    Column("capturado_en", TIMESTAMP(timezone=True)),
+    Column("actualizado_por_id", Uuid),
+    Column("actualizado_en", TIMESTAMP(timezone=True)),
+    Column("motivo_ultimo_cambio", Text),
 )

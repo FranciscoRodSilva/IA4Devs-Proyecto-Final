@@ -167,10 +167,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lineas-base/{linea_base_id}/presupuesto-control": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Presupuesto Control
+         * @description RN-03: una fila por tipo de partida con su venta, su sugerido y su tope; vacía en `BORRADOR`.
+         */
+        get: operations["listar_presupuesto_control"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/lineas-base/{linea_base_id}/presupuesto-control/{tipo_partida_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Capturar Presupuesto Control
+         * @description RN-03, RN-04: captura o recaptura el tope de control y devuelve la fila ya guardada.
+         */
+        put: operations["capturar_presupuesto_control"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * CapturaPresupuestoControl
+         * @description Cuerpo de la captura del tope (RN-03): lo que no declara se ignora.
+         */
+        CapturaPresupuestoControl: {
+            /**
+             * Importe Tope
+             * Format: decimal
+             */
+            importe_tope: string;
+            /** Motivo */
+            motivo?: string | null;
+            /**
+             * Confirmar Superior A Venta
+             * @default false
+             */
+            confirmar_superior_a_venta: boolean;
+        };
         /**
          * ClaveTipoPartida
          * @enum {string}
@@ -316,6 +374,30 @@ export interface components {
         Motivo: {
             /** Motivo */
             motivo: string;
+        };
+        /** PresupuestoControl */
+        PresupuestoControl: {
+            tipo_partida: components["schemas"]["TipoPartida"];
+            /**
+             * Importe Venta
+             * Format: decimal
+             */
+            importe_venta: string;
+            /**
+             * Importe Sugerido
+             * Format: decimal
+             */
+            importe_sugerido: string;
+            /** Importe Tope */
+            importe_tope: string | null;
+            capturado_por?: components["schemas"]["UsuarioResumen"] | null;
+            /** Capturado En */
+            capturado_en?: string | null;
+            actualizado_por?: components["schemas"]["UsuarioResumen"] | null;
+            /** Actualizado En */
+            actualizado_en?: string | null;
+            /** Motivo Ultimo Cambio */
+            motivo_ultimo_cambio?: string | null;
         };
         /** RenglonExplosion */
         RenglonExplosion: {
@@ -679,6 +761,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExplosionInsumos"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_presupuesto_control: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                linea_base_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresupuestoControl"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    capturar_presupuesto_control: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                linea_base_id: string;
+                tipo_partida_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapturaPresupuestoControl"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresupuestoControl"];
                 };
             };
             /** @description Validation Error */

@@ -1273,6 +1273,16 @@ CUERPOS_VALIDOS: dict[str, PeticionValida] = {
         {"motivo": "Firma de contrato 2026-11-04"},
         ruta="/api/v1/lineas-base/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e/congelacion",
     ),
+    # TKT-017c, fila C3 (TC-B17 de c): la captura del tope del presupuesto de control. Mismo criterio que la
+    # congelación: `verificar_origen` va antes que `exigir_rol` y que cualquier consulta, así que el `403`
+    # sale sin tocar la base y los dos identificadores pueden ser cualesquiera.
+    "PUT /api/v1/lineas-base/{linea_base_id}/presupuesto-control/{tipo_partida_id}": PeticionValida(
+        {"importe_tope": "450000.0000"},
+        ruta=(
+            "/api/v1/lineas-base/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e"
+            "/presupuesto-control/0c9d8e7f-6a5b-4c3d-8e2f-1a0b9c8d7e6f"
+        ),
+    ),
 }
 
 

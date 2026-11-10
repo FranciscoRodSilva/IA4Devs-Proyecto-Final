@@ -1276,7 +1276,8 @@ paths:
         Una fila por tipo de partida con el importe de venta, el **sugerido**
         (informativo, quitando utilidad e indirectos) y el **capturado**, que es el
         único que `RN-03` usa (PA-03). `importe_tope` es `null` mientras no se
-        capture.
+        capture. Sobre una línea base en `BORRADOR` responde `[]`: el control
+        nace al congelarla, así que un borrador no tiene filas.
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-03]
       x-escenarios: ['HDU-001 esc. 15']
@@ -1339,7 +1340,9 @@ paths:
               confirmar_superior_a_venta: false
       responses:
         '200':
-          description: Tope guardado.
+          description: >-
+            Tope guardado. Devuelve la fila ya persistida, con su autor, su fecha
+            y el motivo del último cambio.
           content:
             application/json:
               schema:
@@ -1351,7 +1354,11 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          description: Línea base no congelada, o tope superior a la venta sin confirmar.
+          description: >-
+            Línea base no congelada, o tope superior a la venta sin confirmar
+            (`CONFLICTO`). Si vence el bloqueo de la fila de control, `409`
+            `CONCURRENCIA` con `BLOQUEO_VENCIDO`, `Retry-After` y la acción
+            `REINTENTAR` (`PUT` a la misma ruta); no se escribe nada.
           content:
             application/json:
               schema:
@@ -5023,7 +5030,11 @@ components:
           $ref: '#/components/schemas/ImporteNoNegativo'
         motivo:
           type: [string, 'null']
-          description: Obligatorio al recapturar y al confirmar un tope superior a la venta.
+          maxLength: 2000
+          pattern: '^[^\x00]*$'
+          description: >-
+            Obligatorio al recapturar y al confirmar un tope superior a la venta.
+            Sin carácter NUL y de hasta 2000 caracteres (`422`).
         confirmar_superior_a_venta:
           type: boolean
           default: false

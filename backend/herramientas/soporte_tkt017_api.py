@@ -52,6 +52,22 @@ TOKEN_CSRF = "csrf-de-la-prueba-0f3a9c71"
 OTRO_TOKEN_CSRF = "csrf-otro-7b21d4e8"
 CONTRASENA_DE_PRUEBA = "Clave-Del-Director-1"
 NOMBRE_DEL_DIRECTOR = "Diana Directora"
+ROLES_DE_LECTURA = ["DIRECCION_GENERAL", "DIRECTOR_PROYECTOS", "COMPRAS"]
+ROLES_SIN_LECTURA = ["RESIDENTE", "ALMACEN", "ADMINISTRACION"]
+# Mismos costes baratos de Argon2 que `ENTORNO_DE_PRUEBA` de `conftest.py`, que no es importable.
+ENTORNO_DE_LA_APLICACION = {
+    "CIMENTA_ARGON2_TIEMPO": "1",
+    "CIMENTA_ARGON2_MEMORIA_KIB": "8192",
+    "CIMENTA_ARGON2_PARALELISMO": "1",
+    "CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16),
+}
+# Las cuatro combinaciones de `CA-9` de TKT-057: (cookie, cabecera) sin un par válido.
+SIN_PAR_VALIDO = [
+    pytest.param(None, None, id="ambos_ausentes"),
+    pytest.param(TOKEN_CSRF, None, id="solo_cookie"),
+    pytest.param(None, TOKEN_CSRF, id="solo_cabecera"),
+    pytest.param(TOKEN_CSRF, OTRO_TOKEN_CSRF, id="distintos"),
+]
 # Seis apariciones de 12.5 × 420.0000 en cada uno de MUROS y PLAFONES_Y_CAJILLOS (`preparacion_dos_niveles`).
 VENTA_POR_TIPO = {
     "MUROS": "31500.0000",
@@ -236,6 +252,27 @@ def abrir_sesion(cliente: TestClient, sembrar_usuario: SembrarUsuario) -> Callab
     return abrir
 
 
+@pytest.fixture
+def cliente_espera_corta(
+    motor_espera_corta: Engine,
+    reloj_de_prueba: RelojDePrueba,
+    registro_tecnico: io.StringIO,
+) -> Iterator[TestClient]:
+    """La aplicación real sobre `motor_espera_corta` (el rol de aplicación con `lock_timeout` de 200 ms)."""
+    from servidor.fabrica import crear_aplicacion
+
+    aplicacion = crear_aplicacion(
+        destino_registro=registro_tecnico,
+        motor=motor_espera_corta,
+        reloj=reloj_de_prueba,
+        entorno=ENTORNO_DE_LA_APLICACION,
+    )
+    with TestClient(
+        aplicacion, base_url="https://testserver", raise_server_exceptions=False
+    ) as cliente_http:
+        yield cliente_http
+
+
 def tipos_de_partida(base: Base) -> list[tuple[uuid.UUID, str, str]]:
     """Las cuatro filas de `tipo_partida`, ordenadas por `id` como las devuelve el borrador."""
     filas = base.conexion.execute(
@@ -243,6 +280,14 @@ def tipos_de_partida(base: Base) -> list[tuple[uuid.UUID, str, str]]:
     ).fetchall()
     assert len(filas) == 4
     return [(f[0], f[1], f[2]) for f in filas]
+
+
+def tipo_esperado(base: Base, clave: str) -> dict[str, str]:
+    """El resumen `TipoPartida` (`id`, `clave`, `nombre`) del tipo con esa clave, tal como lo trae la base."""
+    for identificador, la_clave, nombre in tipos_de_partida(base):
+        if la_clave == clave:
+            return {"id": str(identificador), "clave": la_clave, "nombre": nombre}
+    raise AssertionError(f"El tipo de partida {clave} no existe en la base")
 
 
 # --------------------------------------------------------------------------- el recorrido de rutas
@@ -380,7 +425,7 @@ def componentes_duplicados(
     return duplicados
 
 
-def _resolver(documento: Mapping[str, Any], nodo: Mapping[str, Any]) -> Mapping[str, Any]:
+def resolver(documento: Mapping[str, Any], nodo: Mapping[str, Any]) -> Mapping[str, Any]:
     while "$ref" in nodo:
         actual: Any = documento
         for parte in nodo["$ref"].removeprefix("#/").split("/"):
@@ -401,11 +446,11 @@ def parametros_de(
     crudos = [*elemento.get("parameters", []), *elemento[metodo].get("parameters", [])]
     normalizados: dict[str, dict[str, Any]] = {}
     for crudo in crudos:
-        parametro = _resolver(documento, crudo)
-        esquema = _resolver(documento, parametro.get("schema", {}))
+        parametro = resolver(documento, crudo)
+        esquema = resolver(documento, parametro.get("schema", {}))
         variantes = esquema.get("anyOf") or esquema.get("oneOf")
         if variantes is not None:
-            esquema = _resolver(documento, next(v for v in variantes if v.get("type") != "null"))
+            esquema = resolver(documento, next(v for v in variantes if v.get("type") != "null"))
         normalizados[parametro["name"]] = {
             "in": parametro["in"],
             "required": bool(parametro.get("required", False)),
@@ -422,5 +467,5 @@ def esquema_de_respuesta_200(
     documento: Mapping[str, Any], ruta: str, metodo: str
 ) -> Mapping[str, Any]:
     """El esquema JSON de la respuesta `200` de una operación (sin resolver su `$ref`)."""
-    respuesta = _resolver(documento, documento["paths"][ruta][metodo]["responses"]["200"])
+    respuesta = resolver(documento, documento["paths"][ruta][metodo]["responses"]["200"])
     return cast("Mapping[str, Any]", respuesta["content"]["application/json"]["schema"])

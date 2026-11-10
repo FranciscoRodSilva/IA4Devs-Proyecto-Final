@@ -38,11 +38,9 @@ from __future__ import annotations
 
 import functools
 import inspect
-import io
 import re
-import secrets
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
@@ -59,7 +57,7 @@ from herramientas.soporte_tkt017 import preparacion_dos_niveles
 from herramientas.soporte_tkt017_api import (
     CONTRASENA_DE_PRUEBA,
     NOMBRE_DEL_DIRECTOR,
-    OTRO_TOKEN_CSRF,
+    SIN_PAR_VALIDO,
     TOKEN_CSRF,
     VENTA_POR_TIPO,
     Sesion,
@@ -67,6 +65,7 @@ from herramientas.soporte_tkt017_api import (
     base,  # noqa: F401
     borrador,
     cabeceras_de,
+    cliente_espera_corta,  # noqa: F401
     componentes_duplicados,
     construir_aplicacion,
     contexto,  # noqa: F401
@@ -119,25 +118,10 @@ MENSAJE_ORIGEN_NO_VERIFICADO = (
 MENSAJE_SIN_SESION = "No hay una sesión iniciada."
 MENSAJE_OBLIGATORIO = "El campo es obligatorio."
 
-# Mismos costes baratos de Argon2 que `ENTORNO_DE_PRUEBA` de `conftest.py`, que no es importable.
-ENTORNO_DE_LA_APLICACION = {
-    "CIMENTA_ARGON2_TIEMPO": "1",
-    "CIMENTA_ARGON2_MEMORIA_KIB": "8192",
-    "CIMENTA_ARGON2_PARALELISMO": "1",
-    "CIMENTA_DB_CONTRASENA_APLICACION": secrets.token_urlsafe(16),
-}
-
-# Las cuatro combinaciones de `CA-9` de TKT-057: (cookie, cabecera) sin un par válido.
-SIN_PAR_VALIDO = [
-    pytest.param(None, None, id="ambos_ausentes"),
-    pytest.param(TOKEN_CSRF, None, id="solo_cookie"),
-    pytest.param(None, TOKEN_CSRF, id="solo_cabecera"),
-    pytest.param(TOKEN_CSRF, OTRO_TOKEN_CSRF, id="distintos"),
-]
 CON_FECHA_Y_ZONA = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$")
 
 RUTAS_SIN_SESION = frozenset({"GET /api/v1/sesion/csrf", "POST /api/v1/sesion"})
-# B3 publica la congelación; B4, las cuatro lecturas de la línea base; C3 añade las suyas.
+# B3 publica la congelación; B4, las cuatro lecturas de la línea base; C3, las dos del presupuesto de control.
 IMPLEMENTADAS_DE_PRESUPUESTO = frozenset(
     {
         "congelar_linea_base",
@@ -145,6 +129,8 @@ IMPLEMENTADAS_DE_PRESUPUESTO = frozenset(
         "obtener_linea_base",
         "listar_conceptos_linea_base",
         "obtener_explosion_insumos",
+        "listar_presupuesto_control",
+        "capturar_presupuesto_control",
     }
 )
 
@@ -924,27 +910,6 @@ def test_tkt017_cab04_el_origen_se_verifica_antes_que_el_rol(
 
 
 # --------------------------------------------------------------------------- TC-B11 · CA-B6 esc. 1
-
-
-@pytest.fixture
-def cliente_espera_corta(
-    motor_espera_corta: Engine,
-    reloj_de_prueba: RelojDePrueba,
-    registro_tecnico: io.StringIO,
-) -> Iterator[TestClient]:
-    """La aplicación real sobre `motor_espera_corta` (el rol de aplicación con `lock_timeout` de 200 ms)."""
-    from servidor.fabrica import crear_aplicacion
-
-    aplicacion = crear_aplicacion(
-        destino_registro=registro_tecnico,
-        motor=motor_espera_corta,
-        reloj=reloj_de_prueba,
-        entorno=ENTORNO_DE_LA_APLICACION,
-    )
-    with TestClient(
-        aplicacion, base_url="https://testserver", raise_server_exceptions=False
-    ) as cliente_http:
-        yield cliente_http
 
 
 def test_tkt017_cab06_congelado_con_bloqueo_vencido(

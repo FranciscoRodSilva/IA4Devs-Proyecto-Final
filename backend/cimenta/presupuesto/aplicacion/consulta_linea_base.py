@@ -19,6 +19,7 @@ from cimenta.presupuesto.aplicacion.contexto import ContextoPresupuesto
 from cimenta.presupuesto.infraestructura import repositorio_linea_base
 from cimenta.presupuesto.infraestructura.repositorio_linea_base import (
     FilaConceptoCopiado,
+    FilaControl,
     FilaLineaBaseLeida,
     FilaRenglonExplosion,
     FilaTipoPartida,
@@ -94,6 +95,20 @@ class ConceptosConsultados:
     pagina: int
     tamano_pagina: int
     total: int
+
+
+@dataclass(frozen=True, slots=True)
+class ControlConsultado:
+    id: uuid.UUID
+    tipo_partida: TipoPartidaConsultado
+    importe_venta: Dinero
+    importe_sugerido: Dinero
+    importe_tope: Dinero | None
+    capturado_por: UsuarioResumen | None
+    capturado_en: datetime | None
+    actualizado_por: UsuarioResumen | None
+    actualizado_en: datetime | None
+    motivo_ultimo_cambio: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -176,6 +191,54 @@ def obtener_explosion(
         )
 
 
+def listar_presupuesto_control(
+    contexto: ContextoPresupuesto, linea_base_id: uuid.UUID
+) -> tuple[ControlConsultado, ...]:
+    """Una fila por tipo de partida; vacía mientras la línea base está en `BORRADOR` (P-9)."""
+    with contexto.fabrica_sesiones().begin() as sesion_bd:
+        linea = _leer_o_no_existe(sesion_bd, linea_base_id)
+        filas = repositorio_linea_base.controles(sesion_bd, linea_base_id)
+        if not filas:
+            return ()
+        ventas = {
+            f.tipo_partida_id: f.importe_venta
+            for f in repositorio_linea_base.importes_venta_de(sesion_bd, linea)
+        }
+        ids = {
+            quien
+            for f in filas
+            for quien in (f.capturado_por_id, f.actualizado_por_id)
+            if quien is not None
+        }
+        nombres = nombres_de_usuarios(sesion_bd, ids)
+        return tuple(_control_consultado(f, ventas[f.tipo_partida.id], nombres) for f in filas)
+
+
+def _usuario_resumen(
+    quien: uuid.UUID | None, nombres: dict[uuid.UUID, str]
+) -> UsuarioResumen | None:
+    if quien is None or quien not in nombres:
+        return None
+    return UsuarioResumen(id=quien, nombre=nombres[quien])
+
+
+def _control_consultado(
+    fila: FilaControl, importe_venta: Dinero, nombres: dict[uuid.UUID, str]
+) -> ControlConsultado:
+    return ControlConsultado(
+        id=fila.id,
+        tipo_partida=_tipo_consultado(fila.tipo_partida),
+        importe_venta=importe_venta,
+        importe_sugerido=fila.importe_sugerido,
+        importe_tope=fila.importe_tope,
+        capturado_por=_usuario_resumen(fila.capturado_por_id, nombres),
+        capturado_en=fila.capturado_en,
+        actualizado_por=_usuario_resumen(fila.actualizado_por_id, nombres),
+        actualizado_en=fila.actualizado_en,
+        motivo_ultimo_cambio=fila.motivo_ultimo_cambio,
+    )
+
+
 def _tipo_consultado(tipo: FilaTipoPartida) -> TipoPartidaConsultado:
     return TipoPartidaConsultado(id=tipo.id, clave=tipo.clave, nombre=tipo.nombre)
 
@@ -229,12 +292,6 @@ def _consultada(
     sesion_bd: Session, fila: FilaLineaBaseLeida, nombres: dict[uuid.UUID, str]
 ) -> LineaBaseConsultada:
     por_tipo = repositorio_linea_base.importes_venta_de(sesion_bd, fila)
-    quien = fila.congelada_por_id
-    congelada_por = (
-        UsuarioResumen(id=quien, nombre=nombres[quien])
-        if quien is not None and quien in nombres
-        else None
-    )
     return LineaBaseConsultada(
         id=fila.id,
         obra_id=fila.obra_id,
@@ -242,7 +299,7 @@ def _consultada(
         estado=fila.estado,
         importe_venta=fila.importe_venta,
         congelada_en=fila.congelada_en,
-        congelada_por=congelada_por,
+        congelada_por=_usuario_resumen(fila.congelada_por_id, nombres),
         motivo=fila.motivo,
         por_tipo_partida=tuple(
             ImporteDeTipo(

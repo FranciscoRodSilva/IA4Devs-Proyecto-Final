@@ -73,6 +73,8 @@ from herramientas.soporte_tkt017_api import (
     NOMBRE_DEL_DIRECTOR,
     OTRO_TOKEN_CSRF,
     RAIZ,
+    ROLES_DE_LECTURA,
+    ROLES_SIN_LECTURA,
     TOKEN_CSRF,
     VENTA_POR_TIPO,
     Sesion,
@@ -95,6 +97,7 @@ from herramientas.soporte_tkt017_api import (
     parametros_de,
     publicado,
     rutas_de,
+    tipo_esperado,
     tipos_de_partida,
     validar_contra,
 )
@@ -120,8 +123,6 @@ MENSAJE_UN_CAMPO_INVALIDO = "La petición tiene 1 campo inválido."
 MENSAJE_FUERA_DE_RANGO = "El valor está fuera del rango permitido."
 MENSAJE_FORMATO = "El valor no tiene el formato esperado."
 
-ROLES_DE_LECTURA = ["DIRECCION_GENERAL", "DIRECTOR_PROYECTOS", "COMPRAS"]
-ROLES_SIN_LECTURA = ["RESIDENTE", "ALMACEN", "ADMINISTRACION"]
 
 # El libro de `preparacion_dos_niveles` (`VENTA_POR_TIPO` es su desglose por tipo).
 IMPORTE_DEL_LIBRO = "63000.0000"
@@ -256,13 +257,6 @@ def congelada(
 # --------------------------------------------------------------------------- lo esperado del libro real
 
 
-def _tipo_esperado(base: Base, clave: str) -> dict[str, str]:
-    for identificador, la_clave, nombre in tipos_de_partida(base):
-        if la_clave == clave:
-            return {"id": str(identificador), "clave": la_clave, "nombre": nombre}
-    raise AssertionError(f"El tipo de partida {clave} no existe en la base")
-
-
 def _por_tipo_esperado(base: Base, importes: Mapping[str, str]) -> list[dict[str, Any]]:
     return [
         {
@@ -325,7 +319,7 @@ def _renglon_esperado(base: Base, clave: str) -> dict[str, Any]:
     assert len(insumos) == 1
     identificador, codigo, descripcion, unidad = insumos[0]
     return {
-        "tipo_partida": _tipo_esperado(base, clave),
+        "tipo_partida": tipo_esperado(base, clave),
         "insumo": {
             "id": str(identificador),
             "codigo": codigo,
@@ -526,7 +520,7 @@ def test_hdu001_esc14_conceptos_en_el_orden_del_borrador_con_sus_cifras_como_cad
         for e in elementos
     } == {("620040-A", "Tablaroca", "M2", "12.5000", "420.0000", "5250.0000")}
     assert all(
-        e["tipo_partida"] == _tipo_esperado(base, e["tipo_partida"]["clave"]) for e in elementos
+        e["tipo_partida"] == tipo_esperado(base, e["tipo_partida"]["clave"]) for e in elementos
     )
     copias = {
         str(fila[0])
@@ -556,7 +550,7 @@ def test_hdu001_esc14_conceptos_filtran_por_tipo_de_partida(
 ) -> None:
     """HDU-001 esc. 14 · TC-B13 · CA-B8 esc. 1 — `tipo_partida_id` deja solo los conceptos de ese tipo y el `total` los cuenta."""
     lector = abrir_sesion(("COMPRAS",))
-    tipo = _tipo_esperado(base, clave)
+    tipo = tipo_esperado(base, clave)
 
     cuerpo = _obtener(
         cliente,
@@ -670,7 +664,7 @@ def test_hdu001_esc14_conceptos_combinan_tipo_y_nivel(
         ruta_de_conceptos(congelada.linea_base_id),
         lector,
         "ListaConceptosLineaBase",
-        tipo_partida_id=_tipo_esperado(base, "MUROS")["id"],
+        tipo_partida_id=tipo_esperado(base, "MUROS")["id"],
         nivel="AZOTEA",
     )
 
@@ -956,7 +950,7 @@ def test_hdu001_esc14_explosion_filtra_por_tipo_y_suma_lo_devuelto(
         ruta_de_explosion(congelada.linea_base_id),
         lector,
         "ExplosionInsumos",
-        tipo_partida_id=_tipo_esperado(base, clave)["id"],
+        tipo_partida_id=tipo_esperado(base, clave)["id"],
     )
 
     assert len(cuerpo["renglones"]) == renglones
@@ -984,7 +978,7 @@ def test_hdu001_esc14_explosion_con_escalas_distintas_suma_sin_redondear(
         ruta,
         lector,
         "ExplosionInsumos",
-        tipo_partida_id=_tipo_esperado(base, "ENCHAPES")["id"],
+        tipo_partida_id=tipo_esperado(base, "ENCHAPES")["id"],
     )
 
     assert todos["importe_total"] == "4.2149"

@@ -823,6 +823,128 @@ def congelar(
     )
 
 
+class FilaControlBloqueada(NamedTuple):
+    """La fila de control tomada con `FOR UPDATE`: lo que la captura necesita para decidir."""
+
+    id: uuid.UUID
+    importe_tope: Dinero | None
+    importe_sugerido: Dinero
+
+
+class FilaControl(NamedTuple):
+    """Una fila de `presupuesto_control` con su tipo de partida y quién la capturó y recapturó."""
+
+    id: uuid.UUID
+    tipo_partida: FilaTipoPartida
+    importe_tope: Dinero | None
+    importe_sugerido: Dinero
+    capturado_por_id: uuid.UUID | None
+    capturado_en: datetime | None
+    actualizado_por_id: uuid.UUID | None
+    actualizado_en: datetime | None
+    motivo_ultimo_cambio: str | None
+
+
+def _dinero_o_nulo(valor: Decimal | None) -> Dinero | None:
+    return None if valor is None else Dinero(valor)
+
+
+def leer_tipo_partida(sesion_bd: Session, tipo_partida_id: uuid.UUID) -> FilaTipoPartida | None:
+    """Lectura de un tipo de partida por su id, sin bloqueo."""
+    fila = sesion_bd.execute(
+        select(tipo_partida.c.id, tipo_partida.c.clave, tipo_partida.c.nombre).where(
+            tipo_partida.c.id == tipo_partida_id
+        )
+    ).one_or_none()
+    if fila is None:
+        return None
+    return FilaTipoPartida(id=fila.id, clave=fila.clave, nombre=fila.nombre)
+
+
+def bloquear_control(
+    sesion_bd: Session, linea_base_id: uuid.UUID, tipo_partida_id: uuid.UUID
+) -> FilaControlBloqueada | None:
+    """`SELECT ... FOR UPDATE` de la fila de control del tipo: serializa las capturas (ADR-004)."""
+    fila = sesion_bd.execute(
+        select(
+            presupuesto_control.c.id,
+            presupuesto_control.c.importe_tope,
+            presupuesto_control.c.importe_sugerido,
+        )
+        .where(
+            presupuesto_control.c.linea_base_id == linea_base_id,
+            presupuesto_control.c.tipo_partida_id == tipo_partida_id,
+        )
+        .with_for_update()
+    ).one_or_none()
+    if fila is None:
+        return None
+    return FilaControlBloqueada(
+        id=fila.id,
+        importe_tope=_dinero_o_nulo(fila.importe_tope),
+        importe_sugerido=Dinero(fila.importe_sugerido),
+    )
+
+
+def actualizar_tope(
+    sesion_bd: Session,
+    control_id: uuid.UUID,
+    *,
+    importe_tope: Dinero,
+    motivo: str | None,
+    usuario_id: uuid.UUID,
+    ahora: datetime,
+    es_recaptura: bool,
+) -> None:
+    """Guarda el tope. La primera captura fija quién y cuándo; la recaptura, quién y cuándo la cambió."""
+    quien = (
+        {"actualizado_por_id": usuario_id, "actualizado_en": ahora}
+        if es_recaptura
+        else {"capturado_por_id": usuario_id, "capturado_en": ahora}
+    )
+    sesion_bd.execute(
+        update(presupuesto_control)
+        .where(presupuesto_control.c.id == control_id)
+        .values(importe_tope=importe_tope.valor, motivo_ultimo_cambio=motivo, **quien)
+    )
+
+
+def controles(sesion_bd: Session, linea_base_id: uuid.UUID) -> list[FilaControl]:
+    """Las filas de control de la línea base con su tipo de partida, por `tipo_partida.id`."""
+    sentencia = (
+        select(
+            presupuesto_control.c.id,
+            tipo_partida.c.id.label("tipo_id"),
+            tipo_partida.c.clave,
+            tipo_partida.c.nombre,
+            presupuesto_control.c.importe_tope,
+            presupuesto_control.c.importe_sugerido,
+            presupuesto_control.c.capturado_por_id,
+            presupuesto_control.c.capturado_en,
+            presupuesto_control.c.actualizado_por_id,
+            presupuesto_control.c.actualizado_en,
+            presupuesto_control.c.motivo_ultimo_cambio,
+        )
+        .join(tipo_partida, tipo_partida.c.id == presupuesto_control.c.tipo_partida_id)
+        .where(presupuesto_control.c.linea_base_id == linea_base_id)
+        .order_by(tipo_partida.c.id)
+    )
+    return [
+        FilaControl(
+            id=f.id,
+            tipo_partida=FilaTipoPartida(id=f.tipo_id, clave=f.clave, nombre=f.nombre),
+            importe_tope=_dinero_o_nulo(f.importe_tope),
+            importe_sugerido=Dinero(f.importe_sugerido),
+            capturado_por_id=f.capturado_por_id,
+            capturado_en=f.capturado_en,
+            actualizado_por_id=f.actualizado_por_id,
+            actualizado_en=f.actualizado_en,
+            motivo_ultimo_cambio=f.motivo_ultimo_cambio,
+        )
+        for f in sesion_bd.execute(sentencia)
+    ]
+
+
 def activar_obra(
     sesion_bd: Session, obra_id: uuid.UUID, ahora: datetime, usuario_id: uuid.UUID
 ) -> None:

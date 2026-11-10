@@ -1213,3 +1213,280 @@ Todos los criterios `[M]` de b2 (`CA-B8`, `CA-B9` y `CA-R1`) quedan cumplidos co
 ##### Veredicto
 
 **LISTO PARA EJECUTAR · TKT-017c.** La entrega TKT-017b2 queda revisada y acumulada en la rama `tkt-017a3-materializacion`, sin pull request.
+
+---
+
+## TKT-017c · Presupuesto de control (`/sdd-ejecutar` 2026-11-10)
+
+> [← index](_index.md) | [← design](design.md) | Siguiente: `/sdd-revisar` sobre TKT-017c. `/sdd-completar` corre una sola vez, cuando esta última entrega quede revisada: abre el pull request único de TKT-017.
+
+Entrega **TKT-017c** (filas **C0** a **C4**): la regla de captura del tope, el caso de uso con su bloqueo pesimista y su bitácora, la lectura del presupuesto de control y las dos rutas (`GET` y `PUT`). Se ejecutó en la rama `tkt-017a3-materializacion`, que ya acumula a3, b1 y b2, con tester y desarrollador separados en cada fila. El trabajo está sin commit y sin pull request.
+
+### Qué se implementó
+
+- **`dominio/captura_tope.py` (C1):** `evaluar_captura_tope` (`RN-03`, `RN-04`, `PA-03`), con `CausaRechazoCaptura`, `CapturaAdmitida(es_recaptura)` y `CapturaRechazada(causa)`. Un tope superior a la venta sin confirmar se rechaza antes que la falta de motivo; igual a la venta no pide confirmación; la recaptura (también al bajar o al repetir el valor) y el tope superior confirmado exigen motivo.
+- **`infraestructura/` (C2):** las columnas de captura de `presupuesto_control` en `tablas.py` y, en `repositorio_linea_base.py`, `leer_tipo_partida`, `bloquear_control` (`SELECT … FOR UPDATE` por línea base y tipo), `actualizar_tope` y `controles`.
+- **`aplicacion/presupuesto_control.py` (C2):** `capturar_tope` y `ROLES_CAPTURA`. Una transacción; línea base `404`, estado distinto de `CONGELADA` `409` `SIN_LINEA_BASE_CONGELADA`, tipo `404`, bloqueo de la fila de control (`404` si no existe), venta del tipo con `importes_venta_de` (la suma de las copias congeladas), regla, escritura y asiento. Primera captura: `CREAR` sin regla; recaptura: `RECAPTURAR` con `RN-03`, valor anterior y nuevo. Un fallo del motor se traduce con `traducir_error_del_motor` (`BLOQUEO_VENCIDO` con `REINTENTAR` `PUT`).
+- **`aplicacion/consulta_linea_base.py` (C2):** `listar_presupuesto_control` y `ControlConsultado`; vacío en `BORRADOR` (`P-9`), con los nombres de quien capturó y recapturó.
+- **`api/` (C3):** `CapturaPresupuestoControl` (con `importe_tope` como cadena ASCII estricta y `motivo` sin `NUL` y de hasta 2000 caracteres), `PresupuestoControl`, `api/rutas_presupuesto_control.py` (`GET` para los tres roles de lectura; `PUT` solo para `DIRECCION_GENERAL`, con `verificar_origen` antes que `exigir_rol`) y su montaje.
+- **Cliente:** `frontend/src/api/generado/servidor.ts` regenerado; `importe_tope` es `string`, no `unknown`, y no queda el componente `Dinero`.
+- **Soporte de pruebas:** `herramientas/soporte_tkt017_control.py` siembra una línea base congelada con cifras exactas.
+
+### Decisiones y supuestos durante la ejecución
+
+| # | Asunto | Resolución | Estado |
+|---|---|---|---|
+| `E1` | `P-13`: activar HDU-001 en `tools/historias_activas.txt` | Con HDU-001 añadida, `verificar_escenarios.py` da `faltan 9`: esc. 1, 2, 3, 16, 20, 21, 24, 25 y 26, todos de otros tickets. Como manda `P-13`, **no se activó**; el archivo quedó como estaba | **Resuelto por la persona dueña el 2026-11-10: HDU-001 queda sin activar** hasta que otros tickets cubran esos escenarios |
+| `E2` | Campos desconocidos en el cuerpo del `PUT` | Se ignoran, igual que en el `Motivo` de la congelación (`test_hdu001_esc15_captura_ignora_los_campos_que_no_son_del_cuerpo`) | Confirmado por la persona dueña el 2026-11-10, en `/sdd-revisar` |
+| `E3` | Primera captura con motivo en blanco | Se trata como sin motivo y se guarda nulo (hallazgo `F001` de arquitectura). Una recaptura o un tope superior confirmado con motivo en blanco siguen dando `422` `OBLIGATORIO` | Corregido con test |
+| `E4` | `actualizado_*` en la primera captura | Quedan nulos; la primera captura fija `capturado_*` y la recaptura fija `actualizado_*` (como el borrador y los escenarios 15 y 22). No lo fija ningún test de forma exclusiva | Confirmado por la persona dueña el 2026-11-10, en `/sdd-revisar` |
+
+### Riesgo declarado
+
+| # | Riesgo | Por qué se acepta | Quién y cuándo |
+|---|---|---|---|
+| `R-2` (extendido a c) | **Desviación del rojo.** El rojo de C1 es un `ModuleNotFoundError` de colección (el módulo `captura_tope` no existía). El de C2 es `ModuleNotFoundError` y `AttributeError` por test, por importación tardía; el de C3, el `404` del enrutador | Un módulo o una ruta que no existen no admiten otro fallo sin escribir producción; los protegen los mutantes `M-C1` a `M-C15` | Orquestador, 2026-11-10; mismo criterio que la persona dueña confirmó en a3, b1 y b2 |
+| `R-3` (extendido a c) | Tests nacidos en verde: los dos anclajes de mutantes (`M-C5` y `M-C14`), que se añadieron después de ver sobrevivir esos mutantes | Cada uno cae con su mutante | Orquestador, 2026-11-10 |
+| `M-C7`, `M-C8` | Sobreviven: el validador de `importe_tope` del esquema y `Dinero` rechazan lo mismo con dos barreras | Defensa en profundidad redundante y sin camino observable; los casos de `TC-C14` fallarían si `Dinero` dejara de ser estricto | Auditoría de mutación |
+
+### Ajustes respecto al design
+
+Reflejados en `design.md` en este mismo cambio (filas C0 a C4 y la sección «Ajustes de la ejecución de TKT-017c»).
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-10 | `motivo` del `PUT` sin `NUL` y de hasta 2000 caracteres | El mismo `500` que dio el `NUL` en b1; tres funciones de prueba (16 casos, 12 en rojo) |
+| 2026-11-10 | Anotación propia para `importe_tope`, sin `WithJsonSchema` suelto | `F002` de arquitectura: el componente `Dinero` huérfano |
+| 2026-11-10 | `test_tkt057_csrf.py` y `test_tkt017_api_congelado.py` ajustados | La entrada del `PUT` en `CUERPOS_VALIDOS` y las dos operaciones en `IMPLEMENTADAS_DE_PRESUPUESTO`, como en b1 |
+| 2026-11-10 | `HDU-001` no se activa | `E1` |
+
+### Archivos tocados
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/presupuesto/dominio/captura_tope.py` | nuevo | dominio |
+| `backend/cimenta/presupuesto/aplicacion/presupuesto_control.py` | nuevo | aplicación |
+| `backend/cimenta/presupuesto/aplicacion/consulta_linea_base.py` | modificado | aplicación |
+| `backend/cimenta/presupuesto/infraestructura/{tablas,repositorio_linea_base}.py` | modificados | infraestructura |
+| `backend/cimenta/presupuesto/api/rutas_presupuesto_control.py` | nuevo | api |
+| `backend/cimenta/presupuesto/api/{esquemas,montaje}.py` | modificados | api |
+| `backend/herramientas/soporte_tkt017_control.py` | nuevo | herramientas |
+| `backend/tests/test_tkt017_captura_tope.py`, `test_tkt017_presupuesto_control.py`, `test_tkt017_api_control.py` | nuevos | pruebas |
+| `backend/tests/test_tkt017_api_congelado.py`, `test_tkt057_csrf.py` | modificados | pruebas |
+| `frontend/src/api/generado/servidor.ts` | regenerado | cliente |
+| `docs/api/openapi.yaml` | modificado | documentación |
+| `sdd/tickets/tkt-017/{design,impl,_index}.md` | modificados | SDD |
+
+### Pruebas
+
+| # | Tests | Tipo | Criterio | Antes del código | Al cerrar |
+|---|---|---|---|---|---|
+| TC-C18 | `test_tkt017_captura_tope.py` (20 casos) | feliz, **rechazo** y borde | `CA-C2` a `CA-C5` | FALLA (módulo ausente) | PASA |
+| TC-C03, TC-C07 a TC-C10, TC-C13, TC-C15 a TC-C17 y lecturas | `test_tkt017_presupuesto_control.py` (30 casos con los de `F001` y los dos anclajes) | feliz, **rechazo** y concurrencia | `CA-C1` a `CA-C7` | FALLA (26 de 26: módulo o atributo ausente) | PASA |
+| TC-C01, TC-C02, TC-C04 a TC-C06, TC-C11, TC-C12, TC-C14, TC-C19 y TC-B19 | `test_tkt017_api_control.py` (118 casos al cerrar la revisión; 112 al cerrar la ejecución) | feliz, **rechazo**, contrato y regresión | `CA-C1` a `CA-C7`, `CA-R1` | FALLA (93 de 93: ruta ausente) | PASA |
+| Frontera del `motivo` | `NUL` (8), más de 2000 caracteres (4) y exactamente 2000 (4) | **rechazo** y borde | `CA-C6` | 12 fallan o dan `500`; los 4 del borde pasan | PASA |
+| `F001` y `F002` | primera captura con motivo en blanco (4) y el contrato sin el componente `Dinero` (1) | **rechazo** y regresión | `CA-C2`, `CA-R1` | FALLA (5 de 5) | PASA |
+| Anclajes de mutantes | `..._ignora_partida_concepto_posterior` y `..._se_cuantiza_antes_de_comparar` | regresión | `CA-C1`, `CA-C3` | Nacen en verde (ver `R-3`) | PASA |
+
+### Ciclo TDD por fila
+
+Salida del rojo, recortada a su resumen literal:
+
+**Fila C0 · apertura** (Docker 29.9.3): `ruff check`, `mypy`, `lint-imports` (16 contratos), `verificar_float` y `alembic heads` (`0011 (head)`) en verde. La rama estaba limpia y era la de la entrega anterior; no se despachó `git-entrega` porque solo había que verificarla.
+
+**Fila C1 · rojo** (`uv run pytest tests/test_tkt017_captura_tope.py -q -ra --tb=line`): `1 error in 0.18s`, `ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.captura_tope'` (`R-2`). **Verde:** `20 passed in 0.04s`; `ruff`, `mypy`, `lint-imports` y `verificar_float` en verde. Refactor: se extrajo `_motivo_ausente`.
+
+**Fila C2 · rojo** (`uv run pytest tests/test_tkt017_presupuesto_control.py -q -ra --tb=line`): `26 failed in 10.73s`; 23 por `ModuleNotFoundError` de `aplicacion.presupuesto_control` y 3 por `AttributeError` de `listar_presupuesto_control`; sin errores de colección. **Verde:** `26 passed in 13.43s` y tres corridas seguidas sin intermitencia (`26 passed in 16.68s`, `12.46s` y `7.93s`); más `155 passed` de `test_tkt017_congelado.py`, `test_tkt017_api_lecturas.py` y `test_tkt011_permisos.py`. Refactor: `_usuario_resumen`, que también usa `_consultada`.
+
+**Fila C3 · rojo** (`uv run pytest tests/test_tkt017_api_control.py tests/test_tkt006_enrutador.py tests/test_tkt057_csrf.py -q -ra --tb=line`): `93 failed, 102 passed in 89.33s` (los 93 son del archivo nuevo: 76 por ruta ausente, 4 por el cuerpo del `404`, 7 por `/openapi.json` y 3 de dígitos Unicode); sin errores. **Verde:** `347 passed in 138.25s` en los cinco archivos; `npm run tipos:verificar`, `typecheck` y `lint` en verde.
+
+**Frontera del `motivo` · rojo:** `12 failed, 4 passed` (los 8 casos de `NUL` daban `500`; los 4 de 2001 caracteres, `200`). **Verde:** `334 passed in 135.11s`.
+
+**Ciclo de corrección de `/sdd-ejecutar` (`F001` y `F002`) · rojo:** `5 failed, 137 passed in 53.38s`. **Verde:** `387 passed in 143.81s` en seis archivos.
+
+### Mutantes
+
+La fila C4 los ejecutó uno a uno, con copia previa fuera del repositorio y huella SHA-256 idéntica (263 archivos `.py`) tras cada reversión.
+
+| Mutante | Cambio | Tests que cayeron |
+|---|---|---|
+| `M-C1` | `>` por `>=` en `evaluar_captura_tope` | 3 (borde igual a la venta, en dominio, caso de uso y API) |
+| `M-C2` | Recaptura solo si el tope sube | 6 (bajar el tope, mismo valor y recapturas simultáneas) |
+| `M-C3` | `RECAPTURAR` sin `RN-03` | 5 |
+| `M-C4` | Quitar `with_for_update()` de `bloquear_control` | 2 (recapturas simultáneas y espera del bloqueo) |
+| `M-C5` | `importes_venta_de` siempre desde `partida_concepto` | **Sobrevivía en c** (la suite de b lo mataba); se añadió `test_tkt017_cac01_listar_control_de_una_congelada_ignora_partida_concepto_posterior`: `1 failed, 27 passed` |
+| `M-C6` | `CREAR` con `RN-03` | 6 |
+| `M-C7` y `M-C8` | `fullmatch` por `match`; `[0-9]` por `\d` | **Sobreviven** por equivalencia (ver «Riesgo declarado») |
+| `M-C9` | Quitar el `NUL` del `motivo` | 8 |
+| `M-C10` | `max_length` del `motivo` en 2001 | 4 |
+| `M-C11` | Quitar la comprobación de `CONGELADA` | 4 |
+| `M-C12` | `exigir_rol` antes que `verificar_origen` | 3 |
+| `M-C13a`, `M-C13b`, `M-C13c` | Quitar o falsear `obra_id` del asiento | 2, 4 y 6 |
+| `M-C14` | Sin `cuantizar()` del tope | **Sobrevivía**; se añadió `test_hdu001_esc17_tope_con_mas_de_cuatro_decimales_se_cuantiza_antes_de_comparar`: `1 failed, 27 passed` |
+| `M-C15` | Controles en orden inverso | 4 |
+
+`M-C4`: el test de bloqueo vencido por sí solo no lo mata; lo matan los de recapturas simultáneas y de espera.
+
+### Modelo por paso
+
+| Paso | Agente | Modelo |
+|---|---|---|
+| C0 | El orquestador | — (verificación mecánica) |
+| C1 (rojo y verde) | `tester-backend` y `desarrollador-dominio` | `sonnet` (disparador: regla de límite `RN-03`) |
+| C2 (rojo y verde) | `tester-backend` y `desarrollador-aplicacion` | `sonnet` (reglas de límite y bloqueo pesimista) |
+| C3 (rojo y verde) | `tester-api` y `desarrollador-api` | `sonnet` (regla de límite y permisos de un rol) |
+| Ciclo del `motivo` | `tester-api` y `desarrollador-api` | `sonnet` |
+| Documentación del borrador | El orquestador | — |
+| C4 (mutantes y anclajes) | `tester-backend` | `sonnet` |
+| Auditoría de cierre de fase | `auditor-arquitectura` | `sonnet` |
+| Corrección de `F001` y `F002` | `tester-api` y `corrector-revision` | `sonnet` (`F002` toca Pydantic) |
+
+Ningún paso subió a `opus`; ninguno necesitó dos intentos.
+
+### Resultado contra criterios de aceptación (alcance c)
+
+| Criterio | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| `CA-C1` | `[M]` | Cumplido | `TC-C01` y `TC-C02`: las cuatro filas, venta igual a la suma de las copias cuantizadas, suma igual al importe de la línea base, `403` sin importes, `404` y `401` |
+| `CA-C2` | `[M]` | Cumplido | `TC-C03` por caso de uso y por API: tope, quién y cuándo, sugerido intacto, `CREAR` sin regla que no sale en una consulta por `RN-03`; primera captura con motivo en blanco |
+| `CA-C3` | `[M]` | Cumplido | `TC-C04` a `TC-C07`: `409` `TOPE_SUPERIOR_A_VENTA_SIN_CONFIRMAR` con detalle y acción `CONFIRMAR_TOPE_SUPERIOR`, `422` sin motivo, confirmación con motivo, borde igual a la venta |
+| `CA-C4` | `[M]` | Cumplido | `TC-C08` a `TC-C10`: `RECAPTURAR` con `RN-03` y los dos valores, también al bajar y al repetir |
+| `CA-C5` | `[M]` | Cumplido | `TC-C11` y `TC-C12`: `403` con `DENEGAR` para cinco roles, `422` sin motivo, tope intacto |
+| `CA-C6` | `[M]` | Cumplido | `TC-C13` a `TC-C15` y `TC-C19`: `SIN_LINEA_BASE_CONGELADA`, 26 importes mal formados con `422` `FORMATO`, `404`, el esquema de `importe_tope` como cadena |
+| `CA-C7` | `[M]` | Cumplido | `TC-C16` y `TC-C17`: recapturas simultáneas encadenadas, espera con `pg_blocking_pids` y `BLOQUEO_VENCIDO` con `REINTENTAR` y sin asiento |
+| `CA-R1` | `[M]` | Cumplido | Suite completa en verde y `lint-imports` con 16 contratos |
+| `P-13` (activar HDU-001) | — | Resuelto: sin activar (decisión de la persona dueña, 2026-11-10) | `E1` |
+
+### Auditorías
+
+| Auditor | Primera pasada | Ciclo 1 |
+|---|---|---|
+| `auditor-arquitectura` | **REQUIERE CAMBIOS** (`F001` y `F002`, Menores) | **APROBADO** |
+| `auditor-sql` | No se despachó en `/sdd-ejecutar`: c no añade esquema ni migración; lo cubre `/sdd-revisar` | Ver «Revisión» |
+
+#### Qué verificó `auditor-arquitectura` (reauditoría, ítem por ítem)
+
+- `F001`: la línea de `presupuesto_control.py` que normaliza el motivo en blanco a nulo antes de la regla, de `actualizar_tope` y de `asentar`; el dominio queda intacto, y `RN-03` y `RN-04` siguen exigiendo motivo en la recaptura y en el tope superior confirmado. Los dos tests de primera captura con motivo en blanco existen.
+- `F002`: `_importe_no_negativo` exige una cadena y `fullmatch` con dígitos ASCII; el esquema publicado trae `type: string`, el patrón del borrador y `format: decimal`; `servidor.ts` no contiene `Dinero`; el test del contrato lo fija.
+- El borrador solo cambió en la descripción del `GET`; ninguna ruta, código ni esquema nuevo diverge.
+- `lint-imports` (16 contratos), `verificar_float` (33 archivos), `ruff`, `mypy` y 275 tests en verde.
+- Reglas 2, 3, 5, 8, 11, 14 y 17 y las prohibiciones, sin hallazgos nuevos.
+
+#### Hallazgos y su resolución
+
+| ID | Severidad | Hallazgo | Resolución |
+|---|---|---|---|
+| Arquitectura `F001` | Menor | Una primera captura con `motivo` en blanco daba `422` | `E3`; dos tests y corrección |
+| Arquitectura `F002` | Menor | Componente `Dinero` huérfano en el contrato publicado | Anotación propia; regenerado `servidor.ts`; test del contrato |
+
+### Hallazgos fuera de alcance y deuda
+
+| Dónde | Observación | Hacia |
+|---|---|---|
+| `aplicacion/presupuesto_control.py` | La línea base se lee sin bloqueo y solo después se bloquea la fila de control; hoy es seguro porque nada pasa una línea base a `SUPERSEDIDA` | El ticket que implemente `SUPERSEDIDA` (volver a comprobar el estado tras el `FOR UPDATE`) |
+| `aplicacion/presupuesto_control.py` | `next(...)` sin valor por omisión lanzaría `StopIteration` si el tipo del control no estuviera entre las ventas; es inalcanzable por la integridad de `presupuesto_control` | Cuando se toque ese archivo |
+| `repositorio_linea_base.py` (`lineas_base_de_obra`) | Ordena solo por `version DESC` (deuda de b2 hacia c) | Fuera de las filas de c; no se tocó |
+| Fixtures `base`, `entorno` y `contexto` | `test_tkt017_congelado.py`, su concurrencia y `test_tkt017_materializacion.py` las definen por su cuenta (deuda de b2 hacia c) | Fuera de las filas de c; ticket de pruebas |
+| `HDU-001` | Sin activar en `tools/historias_activas.txt` (`E1`, decisión de la persona dueña del 2026-11-10) | El ticket que deje a HDU-001 sin escenarios huérfanos (esc. 1, 2, 3, 16, 20, 21, 24, 25 y 26) |
+
+### Documentación actualizada
+
+| Documento | Qué cambió |
+|---|---|
+| `docs/api/openapi.yaml` | `listar_presupuesto_control` devuelve `[]` en `BORRADOR` (`P-9`) (**señalar a quien apruebe el PR**) |
+| `sdd/tickets/tkt-017/design.md` | Filas C0 a C4 y los ajustes de c |
+
+### Verificación final (entrega TKT-017c)
+
+Salida real de los comandos sobre el estado final tras un ciclo de corrección. `docker info`: Docker 29.9.3 con el servidor en marcha.
+
+```text
+uv run ruff format --check .      → 277 files already formatted
+uv run ruff check .               → All checks passed!
+uv run mypy .                     → Success: no issues found in 277 source files
+uv run lint-imports               → Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → verificar_float: archivos revisados: 33; hallazgos: 0
+uv run pytest -q -ra --tb=short   → 2671 passed, 26 skipped in 587.19s (0:09:47)
+npm run tipos:verificar (frontend) → Tipos al día.
+npm run typecheck y npm run lint (frontend) → sin errores
+python tools/verificar_docs.py    → ✓ Sin problemas.
+python tools/extraer_mermaid.py   → 30 diagramas encontrados · Escrito: D:\Documentos\LIDR\Proyecto Final\tools\mermaid-check.html
+python -m unittest discover -s tools/tests → Ran 510 tests in 19.960s · OK
+python tools/verificar_escenarios.py (con HDU-001 añadida de forma temporal) → faltan 9: esc. 1, 2, 3, 16, 20, 21, 24, 25 y 26 de HDU-001 (revertido; el archivo no cambió)
+```
+
+Los 26 omitidos son las pruebas contra el archivo real del catálogo. El CI completo de GitHub Actions se verifica en `/sdd-completar`, al abrir el PR único.
+
+##### Resultado por criterio (alcance c)
+
+Todos los criterios `[M]` de c (`CA-C1` a `CA-C7`) y `CA-R1` quedan cumplidos. Con esta entrega queda completo el alcance de TKT-017, salvo la activación de HDU-001, que la persona dueña dejó sin hacer el 2026-11-10.
+
+##### Veredicto
+
+**EN REVISIÓN · entrega TKT-017c.** Siguiente: `/sdd-revisar TKT-017`, que despacha los cinco auditores sobre esta entrega.
+
+### Revisión (`/sdd-revisar`, 2026-11-10) · entrega TKT-017c
+
+La revisión comprobó la completitud (cada criterio `[M]` de c con resultado y evidencia, y la salida literal del rojo de cada fila), corrió la suite y despachó las auditorías sobre el diff de la entrega (el árbol de trabajo frente a `HEAD` más los archivos nuevos). `auditor-arquitectura` ya había aprobado este código tras un ciclo en `/sdd-ejecutar` y no se repitió: desde entonces solo cambió la documentación y lo que se corrigió en esta revisión, que revisaron los demás auditores.
+
+#### Auditorías
+
+| Auditor | Primera pasada | Ciclo 1 |
+|---|---|---|
+| `auditor-arquitectura` | **APROBADO** en `/sdd-ejecutar` (tras un ciclo) | No se repitió |
+| `auditor-sql` | **APROBADO** (cuatro observaciones, ninguna bloquea) | No hizo falta |
+| `auditor-seguridad` | **APROBADO** (un hallazgo Bajo, `F001`: `confirmar_superior_a_venta` con coerción laxa) | Corregido junto con el de código; sin reauditar (Bajo corregido con test) |
+| `auditor-codigo` | **REQUIERE CAMBIOS** (seis Menores, `F001` a `F006`) | **APROBADO** |
+| `auditor-docs` | **REQUIERE CAMBIOS** (tres Mayores, tres Menores y observaciones) | **REQUIERE CAMBIOS** (un Menor nuevo, `F012`); resuelto por el orquestador con el texto literal, sin reauditar: **APROBADO CON MENORES RESUELTOS SIN REAUDITAR** |
+
+#### Hallazgos y su resolución
+
+| Auditor y ID | Severidad | Hallazgo | Resolución |
+|---|---|---|---|
+| Código `F001` y seguridad `F001` | Menor y Baja | `confirmar_superior_a_venta` aceptaba `"yes"`, `"on"`, `"true"` y `1` como confirmación | `StrictBool`; `test_tkt017_cac06_confirmar_superior_a_venta_solo_admite_booleanos` (6 casos; 5 en rojo antes del arreglo); `servidor.ts` regenerado |
+| Código `F002` | Menor | Condición redundante `es_recaptura and anterior is not None` | `if resultado.es_recaptura:` con una aserción explícita |
+| Código `F003` | Menor | «Motivo en blanco» definido dos veces | Ayudante único `sin_blanco` en `dominio/captura_tope.py` |
+| Código `F004` | Menor | Ayudantes y fixtures de prueba copiados entre c, b1 y b2 | Movidos a `herramientas/soporte_tkt017_api.py` (`ROLES_DE_LECTURA`, `ROLES_SIN_LECTURA`, `ENTORNO_DE_LA_APLICACION`, `SIN_PAR_VALIDO`, `cliente_espera_corta`, `tipo_esperado`, `resolver`) |
+| Código `F005` y `F006` | Menores | Nombre de test sin su escenario y `if/elif/else` dentro de un test | Renombrado a `..._cac01_..._y_recapturo`; parametrizado con los ids `linea_base`, `tipo_partida` y `presupuesto_control` |
+| Docs `F001` | Mayor | El borrador no documentaba el límite ni el `NUL` del `motivo` | `maxLength: 2000` y `pattern: '^[^\x00]*$'` en `CapturaPresupuestoControl.motivo` |
+| Docs `F002` | Mayor | El `409` del `PUT` no documentaba `CONCURRENCIA` | Descripción del `409` ampliada (`ErrorConflicto` ya incluía `ErrorConcurrencia`) |
+| Docs `F003` | Mayor | `E2` y `E4` eran supuestos sin confirmar | La persona dueña los confirmó el 2026-11-10 |
+| Docs `F004` a `F007` | Menores | Texto del `200`, salida no literal, cifra de casos y mutantes del diseño | Corregidos con el texto literal del auditor |
+| Docs `F012` | Menor | `test_tkt017_api_control.py` figuraba con 112 casos y ahora recoge 118 | Cifra corregida en la tabla de «Pruebas» |
+| SQL `O001` a `O004` | Observaciones | Estado de la línea base leído sin bloqueo (futuro `SUPERSEDIDA`); `22003` y `23514` sin traducción propia en la captura; el `PUT` relee en otra transacción | Sin acción: constan en «Hallazgos fuera de alcance y deuda» |
+
+El árbol de trabajo pasó además de `CRLF` a `LF` en `tablas.py`, `test_tkt017_api_congelado.py`, `test_tkt017_api_lecturas.py` y `herramientas/soporte_tkt017_api.py` (hallazgo `F009` de docs).
+
+#### Observaciones que no bloquean
+
+- `test_tkt017_cac07_recaptura_espera_el_bloqueo`: `CREAR` y `RECAPTURAR` comparten instante del reloj de pruebas y quedan en el orden esperado porque `"CREAR" < "RECAPTURAR"` alfabéticamente (observación del auditor de código).
+- `TC-C16` por sí solo es probabilístico frente a `M-C4`; el caso que lo mata de forma determinista es `TC-C17`, como declara el diseño.
+- `traducir_error_del_motor` no traduce `23514` (importe negativo): inalcanzable por la API, que lo rechaza con `422`. A tener en cuenta si otro llamador interno invoca `capturar_tope`.
+- Riesgo declarado `R-3` (tests nacidos en verde): lo aceptó el orquestador; consta en la ejecución.
+
+### Verificación final (entrega TKT-017c)
+
+Salida real de los comandos sobre el estado final tras un ciclo de corrección. `docker info`: Docker 29.9.3 con el servidor en marcha.
+
+```text
+uv run ruff format --check .      → 277 files already formatted
+uv run ruff check .               → All checks passed!
+uv run mypy cimenta/              → Success: no issues found in 119 source files
+uv run lint-imports               → Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → verificar_float: archivos revisados: 33; hallazgos: 0
+uv run pytest -q -ra --tb=short   → 2677 passed, 26 skipped in 499.70s (0:08:19)
+npm run tipos:verificar (frontend) → Tipos al día.
+npm run typecheck y npm run lint (frontend) → sin errores
+python tools/verificar_docs.py    → ✓ Sin problemas.
+python -m unittest discover -s tools/tests → Ran 510 tests in 17.438s · OK
+```
+
+Los 26 omitidos son las pruebas contra el archivo real del catálogo. `verificar_escenarios.py` no exige ningún test de HDU-001 mientras `tools/historias_activas.txt` la deje `PENDIENTE` (decisión de la persona dueña, `E1`). Se verifica en `/sdd-completar`: el CI completo de GitHub Actions, los nueve trabajos de `ci.yml`, sobre el PR único.
+
+##### Resultado por criterio (alcance c)
+
+Todos los criterios `[M]` de c (`CA-C1` a `CA-C7`) y `CA-R1` quedan cumplidos, con la evidencia de «Resultado contra criterios de aceptación (alcance c)»; ningún Must incumplido, y cada regla implicada tiene su test de rechazo con el contrato de error completo.
+
+##### Veredicto
+
+**LISTO PARA PR.** La entrega TKT-017c queda revisada, y con ella todo el alcance de TKT-017 (a3, b1, b2 y c, en la rama `tkt-017a3-materializacion`). `/sdd-completar TKT-017` abre el pull request único. No hay commit de esta entrega: lo hace `/sdd-completar`.
