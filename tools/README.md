@@ -34,8 +34,9 @@ Sin dependencias. Devuelve código de salida `1` si encuentra algún problema, p
 | **Story points** | Que la suma de la tabla de historias coincida con el total declarado |
 | **Escenarios** | Numeración contigua, y que cada Definition of Done declare el número real de escenarios de su historia |
 | **Codificación** | Documentos `.md` y `llms.txt` que empiezan por BOM, y scripts `.ps1` que no empiezan por él. Windows PowerShell 5.1 lee un `.ps1` sin BOM como ANSI y corrompe los acentos |
+| **Finales de línea** | Un archivo de `backend/`, `sdd/`, `docs/`, `tools/` o `.claude/` (`.md`, `.py`, `.yml`, `.yaml`, `.toml` o `.json`) que el índice de Git guarda con `crlf` o `mixed`: el repositorio guarda LF (`.gitattributes`). Una copia de trabajo en CRLF con LF en el índice solo se **avisa**, porque Git la normaliza al commitear. Lee `git ls-files --eol`; sin Git, avisa y no comprueba nada |
 
-El último es el que sostiene la [regla de aceptación](../docs/04-historias-usuario.md#regla-de-aceptación): una historia cuyo conteo no cuadra suele ser una historia a la que se le añadió un escenario sin actualizar su criterio de cierre.
+El de escenarios es el que sostiene la [regla de aceptación](../docs/04-historias-usuario.md#regla-de-aceptación): una historia cuyo conteo no cuadra suele ser una historia a la que se le añadió un escenario sin actualizar su criterio de cierre.
 
 **El aviso de requisitos huérfanos existe por cómo aparecieron los `RNF`.** Se añadieron al PRD en la revisión del stack del 2026-09-19, y un requisito no funcional es justo el tipo de cosa que se escribe una vez, se siente resuelta y no la implementa nadie. El aviso no rompe el pipeline —declarar antes de implementar es legítimo— pero deja constancia de cuántos siguen sin dueño.
 

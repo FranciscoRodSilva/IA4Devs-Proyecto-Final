@@ -46,6 +46,9 @@ Reglas de [ADR-016](../../../docs/adr/20261001-almacenamiento-de-objetos.md), to
 ## 5 · Entrada externa
 
 - Validación en el borde con Pydantic v2: tipos, rangos, longitudes. Lo que no está declarado, no entra.
+- **Texto libre**: rechaza el carácter `NUL` (`psycopg` no lo admite y daría un `500`) y fija un tope de longitud (en las rutas de línea base, 2000 caracteres para un motivo). Un campo opcional que el dominio decide si exige (un motivo) no lleva `min_length` ni recorte: nulo y en blanco llegan al dominio.
+- **Confirmaciones**: un `bool` que levanta un límite (`confirmar_superior_a_venta`) es `StrictBool`; en modo laxo, `"yes"` y `1` valen `True` y saltan el `409`.
+- **Importes de entrada**: cadena que cumple un patrón ASCII con `fullmatch` (`^[0-9]{1,14}(\.[0-9]{1,4})?$`); un `float` o un número JSON se rechaza. El esquema publicado sigue siendo `type: string` y no deja un componente `Dinero` huérfano con `number` (anotación propia con `__get_pydantic_core_schema__` y `__get_pydantic_json_schema__`, no `PlainValidator` con `WithJsonSchema`).
 - Nada de SQL por concatenación. Consultas parametrizadas o construidas con SQLAlchemy. Si hace falta SQL literal, parámetros ligados — nunca interpolación de cadena.
 - Límites de tamaño de carga y de número de elementos en operaciones masivas. Un endpoint que acepta una lista sin tope es una denegación de servicio con una sola petición.
 - Los errores devuelven el contrato de error, **sin trazas ni estructura interna**.

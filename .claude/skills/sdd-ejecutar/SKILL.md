@@ -82,7 +82,7 @@ Despacha **`tester-backend`** en su momento de cierre.
 - Todos los tests del paso 2 en verde, **sin haberlos tocado** salvo para corregir un error del propio test, hecho por el tester y documentado en `impl.md`.
 - Cada criterio de aceptación tiene su test. **Sin un test de rechazo por regla implicada, la fase no cierra.**
 - PostgreSQL y MinIO reales con testcontainers, esquema por `alembic upgrade head`, conexión con el rol de aplicación. **Nunca SQLite, nunca `create_all()`.**
-- **Mutación** en rutas críticas: muta un operador o un umbral, confirma que algún test se pone rojo, deshaz la mutación y anota qué cayó. Si ninguno se inmuta, falta un test.
+- **Mutación** en rutas críticas, con el protocolo de `tester-backend`: copia previa de lo que se muta fuera del repositorio y huella SHA-256 de los `.py` antes y después de cada mutante, un mutante a la vez, y `git status` idéntico al terminar. Confirma que algún test se pone rojo y anota «mutante · test que cae» y las dos huellas. Si ninguno se inmuta, falta un test. En un ticket partido, corre la tabla completa de mutantes del diseño contra la suite acumulada.
 - **Pega la salida real** de la suite en `impl.md`. Un «todo en verde» sin evidencia no cuenta.
 
 Prohibido alterar o borrar un test para que la suite pase.

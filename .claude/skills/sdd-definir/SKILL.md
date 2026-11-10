@@ -40,6 +40,8 @@ No avances sin la evidencia de la anterior. Si el usuario dio todo en el primer 
 
 **Pregunta obligatoria sobre costos, en la fase 2.** ¿El ticket depende de un servicio externo de pago, de una cuenta o de una clave de API? Si sí, la persona dueña confirma el presupuesto **antes del gate** y la spec lo registra como supuesto abierto con su disparador de recorte (qué se recorta si no hay presupuesto). En TKT-062b se asumió una clave de API de pago y solo se supo que no había presupuesto al llegar a la fila B4, con todo ya construido.
 
+**Pregunta obligatoria sobre dependencias cruzadas, en la fase 2.** Antes del gate, haz `Grep` del identificador del ticket y de sus historias sobre `docs/05-tickets-trabajo.md`, los `_index.md` de `sdd/tickets/` y `tools/historias_activas.txt`, y pega la salida en la spec. Si el ticket activa una historia, lista los escenarios que otros tickets aún no cubren y fija en qué entrega se activa; si necesita algo que otro ticket entrega, decláralo como dependencia y no como pregunta abierta. En un paraguas, una pregunta cuya respuesta depende de una entrega posterior se registra en el hub como «diferida a TKT-xxxN», con lo que falta, y se le hace a la persona dueña **al abrir el paraguas**, no al cerrarlo. En TKT-017, la activación de HDU-001 (`P-13`) solo pudo comprobarse en la última fila del paraguas, con nueve escenarios de otros tickets sin test.
+
 ## Paso 3 · Escribir la spec
 
 Desde [`sdd/plantillas/spec.md`](../../../sdd/plantillas/spec.md), en `sdd/tickets/tkt-xxx/spec.md`.

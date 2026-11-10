@@ -77,7 +77,14 @@ Estado: `Pendiente` · `✓ Hecho` · `⚠ Ajustado` (y el ajuste se documenta e
 
 **Obligatorio:** ≥1 caso de rechazo. Un plan de pruebas sin rechazo no se aprueba.
 
-**Mutación** en rutas críticas (dinero, límites, congelado): qué mutante se va a probar y qué test debe ponerse rojo.
+**Mutación** en rutas críticas (dinero, límites, congelado): qué mutante se va a probar y qué test debe ponerse rojo. Los mutantes que se añadan durante la ejecución (porque uno sobrevive o lo pide una auditoría) constan en la tabla «mutante · test que cae» de `impl.md`; `design.md` solo remite a ella y registra, en una sección «Ajustes de la ejecución» al final, los que redefinen uno de esta lista.
+
+## Entradas hostiles y datos inesperados
+
+Por cada campo de texto libre o de importe que entra por una ruta, qué se rechaza en el borde y con qué prueba. Casos que se descubrieron tarde: el carácter `NUL` (`psycopg` lo rechaza y da un `500`) y un tope de longitud en todo texto libre (TKT-007 y TKT-017); un `bool` de confirmación en modo laxo, que acepta `"yes"` y `1` (usa `StrictBool`); un importe con dígitos no ASCII, con salto de línea final o con más decimales que la columna; y un esquema de dinero que se publica como `number` o como un componente huérfano.
+
+| Campo | Qué se rechaza | Código | Test |
+|---|---|---|---|
 
 ## Impacto
 
@@ -110,3 +117,7 @@ Sí / No. Si sí: `docs/adr/YYYYMMDD-<slug>.md`, formato MADR.
 
 | Riesgo | Probabilidad | Impacto | Qué se hace |
 |---|---|---|---|
+
+## Ajustes de la ejecución
+
+Se llena durante `/sdd-ejecutar` y `/sdd-revisar`, con la decisión de la persona dueña cuando el ajuste no estaba escrito en este diseño. Vacío mientras no haya ninguno.

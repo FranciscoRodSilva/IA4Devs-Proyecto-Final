@@ -41,6 +41,10 @@ Los flujos de la historia de punta a punta, **incluidos los de rechazo**: la req
 test('HDU-002 esc. 4 · requisición bloqueada muestra excedente y acciones', async () => { … })
 ```
 
+## Mutación al cerrar
+
+Si tu fila cierra una entrega con lógica de dinero o de bloqueo en el cliente, aplica el protocolo de mutación de [`tester-backend`](tester-backend.md#mutación-en-rutas-críticas) con la huella SHA-256 de los archivos de `frontend/src/` en lugar de la de `backend/`: copia previa fuera del repositorio, un mutante a la vez y `git status` idéntico al terminar.
+
 ## Prohibido
 
 - Afirmar sobre clases de CSS o estructura interna en vez de lo que la persona ve: rol, etiqueta, texto.

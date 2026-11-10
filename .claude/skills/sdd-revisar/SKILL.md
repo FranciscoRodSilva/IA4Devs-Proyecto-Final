@@ -97,7 +97,7 @@ Comprueba también cada veredicto recibido: un `APROBADO` sin la sección «Qué
 
 ## Paso 6 · Cerrar
 
-1. Añade «Verificación final» a `impl.md` con el resultado por criterio, la suite, los veredictos y las desviaciones. En un ticket partido, una «Verificación final» **por entrega**.
+1. Añade «Verificación final» a `impl.md` con el resultado por criterio, la suite, los veredictos y las desviaciones. Copia las cifras (`passed`, casos por archivo) de la salida del comando de la última corrida, no de la anterior: tras un ciclo de corrección cambian. En un ticket partido, una «Verificación final» **por entrega**.
 2. `_index.md`: estado resultante y fila de Log. Si la entrega aprobada **no es la última** de un ticket partido, el estado es `LISTO PARA EJECUTAR · TKT-xxxb` (la entrega siguiente) y el Log dice que la entrega quedó revisada y acumulada en la rama del ticket, **sin PR**. Solo al aprobar la **última** entrega el estado es `LISTO PARA PR`, sin calificador.
 3. Si la entrega aprobada no es la última, despacha **`git-entrega`** en modo **cierre de entrega**: un commit local en la rama del ticket, sin push ni PR, que deja a salvo el trabajo y marca el límite del diff de la entrega siguiente. Si es la última o el ticket no está partido, no commitea: lo hace `/sdd-completar`.
 4. Reporta en pocas líneas: criterios cumplidos sobre el total, resultado de la suite, veredicto de cada auditor, ciclos de corrección, y qué quedó anotado fuera de alcance.

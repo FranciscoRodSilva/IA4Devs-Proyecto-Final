@@ -13,6 +13,7 @@ Plan técnico del ticket **$ARGUMENTS**. Lee [`sdd/metodologia.md`](../../../sdd
 
 - `_index.md` existe y su estado es `SPEC PENDIENTE`. Si no, di el estado actual y para.
 - `spec.md` existe, con Must validado y la tabla INVEST rellena.
+- Las dependencias cruzadas de la spec están comprobadas: consta la salida del `Grep` sobre `docs/05-tickets-trabajo.md`, los `_index.md` de `sdd/tickets/` y `tools/historias_activas.txt`, y toda historia que el ticket activa tiene fijada la entrega en que se activa. Si falta, vuelve a `/sdd-definir`.
 - Si `_index.md` declara «Depende de», cada dependencia está `ARCHIVADO` o `LISTO PARA PR`. Si no, avisa y pide confirmación antes de seguir.
 
 ## Paso 1 · Diseñar
