@@ -40,6 +40,11 @@ line-length = 100
 select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF032"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# Estas pruebas importan por nombre las fixtures de `herramientas/soporte_tkt017_api.py` (así las descubre
+# pytest) y las piden como parámetro: Ruff lo lee como «redefinición de un nombre sin usar» (F811).
+"tests/test_tkt017_api_*.py" = ["F811"]
+
 [tool.mypy]
 python_version = "3.13"
 warn_unused_configs = true

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from enum import StrEnum
 from uuid import UUID
 
 from cimenta.presupuesto.dominio.analisis import (
@@ -27,10 +28,12 @@ from cimenta.presupuesto.dominio.explosion import (
 )
 from cimenta.presupuesto.dominio.explosion_materializada import (
     CargoDeApu,
+    ExplosionFueraDeEscala,
     FilaExplotable,
     InsumoDeApu,
     explotar_filas,
 )
+from cimenta.presupuesto.dominio.importacion import EstadoImportacion
 from cimenta.presupuesto.dominio.lectura_analisis import normalizar_clave_insumo
 from cimenta.presupuesto.dominio.preparacion_importacion import Preparacion
 from tipos_base import Cantidad, Dinero, Porcentaje, Rendimiento, sumar
@@ -306,7 +309,7 @@ def planificar_materializacion(
     )
     try:
         explosion = explotar_filas(filas)
-    except ValueError:
+    except ExplosionFueraDeEscala:
         return PreparacionInconsistente(motivo="explosion_presupuesto", codigo_concepto=None)
     if isinstance(explosion, RechazoExplosion):
         return ExplosionRechazada(causas=explosion.causas)
@@ -470,15 +473,27 @@ def _validar_valores(
     )
 
 
+def _no_negativa[N: (Dinero, Rendimiento)](valor: N, columna: str) -> N:
+    """`CHECK >= 0` de `apu_insumo`: un negativo no debe llegar a la base; el cero sí es válido."""
+    if valor < type(valor)(0):
+        raise _ColumnaInvalida(columna)
+    return valor
+
+
 def _validar_insumo(insumo: InsumoLeido) -> _InsumoValidado:
     return _InsumoValidado(
         clave=insumo.clave,
         descripcion=insumo.descripcion,
         tipo=insumo.tipo,
         unidad=_requerido(insumo.unidad, "insumo.unidad"),
-        costo_unitario=_cuantizada(insumo.costo_unitario, "apu_insumo.costo_unitario"),
-        rendimiento=_cuantizada(insumo.rendimiento, "apu_insumo.rendimiento"),
-        cargo=_cuantizada(insumo.cargo, "apu_insumo.cargo"),
+        costo_unitario=_no_negativa(
+            _cuantizada(insumo.costo_unitario, "apu_insumo.costo_unitario"),
+            "apu_insumo.costo_unitario",
+        ),
+        rendimiento=_no_negativa(
+            _cuantizada(insumo.rendimiento, "apu_insumo.rendimiento"), "apu_insumo.rendimiento"
+        ),
+        cargo=_no_negativa(_cuantizada(insumo.cargo, "apu_insumo.cargo"), "apu_insumo.cargo"),
     )
 
 
@@ -808,22 +823,114 @@ def _armar_apus(
     return tuple(apus)
 
 
+class CausaRechazoConfirmacion(StrEnum):
+    IMPORTACION_CON_ERRORES = "IMPORTACION_CON_ERRORES"
+    IMPORTACION_EN_OTRO_ESTADO = "IMPORTACION_EN_OTRO_ESTADO"
+    OBRA_CON_CONGELADA = "OBRA_CON_CONGELADA"
+    OBRA_FUERA_DE_PLANEACION = "OBRA_FUERA_DE_PLANEACION"
+    REEMPLAZO_NO_CONFIRMADO = "REEMPLAZO_NO_CONFIRMADO"
+    MOTIVO_REEMPLAZO_OBLIGATORIO = "MOTIVO_REEMPLAZO_OBLIGATORIO"
+
+
+@dataclass(frozen=True, slots=True)
+class ConfirmacionAdmitida:
+    """La confirmación puede continuar."""
+
+
+@dataclass(frozen=True, slots=True)
+class ConfirmacionRechazada:
+    """Causa del rechazo y los valores de dominio que el caso de uso vuelve contrato de error."""
+
+    causa: CausaRechazoConfirmacion
+    datos: Mapping[str, object]
+
+
+@dataclass(frozen=True, slots=True)
+class LineaBaseDeObra:
+    """La línea base congelada vigente o el borrador de una obra."""
+
+    id: UUID
+    version: int
+
+
+type ResultadoConfirmacion = ConfirmacionAdmitida | ConfirmacionRechazada
+
+_ESTADO_OBRA_ADMITIDO = "PLANEACION"
+
+
+def evaluar_importacion_confirmable(estado: EstadoImportacion) -> ResultadoConfirmacion:
+    """Implementa RN-01 (CA-A2): solo una importación `VALIDADO` se puede confirmar."""
+    if estado == EstadoImportacion.VALIDADO:
+        return ConfirmacionAdmitida()
+    if estado == EstadoImportacion.CON_ERRORES:
+        return ConfirmacionRechazada(
+            causa=CausaRechazoConfirmacion.IMPORTACION_CON_ERRORES, datos={"estado": estado}
+        )
+    return ConfirmacionRechazada(
+        causa=CausaRechazoConfirmacion.IMPORTACION_EN_OTRO_ESTADO, datos={"estado": estado}
+    )
+
+
+def evaluar_confirmacion_en_obra(
+    *,
+    estado_obra: str,
+    congelada: LineaBaseDeObra | None,
+    borrador: LineaBaseDeObra | None,
+    reemplazar_borrador: bool,
+    motivo_reemplazo: str | None,
+) -> ResultadoConfirmacion:
+    """Implementa RN-01 (CA-A4, CA-A8): la obra admite una línea base nueva.
+
+    Orden: congelada, estado de la obra, borrador sin reemplazo confirmado, motivo en blanco.
+    Sin borrador, `reemplazar_borrador` y el motivo se ignoran.
+    """
+    if congelada is not None:
+        return ConfirmacionRechazada(
+            causa=CausaRechazoConfirmacion.OBRA_CON_CONGELADA,
+            datos={"linea_base_vigente_id": congelada.id, "version_vigente": congelada.version},
+        )
+    if estado_obra != _ESTADO_OBRA_ADMITIDO:
+        return ConfirmacionRechazada(
+            causa=CausaRechazoConfirmacion.OBRA_FUERA_DE_PLANEACION,
+            datos={"estado_obra": estado_obra},
+        )
+    if borrador is None:
+        return ConfirmacionAdmitida()
+    if not reemplazar_borrador:
+        return ConfirmacionRechazada(
+            causa=CausaRechazoConfirmacion.REEMPLAZO_NO_CONFIRMADO,
+            datos={"linea_base_borrador_id": borrador.id, "version": borrador.version},
+        )
+    if motivo_reemplazo is None or not motivo_reemplazo.strip():
+        return ConfirmacionRechazada(
+            causa=CausaRechazoConfirmacion.MOTIVO_REEMPLAZO_OBLIGATORIO, datos={}
+        )
+    return ConfirmacionAdmitida()
+
+
 __all__ = [
     "ApuCargoNuevo",
     "ApuInsumoNuevo",
     "ApuNuevo",
     "AreaNueva",
     "AsignacionInvalida",
+    "CausaRechazoConfirmacion",
     "ConceptoNuevo",
+    "ConfirmacionAdmitida",
+    "ConfirmacionRechazada",
     "ExplosionRechazada",
     "InsumoEnConflicto",
     "InsumoNuevo",
     "InsumoRegistrado",
+    "LineaBaseDeObra",
     "NivelNuevo",
     "PartidaConceptoNueva",
     "PartidaNueva",
     "PlanMaterializacion",
     "PreparacionInconsistente",
+    "ResultadoConfirmacion",
     "ResultadoMaterializacion",
+    "evaluar_confirmacion_en_obra",
+    "evaluar_importacion_confirmable",
     "planificar_materializacion",
 ]

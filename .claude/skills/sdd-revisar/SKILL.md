@@ -11,7 +11,7 @@ Verifica la implementación. **No implementa funcionalidad nueva**: valida, dete
 
 ## Paso 0 · Gate — si falla, STOP
 
-- `_index.md` en estado `EN REVISIÓN`. Si no, di el estado actual y para.
+- `_index.md` en estado `EN REVISIÓN`. Si no, di el estado actual y para. En un ticket partido en entregas el estado va calificado (`EN REVISIÓN · entrega TKT-xxxa`) y este comando revisa **esa entrega**, no el ticket entero: sus criterios `[M]`, su sección de `impl.md` y su diff.
 - `impl.md` existe. Si no, devuelve a `/sdd-ejecutar`.
 
 ## Paso 1 · Completitud, antes de gastar en auditorías
@@ -62,7 +62,7 @@ Despacha las que apliquen. **En paralelo**: son de solo lectura e independientes
 | `auditor-docs` | El cambio altera comportamiento | `haiku` |
 
 El orquestador pasa el modelo en el parámetro `model` de `Agent`. La primera pasada de una auditoría nunca baja de la columna; una reauditoría acotada a hallazgos Menores ya corregidos puede ir en `haiku` ([metodología §14.2](../../../sdd/metodologia.md#142--el-orquestador-elige-el-modelo-en-cada-despacho)).
-A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE CONTEXTO` y no emite veredicto** — no audites en vacío.
+A cada uno le entregas el diff real. **Sin diff, el auditor devuelve `REQUIERE CONTEXTO` y no emite veredicto** — no audites en vacío. En un ticket partido, el diff de la entrega es el de la rama desde el commit de cierre de la entrega anterior (`git diff <ese commit>` más los archivos nuevos), o desde la base si es la primera; el auditor no revisa de nuevo lo que ya aprobó una entrega anterior.
 Comprueba también cada veredicto recibido: un `APROBADO` sin la sección «Qué verifiqué» ítem por ítem no es veredicto. Se trata como `REQUIERE CONTEXTO` y se relanza.
 
 ## Paso 4 · Ciclo de corrección
@@ -84,7 +84,7 @@ Comprueba también cada veredicto recibido: un `APROBADO` sin la sección «Qué
 | Should `[S]` incumplido | Solo si se recortó vía `/sdd-escalar` y consta en `_index.md` |
 | Could `[C]` no hecho | Sí — ni se reporta como pendiente |
 
-**Bloqueos duros.** No emitas `LISTO PARA PR` si:
+**Bloqueos duros.** No emitas el veredicto de aprobación de la entrega (`LISTO PARA PR` si es la última o el ticket no está partido; `LISTO PARA EJECUTAR · TKT-xxxb` si falta alguna) si:
 
 - algún test falla sin justificación registrada;
 - algún criterio `[M]` no tiene cobertura de test verificada. Quedan fuera los que solo pueden verificarse con el pipeline de un PR real (por ejemplo, «los nueve trabajos de `ci.yml` en verde»): se anotan en `impl.md` como «se verifica en `/sdd-completar`» y ese comando no fusiona sin esa evidencia. Este comando no abre PR;
@@ -97,10 +97,11 @@ Comprueba también cada veredicto recibido: un `APROBADO` sin la sección «Qué
 
 ## Paso 6 · Cerrar
 
-1. Añade «Verificación final» a `impl.md` con el resultado por criterio, la suite, los veredictos y las desviaciones.
-2. `_index.md`: estado resultante y fila de Log.
-3. Reporta en pocas líneas: criterios cumplidos sobre el total, resultado de la suite, veredicto de cada auditor, ciclos de corrección, y qué quedó anotado fuera de alcance.
-4. Si `LISTO PARA PR` → siguiente: `/sdd-completar`.
+1. Añade «Verificación final» a `impl.md` con el resultado por criterio, la suite, los veredictos y las desviaciones. En un ticket partido, una «Verificación final» **por entrega**.
+2. `_index.md`: estado resultante y fila de Log. Si la entrega aprobada **no es la última** de un ticket partido, el estado es `LISTO PARA EJECUTAR · TKT-xxxb` (la entrega siguiente) y el Log dice que la entrega quedó revisada y acumulada en la rama del ticket, **sin PR**. Solo al aprobar la **última** entrega el estado es `LISTO PARA PR`, sin calificador.
+3. Si la entrega aprobada no es la última, despacha **`git-entrega`** en modo **cierre de entrega**: un commit local en la rama del ticket, sin push ni PR, que deja a salvo el trabajo y marca el límite del diff de la entrega siguiente. Si es la última o el ticket no está partido, no commitea: lo hace `/sdd-completar`.
+4. Reporta en pocas líneas: criterios cumplidos sobre el total, resultado de la suite, veredicto de cada auditor, ciclos de corrección, y qué quedó anotado fuera de alcance.
+5. Siguiente: si falta una entrega, `/sdd-ejecutar` sobre la siguiente. **No sugieras `/sdd-completar`** hasta que no quede ninguna. Si `LISTO PARA PR` → `/sdd-completar` sobre el ticket.
 
 ## Qué NO hace este comando
 

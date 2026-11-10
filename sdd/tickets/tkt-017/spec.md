@@ -67,7 +67,7 @@ El ticket no depende de ningún servicio externo de pago, cuenta ni clave de API
 | **Must** | **B-M5.** Las dos correcciones del borrador que `PA-16.7` de TKT-016 encargó a este ticket |
 | **Should** | — |
 | **Could** | — |
-| **Won't** | Pasar una línea base `CONGELADA` a `SUPERSEDIDA` (versionado de `RN-18`, v1.1) · la máquina de estados completa de la obra (TKT-012) |
+| **Won't** | Pasar una línea base `CONGELADA` a `SUPERSEDIDA` (versionado de `F1.6`, v1.1) · la máquina de estados completa de la obra (TKT-012) |
 
 ### TKT-017c · Presupuesto de control
 
@@ -84,7 +84,7 @@ El ticket no depende de ningún servicio externo de pago, cuenta ni clave de API
 ## Non-goals
 
 - No crea la ruta de confirmación de la importación ni ninguna pantalla: son de TKT-018, que invoca la materialización de TKT-017a.
-- No implementa el versionado por trabajos extra (`RN-18`, v1.1) ni la transición `CONGELADA` → `SUPERSEDIDA`. El disparador que la protege ya existe y sus pruebas no cambian.
+- No implementa el versionado por trabajos extra (`F1.6`, v1.1) ni la transición `CONGELADA` → `SUPERSEDIDA`. El disparador que la protege ya existe y sus pruebas no cambian.
 - No permite tocar la línea base congelada: lo que se recaptura es el presupuesto de control, que no forma parte de ella.
 - No implementa la máquina de estados de la obra. Solo escribe la transición `PLANEACION` → `ACTIVA` que el congelado exige; TKT-012 la hereda.
 - No cambia el lector, la clasificación ni el formato de la preparación de TKT-013 a TKT-015.
@@ -178,7 +178,7 @@ Escenario: El tipo asignado no existe
   Y no se escribe nada
 ```
 
-#### CA-A4 `[M]` · Rechazo · Obra que no admite una línea base nueva · `RN-01`
+#### CA-A4 `[M]` · Rechazo · Obra que no admite una línea base nueva
 
 ```gherkin
 Escenario: La obra ya tiene una línea base congelada
@@ -387,7 +387,7 @@ Escenario: El motor rechaza tocar las copias congeladas
 Escenario: Ningún rechazo del motor llega como 500
   Dado un caso de uso de la línea base que recibe del motor cada uno de estos errores
   Entonces IN001 se responde como 409 REGLA_NEGOCIO con regla RN-01
-  Y 23505 sobre el índice de línea base vigente se responde como 409 REGLA_NEGOCIO RN-01 con el mismo detalle que CA-B2
+  Y 23505 sobre el índice de línea base vigente se responde como 409 REGLA_NEGOCIO RN-01 en el congelado, con el detalle de CA-B2, y como 409 CONFLICTO "ESTADO_NO_PERMITE_OPERACION" en la confirmación, con el mensaje de CA-A4 esc. 1
   Y 55P03 se responde como 409 CONCURRENCIA con la cabecera Retry-After y la acción "REINTENTAR"
   Y 23503 y 23001 se responden como 409 CONFLICTO "ESTADO_NO_PERMITE_OPERACION"
 
@@ -594,10 +594,10 @@ Las decisiones de la persona dueña del 2026-11-05 cierran todo lo que la spec n
 | `PA-T17.1` | Partición en TKT-017a, TKT-017b y TKT-017c con fusión a → b → c | — | Resuelta por la persona dueña el 2026-11-05 |
 | `PA-T17.2` | `PA-T17`: el precio unitario del concepto de partida es el del pie del análisis; el importe es cantidad × ese precio, cuantizado; `importe_venta` es la suma. Se pierde el precio por área del catálogo | — | Resuelta el 2026-11-05 |
 | `PA-T17.3` | `PA-T8`: la asignación viaja en el cuerpo de la confirmación, por nombre de partida, válida en todas las áreas. Falta o tipo inexistente → `422` | — | Resuelta el 2026-11-05 |
-| `PA-T17.4` | HDU-001 esc. 18 dice que el intento de modificar una copia congelada «queda registrado en la bitácora». Sin ruta ni actor que lo provoque, y con el rechazo del motor abortando la transacción, este ticket no lo asienta. **La historia debe corregirse** | Si la persona dueña quiere el asiento, hace falta una transacción aparte, contra la letra de la regla 8 | Resuelta el 2026-11-05 (sin asiento); corrección de HDU-001 pendiente |
+| `PA-T17.4` | HDU-001 esc. 18 dice que el intento de modificar una copia congelada «queda registrado en la bitácora». Sin ruta ni actor que lo provoque, y con el rechazo del motor abortando la transacción, este ticket no lo asienta. **La historia debe corregirse** | Si la persona dueña quiere el asiento, hace falta una transacción aparte, contra la letra de la regla 8 | Resuelta el 2026-11-05 (sin asiento); corrección de HDU-001 hecha en TKT-017b1 (2026-11-09) |
 | `PA-T17.5` | `PA-T13`: `insumo.codigo` es la clave normalizada del lector (ADR-035). Si el insumo ya existe con la misma unidad y tipo se reutiliza; si difiere, `409` | — | Resuelta el 2026-11-05 |
 | `PA-T17.6` | Reemplazo: se borra toda la jerarquía de la obra; los insumos anteriores se conservan; la versión es 1 + la mayor que siga existiendo, así que un borrador reemplazado cede su número | — | Resuelta el 2026-11-05 |
-| `PA-T17.7` | Confirmar sobre una obra con línea base `CONGELADA` o fuera de `PLANEACION` se rechaza con `ESTADO_NO_PERMITE_OPERACION`; la sustitución de una congelada es `RN-18` (v1.1). Con esto, el escenario 19 solo se alcanza por una carrera o por un dato sembrado | — | Resuelta el 2026-11-05 |
+| `PA-T17.7` | Confirmar sobre una obra con línea base `CONGELADA` o fuera de `PLANEACION` se rechaza con `ESTADO_NO_PERMITE_OPERACION`; la sustitución de una congelada es la que recoge `F1.6` (versionado de la línea base, v1.1). Con esto, el escenario 19 solo se alcanza por una carrera o por un dato sembrado | — | Resuelta el 2026-11-05 |
 | `PA-T17.8` | El congelado escribe `obra.estado` `PLANEACION` → `ACTIVA` dentro de `presupuesto`. TKT-012 debe respetar esa transición al construir la máquina de estados | Si TKT-012 la modela distinto, habrá que mover la escritura a su caso de uso | Resuelta el 2026-11-05; aviso para TKT-012 |
 | `PA-T17.9` | La DoD de HDU-001 pide probar con los archivos reales, que hoy no llegan a `VALIDADO`. TKT-017 se verifica con libros sintéticos de forma real | Un detalle del archivo real que el sintético no reproduce aparecerá en TKT-018 | Resuelta el 2026-11-05; prueba real abierta para TKT-018 |
 | `PA-T17.10` | El rechazo de un `UPDATE` o `DELETE` sobre `linea_base_concepto` por la revocación del permiso (`42501`) no tiene traducción declarada; CA-B5 solo exige que el motor lo rechace | Si alguna ruta futura lo provocara, llegaría como `500` | Resuelta por el diseño el 2026-11-05: `42501` no se traduce y responde `500`, porque ninguna ruta emite `UPDATE` ni `DELETE` sobre `linea_base_concepto` y un `42501` sería un error de programa (ver «Escalera de decisión» y «Traducción del motor» de [design.md](design.md); el mutante `M-A6` lo vigila) |

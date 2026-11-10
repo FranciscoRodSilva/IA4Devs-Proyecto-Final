@@ -619,7 +619,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Los dos porcentajes son **conceptos distintos** y se guardan en la obra: ninguna constante en el código (**PA-02**)
 - [ ] El indicador de IVA acreditable se guarda por obra porque varía entre ellas (**PA-05**, `RN-25`)
 - [ ] Código de obra único: el duplicado responde `409` `CONFLICTO` `CODIGO_OBRA_DUPLICADO` identificando la obra en conflicto
-- [ ] Máquina de estados `PLANEACION → ACTIVA → SUSPENDIDA/CERRADA`
+- [ ] Máquina de estados `PLANEACION → ACTIVA → SUSPENDIDA/CERRADA`. La transición `PLANEACION → ACTIVA` ya la escribe el congelado de la línea base dentro de `presupuesto` (TKT-017b, `PA-T17.8`): este ticket debe respetarla al construir la máquina de estados y no escribirla de nuevo; si la modela distinto, hay que mover esa escritura a su caso de uso
 - [ ] Una obra con línea base congelada o movimientos no se puede eliminar: responde `409` `CONFLICTO` `OBRA_CON_HISTORIAL` con las acciones de suspenderla o cerrarla
 - [ ] Interfaz con el componente de formulario de catálogo de TKT-008
 
@@ -770,7 +770,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Intentar congelar una segunda línea base vigente falla con el contrato de error y regla `RN-01`
 - [ ] Intentar modificar una línea base congelada falla a nivel de motor
 - [ ] Las copias de `linea_base_concepto` y `explosion_presupuesto` solo se escriben en la transacción del congelado: el rol de aplicación no tiene `DELETE` sobre `linea_base_concepto`, así que una copia escrita en un `BORRADOR` no se puede retirar después
-- [ ] La `CONGELADA` anterior pasa a `SUPERSEDIDA` antes de congelar la nueva, en la misma transacción; si no, el índice único parcial responde `23505`. `BORRADOR` a `SUPERSEDIDA` lo rechaza el disparador
+- [ ] Este ticket **no crea versiones nuevas sobre una línea base congelada**: si la obra ya tiene una `CONGELADA`, confirmar otra importación responde `409` `ESTADO_NO_PERMITE_OPERACION` y congelar otro borrador responde `409` `REGLA_NEGOCIO` `RN-01`. Pasar la `CONGELADA` anterior a `SUPERSEDIDA` antes de congelar la nueva es la sustitución que recoge `F1.6` (versionado de la línea base) y queda fuera. El índice único parcial (`23505`) y el disparador, que rechaza `BORRADOR` a `SUPERSEDIDA`, son la barrera de último recurso
 - [ ] El caso de uso traduce los `SQLSTATE` del motor al contrato de error, sin que ninguno llegue como `500`: `IN001` a `409` `REGLA_NEGOCIO` con `regla` `RN-01` `(asumido)`; `23505` (una segunda línea base vigente); `23503` (una copia que apunta a una línea base o a un concepto de partida inexistente); `23001` (borrar un padre con hijos, porque la clave foránea es `ON DELETE RESTRICT`). El detalle está en [ADR-031](adr/20261101-inmutabilidad-de-la-linea-base-en-el-motor.md)
 - [ ] `linea_base.importe_venta` nace calculado al crear el `BORRADOR`, como la suma de los importes de los conceptos de partida que se materializan (`PA-T17` de TKT-011, resuelta por la persona dueña el 2026-11-05). De qué precio unitario sale lo fija la spec
 - [ ] El tipo de partida de cada partida lo asigna el Director de Proyectos en la previsualización (`PA-T8` de TKT-013, resuelta por la persona dueña el 2026-11-05); la materialización lo recibe como entrada, lo escribe en `partida.tipo_partida_id` y lo pasa a la explosión de TKT-016. Una partida sin tipo asignado impide confirmar
@@ -784,7 +784,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 > **Subir un tope es una vía alternativa a autorizar una excepción.** Si se asentara con otra regla —o no se asentara— una partida podría sobregirarse sin que apareciera ni una sola excepción en la bitácora del mes.
 
-**Non-goals** — No implementa versionado por trabajos extra (`RN-18`, v1.1). No permite tocar la línea base congelada: lo que se recaptura es el presupuesto de control, que no forma parte de ella.
+**Non-goals** — No implementa versionado por trabajos extra (`F1.6`, v1.1). No permite tocar la línea base congelada: lo que se recaptura es el presupuesto de control, que no forma parte de ella.
 
 ---
 
@@ -807,6 +807,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] Carga del archivo e indicador de progreso del análisis, alimentado por `importacion.progreso`, que no bloquea la pantalla
 - [ ] Pantalla de previsualización con jerarquía leída, conteos, importe total e insumos creados durante la importación
 - [ ] En la previsualización, el Director de Proyectos asigna a cada nombre de partida leído uno de los tipos de partida de la obra (`PA-T8` de TKT-013, decisión del 2026-11-05); el botón de confirmar sigue deshabilitado mientras quede alguna partida sin tipo
+- [ ] La confirmación envía en el cuerpo el campo obligatorio `asignacion_tipos_partida`: un objeto `{nombre de partida: tipo_partida_id}` con una entrada por nombre de partida leído, válida en todas las áreas donde aparece (`requestBody` obligatorio en el [borrador OpenAPI](api/openapi.yaml)). Su ruta invoca `materializar_importacion` de `cimenta.presupuesto.interfaz`, cuya firma es `materializar_importacion(contexto, *, importacion_id, asignacion_tipos_partida, reemplazar_borrador, motivo_reemplazo, usuario_id) -> LineaBaseMaterializada`. Una partida sin tipo, o con un tipo inexistente, responde `422` con el campo `asignacion_tipos_partida.{nombre}`
 - [ ] Tabla de errores navegable por hoja y fila, exportable
 - [ ] Botón de confirmar deshabilitado mientras la importación esté en `CON_ERRORES`
 - [ ] Acción de congelar con captura obligatoria del motivo

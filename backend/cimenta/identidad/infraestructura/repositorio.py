@@ -9,6 +9,7 @@ solo informa si una actualización tocó fila. Las reglas de vigencia y de revoc
 
 import datetime as dt
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from sqlalchemy import ColumnElement, func, insert, select, text, update
@@ -261,3 +262,13 @@ def revocar_sesion(bd: Session, sesion_id: uuid.UUID, ahora: dt.datetime) -> boo
         .execution_options(synchronize_session=False)
     )
     return bd.execute(sentencia).scalar_one_or_none() is not None
+
+
+def nombres_por_id(bd: Session, ids: Iterable[uuid.UUID]) -> dict[uuid.UUID, str]:
+    """Nombre visible de cada usuario existente entre `ids`. Los ids repetidos cuentan una vez y los
+    ajenos no aparecen en el resultado. Una colección vacía no consulta nada (TKT-017b1, P-8)."""
+    unicos = list(set(ids))
+    if not unicos:
+        return {}
+    sentencia = select(Usuario.id, Usuario.nombre).where(Usuario.id.in_(unicos))
+    return {identificador: nombre for identificador, nombre in bd.execute(sentencia)}

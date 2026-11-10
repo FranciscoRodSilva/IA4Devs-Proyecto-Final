@@ -11,7 +11,7 @@ Implementa el ticket. Lee [`sdd/metodologia.md`](../../../sdd/metodologia.md).
 
 ## Paso 0 · Gate — si falla, STOP
 
-- `_index.md` en estado `LISTO PARA EJECUTAR`. Si está en `DISEÑO PENDIENTE REVISIÓN`, **el usuario aún no aprobó**: dilo y para.
+- `_index.md` en estado `LISTO PARA EJECUTAR`. Si está en `DISEÑO PENDIENTE REVISIÓN`, **el usuario aún no aprobó**: dilo y para. En un ticket partido en entregas el estado va calificado (`LISTO PARA EJECUTAR · TKT-xxxb`) y este comando ejecuta **solo esa entrega**, con las filas de `design.md` que le tocan; el argumento sigue siendo el id del ticket.
 - `design.md` existe y tiene sección para cada capa en alcance.
 - Las dependencias declaradas están `ARCHIVADO` o `LISTO PARA PR`.
 - El ticket es de la fase que toca. Un ticket de fase 1 no adelanta nómina, destajo, captura sin conexión ni evidencia (regla 17 de `CLAUDE.md`).
@@ -20,6 +20,8 @@ Implementa el ticket. Lee [`sdd/metodologia.md`](../../../sdd/metodologia.md).
 ## Paso 1 · Rama
 
 Despacha **`git-entrega`** en modo apertura: crea o verifica `tkt-xxx-<slug>` desde la rama base. **Antes de editar nada.**
+
+**Una sola rama por ticket.** Un ticket partido en entregas no abre una rama por entrega: todas se acumulan en la misma `tkt-xxx-<slug>`, que cada entrega reutiliza. Las entregas anteriores ya están en ella como commits locales de cierre de entrega, y el único PR sale de esa rama en `/sdd-completar`.
 
 ## Paso 2 · Ciclo TDD, fila por fila
 
@@ -105,9 +107,9 @@ Despacha **`auditor-arquitectura`** y, si hubo esquema, **`auditor-sql`**, en `s
 ## Paso 7 · Cerrar
 
 1. Escribe `impl.md` desde [la plantilla](../../../sdd/plantillas/impl.md).
-2. `_index.md`: estado `EN REVISIÓN`, fila de Log.
+2. `_index.md`: estado `EN REVISIÓN` (en un ticket partido, `EN REVISIÓN · entrega TKT-xxxa`), fila de Log. En un ticket partido, la sección de `impl.md` de esta entrega se añade a las de las anteriores, sin reescribirlas.
 3. Reporta archivos tocados, resultado de la suite, veredictos, y qué quedó fuera de alcance anotado.
-4. Siguiente: `/sdd-revisar`.
+4. Siguiente: `/sdd-revisar`. Nunca `/sdd-completar`: ese comando solo corre cuando todas las entregas están revisadas.
 
 ## Iteración fluida — no vuelvas a `/sdd-disenar` por todo
 
@@ -125,7 +127,7 @@ Condiciones, todas:
 - Mismo módulo, sin reglas de negocio nuevas.
 - El lote entero suma menos de ~400 líneas estimadas y no cruza más de dos módulos.
 
-Por cada ticket: ejecutar → revisar → completar. Avanza al siguiente **solo** si todo salió verde.
+Por cada ticket: ejecutar → revisar → completar. Avanza al siguiente **solo** si todo salió verde. Un ticket partido en entregas no entra en un lote: la partición ya implica más de ~400 líneas, y su `/sdd-completar` espera a la última entrega.
 
 **Para el lote entero** en el primer `REQUIERE DECISIÓN`, `RIESGOSO`, Must incumplido o tercer ciclo de corrección sin cerrar. Reporta en qué ticket paró, qué quedó archivado y qué quedó sin tocar.
 

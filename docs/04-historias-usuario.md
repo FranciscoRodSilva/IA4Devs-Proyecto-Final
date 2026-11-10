@@ -298,7 +298,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Dado que** la confirmación está en curso y ocurre un error al escribir el registro 3,000 de 4,900
 - **Cuando** la transacción se interrumpe
 - **Entonces** ningún dato de esa importación queda persistido en el modelo real
-- **Y** la importación vuelve a estado "VALIDADO"
+- **Y** la importación sigue en estado "VALIDADO", porque nunca salió de él: el estado no cambia
 - **Y** el sistema informa del fallo sin dejar la obra en estado intermedio.
 
 **Escenario 13: Reimportación sobre una línea base en borrador**
@@ -351,7 +351,7 @@ Revisar las relaciones no fue un trámite de formato: sacó tres problemas que n
 - **Cuando** cualquier operación intenta modificar o eliminar uno de sus conceptos o filas de explosión
 - **Entonces** la base de datos rechaza la operación
 - **Y** el sistema responde con el contrato de error indicando la regla "RN-01"
-- **Y** el intento queda registrado en la bitácora.
+- **Y** el intento no se asienta en la bitácora: el rechazo del motor aborta la transacción y la bitácora se escribe en la misma transacción que el cambio, así que un rechazo no deja asiento.
 
 **Escenario 19: Intento de congelar una segunda línea base vigente**
 

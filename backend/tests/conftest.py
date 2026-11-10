@@ -15,7 +15,7 @@ import os
 import re
 import secrets
 import uuid
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -30,6 +30,7 @@ from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from psycopg import sql
+from psycopg.types.json import Jsonb
 from sqlalchemy import create_engine, pool, text
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session
@@ -392,24 +393,61 @@ def guarda_de_aplicacion() -> Callable[[Engine], None]:
     return _exigir_motor_de_aplicacion
 
 
+def _motor_de_aplicacion(
+    contenedor: PostgresContainer, credenciales: dict[str, str], base: str, **argumentos: Any
+) -> Engine:
+    """Motor síncrono del rol de aplicación sobre `base`, con NullPool; `argumentos` va a `create_engine`."""
+    return create_engine(
+        URL.create(
+            "postgresql+psycopg",
+            username=ROL_APLICACION,
+            password=credenciales["aplicacion"],
+            host=contenedor.get_container_host_ip(),
+            port=int(contenedor.get_exposed_port(5432)),
+            database=base,
+        ),
+        poolclass=pool.NullPool,
+        **argumentos,
+    )
+
+
 @pytest.fixture
 def motor_aplicacion(
     contenedor_postgres: PostgresContainer, credenciales: dict[str, str], base_de_prueba: str
 ) -> Iterator[Engine]:
     """Motor síncrono de cimenta_aplicacion sobre base_de_prueba, NullPool, con la guarda de rol."""
-    motor = create_engine(
-        URL.create(
-            "postgresql+psycopg",
-            username=ROL_APLICACION,
-            password=credenciales["aplicacion"],
-            host=contenedor_postgres.get_container_host_ip(),
-            port=int(contenedor_postgres.get_exposed_port(5432)),
-            database=base_de_prueba,
-        ),
-        poolclass=pool.NullPool,
+    motor = _motor_de_aplicacion(contenedor_postgres, credenciales, base_de_prueba)
+    try:
+        _exigir_motor_de_aplicacion(motor)
+        yield motor
+    finally:
+        motor.dispose()
+
+
+@pytest.fixture
+def motor_espera_corta(
+    contenedor_postgres: PostgresContainer, credenciales: dict[str, str], base_de_prueba: str
+) -> Iterator[Engine]:
+    """Motor del rol de aplicación sobre `base_de_prueba` cuya sesión espera un bloqueo solo 200 ms.
+
+    TKT-017a3, fila A6c (`E-7`): `lock_timeout=200ms` por `connect_args`, en lugar de los 5 s del rol,
+    para que una prueba de concurrencia vea el `55P03` sin esperar. Pasa por la misma guarda del rol
+    de aplicación que `motor_aplicacion` y comprueba que el valor llegó a la sesión.
+    """
+    motor = _motor_de_aplicacion(
+        contenedor_postgres,
+        credenciales,
+        base_de_prueba,
+        connect_args={"options": "-c lock_timeout=200ms"},
     )
     try:
         _exigir_motor_de_aplicacion(motor)
+        with motor.connect() as conexion:
+            efectivo = conexion.execute(text("SHOW lock_timeout")).scalar_one()
+        if efectivo != "200ms":
+            pytest.fail(
+                f"motor_espera_corta no fijó lock_timeout=200ms: la sesión tiene {efectivo}"
+            )
         yield motor
     finally:
         motor.dispose()
@@ -1177,11 +1215,17 @@ class DatosPresupuesto:
         filas_rechazadas: int | None = None,
         importado_por_id: uuid.UUID | None = None,
         latido: datetime | None = None,
+        preparacion: Mapping[str, object] | None = None,
     ) -> uuid.UUID:
         """Una importación. Sin `archivo_id` usa un identificador que no corresponde a ningún archivo.
 
         `archivo_id` es lógico, sin clave foránea (`CA-7`): la fábrica no crea ningún archivo.
         Sin `obra_id` o `importado_por_id` crea el que falta.
+
+        `preparacion` (TKT-017a3, fila A6a) es el documento JSON que dejó el análisis, tal como lo
+        devuelve `preparacion_a_json`; la prueba que quiere un formato ilegible lo altera antes de
+        pasarlo. Sin él la columna queda nula. El `CHECK` `ck_importacion_preparacion_tras_analisis` (`0009`)
+        no admite preparación en `RECIBIDO` ni en `ANALIZANDO`.
         """
         return self._insertar(
             "importacion",
@@ -1197,6 +1241,7 @@ class DatosPresupuesto:
                     importado_por_id if importado_por_id is not None else self.usuario()
                 ),
                 "latido": latido,
+                "preparacion": None if preparacion is None else Jsonb(dict(preparacion)),
             },
         )
 

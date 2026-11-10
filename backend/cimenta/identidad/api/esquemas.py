@@ -73,3 +73,13 @@ class UsuarioActual(BaseModel):
                 expira_por_inactividad_en=usuario.expira_por_inactividad_en,
             ),
         )
+
+
+class UsuarioResumen(BaseModel):
+    """Lo mínimo de un usuario que otro módulo muestra: su identificador y su nombre visible (P-8).
+
+    No expone correo, rol ni sesión. Se publica en `cimenta.identidad.interfaz`.
+    """
+
+    id: uuid.UUID
+    nombre: str

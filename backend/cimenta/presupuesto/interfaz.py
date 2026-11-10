@@ -13,13 +13,21 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from cimenta.presupuesto.aplicacion.analisis_importacion import SeguimientoImportacion
 from cimenta.presupuesto.aplicacion.barrido_importacion import definicion_barrido_importacion
+from cimenta.presupuesto.aplicacion.contexto import ContextoPresupuesto
+from cimenta.presupuesto.aplicacion.materializacion import (
+    LineaBaseMaterializada,
+    materializar_importacion,
+)
 from cimenta.presupuesto.infraestructura.ejecutor_analisis import EjecutorAnalisis
 
 __all__ = [
+    "ContextoPresupuesto",
     "EjecutorAnalisis",
+    "LineaBaseMaterializada",
     "crear_ejecutor_analisis",
     "definicion_barrido_importacion",
     "leer_contenido_no_configurado",
+    "materializar_importacion",
 ]
 
 

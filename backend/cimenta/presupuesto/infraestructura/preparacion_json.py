@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import date
 from enum import StrEnum
 
 from cimenta.presupuesto.dominio.analisis import (
@@ -324,11 +325,14 @@ def _totales_desde_json(obj: object) -> TotalesAnalisis:
 
 def _cabecera_desde_json(analisis: Mapping[str, object]) -> CabeceraLeida:
     ctx = "cabecera de análisis JSON"
+    fecha = _exigir_cadena_opcional(analisis.get("fecha"))
+    if fecha is not None:
+        date.fromisoformat(fecha)
     return CabeceraLeida(
         fila_codigo=_exigir_entero_opcional(analisis.get("fila_codigo")),
         codigo=_exigir_cadena_opcional(analisis.get("codigo")),
         unidad=_exigir_cadena_opcional(analisis.get("unidad")),
-        fecha=_exigir_cadena_opcional(analisis.get("fecha")),
+        fecha=fecha,
         analista=_exigir_cadena_opcional(analisis.get("analista")),
         precio_unitario=_dinero_desde_json(analisis.get("precio_unitario_cabecera"), ctx),
     )
@@ -376,9 +380,20 @@ def _insumo_por_crear_desde_json(obj: object) -> InsumoPorCrear:
 
 
 def preparacion_desde_json(documento: Mapping[str, object]) -> Preparacion:
-    """Reconstruye una preparación persistida en formato 1. `hallazgos` quedan vacíos."""
+    """Reconstruye una preparación persistida en formato 1. `hallazgos` quedan vacíos.
+
+    Un formato distinto de 1, una clave ausente o un tipo inesperado lanzan
+    `FormatoPreparacionDesconocido`; nunca `KeyError` ni `TypeError`.
+    """
     if documento.get("formato") != FORMATO_PREPARACION:
         raise FormatoPreparacionDesconocido(documento.get("formato"))
+    try:
+        return _preparacion_formato_1(documento)
+    except (KeyError, TypeError, ValueError, ArithmeticError) as error:
+        raise FormatoPreparacionDesconocido(documento.get("formato")) from error
+
+
+def _preparacion_formato_1(documento: Mapping[str, object]) -> Preparacion:
     ctx = "preparación JSON"
     hoja = documento.get("hoja_catalogo")
     if hoja is not None and not isinstance(hoja, str):

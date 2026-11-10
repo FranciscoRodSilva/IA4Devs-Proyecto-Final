@@ -981,7 +981,7 @@ paths:
       x-escenarios: ['HDU-001 esc. 6', 'HDU-001 esc. 7', 'HDU-001 esc. 8', 'HDU-001 esc. 9', 'HDU-001 esc. 11', 'HDU-001 esc. 12', 'HDU-001 esc. 13']
       x-tickets: [TKT-018, TKT-017]
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1000,7 +1000,14 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          description: Con errores, sin confirmar el reemplazo, o fallo a mitad de la escritura (la importación vuelve a VALIDADO).
+          description: >-
+            La importación tiene errores bloqueantes (`IMPORTACION_CON_ERRORES`); la obra
+            ya tiene una línea base en borrador y no se confirmó el reemplazo
+            (`REEMPLAZO_NO_CONFIRMADO`); la importación, la obra o la línea base vigente
+            no admiten la operación en su estado (`ESTADO_NO_PERMITE_OPERACION`); o un
+            bloqueo venció (`CONCURRENCIA`, con `BLOQUEO_VENCIDO` o
+            `TIEMPO_EJECUCION_VENCIDO` y la acción `REINTENTAR`). En todos los casos no
+            se escribe nada y la importación sigue en su estado.
           content:
             application/json:
               schema:
@@ -1090,7 +1097,7 @@ paths:
       tags: [presupuesto]
       operationId: obtener_linea_base
       summary: Devuelve una línea base con sus totales por tipo de partida
-      description: No existe ninguna operación que modifique una línea base congelada; el disparador del invariante 14 lo garantiza en el motor.
+      description: No existe ninguna operación que modifique una línea base congelada; el disparador del invariante 14 lo garantiza en el motor. En BORRADOR, por_tipo_partida suma los conceptos de partida; en CONGELADA y SUPERSEDIDA, las copias congeladas.
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-01]
       x-escenarios: ['HDU-001 esc. 14', 'HDU-001 esc. 18']
@@ -1144,11 +1151,23 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          description: Ya existe una línea base congelada vigente.
+          description: >-
+            La obra ya tiene una línea base congelada vigente (`REGLA_NEGOCIO`, `RN-01`);
+            la línea base no está en `BORRADOR` o la obra no está en `PLANEACION`
+            (`CONFLICTO`, `ESTADO_NO_PERMITE_OPERACION`, con el estado en el detalle); la
+            explosión de los conceptos materializados no se puede calcular
+            (`CONFLICTO`, `ESTADO_NO_PERMITE_OPERACION`, con las causas); o un bloqueo
+            venció (`CONCURRENCIA`, con `BLOQUEO_VENCIDO` o `TIEMPO_EJECUCION_VENCIDO`,
+            la cabecera `Retry-After` y la acción `REINTENTAR`). Un choque del motor con
+            otra restricción, con un tipo de dato o con una referencia (`CONFLICTO`,
+            `ESTADO_NO_PERMITE_OPERACION`, con la restricción en el detalle), o un intento
+            de modificar una copia congelada (`REGLA_NEGOCIO`, `RN-01`), también responde
+            `409`. En ninguno de estos casos se escribe nada y la línea base sigue en
+            `BORRADOR`.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorReglaNegocio'
+                $ref: '#/components/schemas/ErrorConflicto'
               example:
                 tipo: REGLA_NEGOCIO
                 regla: RN-01
@@ -1169,6 +1188,7 @@ paths:
       tags: [presupuesto]
       operationId: listar_conceptos_linea_base
       summary: Lista los conceptos copiados a la línea base
+      description: Vacía mientras la línea base está en BORRADOR; en CONGELADA y SUPERSEDIDA, las copias congeladas (RN-01).
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-01]
       x-escenarios: ['HDU-001 esc. 14']
@@ -1182,11 +1202,13 @@ paths:
           in: query
           schema:
             type: string
+            pattern: '^[^\x00]*$'
         - name: q
           in: query
           description: Busca por código o descripción.
           schema:
             type: string
+            pattern: '^[^\x00]*$'
         - $ref: '#/components/parameters/Pagina'
         - $ref: '#/components/parameters/TamanoPagina'
       responses:
@@ -1202,6 +1224,8 @@ paths:
           $ref: '#/components/responses/SinPermiso'
         '404':
           $ref: '#/components/responses/NoEncontrado'
+        '422':
+          $ref: '#/components/responses/ErrorDeForma'
 
   /lineas-base/{linea_base_id}/explosion:
     parameters:
@@ -1211,13 +1235,14 @@ paths:
       operationId: obtener_explosion_insumos
       summary: Devuelve la explosión de insumos por tipo de partida
       description: >-
-        `Σ cantidad_concepto × rendimiento` por tipo de partida e insumo, en toda la
+        `Σ cantidad_concepto × rendimiento × costo unitario` por tipo de partida e insumo, en toda la
         obra (PA-01). Sin redondeo intermedio: la suma de los 27 insumos de Union
-        Square reproduce `2755187.2112`.
+        Square reproduce `2755187.2112`. Vacía mientras la línea base está en
+        BORRADOR; en CONGELADA y SUPERSEDIDA, sale de la explosión congelada (RN-24).
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-24]
       x-escenarios: ['HDU-001 esc. 14']
-      x-tickets: [TKT-016, TKT-017]
+      x-tickets: [TKT-017]
       parameters:
         - name: tipo_partida_id
           in: query
@@ -1236,6 +1261,8 @@ paths:
           $ref: '#/components/responses/SinPermiso'
         '404':
           $ref: '#/components/responses/NoEncontrado'
+        '422':
+          $ref: '#/components/responses/ErrorDeForma'
 
   # ---------------------------------------------- presupuesto · presupuesto de control
   /lineas-base/{linea_base_id}/presupuesto-control:
@@ -1249,7 +1276,8 @@ paths:
         Una fila por tipo de partida con el importe de venta, el **sugerido**
         (informativo, quitando utilidad e indirectos) y el **capturado**, que es el
         único que `RN-03` usa (PA-03). `importe_tope` es `null` mientras no se
-        capture.
+        capture. Sobre una línea base en `BORRADOR` responde `[]`: el control
+        nace al congelarla, así que un borrador no tiene filas.
       x-roles: [DIRECCION_GENERAL, DIRECTOR_PROYECTOS, COMPRAS]
       x-reglas: [RN-03]
       x-escenarios: ['HDU-001 esc. 15']
@@ -1312,7 +1340,9 @@ paths:
               confirmar_superior_a_venta: false
       responses:
         '200':
-          description: Tope guardado.
+          description: >-
+            Tope guardado. Devuelve la fila ya persistida, con su autor, su fecha
+            y el motivo del último cambio.
           content:
             application/json:
               schema:
@@ -1324,7 +1354,11 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          description: Línea base no congelada, o tope superior a la venta sin confirmar.
+          description: >-
+            Línea base no congelada, o tope superior a la venta sin confirmar
+            (`CONFLICTO`). Si vence el bloqueo de la fila de control, `409`
+            `CONCURRENCIA` con `BLOQUEO_VENCIDO`, `Retry-After` y la acción
+            `REINTENTAR` (`PUT` a la misma ruta); no se escribe nada.
           content:
             application/json:
               schema:
@@ -4791,7 +4825,13 @@ components:
           $ref: '#/components/schemas/MetaPagina'
     ConfirmacionImportacion:
       type: object
+      required: [asignacion_tipos_partida]
       properties:
+        asignacion_tipos_partida:
+          type: object
+          description: Una entrada por nombre de partida leído; vale en todas las áreas donde aparece.
+          additionalProperties:
+            $ref: '#/components/schemas/Uuid'
         reemplazar_borrador:
           type: boolean
           default: false
@@ -4898,7 +4938,7 @@ components:
           $ref: '#/components/schemas/MetaPagina'
     RenglonExplosion:
       type: object
-      required: [tipo_partida, insumo, cantidad_presupuestada, rendimiento_congelado, costo_unitario, importe_venta]
+      required: [tipo_partida, insumo, cantidad_presupuestada, rendimiento_congelado, costo_unitario, importe_costo]
       properties:
         tipo_partida:
           $ref: '#/components/schemas/TipoPartida'
@@ -4910,7 +4950,11 @@ components:
           $ref: '#/components/schemas/Rendimiento'
         costo_unitario:
           $ref: '#/components/schemas/PrecioUnitario'
-        importe_venta:
+        importe_costo:
+          description: >-
+            Σ de cantidad × rendimiento × costo unitario del análisis, sin redondeos
+            intermedios; coincide con cantidad presupuestada × costo unitario salvo el
+            redondeo a cuatro decimales del costo. Es un costo, no un importe de venta.
           $ref: '#/components/schemas/Importe'
     ExplosionInsumos:
       type: object
@@ -4926,7 +4970,7 @@ components:
           $ref: '#/components/schemas/Importe'
       examples:
         - linea_base_id: 8f7e6d5c-4b3a-4291-8f7e-6d5c4b3a2918
-          importe_total: '2755187.2112'
+          importe_total: '364890.0000'
           renglones:
             - tipo_partida:
                 id: 0c9d8e7f-6a5b-4c3d-8e2f-1a0b9c8d7e6f
@@ -4940,7 +4984,7 @@ components:
               cantidad_presupuestada: '1459.5600'
               rendimiento_congelado: '0.673400'
               costo_unitario: '250.0000'
-              importe_venta: '364890.0000'
+              importe_costo: '364890.0000'
 
     # ------------------------------------- presupuesto · presupuesto de control
     PresupuestoControl:
@@ -4986,7 +5030,11 @@ components:
           $ref: '#/components/schemas/ImporteNoNegativo'
         motivo:
           type: [string, 'null']
-          description: Obligatorio al recapturar y al confirmar un tope superior a la venta.
+          maxLength: 2000
+          pattern: '^[^\x00]*$'
+          description: >-
+            Obligatorio al recapturar y al confirmar un tope superior a la venta.
+            Sin carácter NUL y de hasta 2000 caracteres (`422`).
         confirmar_superior_a_venta:
           type: boolean
           default: false

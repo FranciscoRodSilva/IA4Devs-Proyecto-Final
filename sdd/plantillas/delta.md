@@ -4,7 +4,7 @@
 
 El delta no repite la implementación: declara **qué cambió en el sistema** respecto a como estaba antes. Es lo que leería alguien que no siguió el ticket.
 
-Si es una **entrega hermana** (TKT-014a) de un paraguas partido: usa ese id en el título, indica qué entrega queda pendiente y que el hub **no** se archiva hasta la última entrega.
+Si el ticket se partió en entregas (TKT-014a, TKT-014b…): el delta es **uno solo, del ticket entero**, con el id del ticket en el título. Añade una línea por entrega con lo que aportó; las entregas intermedias no escriben delta propio.
 
 ## Añadido
 

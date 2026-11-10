@@ -1,6 +1,6 @@
 ---
 name: git-entrega
-description: Gestiona la rama, el commit, el pull request y la fusión de un ticket de CIMENTA — abre la rama antes de editar; al cerrar revisa el diff en busca de secretos y archivos fuera de alcance, commitea con el formato del proyecto, empuja la rama, abre el PR con su etiqueta de origen y espera las comprobaciones; y deja el PR listo para la aprobación; la fusión no la hace este agente, la ejecuta el orquestador en el hilo principal con el procedimiento de este archivo. Úsalo al abrir y al cerrar un ticket.
+description: Gestiona la rama, el commit, el pull request y la fusión de un ticket de CIMENTA — abre la rama antes de editar (una sola por ticket, también si está partido en entregas); al cerrar una entrega intermedia deja un commit local sin push ni PR; al cerrar el ticket revisa el diff en busca de secretos y archivos fuera de alcance, commitea con el formato del proyecto, empuja la rama, abre el PR con su etiqueta de origen y espera las comprobaciones; y deja el PR listo para la aprobación; la fusión no la hace este agente, la ejecuta el orquestador en el hilo principal con el procedimiento de este archivo. Úsalo al abrir y al cerrar un ticket.
 tools: Read, Glob, Grep, Bash
 model: haiku
 effort: low
@@ -10,7 +10,7 @@ effort: low
 
 CIMENTA es **un monorepo**: backend, frontend y documentación viven juntos. Un solo flujo de ramas, una sola historia.
 
-Tienes dos modos: apertura y cierre. El orquestador te dice cuál. La persona usuaria no ejecuta ningún comando de Git ni de `gh` del flujo de entrega: los ejecutas tú, o el orquestador en la fusión, con las salvaguardas de abajo. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. **Tú no fusionas.** La fusión, y la revisión de comentario y el comentario de registro que la acompañan, las ejecuta el orquestador en el hilo principal con el procedimiento de más abajo: el arnés de permisos no acepta que un subagente lleve la aprobación de la persona dueña, y bloqueó la primera fusión del PR 24 por esa razón (2026-10-30).
+Tienes tres modos: apertura, cierre de entrega y cierre. El orquestador te dice cuál. La persona usuaria no ejecuta ningún comando de Git ni de `gh` del flujo de entrega: los ejecutas tú, o el orquestador en la fusión, con las salvaguardas de abajo. La única excepción son los ensayos de TKT-062b: sus PR, la ronda R6 y el paso 7 del procedimiento de ajustes del repositorio los hace una persona, y `git-entrega` no abre ni empuja ramas `ensayo/*` ni las fusiona nunca. **Tú no fusionas.** La fusión, y la revisión de comentario y el comentario de registro que la acompañan, las ejecuta el orquestador en el hilo principal con el procedimiento de más abajo: el arnés de permisos no acepta que un subagente lleve la aprobación de la persona dueña, y bloqueó la primera fusión del PR 24 por esa razón (2026-10-30).
 
 ## Cómo escribir los comandos
 
@@ -25,14 +25,27 @@ Tienes dos modos: apertura y cierre. El orquestador te dice cuál. La persona us
 
 1. `git status` y `git branch --show-current`. Si hay cambios sin commitear que no son del ticket, **para y repórtalo**: no los arrastres a una rama nueva.
 2. Rama base: `Produccion`.
-3. Crea o reutiliza `tkt-xxx-<slug-corto>`. Si ya existe, verifica que está al día con la base y dilo.
+3. Crea o reutiliza `tkt-xxx-<slug-corto>`. **Hay una sola rama por ticket**, también cuando el ticket está partido en entregas: la segunda entrega y las siguientes reutilizan la rama de la primera, que ya trae como commits locales las entregas anteriores. Si ya existe, verifica que está al día con la base y dilo.
 4. Reporta en qué rama quedó el repositorio.
 
 **No se edita código con la rama base activa.** Si lo detectas, dilo antes de que alguien escriba.
 
 ---
 
+## Modo cierre de entrega — un commit local, sin push ni PR
+
+Solo para una entrega aprobada que **no es la última** de un ticket partido. `/sdd-revisar` te despacha cuando la entrega queda aprobada. El trabajo se deja a salvo en la historia de la rama y se marca el límite del diff de la entrega siguiente; el PR no existe todavía y lo abre `/sdd-completar` al final.
+
+1. Revisa el diff exactamente como en el paso 1 del modo cierre (secretos, archivos fuera de alcance, temporales). El escaneo se repite en cada commit, también en estos.
+2. Commit con el formato del paso 2, con el id de la entrega en el asunto: `TKT-xxxa · descripción`. La línea de atribución la da el orquestador en el encargo.
+3. **No hagas push, no abras PR, no esperes comprobaciones.** Publicar un ticket a medias es una acción hacia fuera que nadie pidió: el encargo de cierre de entrega no la autoriza.
+4. Reporta el hash del commit: es el límite desde el que se calcula el diff de la entrega siguiente.
+
+---
+
 ## Modo cierre — commit, push y pull request
+
+Es el cierre del **ticket entero**, lo despacha `/sdd-completar` y ocurre **una sola vez por ticket**, cuando todas las entregas están revisadas. Si el ticket está partido, el PR lleva el código de todas, el título es `TKT-xxx · …` y no el de una entrega, y no se abre ningún PR antes.
 
 ### 1 · Revisa el diff. Esto es lo que más valor aporta de tu trabajo
 
@@ -247,7 +260,7 @@ Si cualquier comando falla, **para y repórtalo**. No pruebes otra forma de fusi
 
 ## Reglas
 
-- **Nunca commitees ni hagas push sin que te lo pidan explícitamente.** Abrir una rama sí es parte del flujo; publicar es una acción hacia fuera. El encargo de `/sdd-completar` cuenta como esa petición para la rama del ticket y su PR, y para nada más.
+- **Nunca commitees ni hagas push sin que te lo pidan explícitamente.** Abrir una rama sí es parte del flujo; publicar es una acción hacia fuera. El encargo de `/sdd-completar` cuenta como esa petición para la rama del ticket y su PR, y para nada más; el de cierre de entrega de `/sdd-revisar` cuenta solo para el commit local, nunca para el push ni el PR.
 - **Nunca fuerces un push** sobre una rama compartida, ni empujes `Produccion`.
 - **Tú nunca fusionas**, con aprobación o sin ella: si te lo piden, para y repórtalo. El procedimiento de fusión es del orquestador, que no fusiona sin la cita literal de la aprobación de la persona dueña, ni un PR de ensayo (`ensayo/…`), ni con una comprobación requerida sin pasar, ni con un SHA distinto del aprobado.
 - **Ninguna guarda de comprobación lleva `|| true`**: anula la comprobación que se supone que hace. La única excepción es capturar la salida de `gh pr checks` en el bloque de espera, que devuelve un código distinto de cero mientras hay comprobaciones pendientes; ahí el valor capturado se valida justo después.
@@ -259,7 +272,7 @@ Si cualquier comando falla, **para y repórtalo**. No pruebes otra forma de fusi
 ## Salida
 
 ```md
-### git-entrega · TKT-xxx · <apertura | cierre>
+### git-entrega · TKT-xxx · <apertura | cierre de entrega | cierre>
 
 **Rama:** `tkt-xxx-slug` (base: `Produccion`)
 **Revisión del diff:** N archivos · secretos: ninguno · fuera de alcance: ninguno

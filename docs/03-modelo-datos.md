@@ -284,7 +284,7 @@ erDiagram
         numeric cantidad_presupuestada "Σ cantidad × rendimiento"
         numeric rendimiento_congelado "RN-24 · referencia inmutable"
         numeric costo_unitario
-        numeric importe_venta
+        numeric importe_venta "Σ, por concepto, de cantidad × rendimiento × costo unitario del insumo; sin redondeos intermedios y cuantizado a la escala de la columna. No es un importe de venta del cliente"
     }
     PRESUPUESTO_CONTROL {
         uuid id PK
@@ -312,6 +312,8 @@ erDiagram
 Antes eran una sola tabla porque se asumía que el control se derivaba del precio de venta. Al confirmarse que se captura, separarlos es obligado: un importe capturado por una persona y una cantidad derivada de un cálculo no pueden compartir fila sin que quede ambiguo cuál es la fuente de verdad de cada uno.
 
 `presupuesto_control` es la fila que se bloquea con `FOR UPDATE` durante la evaluación de importe ([ADR-004](adr/20260918-bloqueo-pesimista-presupuesto.md)); `explosion_presupuesto`, la de volumen.
+
+El congelado crea una fila de `presupuesto_control` por cada tipo de partida, con el importe sugerido de la explosión o `0.0000` y el tope nulo, y pasa la obra de `PLANEACION` a `ACTIVA`, todo en la misma transacción.
 
 **El tope se puede recapturar; la línea base no se puede tocar.** Son dos cosas distintas que conviene no confundir. `explosion_presupuesto` y `linea_base_concepto` son copias congeladas y el disparador del invariante 14 rechaza cualquier escritura sobre ellas. Sobre `linea_base_concepto` hay además una segunda barrera: el rol de aplicación solo tiene `SELECT` e `INSERT`. Sobre `explosion_presupuesto` no puede haberla, porque el `SELECT … FOR UPDATE` del control por volumen exige el privilegio `UPDATE` ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)). `presupuesto_control` **no es una copia**: se captura después de congelar y es un juicio de Dirección, no un dato del contrato. Un tope mal tecleado tiene que poder corregirse, o el error queda vivo hasta que haya una versión nueva de línea base — que es v1.1.
 

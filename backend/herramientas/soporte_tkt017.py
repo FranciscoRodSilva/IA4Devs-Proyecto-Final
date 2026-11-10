@@ -6,6 +6,9 @@ from dataclasses import replace
 from typing import Any
 from uuid import UUID
 
+import psycopg
+from psycopg import sql
+
 from cimenta.presupuesto.dominio.analisis import (
     AnalisisLeido,
     AsociacionLeida,
@@ -646,3 +649,84 @@ def preparacion_alta_compartida_con_segundo_insumo(**cambios: Any) -> Preparacio
     segundo = base.analisis[1]
     insumos = _reemplazar_en_tuple(segundo.insumos, 0, replace(segundo.insumos[0], **cambios))
     return replace(base, analisis=(base.analisis[0], replace(segundo, insumos=insumos)))
+
+
+def preparacion_solo_muros(preparacion: Preparacion | None = None) -> Preparacion:
+    """Solo la primera aparición de `620040-A` (`MUROS EXTERIORES`), sin los nodos del plafón (TC-A16).
+
+    Con dos apariciones, cada causa de la explosión sale repetida (una por fila) y `causas` no es una
+    lista de un elemento. `preparacion` es la variante del libro que se quiere reducir; por omisión,
+    `preparacion_sintetica()`.
+    """
+    base = preparacion if preparacion is not None else preparacion_sintetica()
+    muros = base.conceptos[0]
+    ruta = muros.ruta
+    filas_de_muros = {
+        nodo.fila for nodo in (ruta.raiz, ruta.nivel, ruta.area, ruta.partida) if nodo
+    }
+    return replace(
+        base,
+        nodos=tuple(nodo for nodo in base.nodos if nodo.fila in filas_de_muros),
+        conceptos=(muros,),
+        asociaciones=(
+            AsociacionLeida(hoja=_HOJA_APU, codigo=muros.codigo, filas_catalogo=(muros.fila,)),
+        ),
+        filas_leidas=1,
+        filas_validas=1,
+    )
+
+
+# Tablas que una materialización o un congelado escriben o podrían escribir por error (TC-A10 a TC-A20).
+TABLAS_DE_LA_JERARQUIA: tuple[str, ...] = (
+    "nivel",
+    "area",
+    "partida",
+    "concepto",
+    "partida_concepto",
+    "apu",
+    "apu_insumo",
+    "apu_cargo",
+    "insumo",
+    "precio_insumo",
+    "linea_base",
+    "linea_base_concepto",
+    "explosion_presupuesto",
+    "presupuesto_control",
+    "bitacora",
+)
+
+
+def contar_filas_en_base(conexion: psycopg.Connection[tuple[Any, ...]]) -> dict[str, int]:
+    """Filas de cada tabla de `TABLAS_DE_LA_JERARQUIA`, de toda la base de la prueba.
+
+    No confundir con `contar_filas_de_obra`, que cuenta lo que un `PlanMaterializacion` insertaría
+    (a2, `TC-A04`): esta lee lo que la base tiene de verdad.
+    """
+    cuentas: dict[str, int] = {}
+    for tabla in TABLAS_DE_LA_JERARQUIA:
+        fila = conexion.execute(
+            sql.SQL("SELECT count(*) FROM {}").format(sql.Identifier(tabla))
+        ).fetchone()
+        assert fila is not None
+        cuentas[tabla] = int(fila[0])
+    return cuentas
+
+
+def foto_de_base(conexion: psycopg.Connection[tuple[Any, ...]]) -> dict[str, object]:
+    """Lo que un rechazo no debe cambiar: los recuentos, el estado de importaciones y obras, las
+    líneas base completas y los insumos completos (incluida su marca `creado_en_importacion`)."""
+    return {
+        "filas": contar_filas_en_base(conexion),
+        "importaciones": conexion.execute(
+            "SELECT id, estado FROM importacion ORDER BY id"
+        ).fetchall(),
+        "obras": conexion.execute("SELECT id, estado FROM obra ORDER BY id").fetchall(),
+        "lineas_base": conexion.execute(
+            "SELECT id, obra_id, version, estado, importe_venta, congelada_en, motivo "
+            "FROM linea_base ORDER BY id"
+        ).fetchall(),
+        "insumos": conexion.execute(
+            "SELECT id, codigo, descripcion, unidad, tipo, activo, creado_en_importacion "
+            "FROM insumo ORDER BY id"
+        ).fetchall(),
+    }

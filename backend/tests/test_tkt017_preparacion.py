@@ -41,3 +41,22 @@ def test_tkt017_caa05_formato_desconocido(caso: dict[str, object]) -> None:
         assert error.value.formato == 2
     else:
         assert error.value.formato is not FORMATO_PREPARACION
+
+
+@pytest.mark.parametrize("fecha", ["2026-13-45", "2026-02-30"], ids=["mes_13", "30_de_febrero"])
+def test_tkt017_caa05_fecha_de_analisis_imposible_es_formato_desconocido(fecha: str) -> None:
+    """TC-A03 · CA-A5 esc. 1 — una fecha de análisis que no existe en el calendario es una preparación ilegible.
+
+    `apu.fecha_analisis` es un `date`: la fecha se valida al leer la preparación, no al escribir la
+    base, donde sería un `ValueError` y un `500`.
+    """
+    base = preparacion_a_json(preparacion_sintetica())
+    analisis = base["analisis"]
+    assert isinstance(analisis, list)
+    documento: dict[str, object] = {
+        **base,
+        "analisis": [{**analisis[0], "fecha": fecha}, *analisis[1:]],
+    }
+
+    with pytest.raises(FormatoPreparacionDesconocido):
+        preparacion_desde_json(documento)

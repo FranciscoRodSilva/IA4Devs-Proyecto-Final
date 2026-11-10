@@ -27,7 +27,7 @@ Se guarda el resultado del análisis en **`importacion.preparacion jsonb`**, anu
 
 La serialización vive en `preparacion_json.py` (**formato 1**):
 
-- Clave `formato: 1` para que TKT-017 rechace otra versión.
+- Clave `formato: 1` para que TKT-017 rechace otra versión. Un formato desconocido, una clave ausente o un tipo inesperado responden `409` `CONFLICTO` con el código `ESTADO_NO_PERMITE_OPERACION` y el mensaje «La preparación de la importación no se puede leer; la importación debe analizarse de nuevo.», con `importacion_id` y el `formato` leído (o nulo) en el detalle. La importación no cambia de estado.
 - Cifras de `tipos_base` como **cadena** con `format(valor, "f")`, **sin cuantizar**; `None` → `null` en JSON.
 - Enumerados como `.value`; rutas como filas de nodo, no nombres.
 - Contenido: `hoja_catalogo`, `nodos`, `conceptos`, `analisis`, `asociaciones`, `insumos_por_crear`, más `filas_leidas`, `filas_validas` y `filas_rechazadas`.
