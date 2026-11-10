@@ -1007,11 +1007,11 @@ python -m unittest discover -s tools/tests → OK (510 tests)
 
 Los 26 omitidos son las pruebas contra el archivo real del catálogo. `verificar_escenarios.py` no exige ningún test de HDU-001 mientras `tools/historias_activas.txt` la deje `PENDIENTE`: su verde no prueba la cobertura por nombre de los escenarios de este ticket; la prueba la tabla de «Pruebas» y la activación es `P-13` en la fila C4. Una primera suite de cierre dio `993 errors` porque el motor de Docker Desktop se había detenido con un reinicio; se repitió con Docker en marcha y es la de arriba. El CI completo de GitHub Actions se verifica en `/sdd-completar`, al abrir el PR único.
 
-##### Resultado por criterio (alcance b1)
+#### Resultado por criterio (alcance b1)
 
 Todos los criterios `[M]` de b1 (`CA-B1` a `CA-B7` y `CA-R1`) quedan cumplidos con la evidencia de «Resultado contra criterios de aceptación (alcance b1)». `CA-B8` y `CA-B9` quedan parciales y se completan en TKT-017b2.
 
-##### Veredicto
+#### Veredicto
 
 **LISTO PARA EJECUTAR · TKT-017b2.** La entrega TKT-017b1 queda revisada y acumulada en la rama `tkt-017a3-materializacion`, sin pull request.
 
@@ -1206,11 +1206,11 @@ python -m unittest discover -s tools/tests → OK (510 tests)
 
 Los 26 omitidos son las pruebas contra el archivo real del catálogo. `verificar_escenarios.py` no exige ningún test de HDU-001 mientras `tools/historias_activas.txt` la deje `PENDIENTE`: su verde no prueba la cobertura por nombre; la prueba la tabla de «Pruebas» y la activación es `P-13` en la fila C4. El CI completo de GitHub Actions se verifica en `/sdd-completar`, al abrir el PR único.
 
-##### Resultado por criterio (alcance b2)
+#### Resultado por criterio (alcance b2)
 
 Todos los criterios `[M]` de b2 (`CA-B8`, `CA-B9` y `CA-R1`) quedan cumplidos con la evidencia de «Resultado contra criterios de aceptación (alcance b2)». Con esta entrega queda completo el alcance de TKT-017b; solo falta TKT-017c (presupuesto de control).
 
-##### Veredicto
+#### Veredicto
 
 **LISTO PARA EJECUTAR · TKT-017c.** La entrega TKT-017b2 queda revisada y acumulada en la rama `tkt-017a3-materializacion`, sin pull request.
 
@@ -1417,11 +1417,11 @@ python tools/verificar_escenarios.py (con HDU-001 añadida de forma temporal) �
 
 Los 26 omitidos son las pruebas contra el archivo real del catálogo. El CI completo de GitHub Actions se verifica en `/sdd-completar`, al abrir el PR único.
 
-##### Resultado por criterio (alcance c)
+#### Resultado por criterio (alcance c)
 
 Todos los criterios `[M]` de c (`CA-C1` a `CA-C7`) y `CA-R1` quedan cumplidos. Con esta entrega queda completo el alcance de TKT-017, salvo la activación de HDU-001, que la persona dueña dejó sin hacer el 2026-11-10.
 
-##### Veredicto
+#### Veredicto
 
 **EN REVISIÓN · entrega TKT-017c.** Siguiente: `/sdd-revisar TKT-017`, que despacha los cinco auditores sobre esta entrega.
 
@@ -1464,7 +1464,7 @@ El árbol de trabajo pasó además de `CRLF` a `LF` en `tablas.py`, `test_tkt017
 - `traducir_error_del_motor` no traduce `23514` (importe negativo): inalcanzable por la API, que lo rechaza con `422`. A tener en cuenta si otro llamador interno invoca `capturar_tope`.
 - Riesgo declarado `R-3` (tests nacidos en verde): lo aceptó el orquestador; consta en la ejecución.
 
-### Verificación final (entrega TKT-017c)
+### Verificación final de la revisión (entrega TKT-017c)
 
 Salida real de los comandos sobre el estado final tras un ciclo de corrección. `docker info`: Docker 29.9.3 con el servidor en marcha.
 
@@ -1483,10 +1483,10 @@ python -m unittest discover -s tools/tests → Ran 510 tests in 17.438s · OK
 
 Los 26 omitidos son las pruebas contra el archivo real del catálogo. `verificar_escenarios.py` no exige ningún test de HDU-001 mientras `tools/historias_activas.txt` la deje `PENDIENTE` (decisión de la persona dueña, `E1`). Se verifica en `/sdd-completar`: el CI completo de GitHub Actions, los nueve trabajos de `ci.yml`, sobre el PR único.
 
-##### Resultado por criterio (alcance c)
+#### Resultado por criterio (alcance c)
 
 Todos los criterios `[M]` de c (`CA-C1` a `CA-C7`) y `CA-R1` quedan cumplidos, con la evidencia de «Resultado contra criterios de aceptación (alcance c)»; ningún Must incumplido, y cada regla implicada tiene su test de rechazo con el contrato de error completo.
 
-##### Veredicto
+#### Veredicto
 
 **LISTO PARA PR.** La entrega TKT-017c queda revisada, y con ella todo el alcance de TKT-017 (a3, b1, b2 y c, en la rama `tkt-017a3-materializacion`). `/sdd-completar TKT-017` abre el pull request único. No hay commit de esta entrega: lo hace `/sdd-completar`.

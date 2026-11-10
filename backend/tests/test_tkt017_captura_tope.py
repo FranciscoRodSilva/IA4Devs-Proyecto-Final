@@ -15,13 +15,13 @@ del tope (M-C2).
 from __future__ import annotations
 
 import pytest
+
 from cimenta.presupuesto.dominio.captura_tope import (
     CapturaAdmitida,
     CapturaRechazada,
     CausaRechazoCaptura,
     evaluar_captura_tope,
 )
-
 from tipos_base import Dinero
 
 VENTA = Dinero("480000.0000")
