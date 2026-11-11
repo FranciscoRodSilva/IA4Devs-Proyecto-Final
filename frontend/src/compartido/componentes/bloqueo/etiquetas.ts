@@ -22,6 +22,10 @@ export const CLAVES_DETALLE: readonly ClaveDetalle[] = [
   { clave: "solicitado", etiqueta: "Solicitado", formato: "importe" },
   { clave: "excedente", etiqueta: "Excedente", formato: "importe" },
   { clave: "obra_existente", etiqueta: "Obra existente", formato: "texto" },
+  { clave: "version_vigente", etiqueta: "Versión vigente", formato: "texto" },
+  { clave: "estado_obra", etiqueta: "Estado de la obra", formato: "texto" },
+  { clave: "importe_venta", etiqueta: "Venta", formato: "importe" },
+  { clave: "importe_tope", etiqueta: "Tope", formato: "importe" },
 ];
 
 /** La clave del `detalle` que lleva el marcador de excedente. */
@@ -36,14 +40,17 @@ export const PARTES_CONSUMIDO: ReadonlyArray<{ clave: string; etiqueta: string }
 
 export const CLAVE_DESGLOSE = "consumido_desglose";
 
-/** Referencias internas: nunca se pintan (D-8). */
+/** Referencias internas y datos técnicos: nunca se pintan (D-8). */
 export const CLAVES_OCULTAS: readonly string[] = [
+  "espera_maxima_ms",
   "requisicion_id",
   "solicitud_autorizacion_id",
   "orden_compra_id",
   "insumo_id",
   "orden_compra_renglon_id",
   "obra_existente_id",
+  "linea_base_id",
+  "linea_base_vigente_id",
 ];
 
 export type TipoColumna = "texto" | "cantidad" | "fecha";
@@ -98,6 +105,15 @@ export const TABLAS_DETALLE: readonly TablaDetalle[] = [
       INSUMO,
       { encabezado: "Saldo pendiente", campo: "saldo_pendiente", tipo: "cantidad" },
       { encabezado: "Fecha compromiso", campo: "fecha_compromiso", tipo: "fecha" },
+    ],
+  },
+  {
+    clave: "causas",
+    titulo: "Causas",
+    columnas: [
+      { encabezado: "Concepto", campo: "concepto", tipo: "texto" },
+      { encabezado: "Causa", campo: "causa", tipo: "texto" },
+      { encabezado: "Insumo", campo: "clave_insumo", tipo: "texto" },
     ],
   },
 ];

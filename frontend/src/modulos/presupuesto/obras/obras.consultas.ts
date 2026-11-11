@@ -19,6 +19,15 @@ export const obrasOptions = (api: ClienteApi) =>
     staleTime: 30_000,
   });
 
+/** Una obra con su línea base vigente, si la hay. Cuelga de `claves.obras`: el mismo prefijo la invalida. */
+export const obraOptions = (api: ClienteApi, obraId: string) =>
+  queryOptions({
+    queryKey: [...claves.obras, obraId] as const,
+    queryFn: async () =>
+      exigir(await pedir(() => api.GET("/api/v1/obras/{obra_id}", { params: { path: { obra_id: obraId } } }))),
+    staleTime: 30_000,
+  });
+
 /** El alta. Devuelve el resultado tal cual; la invalidación la hace quien la llama tras confirmar. */
 export function crearObra(api: ClienteApi, cuerpo: ObraNueva) {
   return pedir(() => api.POST("/api/v1/obras", { body: cuerpo }));

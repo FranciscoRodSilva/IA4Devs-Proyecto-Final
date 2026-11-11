@@ -1,10 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router";
 import { type Accion, type ErrorApi, type ErrorBloqueo, type ErrorConcurrencia, type ErrorReglaNegocio } from "@/api/errores";
 import { FalloApi } from "@/api/cliente";
 import type { components } from "@/api/generado/servidor";
 import { useApi } from "@/api/ProveedorApi";
 import { type Rol, useSesion } from "@/api/sesion";
+import { seccionPermitida } from "@/app/navegacion/secciones";
 import { Button } from "@/components/ui/button";
 import { ConflictoEnLinea } from "@/compartido/formularios/ConflictoEnLinea";
 import { FormularioCatalogo } from "@/compartido/formularios/FormularioCatalogo";
@@ -17,6 +19,7 @@ type Esquemas = components["schemas"];
 const ROLES_QUE_DAN_DE_ALTA: readonly Rol[] = ["DIRECTOR_PROYECTOS", "DIRECCION_GENERAL"];
 const ETIQUETA_ALTA = "Dar de alta una obra";
 const TITULO_FORMULARIO = "Alta de obra";
+const ETIQUETA_LINEA_BASE = "Línea base";
 const ETIQUETA_ESTADO: Readonly<Record<Esquemas["EstadoObra"], string>> = {
   PLANEACION: "Planeación",
   ACTIVA: "Activa",
@@ -69,7 +72,7 @@ function SinObras({ puedeDarDeAlta }: { puedeDarDeAlta: boolean }) {
   );
 }
 
-function TablaObras({ obras, total }: { obras: Esquemas["Obra"][]; total: number }) {
+function TablaObras({ obras, total, conLineaBase }: { obras: Esquemas["Obra"][]; total: number; conLineaBase: boolean }) {
   return (
     <div className="grid gap-2">
       <table className="w-full text-sm">
@@ -84,6 +87,11 @@ function TablaObras({ obras, total }: { obras: Esquemas["Obra"][]; total: number
             <th scope="col" className="px-3 py-2 font-medium">
               Estado
             </th>
+            {conLineaBase ? (
+              <th scope="col" className="px-3 py-2 font-medium">
+                {ETIQUETA_LINEA_BASE}
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -92,6 +100,13 @@ function TablaObras({ obras, total }: { obras: Esquemas["Obra"][]; total: number
               <td className="px-3 py-2">{obra.codigo}</td>
               <td className="px-3 py-2">{obra.nombre}</td>
               <td className="px-3 py-2">{ETIQUETA_ESTADO[obra.estado]}</td>
+              {conLineaBase ? (
+                <td className="px-3 py-2">
+                  <Link to={`/obras/${obra.id}/linea-base`} aria-label={`${ETIQUETA_LINEA_BASE} de ${obra.codigo}`} className="underline">
+                    {ETIQUETA_LINEA_BASE}
+                  </Link>
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>
@@ -110,6 +125,8 @@ export function PantallaObras() {
   const [formularioAbierto, setFormularioAbierto] = useState(false);
   const [bloqueo, setBloqueo] = useState<ErrorBloqueo | null>(null);
   const puedeDarDeAlta = sesion.data?.roles.some((rol) => ROLES_QUE_DAN_DE_ALTA.includes(rol)) ?? false;
+  // Cortesía de navegación: el control real es la guarda de la sección y el 403 del servidor.
+  const veLineaBase = seccionPermitida("LINEA_BASE", sesion.data?.roles ?? []);
 
   function abrirFormulario() {
     setBloqueo(null);
@@ -132,7 +149,7 @@ export function PantallaObras() {
     if (lista.isError) return <AvisoErrorLista error={lista.error} alReintentar={() => void lista.refetch()} />;
     const obras = lista.data.elementos;
     if (obras.length === 0) return <SinObras puedeDarDeAlta={puedeDarDeAlta} />;
-    return <TablaObras obras={obras} total={lista.data.paginacion.total} />;
+    return <TablaObras obras={obras} total={lista.data.paginacion.total} conLineaBase={veLineaBase} />;
   }
 
   return (

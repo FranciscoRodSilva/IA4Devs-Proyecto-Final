@@ -62,6 +62,67 @@ export function errorPermiso(motivo: Errores["ErrorPermiso"]["motivo"]): Errores
   } satisfies Errores["ErrorPermiso"];
 }
 
+/** Un 404 del contrato. El `mensaje` es el que la pantalla pinta tal cual (TKT-018a, D-8). */
+export function errorNoEncontrado(recurso: string, mensaje: string): Errores["ErrorNoEncontrado"] {
+  return {
+    tipo: "NO_ENCONTRADO",
+    recurso,
+    mensaje,
+    correlacion_id: CORRELACION_ID,
+  } satisfies Errores["ErrorNoEncontrado"];
+}
+
+// Línea base (TKT-018a). Los tipos de partida llevan los nombres de la migración `v0008`, en mayúsculas, y sus
+// `id` van en el orden de esa migración. Los importes son cadenas con la escala del servidor y suman la venta:
+// 30,000 + 18,500 + 6,600 + 7,400 = 62,500.
+const ID_OBRA = "6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90";
+const ID_LINEA_BASE = "e3b5c847-4a6f-4d9c-bf05-7e2a9b4d1f8d";
+const TIPOS_PARTIDA = [
+  { id: "00000000-0000-4000-8000-000000000001", clave: "MUROS", nombre: "MUROS" },
+  { id: "00000000-0000-4000-8000-000000000002", clave: "PLAFONES_Y_CAJILLOS", nombre: "PLAFONES Y CAJILLOS" },
+  { id: "00000000-0000-4000-8000-000000000003", clave: "ENCHAPES", nombre: "ENCHAPES" },
+  { id: "00000000-0000-4000-8000-000000000004", clave: "GENERALES", nombre: "GENERALES" },
+] as const satisfies readonly Esquemas["TipoPartida"][];
+const VENTA_POR_TIPO = ["30000.0000", "18500.0000", "6600.0000", "7400.0000"] as const;
+
+/** Una línea base en BORRADOR, versión 1, de la obra AP-058-25, con venta de 62,500 en sus cuatro tipos de partida. */
+export function lineaBase(cambios: Partial<Esquemas["LineaBase"]> = {}): Esquemas["LineaBase"] {
+  return {
+    id: ID_LINEA_BASE,
+    obra_id: ID_OBRA,
+    version: 1,
+    estado: "BORRADOR",
+    importe_venta: "62500.0000",
+    congelada_en: null,
+    congelada_por: null,
+    motivo: null,
+    por_tipo_partida: TIPOS_PARTIDA.map((tipo_partida, indice) => ({
+      tipo_partida,
+      importe_venta: VENTA_POR_TIPO[indice] ?? "0.0000",
+    })),
+    ...cambios,
+  } satisfies Esquemas["LineaBase"];
+}
+
+/** La obra AP-058-25 de la línea base de arriba, en PLANEACION y sin línea base vigente (TKT-018a, fila A3). */
+export function obra(cambios: Partial<Esquemas["Obra"]> = {}): Esquemas["Obra"] {
+  return {
+    id: ID_OBRA,
+    codigo: "AP-058-25",
+    nombre: "Union Square F2",
+    domicilio: "Av. Constituyentes 120, Querétaro",
+    tipo_contrato: "PRECIO_ALZADO_MAXIMO_GARANTIZADO",
+    retencion_destajo_pct: "0.150000",
+    fondo_garantia_pct: "0.050000",
+    iva_acreditable: true,
+    umbral_alerta_pct: null,
+    estado: "PLANEACION",
+    linea_base_vigente_id: null,
+    creado_en: "2026-10-12T15:00:00Z",
+    ...cambios,
+  } satisfies Esquemas["Obra"];
+}
+
 // Cuerpos de bloqueo (409). Las cifras de `errorRn03ExcedeImporte` son las de CA-8 esc. 1: 45,000 presupuestados,
 // 33,000 consumidos (6,000 + 9,000 + 18,000), 12,000 disponibles, 15,000 solicitados y 3,000 de excedente.
 const ID_REQUISICION = "3d9a7c10-6b2e-4f41-8a95-0c7d2e5b9f13";
@@ -217,6 +278,73 @@ export function errorConflictoEstado(
   } satisfies Errores["ErrorConflictoEstado"];
 }
 
+// Rechazos de la línea base (TKT-018a, TC-04). El `detalle` de cada uno es el que arma el backend en
+// `presupuesto/aplicacion/congelado.py`, `causas_explosion.py` y `presupuesto_control.py`: los importes son cadenas
+// con escala 4, `version_vigente` es un entero y los identificadores internos viajan aunque nunca se pinten.
+export const ID_LINEA_BASE_VIGENTE = "8f7e6d5c-4b3a-4291-8f7e-6d5c4b3a2918";
+
+/** RN-01: HDU-001 esc. 19. La obra ya tiene una línea base congelada; el servidor no ofrece ninguna acción. */
+export function errorRn01SegundaVigente(): Errores["ErrorReglaNegocio"] {
+  return {
+    tipo: "REGLA_NEGOCIO",
+    regla: "RN-01",
+    mensaje:
+      "La obra AP-058-25 ya tiene una línea base congelada; para sustituirla hay que crear una versión nueva que marque la anterior como SUPERSEDIDA.",
+    detalle: {
+      obra: "AP-058-25 · Union Square F2",
+      linea_base_vigente_id: ID_LINEA_BASE_VIGENTE,
+      version_vigente: 1,
+    },
+    acciones: [],
+    correlacion_id: CORRELACION_ID,
+  } satisfies Errores["ErrorReglaNegocio"];
+}
+
+/**
+ * La explosión del borrador no se puede calcular al congelar (CA-4): dos causas con la forma de `detalle_de_causas`.
+ * La primera es por concepto e insumo; la segunda, un sugerido negativo, es por tipo de partida y lleva `concepto`
+ * y `clave_insumo` nulos, como los manda el servidor.
+ */
+export function errorExplosionNoCalculable(): Errores["ErrorConflictoEstado"] {
+  return {
+    tipo: "CONFLICTO",
+    codigo: "ESTADO_NO_PERMITE_OPERACION",
+    mensaje: "La explosión de insumos de la importación no se puede calcular.",
+    detalle: {
+      linea_base_id: ID_LINEA_BASE,
+      causas: [
+        { concepto: "620040-A", causa: "INSUMO_SIN_COSTO", clave_insumo: "TAB-0127", tipo_partida_id: null },
+        { concepto: null, causa: "SUGERIDO_NEGATIVO", clave_insumo: null, tipo_partida_id: TIPOS_PARTIDA[0].id },
+      ],
+    },
+    acciones: [],
+    correlacion_id: CORRELACION_ID,
+  } satisfies Errores["ErrorConflictoEstado"];
+}
+
+/** Tope mayor que la venta sin confirmar: HDU-001 esc. 17. `tipo_partida` y el `mensaje` traen la clave cruda. */
+export function errorTopeSuperior(
+  clave: (typeof TIPOS_PARTIDA)[number]["clave"],
+  venta: string,
+  tope: string,
+): Errores["ErrorConflictoEstado"] {
+  const tipo = TIPOS_PARTIDA.find((candidato) => candidato.clave === clave) ?? TIPOS_PARTIDA[0];
+  return {
+    tipo: "CONFLICTO",
+    codigo: "TOPE_SUPERIOR_A_VENTA_SIN_CONFIRMAR",
+    mensaje: `El tope de ${clave} supera su importe de venta; implicaría vender por debajo del costo tope.`,
+    detalle: { tipo_partida: clave, importe_venta: venta, importe_tope: tope },
+    acciones: [
+      {
+        clave: "CONFIRMAR_TOPE_SUPERIOR",
+        metodo: "PUT",
+        ruta: `/api/v1/lineas-base/${ID_LINEA_BASE}/presupuesto-control/${tipo.id}`,
+      } satisfies Accion,
+    ],
+    correlacion_id: CORRELACION_ID,
+  } satisfies Errores["ErrorConflictoEstado"];
+}
+
 /** Venció el bloqueo o el tiempo de ejecución: CA-9 esc. 2. Como llega del servidor; `Retry-After` lo añade `normalizarError`. */
 export function errorConcurrencia(cambios: Partial<Errores["ErrorConcurrencia"]> = {}): Errores["ErrorConcurrencia"] {
   return {
@@ -229,5 +357,36 @@ export function errorConcurrencia(cambios: Partial<Errores["ErrorConcurrencia"]>
     ],
     correlacion_id: CORRELACION_ID,
     ...cambios,
+  } satisfies Errores["ErrorConcurrencia"];
+}
+
+// Rechazos del congelado que no tenían fábrica (TKT-018a, TC-14 y TC-15). Mensajes, `detalle` y acciones son los de
+// `presupuesto/aplicacion/congelado.py` y `traduccion_motor.py`.
+
+/** La línea base ya no está en BORRADOR al congelar (CA-4): `_rechazar_si_no_se_congela`. El servidor no ofrece acciones. */
+export function errorLineaBaseEnOtroEstado(
+  estado: Exclude<Esquemas["LineaBase"]["estado"], "BORRADOR"> = "CONGELADA",
+): Errores["ErrorConflictoEstado"] {
+  return {
+    tipo: "CONFLICTO",
+    codigo: "ESTADO_NO_PERMITE_OPERACION",
+    mensaje: `La línea base está en ${estado}; solo se congela una línea base en BORRADOR.`,
+    detalle: { linea_base_id: ID_LINEA_BASE, estado },
+    acciones: [],
+    correlacion_id: CORRELACION_ID,
+  } satisfies Errores["ErrorConflictoEstado"];
+}
+
+/** Venció el bloqueo de la obra al congelar (CA-4, SQLSTATE 55P03). Como llega del servidor; `Retry-After` va en la cabecera. */
+export function errorCongeladoBloqueoVencido(): Errores["ErrorConcurrencia"] {
+  return {
+    tipo: "CONCURRENCIA",
+    codigo: "BLOQUEO_VENCIDO",
+    mensaje: "Otra operación está usando la línea base de esta obra en este momento. Vuelve a intentarlo.",
+    detalle: { espera_maxima_ms: 5000 },
+    acciones: [
+      { clave: "REINTENTAR", metodo: "POST", ruta: `/api/v1/lineas-base/${ID_LINEA_BASE}/congelacion` } satisfies Accion,
+    ],
+    correlacion_id: CORRELACION_ID,
   } satisfies Errores["ErrorConcurrencia"];
 }

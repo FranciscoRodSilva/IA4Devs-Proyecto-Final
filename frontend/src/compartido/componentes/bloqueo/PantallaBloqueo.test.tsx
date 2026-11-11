@@ -6,10 +6,12 @@ import {
   errorConcurrencia,
   errorConflictoEstado,
   errorPermiso,
+  errorRn01SegundaVigente,
   errorRn03ExcedeImporte,
   errorRn03PorVolumen,
   errorRn07ExcedeOrdenado,
   errorValidacion,
+  ID_LINEA_BASE_VIGENTE,
 } from "@/pruebas/cuerpos";
 import { servidorPruebas } from "@/pruebas/servidor";
 import { PantallaBloqueo, type PropsPantallaBloqueo } from "./PantallaBloqueo";
@@ -300,5 +302,36 @@ describe("TKT-008 · pantalla de bloqueo", () => {
 
     expect(alAccion).toHaveBeenCalledTimes(1);
     expect(alAccion).toHaveBeenCalledWith(desconocida);
+  });
+});
+
+describe("TKT-018a · rechazos de la línea base en la pantalla de bloqueo (TC-04)", () => {
+  test("hdu001_esc19 · la segunda línea base vigente muestra la obra y la versión vigente, y solo «Cerrar»", () => {
+    // CA-4 · RN-01. El servidor no ofrece ninguna acción: la única salida es cerrar.
+    const error = errorRn01SegundaVigente();
+
+    abrir(error);
+
+    expect(screen.getByRole("region")).toHaveAttribute("data-estado", "bloqueado");
+    expect(screen.getByText(/Regla RN-01/)).toBeInTheDocument();
+    expect(screen.getByText(error.mensaje)).toBeInTheDocument();
+    expect(valorDe("Obra")).toHaveTextContent("AP-058-25 · Union Square F2");
+    expect(valorDe("Versión vigente")).toHaveTextContent(/^1$/);
+    expect(nombresDeBotones()).toEqual(["Cerrar"]);
+  });
+
+  test("hdu001_esc19 · el identificador de la línea base vigente no se pinta", () => {
+    // D-8: las referencias internas no se pintan, ni su nombre ni su valor.
+    const error = errorRn01SegundaVigente();
+    const detalle: Record<string, unknown> = error.detalle;
+    // La prueba lee el valor de la fábrica: sin un identificador, la afirmación de abajo no demostraría nada.
+    expect(detalle.linea_base_vigente_id).toBe(ID_LINEA_BASE_VIGENTE);
+
+    abrir(error);
+
+    expect(screen.queryByText("linea_base_vigente_id")).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(ID_LINEA_BASE_VIGENTE);
+    // Tampoco queda ninguna clave cruda del detalle a la vista.
+    expect(screen.queryByText("version_vigente")).not.toBeInTheDocument();
   });
 });

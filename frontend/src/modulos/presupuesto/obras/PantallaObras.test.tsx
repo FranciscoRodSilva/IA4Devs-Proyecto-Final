@@ -3,7 +3,15 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { components as Servidor } from "@/api/generado/servidor";
 import type { Rol } from "@/api/sesion";
-import { errorConflictoEstado, errorPermiso, errorValidacion, tokenCsrf, usuarioActual } from "@/pruebas/cuerpos";
+import {
+  errorConflictoEstado,
+  errorPermiso,
+  errorValidacion,
+  lineaBase,
+  obra as obraBase,
+  tokenCsrf,
+  usuarioActual,
+} from "@/pruebas/cuerpos";
 import { renderizarAplicacion } from "@/pruebas/render";
 import { servidorPruebas } from "@/pruebas/servidor";
 
@@ -52,21 +60,7 @@ function diferido() {
 }
 
 function obra(cambios: Partial<Obra> = {}): Obra {
-  return {
-    id: ID_OBRA_EXISTENTE,
-    codigo: "AP-058-25",
-    nombre: "Union Square F2",
-    domicilio: "Av. Constituyentes 120, Querétaro",
-    tipo_contrato: TIPO_CONTRATO,
-    retencion_destajo_pct: "0.150000",
-    fondo_garantia_pct: "0.050000",
-    iva_acreditable: true,
-    umbral_alerta_pct: null,
-    estado: "PLANEACION",
-    linea_base_vigente_id: null,
-    creado_en: "2026-11-10T15:00:00Z",
-    ...cambios,
-  } satisfies Obra;
+  return obraBase({ id: ID_OBRA_EXISTENTE, creado_en: "2026-11-10T15:00:00Z", ...cambios });
 }
 
 function obraTercera(): Obra {
@@ -446,4 +440,95 @@ describe("TKT-012a · TC-F11 · rechazos del servidor junto a su campo (CA-11, r
     expect(alta.cuerpos).toHaveLength(0);
     expect(screen.getByRole("dialog", { name: TITULO_FORMULARIO })).toBeInTheDocument();
   });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// TKT-018a · fila A5 · TC-17 (CA-1). La lista de obras gana la columna «Línea base» para quien tiene la sección
+// `LINEA_BASE` (Director de Proyectos, Dirección General y Compras). Los seis roles abren la lista (`OBRAS` es de
+// todos), así que el camino feliz y el rechazo se prueban en esta misma pantalla.
+// ---------------------------------------------------------------------------------------------------------------
+
+const ROLES_CON_LINEA_BASE: Rol[] = ["DIRECTOR_PROYECTOS", "DIRECCION_GENERAL", "COMPRAS"];
+const ROLES_SIN_LINEA_BASE: Rol[] = ["RESIDENTE", "ALMACEN", "ADMINISTRACION"];
+
+function rutaLineaBase(obraId: string) {
+  return `/obras/${obraId}/linea-base`;
+}
+
+/** Los dobles de la pantalla de línea base: anotan el identificador de la obra de cada petición que reciben. */
+function dobleLineaBaseDeObra(obras: Obra[]) {
+  const pedidas = { obra: [] as string[], lineas: [] as string[] };
+  const handlers = [
+    http.get(`${ORIGEN}${RUTA_OBRAS}/:obraId`, ({ params }) => {
+      const obraId = String(params.obraId);
+      pedidas.obra.push(obraId);
+      const encontrada = obras.find((candidata) => candidata.id === obraId);
+      return encontrada === undefined ? new HttpResponse(null, { status: 404 }) : HttpResponse.json(encontrada);
+    }),
+    http.get(`${ORIGEN}${RUTA_OBRAS}/:obraId/lineas-base`, ({ params }) => {
+      const obraId = String(params.obraId);
+      pedidas.lineas.push(obraId);
+      return HttpResponse.json([lineaBase({ obra_id: obraId })] satisfies Esquemas["LineaBase"][]);
+    }),
+  ];
+  return { handlers, pedidas };
+}
+
+describe("TKT-018a · TC-17 · enlace a la línea base desde la lista de obras (CA-1)", () => {
+  test.each(ROLES_CON_LINEA_BASE)(
+    "tkt018a_ca01 · enlace desde la lista · TC-17 · %s ve la columna «Línea base» y, en cada fila, el enlace «Línea base de {código}» a la pantalla de esa obra",
+    async (rol) => {
+      await abrirPantallaConTabla([rol], { obras: [obra(), obraTercera()] });
+
+      const tabla = screen.getByRole("table");
+      expect(within(tabla).getByRole("columnheader", { name: "Línea base" })).toBeInTheDocument();
+      const primera = within(tabla).getByRole("row", { name: /AP-058-25/ });
+      expect(within(primera).getByRole("link", { name: "Línea base de AP-058-25" })).toHaveAttribute(
+        "href",
+        rutaLineaBase(ID_OBRA_EXISTENTE),
+      );
+      const segunda = within(tabla).getByRole("row", { name: /AP-061-25/ });
+      expect(within(segunda).getByRole("link", { name: "Línea base de AP-061-25" })).toHaveAttribute(
+        "href",
+        rutaLineaBase(ID_OBRA_TERCERA),
+      );
+      // Un enlace por obra, ni uno más.
+      expect(within(tabla).getAllByRole("link", { name: /^Línea base de / })).toHaveLength(2);
+    },
+  );
+
+  test.each(ROLES_CON_LINEA_BASE)(
+    "tkt018a_ca01 · enlace desde la lista · TC-17 · %s pulsa el enlace de una obra: la ruta cambia y se pide la línea base de esa obra, no de otra",
+    async (rol) => {
+      const obras = [obra(), obraTercera()];
+      const destino = dobleLineaBaseDeObra(obras);
+      servidorPruebas.use(...destino.handlers);
+      const { usuario, router } = await abrirPantallaConTabla([rol], { obras });
+
+      // Se pulsa el de la segunda fila: con el de la primera, un enlace que apuntara siempre a la primera obra pasaría.
+      await usuario.click(screen.getByRole("link", { name: "Línea base de AP-061-25" }));
+
+      await waitFor(() => expect(router.state.location.pathname).toBe(rutaLineaBase(ID_OBRA_TERCERA)));
+      await waitFor(() => expect(destino.pedidas.lineas).toEqual([ID_OBRA_TERCERA]));
+      expect(destino.pedidas.obra).toEqual([ID_OBRA_TERCERA]);
+      // Ya no está la lista: la pantalla es la de la obra elegida.
+      expect(screen.queryByRole("heading", { level: 1, name: "Obras" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { level: 1, name: "No tienes permiso para esta sección" })).not.toBeInTheDocument();
+    },
+  );
+
+  test.each(ROLES_SIN_LINEA_BASE)(
+    "tkt018a_ca01 · enlace desde la lista · TC-17 · %s ve la lista sin la columna ni ningún enlace «Línea base de …»",
+    async (rol) => {
+      await abrirPantallaConTabla([rol], { obras: [obra(), obraTercera()] });
+
+      const tabla = screen.getByRole("table");
+      // La lista sí se ve: el rechazo es del enlace, no de la pantalla.
+      expect(within(tabla).getByRole("cell", { name: "AP-058-25" })).toBeInTheDocument();
+      expect(within(tabla).getByRole("cell", { name: "AP-061-25" })).toBeInTheDocument();
+      expect(within(tabla).getAllByRole("columnheader").map((columna) => columna.textContent)).toEqual(["Código", "Nombre", "Estado"]);
+      expect(screen.queryByRole("link", { name: /Línea base de / })).not.toBeInTheDocument();
+      expect(within(tabla).queryByRole("link")).not.toBeInTheDocument();
+    },
+  );
 });

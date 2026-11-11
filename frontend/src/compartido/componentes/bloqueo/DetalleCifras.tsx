@@ -66,7 +66,7 @@ function FilaCifra({ definicion, valor, detalle }: { definicion: ClaveDetalle; v
 function celda(columna: ColumnaTabla, fila: Readonly<Record<string, unknown>>): string {
   const valor = fila[columna.campo];
   if (columna.tipo === "cantidad") return cantidad(valor, fila.unidad);
-  return valor === undefined ? "" : comoTexto(valor);
+  return valor === undefined || valor === null ? "" : comoTexto(valor);
 }
 
 function Tabla({ tabla, filas }: { tabla: TablaDetalle; filas: ReadonlyArray<Readonly<Record<string, unknown>>> }) {

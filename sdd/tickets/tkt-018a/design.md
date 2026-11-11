@@ -1,6 +1,6 @@
 # Design · TKT-018a · Pantalla de línea base y presupuesto de control
 
-> [← index](_index.md) | [← spec](spec.md) | Siguiente: impl (se enlaza en `/sdd-ejecutar`)
+> [← index](_index.md) | [← spec](spec.md) | Siguiente: [impl](impl.md)
 
 ## Estrategia
 
@@ -127,11 +127,11 @@ Se ejecuta fila por fila con el ciclo TDD de [metodología §16](../../metodolog
 
 | # | Paso | Tests que pone en verde | Agente | Modelo | Verificación | Estado |
 |---|---|---|---|---|---|---|
-| A1 | `linea-base.consultas.ts` (claves, dos `queryOptions`, `congelarLineaBase`, `capturarTope`, `lineaBaseMostrada`) y `presentacion.ts` | TC-01, TC-02 (`linea-base.consultas.test.ts`), TC-03 (`presentacion.test.ts`) | `desarrollador-react` | `haiku` | `npm test -- linea-base presentacion`; `npm run lint`; `npm run typecheck`; mutantes `M-5`, `M-8` y `M-10` | Pendiente |
-| A2 | Claves, ocultas y tabla `causas` en `etiquetas.ts` | TC-04 (pruebas nuevas en `PantallaBloqueo.test.tsx`) y las existentes de `PantallaBloqueo` y `ConflictoEnLinea` sin modificar | `desarrollador-react` | `haiku` | `npm test -- PantallaBloqueo ConflictoEnLinea` | Pendiente |
-| A3 | `PantallaLineaBase.tsx` (estados, cabecera, desglose, vistas `BORRADOR` sin formulario y `CONGELADA`) y su ruta en `rutas.tsx` | TC-05 a TC-09 (`PantallaLineaBase.test.tsx`) | `desarrollador-react` | `haiku` | `npm test -- PantallaLineaBase`; `npm run lint`; `npm run typecheck`; mutante `M-7` | Pendiente |
-| A4 | `FormularioCongelado.tsx`, montado en la vista `BORRADOR` para `DIRECTOR_PROYECTOS` | TC-10 a TC-16 (`PantallaLineaBase.test.tsx`) | `desarrollador-react` | `haiku` | `npm test -- PantallaLineaBase`; mutante `M-1` | Pendiente |
-| A5 | `ElegirObra.tsx` y sus dos rutas; columna «Línea base» en `PantallaObras` | TC-17 (`PantallaObras.test.tsx`), TC-18 (`PantallaLineaBase.test.tsx`); `Armazon.test.tsx`, `secciones.test.ts` y `PaginaInicioSesion.test.tsx` **sin modificar** | `desarrollador-react` | `haiku` | `npm test` completo (`CA-R1` de la entrega a); `npm run lint`; `npm run typecheck`; `npm run tipos:verificar` | Pendiente |
+| A1 | `linea-base.consultas.ts` (claves, dos `queryOptions`, `congelarLineaBase`, `capturarTope`, `lineaBaseMostrada`) y `presentacion.ts` | TC-01, TC-02 (`linea-base.consultas.test.ts`), TC-03 (`presentacion.test.ts`) | `desarrollador-react` | `haiku` | `npm test -- linea-base presentacion`; `npm run lint`; `npm run typecheck`; mutantes `M-5`, `M-8` y `M-10` | ✓ Hecho |
+| A2 | Claves, ocultas y tabla `causas` en `etiquetas.ts` | TC-04 (pruebas nuevas en `PantallaBloqueo.test.tsx`) y las existentes de `PantallaBloqueo` y `ConflictoEnLinea` sin modificar | `desarrollador-react` | `haiku` | `npm test -- PantallaBloqueo ConflictoEnLinea` | ⚠ Ajustado |
+| A3 | `PantallaLineaBase.tsx` (estados, cabecera, desglose, vistas `BORRADOR` sin formulario y `CONGELADA`) y su ruta en `rutas.tsx` | TC-05 a TC-09 (`PantallaLineaBase.test.tsx`) | `desarrollador-react` | `haiku` | `npm test -- PantallaLineaBase`; `npm run lint`; `npm run typecheck`; mutante `M-7` | ⚠ Ajustado |
+| A4 | `FormularioCongelado.tsx`, montado en la vista `BORRADOR` para `DIRECTOR_PROYECTOS` | TC-10 a TC-16 (`PantallaLineaBase.test.tsx`) | `desarrollador-react` | `haiku` | `npm test -- PantallaLineaBase`; mutante `M-1` | ⚠ Ajustado |
+| A5 | `ElegirObra.tsx` y sus dos rutas; columna «Línea base» en `PantallaObras` | TC-17 (`PantallaObras.test.tsx`), TC-18 (`PantallaLineaBase.test.tsx`); `Armazon.test.tsx`, `secciones.test.ts` y `PaginaInicioSesion.test.tsx` **sin modificar** | `desarrollador-react` | `haiku` | `npm test` completo (`CA-R1` de la entrega a); `npm run lint`; `npm run typecheck`; `npm run tipos:verificar` | ✓ Hecho |
 | B1 | `tope.formulario.ts`; `etiquetaCancelar` en `CapturaMotivo` | TC-20 (`tope.formulario.test.ts`), TC-21 (prueba nueva en `CapturaMotivo.test.tsx`) y las 14 existentes de `CapturaMotivo` sin modificar | `desarrollador-react` | `haiku` | `npm test -- tope.formulario CapturaMotivo`; mutante `M-4` | Pendiente |
 | B2 | `TablaPresupuestoControl.tsx` con «Guardar topes», éxito parcial y la cola de confirmación; montada en la vista `CONGELADA` | TC-22 a TC-29 (`TablaPresupuestoControl.test.tsx`), TC-24 (`PantallaLineaBase.test.tsx`) | `desarrollador-react` | `sonnet` · disparador «la fila toca una regla de dinero o de límite (`RN-03`)» (§14.2): captura del tope, confirmación del tope superior a la venta y éxito parcial | `npm test -- TablaPresupuestoControl PantallaLineaBase`; mutantes `M-2`, `M-3` y `M-6` | Pendiente |
 | B3 | `DialogoRecaptura.tsx` y el botón «Recapturar» de la tabla | TC-30 a TC-34 (`TablaPresupuestoControl.test.tsx`) | `desarrollador-react` | `sonnet` · mismo disparador (`RN-03`): recaptura del tope y reenvío con confirmación | `npm test -- TablaPresupuestoControl`; mutante `M-9` | Pendiente |
@@ -152,7 +152,7 @@ Notas de ejecución que no admiten otra lectura:
 
 ## Plan de pruebas
 
-Vitest con MSW salvo C1 (pytest) y TC-E1 (Playwright). Nombres de prueba: `hdu001_escNN · …` donde hay escenario de HDU-001, `tkt018a_caNN · …` donde no. HDU-001 sigue sin activar en `tools/historias_activas.txt` (spec, dependencias cruzadas): los nombres preparan su activación en TKT-018b.
+Vitest con MSW salvo C1 (pytest) y TC-E1 (Playwright). Nombres de prueba: `hdu001_escNN · …` donde hay escenario de HDU-001, `tkt018a_caNN · …` donde no, y `tkt018a_dN · …` cuando la prueba fija la decisión D-N (TC-01 y TC-18). HDU-001 sigue sin activar en `tools/historias_activas.txt` (spec, dependencias cruzadas): los nombres preparan su activación en TKT-018b.
 
 | # | Caso | Tipo | Criterio que cubre | Escenario |
 |---|---|---|---|---|
@@ -195,6 +195,8 @@ Vitest con MSW salvo C1 (pytest) y TC-E1 (Playwright). Nombres de prueba: `hdu00
 | TC-S2 | `test_tkt018a_semilla_se_niega_contra_base_remota`: con `CIMENTA_DB_HOST=db.ejemplo.com`, y aparte con `PGHOSTADDR` definida, `main()` lanza `SystemExit` con «Negado» y `herramientas.conexion.create_engine` (sustituido con `monkeypatch` por uno que falla; es el que usa `crear_motor_aplicacion()`) no se llama. Variante: sin `CIMENTA_DB_HOST`, `SystemExit` con el nombre de la variable, no un `RuntimeError` | **rechazo** | `CA-S1` | — |
 | TC-S3 | `test_tkt018a_semilla_codigo_repetido`: segunda llamada con el mismo código → `SystemExit` «Ya existe la obra» y ninguna fila nueva en `obra`, `importacion` ni `linea_base` | **rechazo** | `CA-S1` | — |
 | TC-E1 | `e2e/linea-base.spec.ts` · `hdu001_esc14 · congelar como DP y capturar como DG`: el DP entra a `/obras/{CIMENTA_HUMO_LB_OBRA_ID}/linea-base`, escribe un motivo, congela, ve `CONGELADA` y sale; la DG entra a la misma ruta, captura «0.01» en «Tope de MUROS», guarda y ve «$0.01» y «Humo Direccion General» en esa fila | feliz | `CA-S1` | `HDU-001 esc. 14`, `esc. 15` |
+
+TC-19 no se usa: la numeración continúa en TC-20 para la entrega b.
 
 **Concurrencia.** No hay bloqueo pesimista en el cliente; el bloqueo del congelado y de la captura vive en el backend y lo probó TKT-017. Lo que la pantalla debe hacer con su vencimiento es TC-15 (`CONCURRENCIA` con `Retry-After` y reintento).
 
@@ -241,7 +243,7 @@ Comprobaciones que el diseño afirma y aún no se ejecutaron; cada una tiene su 
 
 ## Impacto
 
-Resultado de `revisor-impacto`: **diseño incompleto, sin frontera cruzada**, ningún hallazgo bloqueante. Sus hallazgos ya están incorporados: el `403` con el `mensaje` del servidor (D-8, `M-10`) y su efecto sobre la sesión y el token CSRF en los dobles; la comprobación previa de `obtener_obra` y `listar_obras` en `servidor.ts`; los nombres de tipo de partida en mayúsculas, la clave cruda del `409` y el orden por `tipo_partida.id`; los conteos de `CapturaMotivo` (14) y de `SeccionMarcador` (siete secciones); el parche de `herramientas.conexion.create_engine`, la traducción del `RuntimeError` y la excepción de `soporte_tkt017` en la semilla; C2 sin `semilla_local`; y el §4a, el §4b y la línea 367 del wireframe.
+Resultado de `revisor-impacto`: **diseño incompleto, sin frontera cruzada**, ningún hallazgo bloqueante. Sus hallazgos ya están incorporados: el `403` con el `mensaje` del servidor (D-8, `M-10`) y su efecto sobre la sesión y el token CSRF en los dobles; la comprobación previa de `obtener_obra` y `listar_obras` en `servidor.ts`; los nombres de tipo de partida en mayúsculas, la clave cruda del `409` y el orden por `tipo_partida.id`; los conteos de `CapturaMotivo` (14) y de `SeccionMarcador` (siete secciones); el parche de `herramientas.conexion.create_engine`, la traducción del `RuntimeError` y la excepción de `soporte_tkt017` en la semilla; C2 sin `semilla_local`; y el §4a, el §4b y la línea 437 del wireframe.
 
 | Qué se toca | Quién depende | Riesgo | Mitigación |
 |---|---|---|---|
@@ -260,9 +262,11 @@ Resultado de `revisor-impacto`: **diseño incompleto, sin frontera cruzada**, ni
 |---|---|
 | `docs/08-wireframes.md` §4 | El esc. 18 ya no dice que el intento «queda en la bitácora» (HDU-001 corregida); `RN-18` pasa a `F1.6` (spec, pregunta 6); el aviso en línea «! mayor que la venta» se quita y se dice que lo decide el servidor `(aprobado · D-10)`; se anota que la obra entra por la ruta `/obras/:obraId/linea-base` desde la lista de obras y que 4a y 4b son una sola pantalla; se quitan de los endpoints `GET /lineas-base/{id}`, `/conceptos` y `/explosion`, que esta entrega no usa (Won't) |
 | `docs/08-wireframes.md` §4a | La línea «Importada el 14-oct-2026 por J. Ramírez · 4,212 conceptos · 27 insumos en la explosión» (306) y los botones «[ Ver conceptos ] [ Ver explosión por tipo de partida ]» (319) no se dibujan en el Must: se quitan del boceto y se anotan como futuros (pregunta 4 de la spec y Won't) `(aprobado · D-4)` |
-| `docs/08-wireframes.md` §4b | Los topes ya capturados se dibujan como importe en lectura con el botón «Recapturar», no como campos editables; solo las filas sin tope llevan campo. La frase «(TKT-018)» de la acción *Congelar línea base* (367) pasa a «(TKT-018a)» |
+| `docs/08-wireframes.md` §4b | Los topes ya capturados se dibujan como importe en lectura con el botón «Recapturar», no como campos editables; solo las filas sin tope llevan campo. La frase «(TKT-018)» de la acción *Congelar línea base* (437, dentro de §4b) pasa a «(TKT-018a)» |
 | `docs/08-wireframes.md` §2 | Las secciones «Línea base» y «Presupuesto de control» remiten a «Obras» mientras no haya selector de obra `(aprobado · D-7)` |
-| `docs/05-tickets-trabajo.md` | Partición de TKT-018 en 018a y 018b (ya en el árbol de trabajo) y estado de 018a |
+| `docs/08-wireframes.md` §2b | La tabla de obras gana la columna «Línea base», con el enlace «Línea base de {código}» por fila, visible para Director de Proyectos, Dirección General y Compras (`seccionPermitida("LINEA_BASE")`) |
+| `docs/08-wireframes.md` §12 y §13 | Pantalla 4 → TKT-018a; pantalla 3 y progreso del análisis → TKT-018b |
+| `docs/05-tickets-trabajo.md` | Sin cambios: la partición ya está en la ficha de TKT-018 y en las filas de TKT-018a y TKT-018b (líneas 827-834). El estado vive en `_index.md` |
 | `README.md` y `docs/arranque-local.md` (solo si c se ejecuta) | Cómo sembrar una línea base de demostración: `uv run --env-file ../.env python -m herramientas.semilla_linea_base_local`, con `CIMENTA_SEMILLA_LB_CODIGO` y `CIMENTA_SEMILLA_LB_CORREO` |
 | `sdd/tickets/tkt-018a/_index.md` | Enlace a este diseño y estado |
 | `CLAUDE.md`, `docs/02-arquitectura.md`, `docs/03-modelo-datos.md`, `docs/api/openapi.yaml` | Sin cambios: ni módulo, ni capa, ni tabla, ni contrato nuevos |
@@ -299,4 +303,17 @@ No. Las decisiones de este diseño son de presentación (D-1, D-7, D-10, D-11) o
 
 ## Ajustes de la ejecución
 
-Vacío mientras no haya ninguno.
+| Fecha | Fila | Ajuste | Motivo |
+|---|---|---|---|
+| 2026-11-10 | A1 | TC-01 gana el caso `[v2 BORRADOR, v3 BORRADOR]` → v3 | El diseño pide «el `BORRADOR` de mayor versión» sin depender del orden y ningún caso del plan lo comprobaba |
+| 2026-11-10 | A1 | `obras.consultas.ts` gana la exportación `obraOptions(api, obraId)` | Caso previsto en la nota de integración: TKT-012a no la exportaba |
+| 2026-11-10 | A2 | Las pruebas de `ConflictoEnLinea` de TC-04 viven en `compartido/formularios/ConflictoEnLinea.test.tsx`, no en `PantallaBloqueo.test.tsx` | Ese componente ya tenía su propio archivo de pruebas |
+| 2026-11-10 | A2 | Un archivo más: `celda()` de `compartido/componentes/bloqueo/DetalleCifras.tsx` trata `null` como vacío | El servidor manda `concepto` y `clave_insumo` nulos en las causas `SUGERIDO_NEGATIVO` y `CARGO_AUSENTE`, y la tabla «Causas» pintaba el texto «null». Ajuste menor aprobado por la persona dueña el 2026-11-10 |
+| 2026-11-10 | A2 | Prueba añadida para el rótulo `estado_obra` | TC-04 no lo cubría; se demostró con una mutación revertida |
+| 2026-11-10 | A3 | TC-06 gana dos importes de 18 dígitos (`"99999999999999.9949"` y `"12345678901234.5650"`) | El importe del plan (`"12345678901234.5678"`) da el mismo texto con `Number` y no mata `M-7`. TC-22 de la entrega b tiene el mismo hueco y debe usar estos valores |
+| 2026-11-10 | A3 | TC-05 gana tres casos: `403` del servidor, obra `200` con líneas base `500` y obra `200` con líneas base `404` | El diseño dice «error de cualquiera de las dos consultas» y el plan solo probaba las dos fallando a la vez |
+| 2026-11-10 | A3 | El estado de la obra se pinta con el valor del contrato (`PLANEACION`, `ACTIVA`), sin rótulo | El wireframe 4a lo dibuja así; el rótulo de `PantallaObras` es una constante privada de TKT-012a |
+| 2026-11-11 | A4 | Un importe del servidor que no es cadena decimal plana se pinta «No disponible», con su prueba | La primera versión de A3 pintaba la cadena cruda; la sección «Entradas hostiles» de este diseño pide «No disponible» |
+| 2026-11-11 | A4 | TC-12 y TC-13 ganan un caso cada uno: el `422` de otro campo va a la alerta, y «Cerrar» quita el bloqueo conservando lo escrito | Comportamientos que la fila de `FormularioCongelado` describe y el plan no probaba |
+| 2026-11-11 | A1 a A4 | `pruebas/cuerpos.ts` gana cinco fábricas más que las enumeradas en la nota de integración: `errorNoEncontrado`, `obra`, `errorExplosionNoCalculable`, `errorLineaBaseEnOtroEstado` y `errorCongeladoBloqueoVencido`; y la constante `ID_LINEA_BASE_VIGENTE` | Las pruebas de rechazo necesitan cuerpos fieles al backend. `obra()` duplica la fábrica local de `PantallaObras.test.tsx`, que no estaba exportada (observación O-1 de la auditoría) |
+| 2026-11-11 | A3 a A5 | Sin `interfaz.md` de `disenador-ui-ux` | El diseño aprobado asigna las filas a `desarrollador-react` y su tabla «Capas afectadas» ya fija jerarquía, estados y textos de la pantalla |
