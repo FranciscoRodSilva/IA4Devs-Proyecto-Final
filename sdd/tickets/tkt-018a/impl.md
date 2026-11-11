@@ -558,7 +558,7 @@ Hay prueba de rechazo para cada regla implicada (`RN-01` en TC-13; los rechazos 
 #### Desviaciones y pendientes
 
 - **Documentación.** Los cambios de `docs/08-wireframes.md` siguen en la fila B4, dentro del mismo PR, con la enumeración ya completa en el diseño. El PR no se abre sin ella.
-- **`SEG-1`, pregunta para la persona dueña.** Los endpoints de línea base comprueban el rol y no una asignación de la persona a la obra. Es backend de TKT-017 y no cambia en esta entrega. Falta confirmar si Director de Proyectos, Dirección General y Compras ven todas las obras por decisión de producto.
+- **`SEG-1`, resuelta por la persona dueña el 2026-11-11.** Los endpoints de línea base comprueban el rol y no una asignación de la persona a la obra. Es backend de TKT-017 y no cambia en esta entrega. La persona dueña confirmó que Director de Proyectos, Dirección General y Compras ven todas las obras por diseño: no es un hallazgo y no hace falta ticket.
 - **Observaciones sin acción en esta entrega.** `ARQ-2` (el texto de `ElegirObra` solo es cierto con la entrega b), `SEG-2` (codificar `obra.id` en el enlace), `OBS-1` (aviso de error con reintento duplicado, a extraer en la entrega b), `OBS-2` (ruta escrita a mano en varios sitios), `OBS-3` (`FilaCifra` pinta «null» ante un valor conocido nulo), `OBS-4` (valor por omisión que silencia un desfase en la fábrica `lineaBase()`) y `OBS-5` (docstring de una sola línea larga).
 
 #### Hallazgos fuera de alcance de la revisión
@@ -570,3 +570,204 @@ Hay prueba de rechazo para cada regla implicada (`RN-01` en TC-13; los rechazos 
 | `frontend/src/compartido/componentes/bloqueo/DetalleCifras.tsx` | Toda clave desconocida del `detalle` se pinta cruda; un identificador nuevo del backend que no se registre en `CLAVES_OCULTAS` saldría a la vista | Baja |
 
 **Veredicto de la entrega a: aprobada.** Queda acumulada en la rama `tkt-018a-pantalla-linea-base`, sin PR. Siguiente: `/sdd-ejecutar TKT-018a` sobre la entrega b (filas B1 a B4).
+
+## Entrega b · presupuesto de control (filas B1 a B4)
+
+Entrega b ejecutada el 2026-11-11 con el ciclo TDD fila por fila en la rama `tkt-018a-pantalla-linea-base`, que ya traía la entrega a. La rama se verificó en lugar de reabrirse con `git-entrega`: estaba activa y sin cambios ajenos. Docker estaba en marcha. No hay backend, migración ni cambio de contrato.
+
+### Qué se implementó
+
+- **B1.** `tope.formulario.ts` con el patrón y el mensaje del importe, `esquemaTopes`, `esquemaRecaptura` y sus resolutores; y la prop opcional `etiquetaCancelar` de `CapturaMotivo`.
+- **B2.** `TablaPresupuestoControl.tsx`, montada en la vista `CONGELADA` de `PantallaLineaBase`: captura de los topes por fila con un `PUT` secuencial, éxito parcial con resumen, y la cola de confirmación del tope superior a la venta con `CapturaMotivo` («Confirmar con motivo» y «Corregir»).
+- **B3.** `DialogoRecaptura.tsx` y el botón «Recapturar {nombre}» de la tabla, con el reenvío confirmado dentro del diálogo.
+- **B4.** Documentación de `docs/08-wireframes.md` (§2, §2b, §3, §4, §4a, §4b, §12 y §13) y la regresión completa.
+
+### Ajustes respecto al design
+
+| Fila | Ajuste | Motivo |
+|---|---|---|
+| B2 | La variante «fila ya capturada» de TC-23 no mata `M-2` por sí sola; se añadió la variante «dos guardados seguidos», que sí | Una fila capturada llega sin campo, así que su valor en el formulario es `""` y el filtro por vacío ya la excluye. Tras un primer guardado, el formulario conserva lo escrito y un segundo guardado reenviaría esa fila sin el filtro por `importe_tope === null` |
+| B2 | Dos pruebas más de la tabla: cargando con `aria-busy` y error 500 con referencia y «Reintentar» | El diseño declara esos estados y el plan de pruebas no los enumeraba |
+| B2 | `PantallaLineaBase.test.tsx` gana la opción `control` del doble y la usan TC-07 (tres roles, fecha inválida y datos ausentes), TC-08 y `servidorQueCongela()`. No cambia ninguna aserción | Nota de ejecución «Entrega b sobre la vista de a» |
+| B2 | `cuerpos.ts` gana `filaControl` y `controlSinTopes` | `errorTopeSuperior` ya existía desde la entrega a |
+| B3 | `compartido/componentes/bloqueo/DetalleCifras.tsx` gana un espacio entre `<dt>` y `<dd>` | Sin él el texto accesible salía como «Venta$30,000.00» y TC-33 espera «Venta $30,000.00». No cambia el aspecto visual (contenedor `flex`) y la suite completa sigue en verde. Es un archivo más que el diseño no listaba; `auditor-arquitectura` lo revisó |
+| B4 | `docs/08-wireframes.md` §3 cambia dos referencias de `TKT-018` a `TKT-018b`, y §2b añade `TKT-018a` a las historias | Siguen la misma regla de partición que §12 y §13 |
+| B4 | Los marcadores `(aprobado · D-7)` del diseño quedaron escritos en el wireframe | Pendiente de decidir si el documento debe citar identificadores del diseño |
+
+### Archivos tocados
+
+| Archivo | Cambio |
+|---|---|
+| `frontend/src/modulos/presupuesto/linea-base/tope.formulario.ts` (y su prueba) | Nuevo |
+| `frontend/src/modulos/presupuesto/linea-base/TablaPresupuestoControl.tsx` (y su prueba) | Nuevo |
+| `frontend/src/modulos/presupuesto/linea-base/DialogoRecaptura.tsx` | Nuevo |
+| `frontend/src/modulos/presupuesto/linea-base/PantallaLineaBase.tsx` y su prueba | Monta la tabla; TC-24 y el doble del control |
+| `frontend/src/compartido/formularios/CapturaMotivo.tsx` y su prueba | Prop `etiquetaCancelar`; TC-21 |
+| `frontend/src/compartido/componentes/bloqueo/DetalleCifras.tsx` | Un espacio |
+| `frontend/src/pruebas/cuerpos.ts` | Dos fábricas |
+| `docs/08-wireframes.md` | Ver B4 |
+
+### Ciclo TDD por fila
+
+| Fila | Rojo | Verde | Refactor |
+|---|---|---|---|
+| B1 | `tope.formulario.test.ts`: módulo ausente, nada se ejecuta; `CapturaMotivo`: 1 fallida («Unable to find an accessible element with the role "button" and name "Corregir"») y 16 en verde, entre ellas la guarda de regresión del valor por omisión | `tope.formulario` y `CapturaMotivo`: 55 de 55; suite 384 de 384 | Ninguno |
+| B2 | 23 fallidas por comportamiento: TC-24 («Unable to find role "heading" and name "Presupuesto de control"»), 20 de la tabla («Se esperaba una tabla de presupuesto de control y hay 0»), cargando y error 500; 57 previas en verde | 80 de 80; suite 407 de 407 | Ninguno: el aviso de error con reintento (`OBS-1`) no es trivial de extraer |
+| B3 | 10 fallidas, todas «Unable to find an accessible element with the role "button" and name "Recapturar MUROS"»; 22 previas en verde | `TablaPresupuestoControl`: 32 de 32; suite 417 de 417 | Ninguno |
+| B4 | No aplica (documentación) | `verificar_docs` sin problemas; `extraer_mermaid` sin error de ejecución (30 diagramas, página `tools/mermaid-check.html`; la sintaxis la valida CI con `mermaid-cli`) | — |
+
+Las cifras son las que devolvieron los agentes de cada fila, con el mismo texto de error. B1 tiene una reserva: el rojo de `tope.formulario.test.ts` es de módulo ausente, y sus pruebas solo se probaron por comportamiento con el verde y con el mutante `M-4`.
+
+### Evidencia de ejecución al cerrar
+
+Ejecutado por el orquestador desde `frontend/` tras la fila B3:
+
+```text
+npm run tipos:verificar  → Tipos al día.
+git diff --stat -- src/api/generado → (vacío)
+npm run lint             → eslint . (sin salida)
+npm run typecheck        → tsc --noEmit (sin salida)
+npm test                 → Test Files 23 passed (23) · Tests 417 passed (417)
+python tools/verificar_docs.py → ✓ Sin problemas.
+python tools/extraer_mermaid.py → 30 diagramas encontrados · Escrito: tools/mermaid-check.html
+```
+
+`vale docs/08-wireframes.md`: 0 errores, 0 avisos. `markdownlint-cli2` y `lychee` no están instalados en esta máquina y no se ejecutaron.
+
+### Mutación en rutas críticas
+
+Un mutante a la vez, con copia previa fuera del repositorio, SHA-256 del conjunto de 81 archivos `.ts` y `.tsx` de `frontend/src` antes y después (`322ff0a04de9eb526b194698a167f0b91d915978e0b2c9e0572f34c641b9b33e` en las dos), restauración verificada tras cada uno y suite completa en verde al terminar (417 de 417).
+
+| Mutante | Cambio | Test que cae |
+|---|---|---|
+| `M-2` | Quita el filtro `importe_tope === null` de «Guardar topes» | TC-23, variante «dos guardados seguidos». Sin ningún filtro, o sin el filtro por vacío, caen diez pruebas (TC-23, TC-25, TC-26, TC-28 y TC-29) |
+| `M-3` | La confirmación de la tabla reenvía `confirmar_superior_a_venta: false` | TC-25 (cuerpo exacto); en el diálogo de recaptura, TC-33 |
+| `M-4` | `PATRON_IMPORTE_TOPE` admite `{1,5}` decimales | `tope.formulario.test.ts` (varias) y TC-28 con `1.12345` (seis pruebas) |
+| `M-6` | `puedeCapturar` incluye `DIRECTOR_PROYECTOS` | TC-24 y TC-27 |
+| `M-7` | Formatea con `Number` en vez de `formatearImporte` | TC-22 en la tabla; cinco pruebas en la pantalla (TC-06 y «No disponible») |
+| `M-9` | `DialogoRecaptura` envía sin `motivo` | TC-30 y TC-33 |
+| `M-10` | `mensajeDeRechazo` devuelve un texto fijo en `PERMISO` | Seis pruebas: `presentacion.test.ts` (dos), TC-16 (dos), TC-29 y TC-32 |
+
+Ningún mutante sobrevive. Los mutantes `M-1`, `M-5` y `M-8` son de la entrega a y se ejecutaron entonces.
+
+### Modelo por paso
+
+| Despacho | Agente | Modelo | Motivo |
+|---|---|---|---|
+| Rojo B1, B2, B3 y mutación | `tester-frontend` | `sonnet` | Por omisión de la metodología |
+| Verde B1 | `desarrollador-react` | `haiku` | Diseño |
+| Verde B2 y B3 | `desarrollador-react` | `sonnet` | Disparador del diseño: la fila toca una regla de dinero o de límite (`RN-03`) |
+| Documentación B4 | `desarrollador-react` | `haiku` | Diseño |
+| Auditoría de cierre | `auditor-arquitectura` | `sonnet` | Por omisión; sin esquema, no hubo `auditor-sql` |
+
+Ningún paso subió ni bajó de modelo.
+
+### Auditorías
+
+`auditor-arquitectura`: **`APROBADO`** en el primer ciclo, con dos observaciones sin acción. Resumen de su sección «Qué verifiqué»: dinero sin `Number`, `parseFloat` ni `toFixed` en el código nuevo y formateo siempre con `formatearImporte`; el tope se envía como cadena; el cliente no compara tope y venta (`D-10`) y solo el `409` con su `codigo` abre la confirmación; los límites bloquean (confirmar sin motivo no envía, «Corregir» no reenvía); tipos solo de `components["schemas"]`; sin backend, contrato ni fase 2 (`git diff --stat -- backend docs/api frontend/src/api` vacío); sin imports cruzados; cuatro estados presentes; el espacio de `DetalleCifras` no cambia el aspecto y sus consumidores siguen en verde; prueba de rechazo para cada regla implicada.
+
+| ID | Observación | Acción |
+|---|---|---|
+| `F001` | `DetalleCifras.tsx` tiene CRLF en la copia de trabajo; Git lo normaliza | Ninguna |
+| `F002` | El diff de wireframes incluye cambios de la entrega a | Ninguna: el diseño los declara |
+
+Fuera de alcance, prioridad baja: `enviarTopes` hace varios `setState` tras cada `await`; solo se nota si el componente se desmonta a mitad de la serie.
+
+### Resultado contra los criterios de aceptación
+
+| Criterio | Resultado | Evidencia |
+|---|---|---|
+| `CA-3` (última cláusula) | Cumplido | TC-24 |
+| `CA-6` | Cumplido | TC-22, TC-23 |
+| `CA-7` | Cumplido | TC-21, TC-25, TC-26, TC-33 |
+| `CA-8` | Cumplido | TC-30, TC-33 |
+| `CA-9` | Cumplido | TC-27, TC-29, TC-31, TC-32 |
+| `CA-10` | Cumplido | TC-20, TC-28, TC-34 |
+| `CA-11` | Cumplido | TC-23, TC-26, TC-29 |
+| `CA-13` (captura) | Cumplido | TC-27 |
+| `CA-R1` | Cumplido: 417 de 417, sin aserciones previas modificadas | Suite completa |
+| `CA-R2` | Cumplido | `tipos:verificar` y `git diff --stat` del generado vacío |
+| `CA-S1` | Pendiente · entrega c | — |
+
+### Pendientes
+
+- **Entrega c** (semilla local y E2E, *Should*): sin ejecutar. Su disparador de recorte fija el cierre del 2026-11-11 para la aprobación de `/sdd-revisar` de esta entrega.
+- **Decisión menor.** Los marcadores `(aprobado · D-7)` que quedaron en `docs/08-wireframes.md`, solo en §2: conservarlos o quitarlos.
+- **`markdownlint-cli2` y `lychee`** no se ejecutaron localmente.
+
+Siguiente: `/sdd-revisar TKT-018a` sobre la entrega b.
+
+### Verificación final de `/sdd-revisar` · entrega b
+
+Revisión ejecutada el 2026-11-11 sobre el diff de la entrega b: `git diff HEAD` desde el cierre de la entrega a (`d7bccc5`) más los archivos nuevos de `frontend/src/modulos/presupuesto/linea-base/`.
+
+#### Completitud, corrección y coherencia
+
+- **Completitud.** Cada criterio `[M]` de la entrega tiene resultado y evidencia (tabla más abajo). Cada fila B1 a B3 tiene en la sección de la entrega b el texto de su rojo, con el motivo del fallo, y la salida de su verde. B1 tiene una reserva ya declarada: el rojo de `tope.formulario.test.ts` es de módulo ausente.
+- **Corrección.** Se implementó lo de la spec y nada de más. Los archivos extra respecto al diseño son `DetalleCifras.tsx` (un espacio, declarado) y `presentacion.ts` (helpers extraídos por `COD-6`, en una carpeta que el diseño ya preveía).
+- **Coherencia.** Los objetos de `impl.md` coinciden con los del diseño. `git diff HEAD --stat -- frontend/src/api backend docs/api` está vacío: sin cambio de contrato, de backend ni de tipos generados.
+
+#### Suite ejecutada en la revisión
+
+Docker en marcha (`docker info`: 29.9.3). El diff no toca backend ni migraciones, así que `pytest`, `ruff`, `mypy` y `lint-imports` de backend no se repitieron: la última corrida completa del backend es la de la revisión de la entrega a (2767 en verde y 26 omitidas) y el diff de esta entrega no los afecta. Ejecutado desde `frontend/` tras el último cambio:
+
+```text
+npm test                 → Test Files 23 passed (23) · Tests 438 passed (438)
+npm run lint             → eslint . (sin salida)
+npm run typecheck        → tsc --noEmit (sin salida)
+npm run tipos:verificar  → Tipos al día.
+python tools/verificar_docs.py → ✓ Sin problemas.
+vale (wireframes, diseño, impl) → 0 errors, 0 warnings and 0 suggestions
+```
+
+La suite pasó de 417 a 438 pruebas por el ciclo de corrección: quince de `COD-1` a `COD-5` (trece en rojo y dos de `COD-2`, que nacieron en verde), cuatro de `F002` y dos de `F003`. `markdownlint-cli2` y `lychee` no están instalados en esta máquina.
+
+#### Auditorías de la revisión
+
+| Auditor | Primera pasada | Final |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` (tres observaciones) | `APROBADO` |
+| `auditor-seguridad` | `APROBADO` (`SEG-3` y `SEG-4`, Bajas) | `APROBADO`; `SEG-3` quedó resuelta por `COD-3` |
+| `auditor-docs` | `REQUIERE CAMBIOS` (`DOC-1`, Menor) | Corregido por `corrector-revision`; `DOC-2` a `DOC-4` aplicados; `DOC-5` elevada a la persona dueña |
+| `auditor-codigo` | `REQUIERE CAMBIOS` (tres Mayores y tres Menores) | Ciclo 1: `COD-1` a `COD-6` resueltos y `F002` nuevo. Ciclo 2: `F002` resuelto y `F003` nuevo. **`APROBADO CON MENORES RESUELTOS SIN REAUDITAR`** |
+
+La primera pasada de `auditor-arquitectura` ya se había hecho al cerrar la ejecución; en la revisión se repitió con el diff real y dio el mismo veredicto. Los veredictos con su sección «Qué verifiqué» llegaron completos.
+
+#### Ciclo de corrección
+
+- **Ciclo 1.** Tres Mayores: `COD-1` (la cola de confirmaciones podía perder un tope al cancelar con la petición en vuelo; ahora `sacarDeLaCola` filtra por identificador y `CapturaMotivo` deshabilita la salida mientras envía), `COD-2` (faltaban pruebas con dos topes superiores en la cola) y `COD-3` (la confirmación de la recaptura reenviaba los valores actuales y no los que provocaron el `409`). Tres Menores: `COD-4`, `COD-5` y `COD-6`. El orden fue el del protocolo: `tester-frontend` en rojo (trece pruebas nuevas fallidas por comportamiento y dos de `COD-2` en verde, que matan `setCola([])`), después `corrector-revision` en `sonnet`, porque la fila toca `RN-03`.
+- **Ciclo 2.** `F002` (Menor, nuevo): con la acción del bloqueo en vuelo, «Recapturar» seguía habilitado y un envío con otro tope lanzaba un segundo `PUT` concurrente; el rojo reprodujo la doble escritura (la fila quedó en `$60,000.00`). Corregido con el estado `enviando` y un `ref`. La reauditoría lo dio por resuelto y encontró `F003` (Menor, nuevo, de pruebas: nada probaba que `enviando` se libera tras un rechazo que deja el diálogo abierto).
+- **`F003`, resuelto por el orquestador sin tercera reauditoría**, por el criterio del paso 4 (Menor de código de pruebas que no cambia el comportamiento del producto, tras el segundo ciclo). Se aplicó el texto literal del auditor: una prueba con `provocarElBloqueo()` y su variante con `422`; el mutante que quita `setEnviando(false)` del `finally` hace caer las dos y, sin él, la suite queda en 438 de 438. Se renombraron además las pruebas de `F002` a `hdu001_esc17` (`O-6`). **Se comunica a la persona dueña.**
+- **Observaciones sin acción:** `O-1` (`recapturando` guarda la fila y no su identificador), `O-2` (`enviarTopes` no se cancela al desmontar), `O-3` (comentario del espacio de `DetalleCifras`), `O-5` (las acciones del bloqueo siguen habilitadas mientras envían; el segundo clic se descarta sin señal visible), `SEG-4` (el bucle de `PUT` no se corta ante un `403`), `O-2` y `O-3` de `auditor-arquitectura` (autor y fecha duplicados en dos componentes, CRLF en la copia de trabajo), y el mutante `slice(1)` de `sacarDeLaCola`, que sobrevive porque con las guardas ninguna prueba llega a esa rama (defensa en profundidad).
+
+#### Mutación de la revisión
+
+Repetida por los auditores sobre copias fuera del repositorio, con el árbol idéntico al terminar: `COD-1` (sin guarda de `onOpenChange` y sin `disabled`: nueve pruebas caen), `COD-2` (`setCola([])`: seis), `COD-3` (otro tope: tres), `COD-4` (una), `COD-5` (una), `F002` (sin guarda de reentrada: dos; sin marcar `enviando`: dos; solo `isSubmitting`: dos) y `F003` (sin `setEnviando(false)`: dos). Los mutantes de la ejecución (`M-2` a `M-10`) no cambiaron.
+
+#### Resultado por criterio de la entrega b
+
+| Criterio | Nivel | Resultado | Evidencia |
+|---|---|---|---|
+| `CA-3` (última cláusula) | `[M]` | Cumplido | TC-24 |
+| `CA-6` | `[M]` | Cumplido | TC-22, TC-23 |
+| `CA-7` | `[M]` | Cumplido | TC-21, TC-25, TC-26, TC-33 y las pruebas de la cola de `COD-1` y `COD-2` |
+| `CA-8` | `[M]` | Cumplido | TC-30, TC-33 y `F002` |
+| `CA-9` | `[M]` | Cumplido | TC-27, TC-29, TC-31, TC-32 |
+| `CA-10` | `[M]` | Cumplido | TC-20, TC-28, TC-34 |
+| `CA-11` | `[M]` | Cumplido | TC-23, TC-26, TC-29 |
+| `CA-13` (captura) | `[M]` | Cumplido | TC-27 |
+| `CA-R1` | `[M]` | Cumplido: 438 de 438, sin aserciones previas modificadas | Suite completa |
+| `CA-R2` | `[M]` | Cumplido | `tipos:verificar` y diff del generado vacío |
+| `CA-S1` | `[S]` | Pendiente · entrega c | — |
+
+Hay prueba de rechazo para cada regla implicada (`RN-03`: tope mal formado, `422` y `403` por fila, tope superior a la venta con «Corregir», recaptura sin motivo; `RN-04`: la recaptura exige motivo) y las rutas críticas tienen mutación probada.
+
+#### Desviaciones y pendientes para la persona dueña
+
+- **`DOC-5`.** El diseño dice que no merece ADR, pero fija un `PUT` secuencial por fila en lugar de una ruta por lotes (`D-5`). Decidir si se escribe el ADR.
+- **Marcador `(aprobado · D-7)`** en `docs/08-wireframes.md` §2: conservarlo o quitarlo.
+- **Entrega c** (semilla local y E2E, *Should*): sin ejecutar. El disparador de recorte de la entrega b no se cumplió: la revisión se aprobó el 2026-11-11.
+- **`markdownlint-cli2` y `lychee`** no se ejecutaron localmente; los corre CI en el PR.
+- El delta del ticket debe decir que, si la entrega c se recorta, la pantalla solo se verá con línea base real a partir de TKT-018b.
+
+**Veredicto de la entrega b: aprobada.** Queda acumulada en la rama `tkt-018a-pantalla-linea-base`, sin PR. Siguiente: `/sdd-ejecutar TKT-018a` sobre la entrega c, o recortarla con `/sdd-escalar` y pasar a `/sdd-completar`.

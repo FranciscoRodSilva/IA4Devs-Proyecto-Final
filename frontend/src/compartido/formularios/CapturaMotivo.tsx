@@ -1,4 +1,4 @@
-import { type RefObject, useId, useRef, useState } from "react";
+import { type RefObject, useEffect, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { ResultadoApi } from "@/api/cliente";
 import type { ErrorApi } from "@/api/errores";
@@ -20,6 +20,7 @@ export interface PropsCapturaMotivo {
   titulo: string;
   descripcion?: string;
   etiquetaConfirmar: string;
+  etiquetaCancelar?: string;                                          // por omisión «Cancelar»
   alConfirmar: (motivo: string) => Promise<ResultadoApi<unknown>>;   // la pantalla envía; RN-04
   alHecho: () => void;
   alRechazo: (error: ErrorApi) => void;                               // 409 y demás: los pinta la pantalla
@@ -28,9 +29,11 @@ export interface PropsCapturaMotivo {
 
 type PropsFormularioMotivo = Pick<
   PropsCapturaMotivo,
-  "etiquetaConfirmar" | "alConfirmar" | "alHecho" | "alRechazo" | "alCancelar"
+  "etiquetaConfirmar" | "etiquetaCancelar" | "alConfirmar" | "alHecho" | "alRechazo" | "alCancelar"
 > & {
   campoRef: RefObject<HTMLTextAreaElement | null>;
+  /** Avisa al diálogo de si hay un envío en vuelo, para que no se cierre mientras tanto. */
+  alCambiarEnvio: (enviando: boolean) => void;
 };
 
 /**
@@ -39,7 +42,9 @@ type PropsFormularioMotivo = Pick<
  */
 function FormularioMotivo({
   campoRef,
+  alCambiarEnvio,
   etiquetaConfirmar,
+  etiquetaCancelar = "Cancelar",
   alConfirmar,
   alHecho,
   alRechazo,
@@ -58,6 +63,10 @@ function FormularioMotivo({
     resolver: resolverMotivo,
     defaultValues: { motivo: "" },
   });
+
+  useEffect(() => {
+    alCambiarEnvio(isSubmitting);
+  }, [isSubmitting, alCambiarEnvio]);
 
   const { ref: registrarCampo, ...campoMotivo } = register("motivo");
   const errorMotivo = errors.motivo?.message;
@@ -112,8 +121,8 @@ function FormularioMotivo({
       )}
 
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={alCancelar}>
-          Cancelar
+        <Button type="button" variant="outline" disabled={isSubmitting} onClick={alCancelar}>
+          {etiquetaCancelar}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           {etiquetaConfirmar}
@@ -129,18 +138,20 @@ export function CapturaMotivo({
   titulo,
   descripcion,
   etiquetaConfirmar,
+  etiquetaCancelar,
   alConfirmar,
   alHecho,
   alRechazo,
   alCancelar,
 }: PropsCapturaMotivo) {
   const campoRef = useRef<HTMLTextAreaElement>(null);
+  const [enviando, setEnviando] = useState(false);
 
   return (
     <Dialog
       open={abierta}
       onOpenChange={(abriendo) => {
-        if (!abriendo) alCancelar();
+        if (!abriendo && !enviando) alCancelar();
       }}
     >
       <DialogContent showCloseButton={false} initialFocus={campoRef}>
@@ -150,7 +161,9 @@ export function CapturaMotivo({
         </DialogHeader>
         <FormularioMotivo
           campoRef={campoRef}
+          alCambiarEnvio={setEnviando}
           etiquetaConfirmar={etiquetaConfirmar}
+          etiquetaCancelar={etiquetaCancelar}
           alConfirmar={alConfirmar}
           alHecho={alHecho}
           alRechazo={alRechazo}

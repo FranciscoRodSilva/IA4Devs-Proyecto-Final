@@ -104,6 +104,39 @@ export function lineaBase(cambios: Partial<Esquemas["LineaBase"]> = {}): Esquema
   } satisfies Esquemas["LineaBase"];
 }
 
+type ClaveTipoPartida = (typeof TIPOS_PARTIDA)[number]["clave"];
+const SUGERIDO_POR_TIPO = ["28000.0000", "17500.0000", "6000.0000", "7000.0000"] as const;
+
+/**
+ * Una fila del presupuesto de control (TKT-018a, fila B2) de una línea base CONGELADA, sin tope capturado: la venta es la
+ * del desglose de `lineaBase()` y el sugerido, uno menor por tipo. Con `importe_tope`, `capturado_por` y `capturado_en`
+ * en `cambios` se obtiene una fila ya capturada. Los importes son cadenas con escala 4, como los manda el servidor.
+ */
+export function filaControl(
+  clave: ClaveTipoPartida,
+  cambios: Partial<Esquemas["PresupuestoControl"]> = {},
+): Esquemas["PresupuestoControl"] {
+  const indice = TIPOS_PARTIDA.findIndex((candidato) => candidato.clave === clave);
+  const tipo_partida = TIPOS_PARTIDA[indice] ?? TIPOS_PARTIDA[0];
+  return {
+    tipo_partida,
+    importe_venta: VENTA_POR_TIPO[indice] ?? "0.0000",
+    importe_sugerido: SUGERIDO_POR_TIPO[indice] ?? "0.0000",
+    importe_tope: null,
+    capturado_por: null,
+    capturado_en: null,
+    actualizado_por: null,
+    actualizado_en: null,
+    motivo_ultimo_cambio: null,
+    ...cambios,
+  } satisfies Esquemas["PresupuestoControl"];
+}
+
+/** Las cuatro filas del presupuesto de control sin ningún tope, en el orden de `tipo_partida.id` de la migración `v0008`. */
+export function controlSinTopes(): Esquemas["PresupuestoControl"][] {
+  return TIPOS_PARTIDA.map((tipo) => filaControl(tipo.clave));
+}
+
 /** La obra AP-058-25 de la línea base de arriba, en PLANEACION y sin línea base vigente (TKT-018a, fila A3). */
 export function obra(cambios: Partial<Esquemas["Obra"]> = {}): Esquemas["Obra"] {
   return {

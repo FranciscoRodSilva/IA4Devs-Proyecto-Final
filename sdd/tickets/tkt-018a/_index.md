@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · entrega b (filas B1 a B4)
+LISTO PARA EJECUTAR · entrega c
 
 ## Ficha
 
@@ -28,7 +28,7 @@ LISTO PARA EJECUTAR · entrega b (filas B1 a B4)
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-10 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entrega a escrita y revisada el 2026-11-11; entregas b y c pendientes |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a y b escritas y revisadas; entrega c pendiente |
 | Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -40,6 +40,8 @@ LISTO PARA EJECUTAR · entrega b (filas B1 a B4)
 | 2026-11-10 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones de D-1 a D-11, incluida la entrega c (semilla local y E2E). Spec ajustada: el `403` muestra el mensaje del servidor. Siguiente: ejecutar después de integrar TKT-012a, con `/sdd-ejecutar TKT-018a` sobre la entrega a (filas A1 a A5) |
 | 2026-11-11 | `LISTO PARA EJECUTAR` | `EN REVISIÓN · entrega a` | `/sdd-ejecutar` | Entrega a (filas A1 a A5) ejecutada con el ciclo TDD fila por fila en la rama `tkt-018a-pantalla-linea-base`, abierta desde `Produccion` tras TKT-012a. Suite de Vitest en verde (338 de 338), `eslint`, `tsc` y `tipos:verificar` limpios, tipos generados sin cambios. Doce mutantes, ninguno sobrevive. `auditor-arquitectura`: `APROBADO` en el primer ciclo, con cuatro observaciones que no bloquean. Un ajuste menor aprobado por la persona dueña (`DetalleCifras.tsx` trata `null` como vacío). Por excepción de sesión, todos los despachos corrieron en Fable 5.2 con esfuerzo medio. La documentación de wireframes queda para la fila B4. Siguiente: `/sdd-revisar TKT-018a` sobre la entrega a |
 | 2026-11-11 | `EN REVISIÓN · entrega a` | `LISTO PARA EJECUTAR · entrega b` | `/sdd-revisar` | Entrega a revisada y acumulada en la rama del ticket, sin PR. Suite real: backend con 2767 pruebas en verde y 26 omitidas (`PA-T3`), 16 contratos de `import-linter`, Vitest 344 de 344, y `eslint`, `tsc`, `tipos:verificar` y `verificar_docs` limpios. `auditor-arquitectura` y `auditor-seguridad`: `APROBADO` en la primera pasada. `auditor-codigo`: `REQUIERE CAMBIOS` (un Mayor, `COD-1`: `formatearFecha` lanzaba ante una fecha inválida y dejaba la ruta en blanco; siete Menores) y `APROBADO` tras el ciclo 1. `auditor-docs`: `REQUIERE CAMBIOS` (dos Mayores, `DOC-1` y `DOC-2`: la documentación aplazada a B4 no enumeraba el wireframe §2b, §12 y §13) y `APROBADO` tras el ciclo 2. Dos ciclos de `corrector-revision` y seis pruebas nuevas. `DOC-7` no se aplicó por decisión del orquestador, porque pedía reformular salida literal, y el auditor lo retiró. Queda una pregunta para la persona dueña (`SEG-1`: los endpoints de línea base comprueban el rol y no una asignación por obra) y la documentación de wireframes sigue en la fila B4. Siguiente: `/sdd-ejecutar TKT-018a` sobre la entrega b |
+| 2026-11-11 | `LISTO PARA EJECUTAR · entrega b` | `EN REVISIÓN · entrega b` | `/sdd-ejecutar` | Entrega b (filas B1 a B4) ejecutada con TDD fila por fila. Vitest 417 de 417, `eslint`, `tsc` y `tipos:verificar` limpios, generado sin cambios. Siete mutantes del diseño más variantes, ninguno sobrevive. `auditor-arquitectura`: `APROBADO` en el primer ciclo. B2 y B3 en `sonnet` por el disparador `RN-03`. Un archivo más que el diseño: `DetalleCifras.tsx` (un espacio). Documentación de wireframes hecha. Entrega c sin ejecutar. Siguiente: `/sdd-revisar TKT-018a` sobre la entrega b |
+| 2026-11-11 | `EN REVISIÓN · entrega b` | `LISTO PARA EJECUTAR · entrega c` | `/sdd-revisar` | Entrega b revisada y acumulada en la rama del ticket, sin PR. Suite real: Vitest 438 de 438, `eslint`, `tsc`, `tipos:verificar` y `verificar_docs` limpios; el diff no toca backend ni contrato. `auditor-arquitectura` y `auditor-seguridad`: `APROBADO` en la primera pasada. `auditor-docs`: `REQUIERE CAMBIOS` (`DOC-1`) y corregido. `auditor-codigo`: `REQUIERE CAMBIOS` (tres Mayores, `COD-1` a `COD-3`: cola de confirmaciones, pruebas de la cola y confirmación de la recaptura con valores distintos de los del `409`) y dos ciclos de corrección con `corrector-revision` en `sonnet`; `F002` (segundo `PUT` concurrente en el diálogo) resuelto; `F003`, un Menor de pruebas, lo resolvió el orquestador sin tercera reauditoría y se comunica a la persona dueña. Veintiuna pruebas más que al cerrar la ejecución. Quedan dos preguntas para la persona dueña: `DOC-5` (ADR de `D-5`) y el marcador `(aprobado · D-7)` del wireframe. La entrega c sigue pendiente y su disparador de recorte no se cumplió. Siguiente: `/sdd-ejecutar TKT-018a` sobre la entrega c |
 
 ## Decisiones registradas
 
@@ -49,6 +51,7 @@ LISTO PARA EJECUTAR · entrega b (filas B1 a B4)
 - **2026-11-10 · persona dueña (durante la ejecución).** Ajuste menor en la fila A2: `celda()` de `DetalleCifras.tsx` trata `null` como vacío, para que la tabla «Causas» no pinte el texto «null».
 - **2026-11-10 · persona dueña (durante la ejecución).** Excepción de sesión: todos los agentes corren en Fable 5.2 con esfuerzo medio, sin cambiar el modelo declarado de cada agente.
 - **2026-11-10 · persona dueña (aprobación del diseño).** D-1: la interfaz oculta el borrador a Compras. D-2: se muestra la línea base `CONGELADA` y, si no hay, el `BORRADOR` de mayor versión. D-3: el motivo del congelado va en línea. D-4: solo se muestra lo que trae el contrato. D-5: `PUT` secuencial por fila con éxito parcial. D-6: la rama sale de `Produccion` tras fusionar TKT-012a. D-7: las entradas de menú «Línea base» y «Presupuesto de control» muestran «elegir obra» sin tocar `secciones.ts`. D-8: el `403` muestra el mensaje del servidor. D-9: el E2E usa tres usuarios de humo. D-10: el cliente no pinta el aviso «mayor que la venta»: lo decide el `409` del servidor. D-11: las comas de millares se rechazan.
+- **2026-11-11 · persona dueña (tras `/sdd-revisar` de la entrega a).** `SEG-1`: Director de Proyectos, Dirección General y Compras ven todas las obras por diseño. Los endpoints de línea base comprueban el rol y no una asignación de la persona a la obra, y así debe ser: no hace falta ticket de backend.
 
 ## Tickets futuros sugeridos
 

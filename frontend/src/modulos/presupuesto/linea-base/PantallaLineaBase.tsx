@@ -8,11 +8,11 @@ import { type Rol, useSesion } from "@/api/sesion";
 import { AvisoSinPermiso } from "@/app/armazon/AvisoSinPermiso";
 import { NoEncontrado } from "@/app/armazon/NoEncontrado";
 import { Button } from "@/components/ui/button";
-import { formatearImporte } from "@/compartido/dinero/dinero";
 import { obraOptions } from "@/modulos/presupuesto/obras/obras.consultas";
 import { FormularioCongelado } from "./FormularioCongelado";
 import { lineaBaseMostrada, lineasBaseOptions } from "./linea-base.consultas";
-import { formatearFecha, mensajeDeRechazo } from "./presentacion";
+import { formatearFecha, importe, mensajeDeRechazo } from "./presentacion";
+import { TablaPresupuestoControl } from "./TablaPresupuestoControl";
 
 type Esquemas = components["schemas"];
 type Obra = Esquemas["Obra"];
@@ -78,11 +78,6 @@ function Dato({ rotulo, valor }: { rotulo: string; valor: string }) {
       <dd className="font-medium">{valor}</dd>
     </div>
   );
-}
-
-/** Importe desde la cadena del servidor con `decimal.js`; lo que no es un decimal plano nunca se pinta crudo. */
-function importe(valor: string): string {
-  return formatearImporte(valor) ?? "No disponible";
 }
 
 function DatosLineaBase({ obra, linea }: { obra: Obra; linea: LineaBase }) {
@@ -155,6 +150,7 @@ function VistaLineaBase({ obraId }: { obraId: string }) {
   const lineas = useQuery(lineasBaseOptions(api, obraId));
   const verBorrador = sesion.data?.roles.some((rol) => ROLES_QUE_VEN_BORRADOR.includes(rol)) ?? false;
   const puedeCongelar = sesion.data?.roles.includes("DIRECTOR_PROYECTOS") ?? false;
+  const puedeCapturar = sesion.data?.roles.includes("DIRECCION_GENERAL") ?? false;
 
   // Los rechazos se distinguen por `tipo`, y basta con que falle una de las dos consultas.
   const errores = [obra, lineas].filter((consulta) => consulta.isError).map((consulta) => errorDe(consulta.error));
@@ -181,7 +177,10 @@ function VistaLineaBase({ obraId }: { obraId: string }) {
           <DatosLineaBase obra={obra.data} linea={linea} />
           <Desglose linea={linea} />
           {linea.estado === "CONGELADA" ? (
-            <DatosCongelado linea={linea} />
+            <>
+              <DatosCongelado linea={linea} />
+              <TablaPresupuestoControl lineaBaseId={linea.id} puedeCapturar={puedeCapturar} />
+            </>
           ) : (
             <>
               {puedeCongelar ? <FormularioCongelado lineaBaseId={linea.id} /> : null}

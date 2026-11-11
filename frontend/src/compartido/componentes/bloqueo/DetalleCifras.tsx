@@ -53,7 +53,7 @@ function FilaCifra({ definicion, valor, detalle }: { definicion: ClaveDetalle; v
   const partes = definicion.clave === "consumido" ? desglose(detalle[CLAVE_DESGLOSE]) : null;
   return (
     <div className="flex flex-wrap gap-x-3 py-1">
-      <dt className="min-w-40 text-amber-900/80">{definicion.etiqueta}</dt>
+      <dt className="min-w-40 text-amber-900/80">{definicion.etiqueta}</dt>{" "}
       <dd className={resaltada ? "font-semibold text-amber-950" : undefined} data-resaltada={resaltada ? "true" : undefined}>
         {definicion.formato === "importe" ? importe(valor) : comoTexto(valor)}
         {resaltada ? <span aria-hidden="true"> ◄</span> : null}

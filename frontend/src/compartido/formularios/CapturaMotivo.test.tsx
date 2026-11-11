@@ -268,3 +268,143 @@ describe("TKT-008 · captura de motivo", () => {
     expect(alHecho).not.toHaveBeenCalled();
   });
 });
+
+describe("TKT-018a · CapturaMotivo con etiqueta de cancelar propia (CA-7, TC-21)", () => {
+  /** La misma captura que `abrir`, pero con las props que la prueba añade. */
+  function abrirCon(extra: { etiquetaCancelar?: string }) {
+    const alConfirmar = vi.fn<PropsCapturaMotivo["alConfirmar"]>();
+    const alHecho = vi.fn<PropsCapturaMotivo["alHecho"]>();
+    const alRechazo = vi.fn<(error: ErrorApi) => void>();
+    const alCancelar = vi.fn<PropsCapturaMotivo["alCancelar"]>();
+    render(
+      <CapturaMotivo
+        abierta
+        titulo="Tope mayor que la venta · GENERALES"
+        etiquetaConfirmar="Confirmar con motivo"
+        alConfirmar={alConfirmar}
+        alHecho={alHecho}
+        alRechazo={alRechazo}
+        alCancelar={alCancelar}
+        {...extra}
+      />,
+    );
+    return { alConfirmar, alHecho, alRechazo, alCancelar, usuario: userEvent.setup() };
+  }
+
+  test("tkt018a_ca07 · con etiquetaCancelar «Corregir» el botón se llama así y cancela sin enviar", async () => {
+    const { alConfirmar, alHecho, alRechazo, alCancelar, usuario } = abrirCon({ etiquetaCancelar: "Corregir" });
+
+    // El botón de salida lleva la etiqueta pedida y ya no se llama «Cancelar».
+    expect(screen.getByRole("button", { name: "Corregir" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancelar" })).not.toBeInTheDocument();
+
+    await usuario.type(campoMotivo(), "Ampliación autorizada");
+    await usuario.click(screen.getByRole("button", { name: "Corregir" }));
+
+    expect(alCancelar).toHaveBeenCalledTimes(1);
+    expect(alConfirmar).not.toHaveBeenCalled();
+    expect(alHecho).not.toHaveBeenCalled();
+    expect(alRechazo).not.toHaveBeenCalled();
+  });
+
+  test("tkt018a_ca07 · sin etiquetaCancelar el botón sigue llamándose «Cancelar» (CA-R1)", () => {
+    abrirCon({});
+
+    expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Corregir" })).not.toBeInTheDocument();
+  });
+});
+
+// TKT-018a · entrega b · ciclo de corrección · COD-1. Con el envío en vuelo, la captura no admite salir: «Cancelar»/«Corregir»
+// queda deshabilitado y Escape o el clic fuera se ignoran. Cerrarla entonces desmonta el formulario con su petición viva y
+// el `alHecho` que llega después actúa sobre una pantalla que ya pasó a otra cosa.
+describe("TKT-018a · CapturaMotivo con el envío en vuelo (COD-1)", () => {
+  /** Una captura cuyo `alConfirmar` queda pendiente hasta que la prueba lo resuelva; el motivo ya está escrito y enviado. */
+  async function enviarYDejarEnVuelo(etiquetaCancelar?: string) {
+    const respuesta = diferido<ResultadoApi<unknown>>();
+    const alConfirmar = vi.fn<PropsCapturaMotivo["alConfirmar"]>(() => respuesta.promesa);
+    const alHecho = vi.fn<PropsCapturaMotivo["alHecho"]>();
+    const alRechazo = vi.fn<(error: ErrorApi) => void>();
+    const alCancelar = vi.fn<PropsCapturaMotivo["alCancelar"]>();
+    render(
+      <CapturaMotivo
+        abierta
+        titulo="Tope mayor que la venta · MUROS"
+        etiquetaConfirmar="Confirmar con motivo"
+        etiquetaCancelar={etiquetaCancelar}
+        alConfirmar={alConfirmar}
+        alHecho={alHecho}
+        alRechazo={alRechazo}
+        alCancelar={alCancelar}
+      />,
+    );
+    const usuario = userEvent.setup();
+    await usuario.type(campoMotivo(), "Incluye andamiaje no presupuestado");
+    await usuario.click(screen.getByRole("button", { name: "Confirmar con motivo" }));
+    await waitFor(() => expect(alConfirmar).toHaveBeenCalledTimes(1));
+    return { respuesta, alHecho, alRechazo, alCancelar, usuario };
+  }
+
+  test.each([
+    ["por omisión «Cancelar»", undefined, "Cancelar"],
+    ["con etiqueta propia «Corregir»", "Corregir", "Corregir"],
+  ])(
+    "tkt018a_ca07 · envío en vuelo · COD-1 · %s: el botón de salida queda deshabilitado, su clic no cancela y al responder llega alHecho una sola vez",
+    async (_caso, etiquetaCancelar, etiqueta) => {
+      const { respuesta, alHecho, alCancelar, usuario } = await enviarYDejarEnVuelo(etiquetaCancelar);
+
+      expect(screen.getByRole("button", { name: etiqueta })).toBeDisabled();
+      await usuario.click(screen.getByRole("button", { name: etiqueta }));
+      expect(alCancelar).not.toHaveBeenCalled();
+      expect(screen.getByRole("dialog", { name: "Tope mayor que la venta · MUROS" })).toBeInTheDocument();
+
+      respuesta.resolver({ ok: true, datos: null });
+
+      await waitFor(() => expect(alHecho).toHaveBeenCalledTimes(1));
+      expect(alCancelar).not.toHaveBeenCalled();
+    },
+  );
+
+  test("tkt018a_ca07 · envío en vuelo · COD-1 · Escape se ignora: no llama a alCancelar y el diálogo sigue abierto", async () => {
+    const { respuesta, alHecho, alCancelar, usuario } = await enviarYDejarEnVuelo();
+
+    await usuario.keyboard("{Escape}");
+
+    expect(alCancelar).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "Tope mayor que la venta · MUROS" })).toBeInTheDocument();
+
+    respuesta.resolver({ ok: true, datos: null });
+    await waitFor(() => expect(alHecho).toHaveBeenCalledTimes(1));
+    expect(alCancelar).not.toHaveBeenCalled();
+  });
+
+  test("tkt018a_ca07 · envío en vuelo · COD-1 · el clic fuera del diálogo se ignora: no llama a alCancelar", async () => {
+    const { respuesta, alHecho, alCancelar, usuario } = await enviarYDejarEnVuelo();
+    const fondo = document.querySelector<HTMLElement>('[data-slot="dialog-overlay"]');
+    if (fondo === null) throw new Error("Falta el fondo del diálogo.");
+
+    await usuario.click(fondo);
+
+    expect(alCancelar).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "Tope mayor que la venta · MUROS" })).toBeInTheDocument();
+
+    respuesta.resolver({ ok: true, datos: null });
+    await waitFor(() => expect(alHecho).toHaveBeenCalledTimes(1));
+    expect(alCancelar).not.toHaveBeenCalled();
+  });
+
+  // Frena el mutante que deja la salida deshabilitada para siempre: un rechazo del servidor la devuelve a la persona.
+  test("tkt018a_ca07 · envío en vuelo · COD-1 · tras el rechazo del servidor la salida vuelve a estar disponible: «Corregir» y Escape cancelan", async () => {
+    const { respuesta, alRechazo, alCancelar, usuario } = await enviarYDejarEnVuelo("Corregir");
+    expect(screen.getByRole("button", { name: "Corregir" })).toBeDisabled();
+
+    respuesta.resolver(rechazo(errorRn03ExcedeImporte()));
+
+    await waitFor(() => expect(alRechazo).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Corregir" })).toBeEnabled());
+    await usuario.click(screen.getByRole("button", { name: "Corregir" }));
+    expect(alCancelar).toHaveBeenCalledTimes(1);
+    await usuario.keyboard("{Escape}");
+    expect(alCancelar).toHaveBeenCalledTimes(2);
+  });
+});

@@ -169,6 +169,7 @@ El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del gr
 - *Selector de obra*: fija la obra de contexto para todas las secciones; todo gasto lleva `obra_id` (regla 6 de `CLAUDE.md`). Lista solo obras `ACTIVA` y `PLANEACION`; las `SUSPENDIDA` y `CERRADA` aparecen bajo un filtro.
 - *Contador de autorizaciones*: número de solicitudes `PENDIENTE`. Se refresca al volver a la pestaña y tras cada resolución (invalidación de TanStack Query). **Desaparece cuando es cero**, no muestra `( 0 )` (HDU-003 esc. 1).
 - *Salir*: `POST /sesion/cierre` —la sesión se revoca, la fila no se borra— y vuelve al inicio.
+- *Línea base* y *Presupuesto de control* remiten a **Obras** (pantalla 2b) mientras no haya selector de obra `(aprobado · D-7)`. Desde la lista de obras se llega a la línea base de cada obra, en `/obras/:obraId/linea-base` (pantalla 4); el presupuesto de control vive en esa misma pantalla.
 
 **Estados de rechazo.**
 
@@ -182,21 +183,21 @@ El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del gr
 | | |
 |---|---|
 | **Rol** | Director de Proyectos y Dirección General dan de alta · los seis roles consultan |
-| **Historias** | TKT-012a (alta de obras), sobre HDU-001 esc. 1 a 3 |
+| **Historias** | TKT-012a (alta de obras), sobre HDU-001 esc. 1 a 3 · TKT-018a (columna *Línea base*) |
 | **Endpoints** | `GET /obras` (lista) · `POST /obras` (alta) |
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Obras                                                                          [ + ]         │
-│                                                              (Dar de alta una obra)         │
-├──────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
-│ Código                   │ Nombre                                    │ Estado                │
-├──────────────────────────┼───────────────────────────────────────────┼───────────────────────┤
-│ AP-058-25                │ Union Square F2                           │ Planeación            │
-│ AP-061-25                │ Torre Reforma Norte                       │ Suspendida            │
-├──────────────────────────┴───────────────────────────────────────────┴───────────────────────┤
-│ Mostrando 2 de 5 obras                                                                       │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Obras                                                                                                       [ + ]  │
+│ (Dar de alta una obra con el botón +: solo Director de Proyectos y Dirección General)                              │
+├──────────────────────────┬───────────────────────────────────────────┬───────────────────┬─────────────────────────┤
+│ Código                   │ Nombre                                    │ Estado            │ Línea base              │
+├──────────────────────────┼───────────────────────────────────────────┼───────────────────┼─────────────────────────┤
+│ AP-058-25                │ Union Square F2                           │ Planeación        │ Línea base              │
+│ AP-061-25                │ Torre Reforma Norte                       │ Suspendida        │ Línea base              │
+├──────────────────────────┴───────────────────────────────────────────┴───────────────────┴─────────────────────────┤
+│ Mostrando 2 de 5 obras                                                                                             │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
   Formulario · Alta de obra (se abre con el botón +)
   ┌──────────────────────────────────────────────────────────────────────────┐
@@ -226,6 +227,7 @@ El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del gr
 
 - *`+` · Dar de alta una obra* abre el formulario. El botón solo lo ven el Director de Proyectos y la Dirección General; los demás roles consultan la lista sin él. Ocultarlo es cortesía: el control es el `403` del servidor.
 - *Guardar* envía el alta con `POST /obras`; al aceptarse, la obra aparece en la lista. El botón se deshabilita mientras la petición está en vuelo.
+- *Línea base* (nombre accesible: «Línea base de {código}») abre la línea base de esa obra en `/obras/:obraId/linea-base` ([pantalla 4](#4-congelado-y-presupuesto-de-control)). La columna solo la ven Director de Proyectos, Dirección General y Compras (`seccionPermitida("LINEA_BASE")`); a los demás roles no se les dibuja. Ocultarla es cortesía: el control es el `403` del servidor.
 - *Ver la obra* (acción `VER_OBRA` del conflicto) cierra el formulario y deja la lista a la vista; la ficha de obra es un ticket futuro.
 
 **Estados.**
@@ -337,10 +339,10 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Acciones.**
 
 - *Seleccionar archivo* registra la importación en `RECIBIDO` con su `archivo` en `PENDIENTE` y sube los bytes **directamente** a la URL prefirmada que devuelve; el progreso de la fase 1 es el de esa subida. Después confirma tamaño y hash y, con el archivo ya `DISPONIBLE`, pide el análisis: la importación **no arranca antes** (HDU-001 esc. 24). El Excel no pasa por el API (regla 15 de `CLAUDE.md`, [ADR-016](adr/20261001-almacenamiento-de-objetos.md)).
-- El progreso del análisis se lee consultando `GET /importaciones/{id}`, que lo devuelve como **porcentaje** (`progreso`): la API no informa de hojas leídas ni por leer, y el boceto no las pinta. **No bloquea la pantalla** (esc. 4). **(asumido)** Consulta periódica cada pocos segundos; el intervalo lo fija TKT-018.
+- El progreso del análisis se lee consultando `GET /importaciones/{id}`, que lo devuelve como **porcentaje** (`progreso`): la API no informa de hojas leídas ni por leer, y el boceto no las pinta. **No bloquea la pantalla** (esc. 4). **(asumido)** Consulta periódica cada pocos segundos; el intervalo lo fija TKT-018b.
 - *Confirmar importación* crea la jerarquía, los análisis y la línea base en `BORRADOR` en una sola transacción (esc. 11). Si ya hay un borrador, el servidor responde `409` `REEMPLAZO_NO_CONFIRMADO` con la acción `CONFIRMAR_REEMPLAZO`, que es la que abre el diálogo de reemplazo; solo al aceptarlo se reenvía con `reemplazar_borrador` (esc. 13).
 - *Descartar* (`/descarte`) abandona la importación sin escribir nada en la obra.
-- *Exportar errores* descarga la tabla de errores tal como está filtrada (TKT-018).
+- *Exportar errores* descarga la tabla de errores tal como está filtrada (TKT-018b).
 - *Subir archivo corregido* vuelve a 3a sobre la misma obra: el borrador OpenAPI trata un archivo corregido como una **importación nueva**, no como un reintento de esta.
 
 **Estado vacío.** Obra sin ninguna importación: solo el selector de archivo, con el texto de qué se espera —un `.xlsx` con hoja de catálogo y hojas de análisis de precio unitario—.
@@ -365,7 +367,11 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 |---|---|
 | **Rol** | Director de Proyectos (congela) · Dirección General (captura y recaptura el tope) |
 | **Historias** | HDU-001 esc. 14, 15, 17, 18, 19, 22 y 23 |
-| **Endpoints** | `GET /obras/{obra_id}/lineas-base` · `GET /lineas-base/{linea_base_id}` · `GET /lineas-base/{linea_base_id}/conceptos` · `GET /lineas-base/{linea_base_id}/explosion` · `POST /lineas-base/{linea_base_id}/congelacion` · `GET /lineas-base/{linea_base_id}/presupuesto-control` · `PUT /lineas-base/{linea_base_id}/presupuesto-control/{tipo_partida_id}` (captura y recaptura) |
+| **Endpoints** | `GET /obras/{obra_id}/lineas-base` · `POST /lineas-base/{linea_base_id}/congelacion` · `GET /lineas-base/{linea_base_id}/presupuesto-control` · `PUT /lineas-base/{linea_base_id}/presupuesto-control/{tipo_partida_id}` (captura y recaptura) |
+
+**Ruta y alcance.** La pantalla vive en `/obras/:obraId/linea-base` y se llega a ella desde la lista de obras ([pantalla 2b](#2b--pantalla-obras)). Las secciones 4a y 4b son **una sola pantalla**, no dos: la de congelado se muestra mientras la línea base está en `BORRADOR`, y la de presupuesto de control, una vez `CONGELADA`. Se dibujan por separado solo por claridad.
+
+Los endpoints de consulta de conceptos y de explosión por tipo de partida (`/lineas-base/{id}`, `/conceptos`, `/explosion`) no los usa esta entrega: sus pantallas son futuras (ver 4a).
 
 ### 4a · Congelar la línea base
 
@@ -373,8 +379,6 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Línea base · AP-058-25 · Union Square F2                          Estado: BORRADOR           │
 ├──────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Importada el 14-oct-2026 por J. Ramírez · 4,212 conceptos · 27 insumos en la explosión       │
-│                                                                                              │
 │ Al congelar, los conceptos y la explosión por tipo de partida se copian a la línea base y    │
 │ dejan de poder modificarse por ninguna vía. La obra pasa a ACTIVA.                           │
 │                                                                                              │
@@ -386,29 +390,30 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 
   Una vez CONGELADA, la misma pantalla se ve en modo lectura:
   Línea base · Estado: CONGELADA · 15-oct-2026 · J. Ramírez · "Contrato firmado el 13-oct-2026…"
-  [ Ver conceptos ]  [ Ver explosión por tipo de partida ]        (sin controles de edición)
+  (sin controles de edición)
 ```
+
+**Futuro, fuera de esta entrega.** Los botones *Ver conceptos* y *Ver explosión por tipo de partida* no se dibujan en el alcance de TKT-018a: son tickets futuros, y el boceto no fija todavía sus pantallas. La línea de importación («Importada el…», con los conteos de conceptos e insumos) tampoco se dibuja en esta cabecera.
 
 ### 4b · Presupuesto de control por tipo de partida
 
 ```text
-┌───────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Presupuesto de control · AP-058-25 · Union Square F2           Línea base CONGELADA           │
-├─────────────────────────┬───────────────┬───────────────┬────────────────┬────────────────────┤
-│ Tipo de partida         │ Venta         │ Sugerido      │ Tope de control│ Capturado          │
-├─────────────────────────┼───────────────┼───────────────┼────────────────┼────────────────────┤
-│ MUROS                   │    $62,500.00 │    $44,100.00 │ [ 45,000.00  ] │ M. Torres · 15-oct │
-│ PLAFONES Y CAJILLOS     │    $52,000.00 │    $36,700.00 │ [ 38,000.00  ] │ M. Torres · 15-oct │
-│ ENCHAPES                │    $16,800.00 │    $11,850.00 │ [ 12,000.00  ] │ M. Torres · 15-oct │
-│ GENERALES               │     $7,400.00 │     $5,200.00 │ [  8,000.00  ] │ sin capturar       │
-│                         │               │               │ ! mayor que la │                    │
-│                         │               │               │   venta        │                    │
-├─────────────────────────┴───────────────┴───────────────┴────────────────┴────────────────────┤
-│ El sugerido resta utilidad e indirectos al precio de venta. Es una referencia: manda el tope  │
-│ capturado, y es contra ese contra el que se evalúan las requisiciones (RN-03).                │
-│                                                                                               │
-│                                                                      [ Guardar topes ]        │
-└───────────────────────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Presupuesto de control · AP-058-25 · Union Square F2                                   Línea base CONGELADA │
+├─────────────────────────┬───────────────┬───────────────┬──────────────────────────────┬────────────────────┤
+│ Tipo de partida         │ Venta         │ Sugerido      │ Tope de control              │ Capturado          │
+├─────────────────────────┼───────────────┼───────────────┼──────────────────────────────┼────────────────────┤
+│ MUROS                   │    $62,500.00 │    $44,100.00 │ $45,000.00  [ Recapturar ]   │ M. Torres · 15-oct │
+│ PLAFONES Y CAJILLOS     │    $52,000.00 │    $36,700.00 │ $38,000.00  [ Recapturar ]   │ M. Torres · 15-oct │
+│ ENCHAPES                │    $16,800.00 │    $11,850.00 │ $12,000.00  [ Recapturar ]   │ M. Torres · 15-oct │
+│ GENERALES               │     $7,400.00 │     $5,200.00 │ [ ____________ ]             │ sin capturar       │
+├─────────────────────────┴───────────────┴───────────────┴──────────────────────────────┴────────────────────┤
+│ El sugerido resta utilidad e indirectos al precio de venta. Es una referencia: manda el tope                │
+│ capturado, y es contra ese contra el que se evalúan las requisiciones (RN-03).                              │
+│ Si un tope supera la venta, la interfaz no lo marca: lo decide el servidor al guardar.                      │
+│                                                                                                             │
+│                                                                                           [ Guardar topes ] │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
   Tope mayor que la venta (al guardar):
   ┌───────────────────────────────────────────────────────────────────────────┐
@@ -434,8 +439,8 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 
 **Acciones.**
 
-- *Congelar línea base* exige motivo, copia conceptos y explosión, deja la línea base `CONGELADA` con fecha, usuario y motivo, y la obra `ACTIVA` (esc. 14). Tras congelar, la pantalla pasa a modo lectura (TKT-018).
-- *Guardar topes* envía un `PUT` por cada fila capturada o cambiada y registra el importe con autor y fecha (esc. 15). La primera captura no exige motivo. Los campos vienen **vacíos**, no rellenados con el sugerido: precargarlo convertiría la sugerencia en el valor por omisión, y el tope se captura, no se deriva (`PA-03`). Si una fila falla, las demás conservan su resultado y la fallida queda marcada **(asumido: comportamiento de la interfaz, no del API)**.
+- *Congelar línea base* exige motivo, copia conceptos y explosión, deja la línea base `CONGELADA` con fecha, usuario y motivo, y la obra `ACTIVA` (esc. 14). Tras congelar, la pantalla pasa a modo lectura (TKT-018a).
+- *Guardar topes* envía un `PUT` por cada fila **sin tope** que se haya capturado y registra el importe con autor y fecha (esc. 15). La primera captura no exige motivo. Los campos vienen **vacíos**, no rellenados con el sugerido: precargarlo convertiría la sugerencia en el valor por omisión, y el tope se captura, no se deriva (`PA-03`). Un tope ya capturado se muestra como importe en lectura con el botón *Recapturar*; no es un campo editable, y solo cambia por la vía de recaptura. Si una fila falla, las demás conservan su resultado y la fallida queda marcada **(asumido: comportamiento de la interfaz, no del API)**.
 - *Recapturar* abre el diálogo con motivo obligatorio y usa el mismo `PUT`. Al aceptar, el disponible del tipo de partida se recalcula de inmediato y la fila muestra el autor y la fecha nuevos (esc. 22).
 
 **Estado vacío.** Línea base en `BORRADOR`: la sección 4b no se muestra; en su lugar, *"Congela primero la línea base para capturar el presupuesto de control"*.
@@ -443,8 +448,8 @@ La pantalla tiene tres momentos sobre la misma importación: **carga**, **previs
 **Estados de rechazo.**
 
 - **Congelar sin motivo (`422`).** Mensaje junto al campo; la línea base sigue en `BORRADOR`.
-- **Segunda línea base vigente (`409`, `RN-01`)** (esc. 19). Pantalla de bloqueo con el mensaje de que la sustitución exige una versión nueva que marque la anterior `SUPERSEDIDA`. En la fase 1 no hay versiones (`RN-18`, v1.1), así que no se ofrece acción.
-- **Intento de modificar la línea base congelada (`409`, `RN-01`)** (esc. 18). La interfaz no tiene ningún control que lo permita; si llega por el API, el rechazo viene del disparador y el contrato de error, y queda en la bitácora.
+- **Segunda línea base vigente (`409`, `RN-01`)** (esc. 19). Pantalla de bloqueo con el mensaje de que la sustitución exige una versión nueva que marque la anterior `SUPERSEDIDA`. En la fase 1 no hay versiones (`F1.6`, v1.1), así que no se ofrece acción.
+- **Intento de modificar la línea base congelada (`409`, `RN-01`)** (esc. 18). La interfaz no tiene ningún control que lo permita; si llega por el API, el rechazo viene del disparador y el contrato de error.
 - **Tope mayor que la venta (`409`)** (esc. 17). El servidor responde con la acción `CONFIRMAR_TOPE_SUPERIOR`, que abre el diálogo; al confirmarlo se reenvía con `confirmar_superior_a_venta` y el motivo, que va a la bitácora. Sin confirmación no se guarda.
 - **Recaptura sin rol de Dirección General (`403`) o sin motivo (`422`)** (esc. 23). El tope conserva su valor; el `403` queda en la bitácora con la acción `DENEGAR`. Para quien no es Dirección General la columna *Tope de control* se ve en lectura y la acción *Recapturar* no aparece.
 
@@ -1005,7 +1010,8 @@ Boceto mínimo del indicador, que vivirá en la barra superior del armazón:
 | Pantalla | Ticket que la implementa |
 |---|---|
 | 1 · Inicio de sesión · 2 · Armazón · 6 · Pantalla de bloqueo | TKT-008 |
-| 3 · Importación · 4 · Congelado y presupuesto de control | TKT-018 |
+| 3 · Importación | TKT-018b |
+| 4 · Congelado y presupuesto de control | TKT-018a |
 | 5 · Disponible y requisición | TKT-024 |
 | 7 · Bandeja de autorizaciones | TKT-028 |
 | 8 · Emisión de orden de compra | TKT-032 |
@@ -1026,8 +1032,8 @@ Todo lo marcado **(asumido)** arriba, reunido para revisarlo de una vez:
 
 | Pantalla | Supuesto o pregunta | Quién lo cierra |
 |---|---|---|
-| 3 | Progreso del análisis por consulta periódica, sin canal de empuje | TKT-018 |
-| 4 | *Guardar topes* envía un `PUT` por fila, y una fila que falla no deshace las demás | TKT-018 |
+| 3 | Progreso del análisis por consulta periódica, sin canal de empuje | TKT-018b |
+| 4 | *Guardar topes* envía un `PUT` por fila, y una fila que falla no deshace las demás | TKT-018a |
 | 9 | La captura rechazada por `RN-07` se conserva en el dispositivo hasta reenviarla o descartarla, sin borrador en el servidor | TKT-038 |
 | 10 | El corte entre amarillo y rojo es `obra.umbral_alerta_pct`, sobre la desviación relativa: el cliente dio los tres colores, no el corte ([PRD §10](01-descripcion-producto.md#supuestos-asumidos-sin-bloqueo)) | Dirección General, sin bloqueo |
 

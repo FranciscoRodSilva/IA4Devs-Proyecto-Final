@@ -5,6 +5,7 @@ import type { components as Servidor } from "@/api/generado/servidor";
 import type { Rol } from "@/api/sesion";
 import { type ClaveSeccion, seccion } from "@/app/navegacion/secciones";
 import {
+  controlSinTopes,
   errorCongeladoBloqueoVencido,
   errorExplosionNoCalculable,
   errorLineaBaseEnOtroEstado,
@@ -29,8 +30,10 @@ import { servidorPruebas } from "@/pruebas/servidor";
 // Alcance de la fila:
 // - El formulario de congelado es de A4: para el Director de Proyectos, TC-06 no afirma aquí ni el campo
 //   «Motivo (obligatorio)» ni el botón «Congelar línea base»; A4 los añade.
-// - La tabla del presupuesto de control es de la entrega b: la vista CONGELADA no pide `presupuesto-control`
-//   y estas pruebas no doblan esa ruta. Cualquier petición sin doble hace fallar la prueba (ver `sinAtender`).
+// - La tabla del presupuesto de control es de la entrega b. Desde la fila B2 la vista CONGELADA la monta y pide
+//   `presupuesto-control`: las pruebas que muestran una CONGELADA reciben el doble `control` (sin cambiar ninguna
+//   aserción) y las que muestran un BORRADOR siguen sin él. Cualquier petición sin doble hace fallar la prueba
+//   (ver `sinAtender`).
 
 type Esquemas = Servidor["schemas"];
 type Obra = Esquemas["Obra"];
@@ -131,6 +134,8 @@ interface OpcionesPantalla {
   responderLineas?: Responder;
   /** Dobla `presupuesto-control` solo para contar sus peticiones; responde vacío, como el servidor en BORRADOR. */
   vigilarControl?: boolean;
+  /** Dobla `presupuesto-control` con estas filas (fila B2): para las pruebas que muestran una CONGELADA, que ya lo pide. */
+  control?: Esquemas["PresupuestoControl"][];
 }
 
 /**
@@ -155,11 +160,11 @@ async function abrirPantalla(roles: Rol[], opciones: OpcionesPantalla = {}) {
       return responderLineas();
     }),
   );
-  if (vigilarControl) {
+  if (vigilarControl || opciones.control !== undefined) {
     servidorPruebas.use(
       http.get(`${ORIGEN}/api/v1/lineas-base/:lineaBaseId/presupuesto-control`, ({ params }) => {
         pedidas.control.push(String(params.lineaBaseId));
-        return HttpResponse.json([] satisfies Esquemas["PresupuestoControl"][]);
+        return HttpResponse.json(opciones.control ?? ([] satisfies Esquemas["PresupuestoControl"][]));
       }),
     );
   }
@@ -413,11 +418,11 @@ describe("TKT-018a · TC-06 · línea base en BORRADOR (CA-2, CA-13)", () => {
 });
 
 describe("TKT-018a · TC-07 · línea base CONGELADA en solo lectura (CA-5)", () => {
-  // Sin doble de `presupuesto-control`: la tabla es de la entrega b y hoy esta vista no la pide (lo vigila `sinAtender`).
+  // Desde B2 la vista CONGELADA monta la tabla del control y la pide: estas pruebas reciben su doble (`control`).
   test.each(ROLES_CON_ACCESO)(
     "hdu001_esc18 · congelada en solo lectura · TC-07 · %s ve estado, versión, venta, fecha, autor y motivo, y ningún control de edición",
     async (rol) => {
-      await abrirPantalla([rol], { obra: obraActiva(), lineas: [congelada({ version: 2 })] });
+      await abrirPantalla([rol], { obra: obraActiva(), lineas: [congelada({ version: 2 })], control: controlSinTopes() });
 
       expect(await titulo()).toBeInTheDocument();
       expect(valorDe("Estado")).toBe("CONGELADA");
@@ -441,7 +446,11 @@ describe("TKT-018a · TC-07 · línea base CONGELADA en solo lectura (CA-5)", ()
   );
 
   test("hdu001_esc18 · congelada con fecha inválida · TC-07 · se pinta «Congelada por J. Ramírez» sin <time> y la pantalla no se cae", async () => {
-    await abrirPantalla(["DIRECTOR_PROYECTOS"], { obra: obraActiva(), lineas: [congelada({ congelada_en: "no-es-fecha" })] });
+    await abrirPantalla(["DIRECTOR_PROYECTOS"], {
+      obra: obraActiva(),
+      lineas: [congelada({ congelada_en: "no-es-fecha" })],
+      control: controlSinTopes(),
+    });
 
     expect(await titulo()).toBeInTheDocument();
     expect(within(principal()).getByText(/Congelada por J\. Ramírez/)).toBeInTheDocument();
@@ -452,6 +461,7 @@ describe("TKT-018a · TC-07 · línea base CONGELADA en solo lectura (CA-5)", ()
     await abrirPantalla(["DIRECTOR_PROYECTOS"], {
       obra: obraActiva(),
       lineas: [congelada({ congelada_en: null, congelada_por: null, motivo: null })],
+      control: controlSinTopes(),
     });
 
     expect(await titulo()).toBeInTheDocument();
@@ -479,7 +489,7 @@ describe("TKT-018a · TC-08 · COMPRAS no ve el borrador (CA-13, D-1)", () => {
 
   test("tkt018a_ca13 · COMPRAS no ve el borrador · TC-08 · con una CONGELADA y un BORRADOR más nuevo ve la congelada, sin formulario", async () => {
     const borradorNuevo = lineaBase({ id: ID_LINEA_BASE_BORRADOR_NUEVO, version: 2, importe_venta: "99999.0000" });
-    await abrirPantalla(["COMPRAS"], { obra: obraActiva(), lineas: [borradorNuevo, congelada()] });
+    await abrirPantalla(["COMPRAS"], { obra: obraActiva(), lineas: [borradorNuevo, congelada()], control: controlSinTopes() });
 
     expect(await titulo()).toBeInTheDocument();
     expect(valorDe("Estado")).toBe("CONGELADA");
@@ -526,8 +536,8 @@ describe("TKT-018a · TC-09 · la obra de la ruta y quién entra (CA-1)", () => 
 // vista BORRADOR solo para el Director de Proyectos. Las pruebas no importan el componente: lo alcanzan por su
 // etiqueta y su botón dentro de la pantalla, y cada una falla hoy porque el formulario no está en la vista.
 //
-// - La tabla del presupuesto de control sigue siendo de la entrega b: tras congelar, la vista no pide
-//   `presupuesto-control` (TC-24 es de B2). Estas pruebas no doblan esa ruta, así que pedirla las hace fallar.
+// - La tabla del presupuesto de control es de la entrega b: tras congelar, la vista la monta y pide
+//   `presupuesto-control` (TC-24, fila B2). Los dobles que congelan (`servidorQueCongela`) la sirven.
 // - Un 403 hace que el cliente vuelva a pedir la sesión y descarte el token CSRF: los dobles de `abrirPantalla`
 //   atienden esas peticiones de más y TC-16 las cuenta.
 // ---------------------------------------------------------------------------------------------------------------
@@ -586,6 +596,8 @@ function servidorQueCongela() {
   const opciones: OpcionesPantalla = {
     responderObra: () => HttpResponse.json(hecho ? obraActiva() : obra()),
     responderLineas: () => HttpResponse.json([hecho ? congelada() : lineaBase()]),
+    // Desde B2, una vez congelada la pantalla pide el control; mientras sea BORRADOR no debe pedirlo (lo cuenta `pedidas.control`).
+    control: controlSinTopes(),
   };
   function congelar(): Response {
     hecho = true;
@@ -663,7 +675,7 @@ describe("TKT-018a · TC-06 · el formulario de congelado del Director de Proyec
 describe("TKT-018a · TC-10 · congelar la línea base (CA-3)", () => {
   test("hdu001_esc14 · congelar con motivo · TC-10 · un POST con el motivo y el token CSRF; la pantalla pasa a CONGELADA y ACTIVA, sin campo ni botón", async () => {
     const servidor = servidorQueCongela();
-    // Sin doble de `presupuesto-control`: si la vista lo pidiera tras congelar, `sinAtender` haría fallar la prueba.
+    // Desde B2 la vista congelada pide el control: `servidor.opciones` lo dobla. La aserción de TC-24 vive en su propia prueba.
     const { usuario, congelaciones, pedidas } = await abrirParaCongelar(() => servidor.congelar(), servidor.opciones);
 
     await congelarCon(usuario, MOTIVO_CONGELADO);
@@ -689,6 +701,58 @@ describe("TKT-018a · TC-10 · congelar la línea base (CA-3)", () => {
     expect(screen.queryByText(TEXTO_CONGELA_PRIMERO)).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     esperarSinBloqueo();
+  });
+});
+
+// Fila B2 · TC-24 · continuación de TC-10: al congelar aparece el presupuesto de control. El Director de Proyectos
+// congela pero no captura (CA-13): ve las cuatro filas en lectura. La captura (TC-22, TC-23) está en
+// `TablaPresupuestoControl.test.tsx`.
+describe("TKT-018a · TC-24 · tras congelar aparece el presupuesto de control (CA-3)", () => {
+  /** La tabla del control: la única de la pantalla con la columna «Tope de control». */
+  function tablaControl(): HTMLElement {
+    const tablas = within(principal())
+      .queryAllByRole("table")
+      .filter((tabla) => within(tabla).queryByRole("columnheader", { name: "Tope de control" }) !== null);
+    const [tabla] = tablas;
+    if (tablas.length !== 1 || tabla === undefined) throw new Error(`Se esperaba una tabla de control y hay ${tablas.length}.`);
+    return tabla;
+  }
+
+  test("hdu001_esc14 · tras congelar aparece el control · TC-24 · «Presupuesto de control» con sus cuatro tipos, sin campos ni botones de captura", async () => {
+    const servidor = servidorQueCongela();
+    const { usuario, pedidas } = await abrirParaCongelar(() => servidor.congelar(), servidor.opciones);
+    // En BORRADOR no hay presupuesto de control: ni encabezado ni petición.
+    expect(screen.queryByRole("heading", { name: "Presupuesto de control" })).not.toBeInTheDocument();
+    expect(pedidas.control).toHaveLength(0);
+
+    await congelarCon(usuario, MOTIVO_CONGELADO);
+
+    expect(await within(principal()).findByRole("heading", { level: 2, name: "Presupuesto de control" })).toBeInTheDocument();
+    await waitFor(() => expect(within(tablaControl()).getAllByRole("row")).toHaveLength(5));
+    // Pide el control de la línea base que se congeló, y solo después de congelar.
+    expect(pedidas.control).toEqual([ID_LINEA_BASE]);
+
+    // Las cuatro filas en el orden en que llegan (el de `tipo_partida.id`), cada una con su venta y «sin capturar».
+    const filas = within(tablaControl()).getAllByRole("row").slice(1);
+    const esperado = [
+      ["MUROS", "$30,000.00"],
+      ["PLAFONES Y CAJILLOS", "$18,500.00"],
+      ["ENCHAPES", "$6,600.00"],
+      ["GENERALES", "$7,400.00"],
+    ] as const;
+    esperado.forEach(([nombre, venta], indice) => {
+      const fila = filas[indice];
+      if (fila === undefined) throw new Error(`Falta la fila ${indice + 1} del presupuesto de control.`);
+      expect(fila.textContent?.trim().startsWith(nombre)).toBe(true);
+      expect(within(fila).getByText(venta)).toBeInTheDocument();
+      expect(within(fila).getAllByText("sin capturar").length).toBeGreaterThan(0);
+    });
+
+    // El Director de Proyectos no captura: ni campos, ni «Guardar topes», ni «Recapturar».
+    expect(within(principal()).queryAllByRole("textbox")).toHaveLength(0);
+    expect(within(principal()).queryByRole("button", { name: /Guardar topes|Recapturar/ })).not.toBeInTheDocument();
+    expect(within(principal()).queryByRole("button", { name: /Congelar/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
 
