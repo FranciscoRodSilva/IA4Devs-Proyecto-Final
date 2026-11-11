@@ -60,6 +60,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-11-05 | [Trabajos en dos pasos: el API gobierna el latido, un proceso hijo parsea y un barrido de arranque cierra lo interrumpido](20261105-trabajos-en-dos-pasos-y-barrido-de-arranque.md) | Aceptado | presupuesto, servidor, trabajos · TKT-015b · excepción del `lifespan` a [ADR-013](20260919-sqlalchemy-sincrono.md) · retoma la alternativa de [ADR-022](20261020-contrato-de-error-y-raiz-de-composicion.md) |
 | 2026-11-05 | [El concepto es único por obra; su cantidad y su precio viven en el concepto de partida](20261105-concepto-unico-y-concepto-de-partida.md) | Aceptado | presupuesto · TKT-072 · completa [la copia física](20260918-snapshot-linea-base.md) |
 | 2026-11-05 | [El ciclo de la línea base de una obra se serializa con el bloqueo de la fila de la obra](20261105-ciclo-de-la-linea-base-serializado-por-la-obra.md) | Aceptado | presupuesto · TKT-017 · completa [el bloqueo pesimista](20260918-bloqueo-pesimista-presupuesto.md) |
+| 2026-11-10 | [El código de obra es único por el índice `uq_obra_codigo` y el alta traduce su `23505`, sin comprobación previa](20261110-unicidad-del-codigo-de-obra.md) | Aceptado | presupuesto · TKT-012a · completa [la inmutabilidad en el motor](20261101-inmutabilidad-de-la-linea-base-en-el-motor.md) |
 
 ## Plantilla
 

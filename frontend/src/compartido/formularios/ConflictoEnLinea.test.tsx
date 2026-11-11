@@ -49,4 +49,22 @@ describe("TKT-008 · conflicto en línea", () => {
     const conflicto = screen.getByRole("region");
     expect(conflicto.closest('[aria-live="polite"]')).not.toBeNull();
   });
+
+  test("hdu001_esc03 · TC-F02 · el código duplicado muestra la obra existente con «Ver la obra» y sin su UUID", () => {
+    // CA-11 esc. 1. La persona necesita el código y el nombre del registro que ya existe, no su identificador interno.
+    const idExistente = "9a1f2b3c-4d5e-4f60-8a71-b2c3d4e5f607";
+    const error = errorConflictoEstado("CODIGO_OBRA_DUPLICADO", {
+      mensaje: "Ya existe una obra con el código AP-058-25.",
+      detalle: { obra_existente_id: idExistente, obra_existente: "AP-058-25 · Union Square F2" },
+      acciones: [{ clave: "VER_OBRA", metodo: "GET", ruta: `/api/v1/obras/${idExistente}` }],
+    });
+
+    render(<ConflictoEnLinea error={error} alAccion={vi.fn()} />);
+
+    expect(screen.getByText("Obra existente", { selector: "dt" })).toBeInTheDocument();
+    expect(screen.getByText("AP-058-25 · Union Square F2")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ver la obra" })).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(idExistente);
+    expect(screen.queryByText("obra_existente_id")).not.toBeInTheDocument();
+  });
 });

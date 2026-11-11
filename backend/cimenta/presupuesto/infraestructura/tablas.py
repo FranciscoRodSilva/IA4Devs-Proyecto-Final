@@ -76,13 +76,29 @@ insumo = Table(
     Column("creado_en_importacion", Boolean, nullable=False),
 )
 
+empresa = Table(
+    "empresa",
+    metadata,
+    Column("id", Uuid, primary_key=True),
+    Column("activa", Boolean, nullable=False),
+)
+
 obra = Table(
     "obra",
     metadata,
     Column("id", Uuid, primary_key=True),
+    Column("empresa_id", Uuid, ForeignKey("empresa.id"), nullable=False),
     Column("codigo", Text, nullable=False),
     Column("nombre", Text, nullable=False),
+    Column("domicilio", Text, nullable=False),
+    Column("tipo_contrato", Text, nullable=False),
+    Column("retencion_destajo_pct", Numeric(9, 6), nullable=False),
+    Column("fondo_garantia_pct", Numeric(9, 6), nullable=False),
+    Column("iva_acreditable", Boolean, nullable=False),
+    Column("umbral_alerta_pct", Numeric(9, 6)),
     Column("estado", Text, nullable=False),
+    Column("creado_en", TIMESTAMP(timezone=True), nullable=False),
+    Column("creado_por_id", Uuid, nullable=False),
     Column("actualizado_en", TIMESTAMP(timezone=True)),
     Column("actualizado_por_id", Uuid),
 )

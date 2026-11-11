@@ -75,8 +75,11 @@ describe("TKT-008 · aplicación y armazón", () => {
     expect(rolesEnCabecera).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Salir" })).toBeInTheDocument();
 
+    // D-3 · fila B3 de TKT-012a: «Obras» está en el grupo «Obra» y el menú se agrupa por GRUPOS
+    // (Obra, Compras, Almacén, Dirección), no por el orden de la tabla: sale primera en el menú de ALMACEN.
     const enlaces = within(menu()).getAllByRole("link");
     expect(enlaces.map((enlace) => enlace.textContent)).toEqual([
+      "Obras",
       "Órdenes de compra",
       "Proveedores",
       "Recepción · Pendientes de recibir",

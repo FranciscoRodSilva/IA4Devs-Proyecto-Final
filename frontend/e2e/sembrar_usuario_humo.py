@@ -39,23 +39,29 @@ def main() -> None:
     # El humo de Playwright fija CIMENTA_HUMO_*; la prueba manual toma CIMENTA_PRUEBA_* del `.env`.
     correo = os.environ.get("CIMENTA_HUMO_CORREO") or os.environ["CIMENTA_PRUEBA_CORREO"]
     contrasena = os.environ.get("CIMENTA_HUMO_CONTRASENA") or os.environ["CIMENTA_PRUEBA_CONTRASENA"]
+    # Por omisión, el usuario de humo de COMPRAS (TKT-008). TKT-012a B5 lo parametriza para sembrar
+    # otros roles, como el Director de Proyectos que da de alta obras.
+    clave_rol = os.environ.get("CIMENTA_HUMO_ROL") or "COMPRAS"
+    nombre = os.environ.get("CIMENTA_HUMO_NOMBRE") or "Humo Compras"
     huella = PasswordHash.recommended().hash(contrasena)
     motor = create_engine(url_migracion())
     try:
         with motor.begin() as conexion:
             rol_id = conexion.execute(
-                text("SELECT id FROM rol WHERE clave = 'COMPRAS'")
+                text("SELECT id FROM rol WHERE clave = :clave"),
+                {"clave": clave_rol},
             ).scalar_one_or_none()
             if rol_id is None:
-                raise SystemExit("Falta el rol COMPRAS: aplica `alembic upgrade head`.")
+                raise SystemExit(f"Falta el rol {clave_rol}: aplica `alembic upgrade head`.")
             usuario_id = conexion.execute(
                 text(
                     "INSERT INTO usuario (id, nombre, email, password_hash) "
-                    "VALUES (:id, 'Humo Compras', :email, :huella) "
-                    "ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, "
+                    "VALUES (:id, :nombre, :email, :huella) "
+                    "ON CONFLICT (email) DO UPDATE SET nombre = EXCLUDED.nombre, "
+                    "password_hash = EXCLUDED.password_hash, "
                     "activo = true, bloqueado_hasta = NULL RETURNING id"
                 ),
-                {"id": uuid.uuid4(), "email": correo, "huella": huella},
+                {"id": uuid.uuid4(), "nombre": nombre, "email": correo, "huella": huella},
             ).scalar_one()
             conexion.execute(
                 text("DELETE FROM usuario_rol WHERE usuario_id = :u AND rol_id <> :r"),
