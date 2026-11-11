@@ -1,0 +1,94 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0 -- D:\Documentos\LIDR\Proyecto Final\backend\.venv\Scripts\python.exe
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collecting ... collected 4 items
+
+tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_inserta_y_lee_la_obra_completa FAILED [ 25%]
+tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_vigente_es_la_congelada FAILED [ 50%]
+tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_lista_ordenada_filtrada_y_pagina_vacia FAILED [ 75%]
+tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_empresas_activas_devuelve_hasta_dos FAILED [100%]
+
+================================== FAILURES ===================================
+___________ test_tkt012a_repositorio_inserta_y_lee_la_obra_completa ___________
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x00000190148EDE80>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000190148EE120>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+
+    def test_tkt012a_repositorio_inserta_y_lee_la_obra_completa(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+    ) -> None:
+        """TC-05 · HDU-001 esc. 2 · CA-1 — feliz: la obra se guarda con sus parámetros y se lee completa."""
+>       from cimenta.presupuesto.infraestructura.repositorio_obra import (
+            insertar_obra,
+            leer_obra_completa,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.infraestructura.repositorio_obra'
+
+tests\test_tkt012a_repositorio_obra.py:61: ModuleNotFoundError
+______________ test_tkt012a_repositorio_vigente_es_la_congelada _______________
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000019014A06990>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000019014A06C10>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+
+    def test_tkt012a_repositorio_vigente_es_la_congelada(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+    ) -> None:
+        """TC-06 · CA-8 — feliz: con una línea base BORRADOR y otra CONGELADA, la vigente es la congelada."""
+>       from cimenta.presupuesto.infraestructura.repositorio_obra import (
+            leer_obra_completa,
+            leer_obra_por_codigo,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.infraestructura.repositorio_obra'
+
+tests\test_tkt012a_repositorio_obra.py:117: ModuleNotFoundError
+_______ test_tkt012a_repositorio_lista_ordenada_filtrada_y_pagina_vacia _______
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000019014A07750>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000019014A07890>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+
+    def test_tkt012a_repositorio_lista_ordenada_filtrada_y_pagina_vacia(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+    ) -> None:
+        """TC-07 · HDU-001 esc. 2 · CA-7 — feliz y borde: orden por código, filtro por uno y dos estados,
+        y una página que no alcanza filas da lista vacía con el total real."""
+>       from cimenta.presupuesto.infraestructura.repositorio_obra import listar_obras
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.infraestructura.repositorio_obra'
+
+tests\test_tkt012a_repositorio_obra.py:141: ModuleNotFoundError
+________ test_tkt012a_repositorio_empresas_activas_devuelve_hasta_dos _________
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000019014DD0B00>
+base_de_prueba = 'prueba_bbe10acbb151'
+conectar = <function conectar.<locals>._conectar at 0x0000019014DEEA30>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000019014DD0C30>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+
+    def test_tkt012a_repositorio_empresas_activas_devuelve_hasta_dos(
+        sesion_bd: Session,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+    ) -> None:
+        """TC-08 · CA-1 (A9) — feliz: `empresas_activas` devuelve como mucho dos, por orden de id."""
+>       from cimenta.presupuesto.infraestructura.repositorio_obra import empresas_activas
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.infraestructura.repositorio_obra'
+
+tests\test_tkt012a_repositorio_obra.py:187: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_inserta_y_lee_la_obra_completa
+FAILED tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_vigente_es_la_congelada
+FAILED tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_lista_ordenada_filtrada_y_pagina_vacia
+FAILED tests/test_tkt012a_repositorio_obra.py::test_tkt012a_repositorio_empresas_activas_devuelve_hasta_dos
+============================== 4 failed in 4.98s ==============================

@@ -1,0 +1,274 @@
+$ uv run pytest tests/test_tkt012a_api_obras.py tests/test_tkt017_api_congelado.py -p no:cacheprovider -q --no-header --tb=line -rfE
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.... [ 66%]
+................................F...                                     [100%]
+================================== FAILURES ===================================
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"961314ec-9218-46f0-a812-90395d3a2710"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:289: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"961314ec-9218-46f0-a812-90395d3a2710"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f07abef8-56d4-4d12-ac86-73299be877d8"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:289: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f07abef8-56d4-4d12-ac86-73299be877d8"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"038d6881-6b49-418f-9c8e-eca4464dd747"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:369: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"038d6881-6b49-418f-9c8e-eca4464dd747"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"6bb2c000-4532-47de-8f1b-12fbe65409f2"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"6bb2c000-4532-47de-8f1b-12fbe65409f2"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f7ef1b28-68c9-4e01-886e-cbfadd12498d"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f7ef1b28-68c9-4e01-886e-cbfadd12498d"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"aaeaef28-7e55-40b5-9d44-a46dc10777b2"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"aaeaef28-7e55-40b5-9d44-a46dc10777b2"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"924d02b8-e7cd-4033-8066-9234e1146a83"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"924d02b8-e7cd-4033-8066-9234e1146a83"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"43ab22c7-cb15-4ad4-bd94-9138a2e4c086"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"43ab22c7-cb15-4ad4-bd94-9138a2e4c086"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"22c98631-a94a-485b-9238-48a15f841ce2"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"22c98631-a94a-485b-9238-48a15f841ce2"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f85e04b3-e584-4305-b5bb-abd888d33b67"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f85e04b3-e584-4305-b5bb-abd888d33b67"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"2440724e-5ea8-442a-92b3-94096169521c"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"2440724e-5ea8-442a-92b3-94096169521c"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"63394f18-fcc4-449b-9bae-b7bf35907c71"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"63394f18-fcc4-449b-9bae-b7bf35907c71"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"7643aeea-b4fd-45c6-90ed-7e2a030b0792"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"7643aeea-b4fd-45c6-90ed-7e2a030b0792"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"87a54df3-f881-4c6d-874a-c5439efebfca"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"87a54df3-f881-4c6d-874a-c5439efebfca"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"1a3e918e-ded7-4bf7-8f05-509da5bcba22"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"1a3e918e-ded7-4bf7-8f05-509da5bcba22"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"fb409349-ba68-44a9-87bc-777645ffec22"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"fb409349-ba68-44a9-87bc-777645ffec22"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"2c66f339-a666-43df-9f24-647d3e7f4926"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"2c66f339-a666-43df-9f24-647d3e7f4926"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"080191a6-b8d5-48dc-92c7-a1038fe1b9f5"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"080191a6-b8d5-48dc-92c7-a1038fe1b9f5"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"73654993-dc2e-4091-967a-9ba8e40c235a"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"73654993-dc2e-4091-967a-9ba8e40c235a"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f371819f-30fb-46e0-bc45-eb4278ee018c"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f371819f-30fb-46e0-bc45-eb4278ee018c"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"2ba37a93-4674-4db5-bc21-dc770892a95f"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"2ba37a93-4674-4db5-bc21-dc770892a95f"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"9a612c68-c6ef-41f0-bb6c-96555eed2eec"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"9a612c68-c6ef-41f0-bb6c-96555eed2eec"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"65e41938-5c3b-4604-82ea-415150e7669e"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"65e41938-5c3b-4604-82ea-415150e7669e"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"483a457e-9b64-4ed7-9564-d13b87ce67a2"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"483a457e-9b64-4ed7-9564-d13b87ce67a2"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4fd17552-8a71-4fd0-bbcd-829b0660bc1b"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4fd17552-8a71-4fd0-bbcd-829b0660bc1b"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"94406b97-02be-4219-a12c-990df5bf3273"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"94406b97-02be-4219-a12c-990df5bf3273"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"82a032cb-1462-46c0-98b1-3717bc3ea3d7"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"82a032cb-1462-46c0-98b1-3717bc3ea3d7"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"d8cd4dac-091a-4020-8ec0-e4302bebbcb4"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"d8cd4dac-091a-4020-8ec0-e4302bebbcb4"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"27e9294d-86bd-4a94-a6cf-97265a83dc16"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"27e9294d-86bd-4a94-a6cf-97265a83dc16"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4827c716-faf7-4569-a78d-5f104418e1c9"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4827c716-faf7-4569-a78d-5f104418e1c9"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4278a306-6962-4855-a8e1-b3cf5055f217"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4278a306-6962-4855-a8e1-b3cf5055f217"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"7365d93f-f3ed-4577-b448-9dade75f28cf"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"7365d93f-f3ed-4577-b448-9dade75f28cf"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"38dea9eb-ac43-43b0-9e5d-04e36c6c217a"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"38dea9eb-ac43-43b0-9e5d-04e36c6c217a"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"384354f2-3833-4c27-9cd2-4297663a2d0a"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"384354f2-3833-4c27-9cd2-4297663a2d0a"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"19e23fa1-4ec8-4208-9ee9-8063a46277b8"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"19e23fa1-4ec8-4208-9ee9-8063a46277b8"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"df4f3e59-17e0-4500-8e73-069f70a4c39d"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"df4f3e59-17e0-4500-8e73-069f70a4c39d"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"1e8cc06b-c53b-4f52-9703-6c3c3f591f92"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"1e8cc06b-c53b-4f52-9703-6c3c3f591f92"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"a18dc40c-1dc1-44dc-8614-3c07b9c4b0bd"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:588: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"a18dc40c-1dc1-44dc-8614-3c07b9c4b0bd"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"352c931e-e075-485f-b0c0-d1e9653b952e"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:588: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"352c931e-e075-485f-b0c0-d1e9653b952e"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"8205b5fa-b649-48b2-ac45-bc4a4ea8d40a"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:588: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"8205b5fa-b649-48b2-ac45-bc4a4ea8d40a"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"80989d98-08f3-40c9-b578-b69e1a94fcc0"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:588: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"80989d98-08f3-40c9-b578-b69e1a94fcc0"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4947f53e-3d4c-4949-9c7a-4118428779a2"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:588: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"4947f53e-3d4c-4949-9c7a-4118428779a2"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"939cd34a-f7f8-48e7-b83e-d8315eef45a8"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:588: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"939cd34a-f7f8-48e7-b83e-d8315eef45a8"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"9d0c6542-802e-49ff-a358-b93508c52531"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"9d0c6542-802e-49ff-a358-b93508c52531"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f0f14f3a-59cd-46a2-9392-0867848ee863"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f0f14f3a-59cd-46a2-9392-0867848ee863"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"47eb4c98-969d-4819-b886-7ca3daedf2e0"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"47eb4c98-969d-4819-b886-7ca3daedf2e0"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"7b9f1432-7c94-487e-a030-b4e0853bf69c"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"7b9f1432-7c94-487e-a030-b4e0853bf69c"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"a80381b3-2640-4cc4-9d52-deae42d4d52a"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"a80381b3-2640-4cc4-9d52-deae42d4d52a"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"ab2d8bf4-84d5-45f5-9c7d-231521cc894e"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"ab2d8bf4-84d5-45f5-9c7d-231521cc894e"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"d17904c9-31f4-4e6c-b30b-7c12c2aafdbd"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"d17904c9-31f4-4e6c-b30b-7c12c2aafdbd"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"bc9f911d-11e0-49f0-88c8-27727a3c94c0"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"bc9f911d-11e0-49f0-88c8-27727a3c94c0"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"e81a9990-d84e-4881-a0cf-4cb3593c93ac"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"e81a9990-d84e-4881-a0cf-4cb3593c93ac"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"90c1360e-b367-4c97-9f9c-88d460bd1792"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"90c1360e-b367-4c97-9f9c-88d460bd1792"}
+E   AssertionError: DIRECCION_GENERAL: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"702661d9-adfd-402c-b191-2e7eb2341d1d"}
+    assert 404 == 200
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:791: AssertionError: DIRECCION_GENERAL: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"702661d9-adfd-402c-b191-2e7eb2341d1d"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"b8603bae-2504-4c18-baea-f9d467b0d81c"}
+    assert 404 == 200
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:843: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"b8603bae-2504-4c18-baea-f9d467b0d81c"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f77af8b1-85c8-4ee7-9324-91f3b0790a37"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:887: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"f77af8b1-85c8-4ee7-9324-91f3b0790a37"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"1971629f-fdf1-4475-9a34-718bddbeb923"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"1971629f-fdf1-4475-9a34-718bddbeb923"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"49fa9ad7-9f5e-432b-bd04-688db6655be0"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"49fa9ad7-9f5e-432b-bd04-688db6655be0"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"0a06a6f8-b3a5-4483-b86f-92299e6d775b"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"0a06a6f8-b3a5-4483-b86f-92299e6d775b"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"98fa20c4-e4f4-4fbb-9016-05ad42590e9b"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"98fa20c4-e4f4-4fbb-9016-05ad42590e9b"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"5d8451ab-b13a-4cc2-92cb-e5dce7f76744"}
+    assert 404 == 200
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:957: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"5d8451ab-b13a-4cc2-92cb-e5dce7f76744"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"aa6c3254-fc21-4ded-b9a4-9e0c477c8796"}
+    assert 404 == 200
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:957: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"aa6c3254-fc21-4ded-b9a4-9e0c477c8796"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"dce264b2-3b8f-45cc-8f53-0e7d8d4b3a7c"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:981: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"dce264b2-3b8f-45cc-8f53-0e7d8d4b3a7c"}
+E   AssertionError
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:175: AssertionError
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"570c3896-9292-4362-b4c9-9b1b44f1df0f"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"570c3896-9292-4362-b4c9-9b1b44f1df0f"}
+E   AssertionError: El contrato publicado no trae los componentes ['ObraNueva', 'Obra', 'ListaObras', 'EstadoObra']
+    assert ['ObraNueva',... 'EstadoObra'] == []
+      
+      Left contains 4 more items, first extra item: 'ObraNueva'
+      Use -v to get more diff
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:1073: AssertionError: El contrato publicado no trae los componentes ['ObraNueva', 'Obra', 'ListaObras', 'EstadoObra']
+E   AssertionError: Debe haber exactamente un POST /api/v1/obras; hay 0
+    assert 0 == 1
+     +  where 0 = len([])
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:1124: AssertionError: Debe haber exactamente un POST /api/v1/obras; hay 0
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"0564ff66-3f0e-43a8-aeb6-c1fb488fed76"}
+    assert 404 == 201
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt012a_api_obras.py:1168: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/obras","correlacion_id":"0564ff66-3f0e-43a8-aeb6-c1fb488fed76"}
+E   AssertionError: assert {('GET', '/ap...a_base'), ...} == {('GET', '/ap...r_obra'), ...}
+      
+      Extra items in the right set:
+      ('GET', '/api/v1/obras/{obra_id}', 'obtener_obra')
+      ('POST', '/api/v1/obras', 'crear_obra')
+      ('GET', '/api/v1/obras', 'listar_obras')
+      Use -v to get more diff
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt017_api_congelado.py:1123: AssertionError: assert {('GET', '/ap...a_base'), ...} == {('GET', '/ap...r_obra'), ...}
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_alta_responde_201[DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_alta_responde_201[DIRECCION_GENERAL]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc03_api_codigo_duplicado
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[codigo_ausente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[codigo_vacio]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[codigo_en_blanco]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[codigo_de_41]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[nombre_ausente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[nombre_en_blanco]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[domicilio_ausente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[domicilio_en_blanco]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[tipo_otro]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[tipo_contrato_ausente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[retencion_ausente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[fondo_ausente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[iva_ausente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[iva_cadena_true]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[iva_entero_1]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[iva_cadena_yes]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[nul_en_codigo]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[nul_en_nombre]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[nul_en_domicilio]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[retencion_siete_decimales]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[retencion_texto]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[retencion_exponente]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[retencion_digitos_arabigo_indicos]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[retencion_salto_de_linea_final]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[retencion_numero_json]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[fondo_texto]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[fondo_siete_decimales]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[umbral_texto]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_forma_invalida[umbral_siete_decimales]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_porcentaje_fuera_de_rango[retencion_negativa]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_porcentaje_fuera_de_rango[retencion_sobre_uno]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_porcentaje_fuera_de_rango[fondo_negativo]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_porcentaje_fuera_de_rango[fondo_sobre_uno]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_porcentaje_fuera_de_rango[umbral_negativo]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_bordes_de_rango_se_admiten[retencion_cero]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_bordes_de_rango_se_admiten[retencion_uno]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_bordes_de_rango_se_admiten[fondo_cero]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_bordes_de_rango_se_admiten[fondo_uno]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_bordes_de_rango_se_admiten[umbral_cero]
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_bordes_de_rango_se_admiten[umbral_sin_techo]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_permiso[RESIDENTE]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_permiso[COMPRAS]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_permiso[ALMACEN]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_permiso[ADMINISTRACION]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_sesion_y_sin_csrf[ambos_ausentes]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_sesion_y_sin_csrf[solo_cookie]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_sesion_y_sin_csrf[solo_cabecera]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_sin_sesion_y_sin_csrf[distintos]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_alta_el_origen_se_verifica_antes_que_el_rol
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_tope_de_nombre_y_domicilio
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_lista_seis_roles_orden_determinista
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc02_api_lista_filtro_por_estado
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_campos_extra_se_ignoran
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_lista_parametros_invalidos[estado_otro]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_lista_parametros_invalidos[pagina_cero]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_lista_parametros_invalidos[tamano_cero]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_lista_parametros_invalidos[tamano_sobre_200]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_lista_pagina_inalcanzable[1000]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_lista_pagina_inalcanzable[1000000000000000000000000000000]
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_obtener_obra - Asser...
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_obtener_obra_inexistente_y_mal_formada
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_lecturas_sin_sesion
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_forma_publicada_igual_al_borrador
+FAILED tests/test_tkt012a_api_obras.py::test_tkt012a_api_las_rutas_de_obra_son_def_con_sesion_y_origen_primero
+FAILED tests/test_tkt012a_api_obras.py::test_hdu001_esc14_obra_creada_por_api_se_congela_y_pasa_a_activa
+FAILED tests/test_tkt017_api_congelado.py::test_tkt017_operation_id_de_las_rutas_de_presupuesto
+69 failed, 39 passed in 29.99s
+
+$ uv run pytest tests/test_tkt017_api_congelado.py::test_tkt017_operation_id_de_las_rutas_de_presupuesto -p no:cacheprovider -q --no-header --tb=short
+F                                                                        [100%]
+================================== FAILURES ===================================
+____________ test_tkt017_operation_id_de_las_rutas_de_presupuesto _____________
+tests\test_tkt017_api_congelado.py:1123: in test_tkt017_operation_id_de_las_rutas_de_presupuesto
+    assert publicadas == esperadas
+E   AssertionError: assert {('GET', '/ap...a_base'), ...} == {('GET', '/ap...r_obra'), ...}
+E     
+E     Extra items in the right set:
+E     ('GET', '/api/v1/obras/{obra_id}', 'obtener_obra')
+E     ('POST', '/api/v1/obras', 'crear_obra')
+E     ('GET', '/api/v1/obras', 'listar_obras')
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt017_api_congelado.py::test_tkt017_operation_id_de_las_rutas_de_presupuesto
+1 failed in 1.11s

@@ -1,0 +1,2 @@
+SKIPPED [1] tests\test_tkt016_archivo_real.py:44: CIMENTA_CATALOGO_UNION no está definida: la prueba contra el archivo real se omite (PA-T3)
+2767 passed, 26 skipped in 591.37s (0:09:51)

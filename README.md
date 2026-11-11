@@ -27,7 +27,7 @@
 |---|---|
 | [Glosario del dominio](docs/glosario.md) | Lenguaje ubicuo: *concepto*, *partida*, *destajo*, *explosión de insumos*, *rendimiento* |
 | [Convenciones](docs/convenciones.md) | Cómo se documenta y planifica: docs-as-code, SDD, backlog AI-ready, ADRs, estimación |
-| [Decisiones de arquitectura](docs/adr/README.md) | 40 ADRs en formato MADR |
+| [Decisiones de arquitectura](docs/adr/README.md) | 41 ADRs en formato MADR |
 | [Despliegue de prueba en VPS](docs/despliegue-prueba-vps.md) | Guía de operación de TKT-070 |
 | [`llms.txt`](llms.txt) | Mapa del proyecto para agentes de IA |
 | [`CLAUDE.md`](CLAUDE.md) | Instrucciones de proyecto para el copiloto: reglas que no se pueden romper, comandos, convenciones |
@@ -81,7 +81,7 @@ En Windows PowerShell:
 $env:PYTHONPATH = "."; uv run --env-file ../.env python ../frontend/e2e/sembrar_usuario_humo.py
 ```
 
-Es idempotente: si el usuario ya existe, le restablece la contraseña.
+Es idempotente: si el usuario ya existe, le restablece la contraseña. Sin más variables siembra un usuario con el rol `COMPRAS`; `CIMENTA_HUMO_ROL` (por omisión `COMPRAS`) y `CIMENTA_HUMO_NOMBRE` permiten sembrar otro rol y otro nombre. El humo de Playwright usa esa vía: su preparación global (`frontend/e2e/preparacion-global.ts`) siembra `humo.compras@cimenta.test` y, para el recorrido de alta de obras, `humo.director@cimenta.test` con el rol `DIRECTOR_PROYECTOS`, y deja sus datos de acceso en `CIMENTA_HUMO_DP_CORREO` y `CIMENTA_HUMO_DP_CONTRASENA`, con una contraseña aleatoria en cada corrida.
 
 Un usuario por cada rol de acceso, con 27 insumos sintéticos y su precio general, lo siembra `herramientas.semilla_local`. El correo de cada usuario es `<rol en minúsculas>@cimenta.test` y su contraseña es la de `CIMENTA_SEMILLA_CONTRASENA`, que se define en `.env` antes de sembrar (va vacía en `.env.example`). No sobrescribe nada que ya exista:
 
@@ -261,7 +261,7 @@ La revisión de LIDR del **2026-10-14** dio *luz amarilla: avanzar ajustando*. C
 | Tickets de trabajo | 69, todos detallados con criterios técnicos y *non-goals*, en 11 sprints: 7 de fase 1 y 4 de fase 2 |
 | Especificación de la API | 70 operaciones de fase 1 en el borrador OpenAPI 3.1, validado; las de fase 2, listadas con su ticket |
 | Wireframes | 10 pantallas del hilo vertical |
-| Decisiones de arquitectura (ADR) | 40 |
+| Decisiones de arquitectura (ADR) | 41 |
 
 Estas cifras las comprueba [`tools/verificar_docs.py`](tools/README.md) contra los documentos, salvo las de API, wireframes y ADR.
 

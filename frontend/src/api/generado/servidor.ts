@@ -207,6 +207,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/obras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Obras
+         * @description Las obras, por código, con filtro repetible por estado y paginación.
+         */
+        get: operations["listar_obras"];
+        put?: never;
+        /**
+         * Crear Obra
+         * @description RN-25, PA-02, PA-18: da de alta una obra en `PLANEACION` y la devuelve ya guardada.
+         */
+        post: operations["crear_obra"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/obras/{obra_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener Obra
+         * @description Una obra con su línea base vigente, si la hay.
+         */
+        get: operations["obtener_obra"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -282,6 +326,11 @@ export interface components {
          * @enum {string}
          */
         EstadoLineaBase: "BORRADOR" | "CONGELADA" | "SUPERSEDIDA";
+        /**
+         * EstadoObra
+         * @enum {string}
+         */
+        EstadoObra: "PLANEACION" | "ACTIVA" | "SUSPENDIDA" | "CERRADA";
         /** ExplosionInsumos */
         ExplosionInsumos: {
             /**
@@ -358,6 +407,12 @@ export interface components {
             elementos: components["schemas"]["ConceptoLineaBase"][];
             paginacion: components["schemas"]["MetaPagina"];
         };
+        /** ListaObras */
+        ListaObras: {
+            /** Elementos */
+            elementos: components["schemas"]["Obra"][];
+            paginacion: components["schemas"]["MetaPagina"];
+        };
         /** MetaPagina */
         MetaPagina: {
             /** Pagina */
@@ -374,6 +429,84 @@ export interface components {
         Motivo: {
             /** Motivo */
             motivo: string;
+        };
+        /** Obra */
+        Obra: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            /** Domicilio */
+            domicilio: string;
+            /**
+             * Tipo Contrato
+             * @enum {string}
+             */
+            tipo_contrato: "PRECIO_ALZADO_MAXIMO_GARANTIZADO";
+            /**
+             * Retencion Destajo Pct
+             * Format: decimal
+             */
+            retencion_destajo_pct: string;
+            /**
+             * Fondo Garantia Pct
+             * Format: decimal
+             */
+            fondo_garantia_pct: string;
+            /** Iva Acreditable */
+            iva_acreditable: boolean;
+            /** Umbral Alerta Pct */
+            umbral_alerta_pct: string | null;
+            estado: components["schemas"]["EstadoObra"];
+            /** Linea Base Vigente Id */
+            linea_base_vigente_id: string | null;
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /**
+             * Actualizado En
+             * Format: date-time
+             */
+            actualizado_en?: string;
+        };
+        /**
+         * ObraNueva
+         * @description Cuerpo del alta de obra: lo que no declara (`estado`, `empresa_id`…) se ignora.
+         */
+        ObraNueva: {
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            /** Domicilio */
+            domicilio: string;
+            /**
+             * Tipo Contrato
+             * @constant
+             * @enum {string}
+             */
+            tipo_contrato: "PRECIO_ALZADO_MAXIMO_GARANTIZADO";
+            /**
+             * Retencion Destajo Pct
+             * Format: decimal
+             */
+            retencion_destajo_pct: string;
+            /**
+             * Fondo Garantia Pct
+             * Format: decimal
+             */
+            fondo_garantia_pct: string;
+            /** Iva Acreditable */
+            iva_acreditable: boolean;
+            /** Umbral Alerta Pct */
+            umbral_alerta_pct?: string | null;
         };
         /** PresupuestoControl */
         PresupuestoControl: {
@@ -828,6 +961,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PresupuestoControl"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_obras: {
+        parameters: {
+            query?: {
+                estado?: components["schemas"]["EstadoObra"][] | null;
+                pagina?: number;
+                tamano_pagina?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListaObras"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_obra: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObraNueva"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Obra"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_obra: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Obra"];
                 };
             };
             /** @description Validation Error */

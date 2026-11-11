@@ -21,6 +21,7 @@ export const CLAVES_DETALLE: readonly ClaveDetalle[] = [
   { clave: "disponible", etiqueta: "Disponible", formato: "importe" },
   { clave: "solicitado", etiqueta: "Solicitado", formato: "importe" },
   { clave: "excedente", etiqueta: "Excedente", formato: "importe" },
+  { clave: "obra_existente", etiqueta: "Obra existente", formato: "texto" },
 ];
 
 /** La clave del `detalle` que lleva el marcador de excedente. */
@@ -42,6 +43,7 @@ export const CLAVES_OCULTAS: readonly string[] = [
   "orden_compra_id",
   "insumo_id",
   "orden_compra_renglon_id",
+  "obra_existente_id",
 ];
 
 export type TipoColumna = "texto" | "cantidad" | "fecha";
@@ -112,4 +114,5 @@ export const ETIQUETAS_ACCION: Readonly<Partial<Record<string, string>>> = {
   CONFIRMAR_TOPE_SUPERIOR: "Confirmar el tope",
   VER_ENTRADA: "Ver la entrada",
   REINTENTAR: "Reintentar",
+  VER_OBRA: "Ver la obra",
 };

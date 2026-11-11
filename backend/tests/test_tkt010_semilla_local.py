@@ -739,6 +739,90 @@ def test_tkt010_car7_el_humo_no_toca_a_los_usuarios_sembrados(
     assert total_usuarios == 7
 
 
+# --------------------------------------------------------------------------- TKT-012a · fila B5: sembrador de humo parametrizado
+
+CORREO_DE_HUMO_DIRECTOR = "humo.director@cimenta.test"
+
+
+def sembrar_humo(correo: str, **extra: str) -> subprocess.CompletedProcess[str]:
+    """Ejecuta `sembrar_usuario_humo.py` como proceso aparte, como lo hace `preparacion-global.ts`.
+
+    Hereda el entorno ya preparado por `entorno_de_siembra` (destino y rol de migración), fija el correo
+    y una contraseña aleatoria de humo y añade `extra` (`CIMENTA_HUMO_ROL`, `CIMENTA_HUMO_NOMBRE`).
+    Quita cualquier `CIMENTA_HUMO_*` del entorno de quien ejecuta, para que no se cuele un valor real.
+    """
+    entorno = {k: v for k, v in os.environ.items() if not k.startswith("CIMENTA_HUMO_")}
+    entorno.update(
+        {
+            "PYTHONPATH": str(BACKEND),
+            "PYTHONUTF8": "1",
+            "CIMENTA_HUMO_CORREO": correo,
+            "CIMENTA_HUMO_CONTRASENA": secrets.token_urlsafe(16),
+            **extra,
+        }
+    )
+    return subprocess.run(  # noqa: S603 · el intérprete y el script son del repositorio
+        [sys.executable, str(SCRIPT_DE_HUMO)],
+        cwd=BACKEND,
+        env=entorno,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+
+
+def test_tkt012a_b5_el_humo_siembra_el_rol_de_cimenta_humo_rol(
+    monkeypatch: pytest.MonkeyPatch,
+    contenedor_postgres: PostgresContainer,
+    credenciales: dict[str, str],
+    base_de_prueba: str,
+    conectar: Conectar,
+) -> None:
+    """TKT-012a B5 · CA-13 — con `CIMENTA_HUMO_ROL=DIRECTOR_PROYECTOS` el usuario de humo tiene ese rol y solo ese.
+
+    Sin esa variable el sembrador deja `COMPRAS` (TC-B16 lo comprueba y no cambia): el humo de TKT-008
+    sigue igual. Con la variable, el usuario de humo del Director de Proyectos puede dar de alta una obra.
+    """
+    entorno_de_siembra(monkeypatch, contenedor_postgres, credenciales, base_de_prueba)
+
+    proceso = sembrar_humo(CORREO_DE_HUMO_DIRECTOR, CIMENTA_HUMO_ROL="DIRECTOR_PROYECTOS")
+
+    assert proceso.returncode == 0, proceso.stderr
+    with conectar("migracion", base_de_prueba) as administrador:
+        roles = administrador.execute(
+            "SELECT r.clave FROM usuario u JOIN usuario_rol ur ON ur.usuario_id = u.id "
+            "JOIN rol r ON r.id = ur.rol_id WHERE u.email = %s",
+            (CORREO_DE_HUMO_DIRECTOR,),
+        ).fetchall()
+    assert roles == [("DIRECTOR_PROYECTOS",)]
+
+
+def test_tkt012a_b5_el_humo_siembra_el_nombre_de_cimenta_humo_nombre(
+    monkeypatch: pytest.MonkeyPatch,
+    contenedor_postgres: PostgresContainer,
+    credenciales: dict[str, str],
+    base_de_prueba: str,
+    conectar: Conectar,
+) -> None:
+    """TKT-012a B5 · CA-13 — con `CIMENTA_HUMO_NOMBRE` el usuario de humo se llama como se pidió.
+
+    Sin la variable el nombre fijo «Humo Compras» no describiría al usuario del Director de Proyectos.
+    """
+    entorno_de_siembra(monkeypatch, contenedor_postgres, credenciales, base_de_prueba)
+
+    proceso = sembrar_humo(
+        CORREO_DE_HUMO_DIRECTOR, CIMENTA_HUMO_NOMBRE="Nombre pedido por el entorno"
+    )
+
+    assert proceso.returncode == 0, proceso.stderr
+    with conectar("migracion", base_de_prueba) as administrador:
+        nombres = administrador.execute(
+            "SELECT nombre FROM usuario WHERE email = %s", (CORREO_DE_HUMO_DIRECTOR,)
+        ).fetchall()
+    assert nombres == [("Nombre pedido por el entorno",)]
+
+
 # --------------------------------------------------------------------------- fila B3: insumos y precios
 
 VIGENTE_DESDE_ESPERADA = date(2026, 1, 1)

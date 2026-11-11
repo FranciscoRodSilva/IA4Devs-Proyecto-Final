@@ -1,0 +1,352 @@
+$ npm test -- PantallaObras
+
+> cimenta-frontend@0.0.0 test
+> vitest run PantallaObras
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx (22 tests | 22 failed) 35781ms
+   ❯ TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) (10)
+     × tkt012a_ca12 · TC-F06 · cargando: un esqueleto con aria-busy, no un contenido vacío 1631ms
+     × tkt012a_ca12 · TC-F06 · vacío para DIRECTOR_PROYECTOS: «No hay obras» y la acción de dar de alta 1605ms
+     × tkt012a_ca12 · TC-F06 · vacío para DIRECCION_GENERAL: «No hay obras» y la acción de dar de alta 1633ms
+     × tkt012a_ca12 · TC-F06 · vacío para RESIDENTE: «No hay obras» sin acción de dar de alta 1632ms
+     × tkt012a_ca12 · TC-F06 · vacío para COMPRAS: «No hay obras» sin acción de dar de alta 1630ms
+     × tkt012a_ca12 · TC-F06 · vacío para ALMACEN: «No hay obras» sin acción de dar de alta 1630ms
+     × tkt012a_ca12 · TC-F06 · vacío para ADMINISTRACION: «No hay obras» sin acción de dar de alta 1630ms
+     × tkt012a_ca12 · TC-F06 · con obras: tabla con código, nombre y estado, y sin nota si están todas 1626ms
+     × tkt012a_ca12 · TC-F06 · con obras y más de las que caben: la nota «Mostrando N de T obras» 1634ms
+     × tkt012a_ca12 · TC-F06 · error: el aviso lleva el correlacion_id y «Reintentar» vuelve a pedir la lista 1609ms
+   ❯ TKT-012a · TC-F07 · el botón + abre el formulario (CA-9) (2)
+     × hdu001_esc01 · TC-F07 · el botón + abre el formulario con el foco en el código (DIRECTOR_PROYECTOS) 1609ms
+     × hdu001_esc01 · TC-F07 · el botón + abre el formulario con el foco en el código (DIRECCION_GENERAL) 1622ms
+   ❯ TKT-012a · TC-F08 · quien no da de alta no ve el botón (CA-9, rechazo) (4)
+     × hdu001_esc01 · TC-F08 · RESIDENTE ve la lista y no ve el botón + 1629ms
+     × hdu001_esc01 · TC-F08 · COMPRAS ve la lista y no ve el botón + 1629ms
+     × hdu001_esc01 · TC-F08 · ALMACEN ve la lista y no ve el botón + 1629ms
+     × hdu001_esc01 · TC-F08 · ADMINISTRACION ve la lista y no ve el botón + 1632ms
+   ❯ TKT-012a · TC-F09 · alta desde la pantalla (CA-10) (1)
+     × hdu001_esc02 · TC-F09 · alta desde la pantalla: 15 y 5 precargados, porcentajes como cadenas exactas, el formulario se cierra y la lista se vuelve a pedir 1625ms
+   ❯ TKT-012a · TC-F10 · el código ya existe (CA-11, rechazo) (2)
+     × hdu001_esc03 · TC-F10 · el formulario sigue abierto con lo capturado y el conflicto en línea con la obra existente; la lista no se vuelve a pedir 1633ms
+     × hdu001_esc03 · TC-F10 · la acción «Ver la obra» cierra el formulario y deja la lista a la vista, sin ficha (D-7) 1631ms
+   ❯ TKT-012a · TC-F11 · rechazos del servidor junto a su campo (CA-11, rechazo) (3)
+     × tkt012a_ca11 · TC-F11 · un 422 en retencion_destajo_pct se pinta junto a su campo y lo capturado se conserva 1630ms
+     × tkt012a_ca11 · TC-F11 · un 403 muestra «Tu rol no permite esta operación.» sin cifras ni tratamiento de bloqueo (D-6) 1626ms
+     × tkt012a_ca11 · TC-F11 · un porcentaje con formato inválido se rechaza en el cliente junto a su campo y no sale ninguna petición 1623ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 22 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · cargando: un esqueleto con aria-busy, no un contenido vacío
+AssertionError: expected [] to have a length of 1 but got +0
+
+Ignored nodes: comments, script, style
+...
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:178:47
+    176|     await screen.findByText(/Rosa Villanueva/);
+    177|
+    178|     await waitFor(() => expect(lista.pedidas).toHaveLength(1));
+       |                                               ^
+    179|     expect(document.querySelector('[aria-busy="true"]')).not.toBeNull(…
+    180|     expect(screen.queryByText("No hay obras")).not.toBeInTheDocument();
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · vacío para DIRECTOR_PROYECTOS: «No hay obras» y la acción de dar de alta
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · vacío para DIRECCION_GENERAL: «No hay obras» y la acción de dar de alta
+TestingLibraryElementError: Unable to find an element with the text: No hay obras. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:191:25
+    189|     await abrirPantalla([rol], { obras: [] });
+    190|
+    191|     expect(await screen.findByText("No hay obras")).toBeInTheDocument(…
+       |                         ^
+    192|     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    193|     expect(screen.getAllByRole("button", { name: ETIQUETA_ALTA }).leng…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · vacío para RESIDENTE: «No hay obras» sin acción de dar de alta
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · vacío para COMPRAS: «No hay obras» sin acción de dar de alta
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · vacío para ALMACEN: «No hay obras» sin acción de dar de alta
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · vacío para ADMINISTRACION: «No hay obras» sin acción de dar de alta
+TestingLibraryElementError: Unable to find an element with the text: No hay obras. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:199:25
+    197|     await abrirPantalla([rol], { obras: [] });
+    198|
+    199|     expect(await screen.findByText("No hay obras")).toBeInTheDocument(…
+       |                         ^
+    200|     expect(screen.queryByRole("button", { name: ETIQUETA_ALTA })).not.…
+    201|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · con obras: tabla con código, nombre y estado, y sin nota si están todas
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:204:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · con obras y más de las que caben: la nota «Mostrando N de T obras»
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:227:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F06 · los cuatro estados de la lista de obras (CA-12) > tkt012a_ca12 · TC-F06 · error: el aviso lleva el correlacion_id y «Reintentar» vuelve a pedir la lista
+TestingLibraryElementError: Unable to find an element with the text: /7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:237:25
+    235|     await screen.findByText(/Rosa Villanueva/);
+    236|
+    237|     expect(await screen.findByText(new RegExp(CORRELACION_ID))).toBeIn…
+       |                         ^
+    238|     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    239|     expect(screen.queryByText("No hay obras")).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F07 · el botón + abre el formulario (CA-9) > hdu001_esc01 · TC-F07 · el botón + abre el formulario con el foco en el código (DIRECTOR_PROYECTOS)
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F07 · el botón + abre el formulario (CA-9) > hdu001_esc01 · TC-F07 · el botón + abre el formulario con el foco en el código (DIRECCION_GENERAL)
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:253:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F08 · quien no da de alta no ve el botón (CA-9, rechazo) > hdu001_esc01 · TC-F08 · RESIDENTE ve la lista y no ve el botón +
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F08 · quien no da de alta no ve el botón (CA-9, rechazo) > hdu001_esc01 · TC-F08 · COMPRAS ve la lista y no ve el botón +
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F08 · quien no da de alta no ve el botón (CA-9, rechazo) > hdu001_esc01 · TC-F08 · ALMACEN ve la lista y no ve el botón +
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F08 · quien no da de alta no ve el botón (CA-9, rechazo) > hdu001_esc01 · TC-F08 · ADMINISTRACION ve la lista y no ve el botón +
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:267:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F09 · alta desde la pantalla (CA-10) > hdu001_esc02 · TC-F09 · alta desde la pantalla: 15 y 5 precargados, porcentajes como cadenas exactas, el formulario se cierra y la lista se vuelve a pedir
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:293:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F10 · el código ya existe (CA-11, rechazo) > hdu001_esc03 · TC-F10 · el formulario sigue abierto con lo capturado y el conflicto en línea con la obra existente; la lista no se vuelve a pedir
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:348:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F10 · el código ya existe (CA-11, rechazo) > hdu001_esc03 · TC-F10 · la acción «Ver la obra» cierra el formulario y deja la lista a la vista, sin ficha (D-7)
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:374:33
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F11 · rechazos del servidor junto a su campo (CA-11, rechazo) > tkt012a_ca11 · TC-F11 · un 422 en retencion_destajo_pct se pinta junto a su campo y lo capturado se conserva
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:395:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F11 · rechazos del servidor junto a su campo (CA-11, rechazo) > tkt012a_ca11 · TC-F11 · un 403 muestra «Tu rol no permite esta operación.» sin cifras ni tratamiento de bloqueo (D-6)
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:419:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/22]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.test.tsx > TKT-012a · TC-F11 · rechazos del servidor junto a su campo (CA-11, rechazo) > tkt012a_ca11 · TC-F11 · un porcentaje con formato inválido se rechaza en el cliente junto a su campo y no sale ninguna petición
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+...
+
+Ignored nodes: comments, script, style
+...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/presupuesto/obras/PantallaObras.test.tsx:134:16
+    132| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    133|   const pantalla = await abrirPantalla(roles, opciones);
+    134|   await screen.findByRole("table");
+       |                ^
+    135|   return pantalla;
+    136| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.test.tsx:436:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/22]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  22 failed (22)
+   Start at  19:47:44
+   Duration  37.29s (tests 96%, environment 2%, import 1%, setup 1%)
+
+
+# Salida con DEBUG_PRINT_LIMIT=0 (sin el volcado del DOM, que no cambia: marcador «Esta sección aún no está disponible»).
+# Razón común: la ruta /obras pinta SeccionMarcador (B3); PantallaObras no existe. Ningún fallo es de importación ni de entorno (typecheck y eslint del archivo limpios).

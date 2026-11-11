@@ -122,6 +122,9 @@ CON_FECHA_Y_ZONA = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[
 
 RUTAS_SIN_SESION = frozenset({"GET /api/v1/sesion/csrf", "POST /api/v1/sesion"})
 # B3 publica la congelación; B4, las cuatro lecturas de la línea base; C3, las dos del presupuesto de control.
+# Ampliación declarada por TKT-012a (fila A4 de su diseño, hallazgo 1 de «Impacto»): el borrador etiqueta
+# con `presupuesto` también las tres operaciones de obra de TKT-012 que esa entrega implementa
+# (`crear_obra`, `listar_obras`, `obtener_obra`). Solo se amplía la lista; ninguna aserción se debilita.
 IMPLEMENTADAS_DE_PRESUPUESTO = frozenset(
     {
         "congelar_linea_base",
@@ -131,6 +134,9 @@ IMPLEMENTADAS_DE_PRESUPUESTO = frozenset(
         "obtener_explosion_insumos",
         "listar_presupuesto_control",
         "capturar_presupuesto_control",
+        "crear_obra",
+        "listar_obras",
+        "obtener_obra",
     }
 )
 
@@ -1080,7 +1086,11 @@ def test_tkt017_car1_openapi_publica_la_congelacion_con_sesion_y_csrf(
 def test_tkt017_operation_id_de_las_rutas_de_presupuesto(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-B19 · CA-B8 · CA-R1 — el conjunto `(método, ruta, operationId)` de `presupuesto` es el del borrador para TKT-017.
+    """TC-B19 · CA-B8 · CA-R1 — el conjunto `(método, ruta, operationId)` de `presupuesto` es el del borrador para TKT-017 y TKT-012.
+
+    Actualización declarada de TKT-012a (diseño, fila A4, hallazgo 1 de «Impacto»): `IMPLEMENTADAS_DE_PRESUPUESTO`
+    y `esperadas` incluyen `crear_obra`, `listar_obras` y `obtener_obra` (`x-tickets: [TKT-012]`), porque
+    el borrador les fija `tags: [presupuesto]` y entran en `publicadas`. Solo se amplía la lista.
 
     En el patrón de TC-52 de `test_tkt006_enrutador.py`: el cliente TypeScript se genera de los
     `operationId`. Solo cuentan las operaciones de TKT-017 ya implementadas (`IMPLEMENTADAS_DE_PRESUPUESTO`;
@@ -1092,7 +1102,10 @@ def test_tkt017_operation_id_de_las_rutas_de_presupuesto(
         for ruta, elemento in borrador()["paths"].items()
         for metodo, operacion in elemento.items()
         if metodo in {"get", "post", "put", "patch", "delete"}
-        and "TKT-017" in operacion.get("x-tickets", [])
+        and (
+            "TKT-017" in operacion.get("x-tickets", [])
+            or "TKT-012" in operacion.get("x-tickets", [])
+        )
         and operacion["operationId"] in IMPLEMENTADAS_DE_PRESUPUESTO
     }
     assert {operacion for _, _, operacion in esperadas} == IMPLEMENTADAS_DE_PRESUPUESTO, (

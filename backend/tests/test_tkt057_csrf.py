@@ -1283,6 +1283,21 @@ CUERPOS_VALIDOS: dict[str, PeticionValida] = {
             "/presupuesto-control/0c9d8e7f-6a5b-4c3d-8e2f-1a0b9c8d7e6f"
         ),
     ),
+    # TKT-012a, fila A4: el alta de obra. Ampliación declarada del contrato de este test (la ruta nueva exige su
+    # entrada). `verificar_origen` va antes que `exigir_rol` y que cualquier consulta, así que el `403` sale sin
+    # tocar la base y el código puede ser cualquiera.
+    "POST /api/v1/obras": PeticionValida(
+        {
+            "codigo": "AP-058-25",
+            "nombre": "Union Square F2",
+            "domicilio": "Av. Insurgentes Sur 1458, Ciudad de México",
+            "tipo_contrato": "PRECIO_ALZADO_MAXIMO_GARANTIZADO",
+            "retencion_destajo_pct": "0.150000",
+            "fondo_garantia_pct": "0.050000",
+            "iva_acreditable": False,
+            "umbral_alerta_pct": "0.150000",
+        }
+    ),
 }
 
 

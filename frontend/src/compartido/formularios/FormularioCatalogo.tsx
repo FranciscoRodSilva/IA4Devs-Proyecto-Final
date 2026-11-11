@@ -12,11 +12,26 @@ import { ConfirmacionBaja, ETIQUETA_CONFIRMAR_BAJA } from "@/compartido/formular
 import { ConflictoEnLinea } from "@/compartido/formularios/ConflictoEnLinea";
 import { resolverCatalogo, rutaDeCampo, valoresDeFormulario } from "@/compartido/formularios/catalogo.formulario";
 
-export interface CampoCatalogo<N extends string> {
+interface CampoTextoCatalogo<N extends string> {
   nombre: N;
   etiqueta: string;
   tipo?: "text" | "email" | "date";          // "text" por omisión; los importes son texto
 }
+
+interface CampoCasillaCatalogo<N extends string> {
+  nombre: N;
+  etiqueta: string;
+  tipo: "casilla";                           // booleano: marcada o no
+}
+
+interface CampoDesplegableCatalogo<N extends string> {
+  nombre: N;
+  etiqueta: string;
+  tipo: "desplegable";
+  opciones: ReadonlyArray<{ valor: string; etiqueta: string }>;   // se envía `valor`; la `etiqueta` solo se muestra
+}
+
+export type CampoCatalogo<N extends string> = CampoTextoCatalogo<N> | CampoCasillaCatalogo<N> | CampoDesplegableCatalogo<N>;
 
 export interface BajaCatalogo {
   etiqueta: string;                          // p. ej. «Dar de baja»
@@ -65,7 +80,7 @@ function avisoDe(error: ErrorApi, textoPorOmision: string): Extract<Rechazo, { v
   return { vista: "aviso", textos: [error.mensaje ?? textoPorOmision], referencia: error.correlacion_id };
 }
 
-interface PropsCampoTexto<E extends z.ZodObject> {
+interface PropsCampoFormulario<E extends z.ZodObject> {
   campo: CampoCatalogo<Nombre<E>>;
   registrar: UseFormRegister<z.input<E>>;
   error: string | undefined;
@@ -73,29 +88,72 @@ interface PropsCampoTexto<E extends z.ZodObject> {
   campoRef?: RefObject<HTMLInputElement | null>;
 }
 
-function CampoTexto<E extends z.ZodObject>({ campo, registrar, error, campoRef }: PropsCampoTexto<E>) {
+/** Clases del desplegable nativo: el mismo aspecto que el campo de texto de shadcn. Copiadas de `src/components/ui/input.tsx`. */
+const CLASE_DESPLEGABLE =
+  "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30";
+
+/** El mensaje de un campo, enlazado al control por `aria-describedby`. */
+function MensajeCampo({ id, texto }: { id: string; texto: string | undefined }) {
+  if (texto === undefined) return null;
+  return (
+    <p id={id} className="text-sm text-destructive">
+      {texto}
+    </p>
+  );
+}
+
+/** Un campo del formulario: texto, casilla o desplegable, según `campo.tipo`. Los nativos llevan la misma marca de error. */
+function CampoFormulario<E extends z.ZodObject>({ campo, registrar, error, campoRef }: PropsCampoFormulario<E>) {
   const idCampo = useId();
   const idError = useId();
   const { ref: registrarCampo, ...registro } = registrar(rutaDeCampo<E>(campo.nombre));
+  const marcado = {
+    "aria-invalid": error !== undefined,
+    "aria-describedby": error !== undefined ? idError : undefined,
+  };
+
+  if (campo.tipo === "casilla") {
+    return (
+      <div className="grid gap-2">
+        <div className="flex items-center gap-2">
+          <input id={idCampo} type="checkbox" className="size-4 accent-primary" {...marcado} {...registro} ref={registrarCampo} />
+          <Label htmlFor={idCampo}>{campo.etiqueta}</Label>
+        </div>
+        <MensajeCampo id={idError} texto={error} />
+      </div>
+    );
+  }
+
+  if (campo.tipo === "desplegable") {
+    return (
+      <div className="grid gap-2">
+        <Label htmlFor={idCampo}>{campo.etiqueta}</Label>
+        <select id={idCampo} className={CLASE_DESPLEGABLE} {...marcado} {...registro} ref={registrarCampo}>
+          {campo.opciones.map((opcion) => (
+            <option key={opcion.valor} value={opcion.valor}>
+              {opcion.etiqueta}
+            </option>
+          ))}
+        </select>
+        <MensajeCampo id={idError} texto={error} />
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-2">
       <Label htmlFor={idCampo}>{campo.etiqueta}</Label>
       <Input
         id={idCampo}
         type={campo.tipo ?? "text"}
-        aria-invalid={error !== undefined}
-        aria-describedby={error !== undefined ? idError : undefined}
+        {...marcado}
         {...registro}
         ref={(elemento) => {
           registrarCampo(elemento);
           if (campoRef !== undefined) campoRef.current = elemento;
         }}
       />
-      {error !== undefined && (
-        <p id={idError} className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
+      <MensajeCampo id={idError} texto={error} />
     </div>
   );
 }
@@ -194,7 +252,7 @@ function ContenidoFormulario<E extends z.ZodObject, R>({
 
       <form noValidate onSubmit={handleSubmit(enviar)} className="grid gap-4">
         {campos.map((campo, indice) => (
-          <CampoTexto<E>
+          <CampoFormulario<E>
             key={campo.nombre}
             campo={campo}
             registrar={register}

@@ -1,0 +1,137 @@
+$ npm test -- secciones Armazon
+
+
+> cimenta-frontend@0.0.0 test
+> vitest run secciones Armazon
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/app/navegacion/secciones.test.ts (8 tests | 4 failed) 10ms
+   ❯ TKT-008 · secciones por rol (6)
+     × tkt008_ca07_esc01 · ALMACEN 5ms
+     × tkt008_ca07_esc02 · unión sin repetir 1ms
+     × tkt008_ca07 · la tabla del wireframe 1ms
+   ❯ TKT-012a · sección Obras · D-3 (2)
+     × TKT-012a · CA-9 · TC-F05 · «Obras» está para los seis roles, en el grupo Obra y con su ruta 0ms
+ ❯ |cliente| src/app/armazon/Armazon.test.tsx (28 tests | 1 failed) 2383ms
+   ❯ TKT-008 · aplicación y armazón (17)
+     × tkt008_ca07_esc01 · cabecera y menú 66ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/app/armazon/Armazon.test.tsx > TKT-008 · aplicación y armazón > tkt008_ca07_esc01 · cabecera y menú
+AssertionError: expected [ 'Órdenes de compra', …(2) ] to deeply equal [ 'Obras', 'Órdenes de compra', …(2) ]
+
+- Expected
++ Received
+
+  [
+-   "Obras",
+    "Órdenes de compra",
+    "Proveedores",
+    "Recepción · Pendientes de recibir",
+  ]
+
+ ❯ src/app/armazon/Armazon.test.tsx:81:57
+     79|     // (Obra, Compras, Almacén, Dirección), no por el orden de la tabl…
+     80|     const enlaces = within(menu()).getAllByRole("link");
+     81|     expect(enlaces.map((enlace) => enlace.textContent)).toEqual([
+       |                                                         ^
+     82|       "Obras",
+     83|       "Órdenes de compra",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  |cliente| src/app/navegacion/secciones.test.ts > TKT-008 · secciones por rol > tkt008_ca07_esc01 · ALMACEN
+AssertionError: expected [ 'Órdenes de compra', …(2) ] to deeply equal [ 'Órdenes de compra', …(3) ]
+
+- Expected
++ Received
+
+  [
+    "Órdenes de compra",
+    "Proveedores",
+    "Recepción · Pendientes de recibir",
+-   "Obras",
+  ]
+
+ ❯ src/app/navegacion/secciones.test.ts:30:36
+     28|   test("tkt008_ca07_esc01 · ALMACEN", () => {
+     29|     // D-3 · fila B3 de TKT-012a: «Obras» al final de la lista de ALMA…
+     30|     expect(titulosDe(["ALMACEN"])).toEqual(["Órdenes de compra", "Prov…
+       |                                    ^
+     31|   });
+     32|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  |cliente| src/app/navegacion/secciones.test.ts > TKT-008 · secciones por rol > tkt008_ca07_esc02 · unión sin repetir
+AssertionError: expected [ 'Línea base', …(5) ] to deeply equal [ 'Línea base', …(6) ]
+
+- Expected
++ Received
+
+@@ -3,7 +3,6 @@
+    "Presupuesto de control",
+    "Requisiciones",
+    "Órdenes de compra",
+    "Proveedores",
+    "Recepción · Pendientes de recibir",
+-   "Obras",
+  ]
+
+ ❯ src/app/navegacion/secciones.test.ts:35:47
+     33|   test("tkt008_ca07_esc02 · unión sin repetir", () => {
+     34|     // D-3 · fila B3 de TKT-012a: «Obras» al final de la unión, en el …
+     35|     expect(titulosDe(["COMPRAS", "ALMACEN"])).toEqual([
+       |                                               ^
+     36|       "Línea base",
+     37|       "Presupuesto de control",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  |cliente| src/app/navegacion/secciones.test.ts > TKT-008 · secciones por rol > tkt008_ca07 · la tabla del wireframe
+AssertionError: secciones de DIRECCION_GENERAL: expected [ 'Semáforo', 'Línea base', …(7) ] to deeply equal [ 'Semáforo', 'Línea base', …(8) ]
+
+- Expected
++ Received
+
+@@ -6,7 +6,6 @@
+    "Órdenes de compra",
+    "Proveedores",
+    "Recepción · Pendientes de recibir",
+    "Autorizaciones",
+    "Bitácora de excepciones",
+-   "Obras",
+  ]
+
+ ❯ src/app/navegacion/secciones.test.ts:76:55
+     74|
+     75|     for (const rol of Object.keys(esperado) as Rol[]) {
+     76|       expect(titulosDe([rol]), `secciones de ${rol}`).toEqual(esperado…
+       |                                                       ^
+     77|     }
+     78|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  |cliente| src/app/navegacion/secciones.test.ts > TKT-012a · sección Obras · D-3 > TKT-012a · CA-9 · TC-F05 · «Obras» está para los seis roles, en el grupo Obra y con su ruta
+AssertionError: «Obras» para DIRECCION_GENERAL: expected undefined to be defined
+ ❯ src/app/navegacion/secciones.test.ts:103:44
+    101|     for (const rol of SEIS_ROLES) {
+    102|       const obras = seccionesDe([rol]).find((s) => s.titulo === "Obras…
+    103|       expect(obras, `«Obras» para ${rol}`).toBeDefined();
+       |                                            ^
+    104|       expect(obras?.ruta, `ruta de «Obras» para ${rol}`).toBe("/obras"…
+    105|       expect(obras?.grupo, `grupo de «Obras» para ${rol}`).toBe("Obra"…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 31 passed (36)
+   Start at  19:42:16
+   Duration  3.93s (tests 49%, environment 32%, setup 8%, import 8%, transform 2%)
+
+[exit 1]

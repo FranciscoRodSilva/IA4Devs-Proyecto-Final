@@ -28,9 +28,13 @@ async function iniciarSesion(page: Page): Promise<void> {
   await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
 }
 
+// TKT-012a · D-3 · fila B5: «Obras» entra al menú de COMPRAS en tercer lugar. El menú se agrupa por
+// grupo (Obra, Compras, Almacén, Dirección), no por el orden de la tabla de secciones: «Obras» es del
+// grupo «Obra» y queda tras «Presupuesto de control». Solo se amplía lo esperado.
 const SECCIONES_DE_COMPRAS = [
   "Línea base",
   "Presupuesto de control",
+  "Obras",
   "Requisiciones",
   "Órdenes de compra",
   "Proveedores",

@@ -127,6 +127,7 @@
 │   Semáforo                 │                                                                  │
 │   Línea base               │                                                                  │
 │   Presupuesto de control   │                (contenido de la sección elegida)                 │
+│   Obras                    │                                                                  │
 │                            │                                                                  │
 │ COMPRAS                    │                                                                  │
 │   Requisiciones            │                                                                  │
@@ -159,6 +160,9 @@
 | Recepción · Pendientes de recibir | Almacén, Residente de obra (corregir una entrada y reprogramar, solo Almacén) | Compras, Dirección General, Director de Proyectos |
 | Autorizaciones | Dirección General | — |
 | Bitácora de excepciones | — | Dirección General, Director de Proyectos |
+| Obras (grupo «Obra») | Director de Proyectos, Dirección General (dar de alta) | Los seis roles |
+
+El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del grupo OBRA, al final de él; por eso es la primera entrada del menú del rol Almacén y la tercera del de Compras.
 
 **Acciones.**
 
@@ -170,8 +174,74 @@
 
 - **Sección sin permiso (`403`).** Si alguien llega por URL a una sección que su rol no tiene, ve *"No tienes permiso para esta sección"* **sin ningún importe** (HDU-006 esc. 12). Ocultar la entrada del menú es cortesía; el control es el `403` del servidor ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)).
 - **Rol retirado durante la sesión.** La petición siguiente responde `403`; el armazón vuelve a pedir `GET /sesion` y redibuja el menú sin esa sección.
-- **Sin obras.** Si el usuario no tiene ninguna obra activa, el contenido muestra *"No hay obras activas"* y, solo para quien puede crearlas, la acción *Dar de alta una obra*.
+- **Sin obras.** El estado vacío vive en la [pantalla de Obras](#2b--pantalla-obras): si no existe ninguna obra, muestra *"No hay obras"* y, solo para quien puede darlas de alta, la acción *Dar de alta una obra*. El selector de la cabecera, que fija la obra de contexto y lista solo las `ACTIVA` y `PLANEACION`, es un ticket futuro; cuando exista, sin obras activas mostrará el mismo aviso y llevará a esa pantalla.
 - **Contador que no carga.** Si la consulta del contador falla, se omite el número; nunca se muestra un cero que nadie calculó.
+
+### 2b · Pantalla Obras
+
+| | |
+|---|---|
+| **Rol** | Director de Proyectos y Dirección General dan de alta · los seis roles consultan |
+| **Historias** | TKT-012a (alta de obras), sobre HDU-001 esc. 1 a 3 |
+| **Endpoints** | `GET /obras` (lista) · `POST /obras` (alta) |
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Obras                                                                          [ + ]         │
+│                                                              (Dar de alta una obra)         │
+├──────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
+│ Código                   │ Nombre                                    │ Estado                │
+├──────────────────────────┼───────────────────────────────────────────┼───────────────────────┤
+│ AP-058-25                │ Union Square F2                           │ Planeación            │
+│ AP-061-25                │ Torre Reforma Norte                       │ Suspendida            │
+├──────────────────────────┴───────────────────────────────────────────┴───────────────────────┤
+│ Mostrando 2 de 5 obras                                                                       │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  Formulario · Alta de obra (se abre con el botón +)
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ Código                       [ AP-058-25______________________ ]         │
+  │ Nombre                       [ Union Square F2________________ ]         │
+  │ Domicilio                    [ Av. Constituyentes 120, Querétaro ]       │
+  │ Tipo de contrato             [ Precio alzado máximo garantizado v ]      │
+  │ Retención de destajo (%)     [ 15_____ ]                                 │
+  │ Fondo de garantía (%)        [ 5______ ]                                 │
+  │ Umbral de alerta (%)         [ _______ ]   vacío = sin umbral            │
+  │ IVA acreditable              [ ]                                         │
+  │                                                                          │
+  │                                         [ Cancelar ]   [ Guardar ]       │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Conflicto en línea · el código ya existe (409 CONFLICTO, CODIGO_OBRA_DUPLICADO)
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ Código                       [ AP-058-25______________________ ]         │
+  │ ! Ya existe una obra con el código AP-058-25.        [ Ver la obra ]     │
+  │ Obra existente AP-058-25 · Union Square F2                               │
+  └──────────────────────────────────────────────────────────────────────────┘
+```
+
+**Datos.** La lista muestra código, nombre y estado (`PLANEACION`, `ACTIVA`, `SUSPENDIDA` o `CERRADA`, rotulados en español). Una obra recién creada nace en `PLANEACION`. Los porcentajes se capturan como número, sin el signo `%`, y viajan como cadena decimal; el formulario propone 15 de retención de destajo y 5 de fondo de garantía, deja el umbral vacío y el IVA sin marcar. El tipo de contrato ofrece una sola opción, *Precio alzado máximo garantizado*.
+
+**Acciones.**
+
+- *`+` · Dar de alta una obra* abre el formulario. El botón solo lo ven el Director de Proyectos y la Dirección General; los demás roles consultan la lista sin él. Ocultarlo es cortesía: el control es el `403` del servidor.
+- *Guardar* envía el alta con `POST /obras`; al aceptarse, la obra aparece en la lista. El botón se deshabilita mientras la petición está en vuelo.
+- *Ver la obra* (acción `VER_OBRA` del conflicto) cierra el formulario y deja la lista a la vista; la ficha de obra es un ticket futuro.
+
+**Estados.**
+
+- **Cargando.** Mientras llega la lista se muestra un esqueleto con la etiqueta accesible *Cargando las obras*, sin texto visible.
+- **Vacío.** Sin ninguna obra: *"No hay obras"*. A quien puede darlas de alta se le dice *"Da de alta la primera obra con el botón +."*; a los demás, *"Las obras las da de alta el Director de Proyectos o la Dirección General."* Aquí vive el estado vacío que el [armazón](#2-armazón-de-navegación-por-rol) describe.
+- **Con obras.** La tabla del boceto.
+- **Error.** *"No se pudo cargar la lista de obras."* con la acción *Reintentar*.
+- **Bloqueado.** No aplica a la lista: dar de alta una obra no consume presupuesto, así que ninguna regla de límite la detiene.
+
+**Estados de rechazo.**
+
+- **Código duplicado (`409` `CONFLICTO`, `CODIGO_OBRA_DUPLICADO`).** El mensaje aparece en línea, debajo de los campos y encima de los botones, con la acción *Ver la obra*. El formulario conserva lo capturado. No es una violación de regla de negocio, así que no usa la pantalla de bloqueo.
+- **Valor fuera de rango (`422`, `FUERA_DE_RANGO`).** Un porcentaje fuera de 0 % a 100 % se pinta junto a su campo, por ejemplo *"El porcentaje debe estar entre 0 y 1 (0 % a 100 %)."*
+- **Campo vacío o con forma incorrecta.** Se avisa en línea antes de enviar, como *"Escribe el código de la obra."*
+- **Sin permiso (`403`, `ROL_INSUFICIENTE`).** *"Tu rol no permite esta operación."*, sin ninguna cifra.
 
 ---
 

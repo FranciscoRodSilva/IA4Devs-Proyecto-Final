@@ -271,7 +271,8 @@ describe("TKT-008 · formulario de catálogo", () => {
     expect(screen.getByText(duplicado.mensaje)).toBeInTheDocument();
     expect(screen.getByText(CODIGO)).toBeInTheDocument();
     expect(screen.getByText(NOMBRE)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "VER_OBRA" })).toBeInTheDocument();
+    // TKT-012a fila B1 · decisión de la persona dueña (2026-11-10): la acción VER_OBRA se rotula «Ver la obra» (CA-11, D-7). Lo demás de este test queda igual.
+    expect(screen.getByRole("button", { name: "Ver la obra" })).toBeInTheDocument();
     // No es un error de forma ni se delega a la pantalla de bloqueo.
     expect(alBloqueo).not.toHaveBeenCalled();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -282,7 +283,7 @@ describe("TKT-008 · formulario de catálogo", () => {
     expect(campoNombre()).toHaveValue(NOMBRE);
 
     // La acción se entrega tal como llegó, sin invocarla.
-    await usuario.click(screen.getByRole("button", { name: "VER_OBRA" }));
+    await usuario.click(screen.getByRole("button", { name: "Ver la obra" }));
     expect(alAccion).toHaveBeenCalledTimes(1);
     expect(alAccion).toHaveBeenCalledWith(accionVerObra);
   });
@@ -595,5 +596,166 @@ describe("TKT-008 · formulario de catálogo", () => {
     expect(campoCodigo()).toHaveValue(CODIGO);
     expect(alCerrar).not.toHaveBeenCalled();
     expect(alConfirmar).not.toHaveBeenCalled();
+  });
+});
+
+describe("TKT-012a · formulario de catálogo con casilla y desplegable", () => {
+  // Arnés propio: el del plan solo tiene campos de texto. Los valores son de prueba y no fijan reglas del dominio.
+  const esquemaAlta = z.object({
+    codigo: z.string().min(1, "El código es obligatorio."),
+    iva_acreditable: z.boolean(),
+    modalidad: z.enum(["ALFA", "BETA"]),
+  });
+
+  const CAMPOS_ALTA: ReadonlyArray<CampoCatalogo<"codigo" | "iva_acreditable" | "modalidad">> = [
+    { nombre: "codigo", etiqueta: "Código" },
+    { nombre: "iva_acreditable", etiqueta: "IVA acreditable", tipo: "casilla" },
+    {
+      nombre: "modalidad",
+      etiqueta: "Modalidad",
+      tipo: "desplegable",
+      opciones: [
+        { valor: "ALFA", etiqueta: "Opción alfa" },
+        { valor: "BETA", etiqueta: "Opción beta" },
+      ],
+    },
+  ];
+
+  type ValoresAlta = z.input<typeof esquemaAlta>;
+  type PropsAlta = PropsFormularioCatalogo<typeof esquemaAlta, RespuestaAltaCatalogo>;
+  interface RespuestaAltaCatalogo {
+    id: string;
+  }
+
+  const VALORES_INICIALES: ValoresAlta = { codigo: "", iva_acreditable: false, modalidad: "ALFA" };
+  const RESPUESTA_ALTA: RespuestaAltaCatalogo = { id: "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d" };
+
+  /** El mismo montaje que el del plan: «+» abre el formulario y las salidas son espías. */
+  function abrirAlta(alGuardar: PropsAlta["alGuardar"]) {
+    const alGuardado = vi.fn<PropsAlta["alGuardado"]>();
+    const alBloqueo = vi.fn<PropsAlta["alBloqueo"]>();
+    const alAccion = vi.fn<PropsAlta["alAccion"]>();
+    const alCerrar = vi.fn<PropsAlta["alCerrar"]>();
+
+    function Arnes() {
+      const [abierto, setAbierto] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setAbierto(true)}>
+            +
+          </button>
+          <FormularioCatalogo<typeof esquemaAlta, RespuestaAltaCatalogo>
+            abierto={abierto}
+            titulo="Alta de prueba"
+            esquema={esquemaAlta}
+            campos={CAMPOS_ALTA}
+            valoresIniciales={VALORES_INICIALES}
+            alGuardar={alGuardar}
+            alGuardado={alGuardado}
+            alBloqueo={alBloqueo}
+            alAccion={alAccion}
+            alCerrar={() => {
+              alCerrar();
+              setAbierto(false);
+            }}
+          />
+        </>
+      );
+    }
+
+    render(<Arnes />);
+    return { alGuardado, alBloqueo, alAccion, alCerrar, usuario: userEvent.setup() };
+  }
+
+  const casilla = () => screen.getByRole("checkbox", { name: "IVA acreditable" });
+  const desplegable = () => screen.getByRole("combobox", { name: "Modalidad" });
+
+  test("TKT-012a · hdu001_esc02 · CA-10 · la casilla marcada envía true (TC-F03)", async () => {
+    const alGuardar = vi.fn<PropsAlta["alGuardar"]>(async () => ok(RESPUESTA_ALTA));
+    const { usuario } = abrirAlta(alGuardar);
+    await abrirFormulario(usuario);
+
+    await usuario.type(campoCodigo(), CODIGO);
+    await usuario.click(casilla());
+    expect(casilla()).toBeChecked();
+    await usuario.click(botonGuardar());
+
+    await waitFor(() => expect(alGuardar).toHaveBeenCalledTimes(1));
+    expect(alGuardar).toHaveBeenCalledWith({ codigo: CODIGO, iva_acreditable: true, modalidad: "ALFA" });
+  });
+
+  test("TKT-012a · hdu001_esc02 · CA-10 · la casilla sin marcar envía false (TC-F03)", async () => {
+    const alGuardar = vi.fn<PropsAlta["alGuardar"]>(async () => ok(RESPUESTA_ALTA));
+    const { usuario } = abrirAlta(alGuardar);
+    await abrirFormulario(usuario);
+
+    await usuario.type(campoCodigo(), CODIGO);
+    expect(casilla()).not.toBeChecked();
+    await usuario.click(botonGuardar());
+
+    await waitFor(() => expect(alGuardar).toHaveBeenCalledTimes(1));
+    expect(alGuardar).toHaveBeenCalledWith({ codigo: CODIGO, iva_acreditable: false, modalidad: "ALFA" });
+  });
+
+  test("TKT-012a · hdu001_esc02 · CA-10 · el desplegable sin tocar envía su valor inicial (TC-F03)", async () => {
+    const alGuardar = vi.fn<PropsAlta["alGuardar"]>(async () => ok(RESPUESTA_ALTA));
+    const { usuario } = abrirAlta(alGuardar);
+    await abrirFormulario(usuario);
+
+    await usuario.type(campoCodigo(), CODIGO);
+    expect(desplegable()).toHaveDisplayValue("Opción alfa");
+    await usuario.click(botonGuardar());
+
+    await waitFor(() => expect(alGuardar).toHaveBeenCalledTimes(1));
+    expect(alGuardar).toHaveBeenCalledWith({ codigo: CODIGO, iva_acreditable: false, modalidad: "ALFA" });
+  });
+
+  test("TKT-012a · hdu001_esc02 · CA-10 · el desplegable tras elegir otra opción envía la elegida (TC-F03)", async () => {
+    const alGuardar = vi.fn<PropsAlta["alGuardar"]>(async () => ok(RESPUESTA_ALTA));
+    const { usuario } = abrirAlta(alGuardar);
+    await abrirFormulario(usuario);
+
+    await usuario.type(campoCodigo(), CODIGO);
+    await usuario.selectOptions(desplegable(), "Opción beta");
+    expect(desplegable()).toHaveDisplayValue("Opción beta");
+    await usuario.click(botonGuardar());
+
+    // Se envía el valor del código de la opción, no su etiqueta visible.
+    await waitFor(() => expect(alGuardar).toHaveBeenCalledTimes(1));
+    expect(alGuardar).toHaveBeenCalledWith({ codigo: CODIGO, iva_acreditable: false, modalidad: "BETA" });
+  });
+
+  test("TKT-012a · hdu001_esc02 · CA-11 · el 422 sobre la casilla y sobre el desplegable se pinta junto a cada uno (TC-F04, CA-R3)", async () => {
+    const mensajeCasilla = "La casilla no admite este valor.";
+    const mensajeModalidad = "La modalidad elegida no está disponible.";
+    const alGuardar = vi.fn<PropsAlta["alGuardar"]>(async () =>
+      rechazo(
+        errorValidacion([
+          { campo: "iva_acreditable", codigo: "VALOR_NO_PERMITIDO", mensaje: mensajeCasilla },
+          { campo: "modalidad", codigo: "VALOR_NO_PERMITIDO", mensaje: mensajeModalidad },
+        ]),
+      ),
+    );
+    const { alGuardado, alBloqueo, alCerrar, usuario } = abrirAlta(alGuardar);
+    await abrirFormulario(usuario);
+
+    await usuario.type(campoCodigo(), CODIGO);
+    await usuario.click(casilla());
+    await usuario.click(botonGuardar());
+
+    // Cada mensaje del servidor junto a su control, marcado y enlazado por su descripción accesible.
+    expect(await screen.findByText(mensajeCasilla)).toBeInTheDocument();
+    expect(screen.getByText(mensajeModalidad)).toBeInTheDocument();
+    expect(casilla()).toHaveAttribute("aria-invalid", "true");
+    expect(casilla()).toHaveAccessibleDescription(mensajeCasilla);
+    expect(desplegable()).toHaveAttribute("aria-invalid", "true");
+    expect(desplegable()).toHaveAccessibleDescription(mensajeModalidad);
+    // Los dos campos tienen su mensaje, así que no hay aviso en la cabecera; lo escrito se conserva.
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(casilla()).toBeChecked();
+    expect(campoCodigo()).toHaveValue(CODIGO);
+    expect(alGuardado).not.toHaveBeenCalled();
+    expect(alBloqueo).not.toHaveBeenCalled();
+    expect(alCerrar).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { Decimal, aDecimal, enteroNoNegativo, formatearCantidad, formatearImporte } from "./dinero";
+import { Decimal, aDecimal, enteroNoNegativo, formatearCantidad, formatearImporte, porcentajeAFraccion } from "./dinero";
 
 // El módulo de dinero es el único que puede construir un Decimal. Estas pruebas lo importan de aquí y nunca
 // de `decimal.js` (la regla de ESLint lo prohíbe fuera de `src/compartido/dinero`, también en las pruebas
@@ -77,5 +77,26 @@ describe("TKT-008 · dinero del cliente", () => {
     for (const texto of ["-1", "2.5", "abc", "", null]) {
       expect(enteroNoNegativo(texto), `enteroNoNegativo(${JSON.stringify(texto)})`).toBeNull();
     }
+  });
+
+  // TC-F01 · CA-10 · HDU-001 esc. 2. El porcentaje que escribe la persona (15) llega al API como fracción exacta (0.150000).
+  const PORCENTAJES_VALIDOS = [
+    { entrada: "15", esperado: "0.150000" },
+    { entrada: "5", esperado: "0.050000" },
+    { entrada: "12.5", esperado: "0.125000" },
+    { entrada: " 15 ", esperado: "0.150000" },
+    { entrada: "0", esperado: "0.000000" },
+    { entrada: "100", esperado: "1.000000" },
+  ];
+
+  test.each(PORCENTAJES_VALIDOS)("hdu001_esc02 · TC-F01 · $entrada se convierte en $esperado", ({ entrada, esperado }) => {
+    expect(porcentajeAFraccion(entrada)).toBe(esperado);
+  });
+
+  // TC-F01 · rechazo. Lo que no es un porcentaje con hasta cuatro decimales no se convierte: el formulario lo señala.
+  const PORCENTAJES_NO_VALIDOS = ["", "abc", "1e2", "15.12345", "-5"];
+
+  test.each(PORCENTAJES_NO_VALIDOS)("hdu001_esc02 · TC-F01 · rechazo: %j no es un porcentaje", (entrada) => {
+    expect(porcentajeAFraccion(entrada), `porcentajeAFraccion(${JSON.stringify(entrada)})`).toBeNull();
   });
 });

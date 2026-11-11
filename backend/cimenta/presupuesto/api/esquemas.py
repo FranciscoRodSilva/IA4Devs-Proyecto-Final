@@ -9,7 +9,7 @@ import re
 import uuid
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Literal, get_args
 
 from pydantic import (
     AfterValidator,
@@ -19,6 +19,7 @@ from pydantic import (
     GetJsonSchemaHandler,
     StrictBool,
     StringConstraints,
+    WithJsonSchema,
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
@@ -31,7 +32,9 @@ from cimenta.presupuesto.aplicacion.consulta_linea_base import (
     LineaBaseConsultada,
     TipoPartidaConsultado,
 )
-from tipos_base import Dinero
+from cimenta.presupuesto.aplicacion.obras import ObrasConsultadas
+from cimenta.presupuesto.infraestructura.repositorio_obra import FilaObraCompleta
+from tipos_base import Dinero, Porcentaje
 
 
 def _sin_nul(texto: str) -> str:
@@ -243,6 +246,135 @@ class ListaConceptosLineaBase(BaseModel):
                 )
                 for c in pagina.elementos
             ],
+            paginacion=MetaPagina(
+                pagina=pagina.pagina, tamano_pagina=pagina.tamano_pagina, total=pagina.total
+            ),
+        )
+
+
+_PATRON_PORCENTAJE = re.compile(r"-?[0-9]{1,3}(\.[0-9]{1,6})?")
+
+
+def _porcentaje_de_entrada(valor: object) -> Porcentaje:
+    """Acepta solo una cadena de porcentaje (`Porcentaje` del borrador); el rango lo decide el dominio."""
+    if not isinstance(valor, str) or _PATRON_PORCENTAJE.fullmatch(valor) is None:
+        raise ValueError("El porcentaje debe ser una cadena decimal.")
+    return Porcentaje(valor)
+
+
+class _EsquemaPorcentaje:
+    """Valida la cadena de porcentaje y publica solo `type: string`, con el patrón del borrador."""
+
+    def __get_pydantic_core_schema__(
+        self, _origen: object, _manejador: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        return core_schema.no_info_plain_validator_function(_porcentaje_de_entrada)
+
+    def __get_pydantic_json_schema__(
+        self, _esquema: core_schema.CoreSchema, _manejador: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        return {"type": "string", "pattern": r"^-?\d{1,3}(\.\d{1,6})?$", "format": "decimal"}
+
+
+PorcentajeEntrada = Annotated[Porcentaje, _EsquemaPorcentaje()]
+
+LARGO_MAXIMO_CODIGO_OBRA = 40
+LARGO_MAXIMO_NOMBRE_OBRA = 200
+LARGO_MAXIMO_DOMICILIO = 500
+
+
+CodigoObra = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=LARGO_MAXIMO_CODIGO_OBRA),
+    AfterValidator(_sin_nul),
+]
+NombreObra = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=LARGO_MAXIMO_NOMBRE_OBRA),
+    AfterValidator(_sin_nul),
+]
+DomicilioObra = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=LARGO_MAXIMO_DOMICILIO),
+    AfterValidator(_sin_nul),
+]
+
+TipoContrato = Literal["PRECIO_ALZADO_MAXIMO_GARANTIZADO"]
+_ENUM_TIPO_CONTRATO = Field(json_schema_extra={"enum": list(get_args(TipoContrato))})
+
+
+class EstadoObra(StrEnum):
+    PLANEACION = "PLANEACION"
+    ACTIVA = "ACTIVA"
+    SUSPENDIDA = "SUSPENDIDA"
+    CERRADA = "CERRADA"
+
+
+class ObraNueva(BaseModel):
+    """Cuerpo del alta de obra: lo que no declara (`estado`, `empresa_id`…) se ignora."""
+
+    codigo: CodigoObra
+    nombre: NombreObra
+    domicilio: DomicilioObra
+    tipo_contrato: Annotated[TipoContrato, _ENUM_TIPO_CONTRATO]
+    retencion_destajo_pct: PorcentajeEntrada
+    fondo_garantia_pct: PorcentajeEntrada
+    iva_acreditable: StrictBool
+    umbral_alerta_pct: PorcentajeEntrada | None = None
+
+
+PorcentajeTexto = Annotated[str, Field(json_schema_extra={"format": "decimal"})]
+
+
+class Obra(BaseModel):
+    id: uuid.UUID
+    codigo: str
+    nombre: str
+    domicilio: str
+    tipo_contrato: Annotated[str, _ENUM_TIPO_CONTRATO]
+    retencion_destajo_pct: PorcentajeTexto
+    fondo_garantia_pct: PorcentajeTexto
+    iva_acreditable: bool
+    umbral_alerta_pct: PorcentajeTexto | None
+    estado: EstadoObra
+    linea_base_vigente_id: uuid.UUID | None
+    creado_en: datetime
+    # El borrador lo declara cadena no nula y no obligatoria: sin valor no se asigna y las rutas usan
+    # `response_model_exclude_unset`, así que se omite en lugar de salir `null`.
+    actualizado_en: Annotated[
+        datetime | None, WithJsonSchema({"type": "string", "format": "date-time"})
+    ] = None
+
+    @classmethod
+    def desde(cls, fila: FilaObraCompleta) -> Obra:
+        extra = {} if fila.actualizado_en is None else {"actualizado_en": fila.actualizado_en}
+        return cls(
+            id=fila.id,
+            codigo=fila.codigo,
+            nombre=fila.nombre,
+            domicilio=fila.domicilio,
+            tipo_contrato=fila.tipo_contrato,
+            retencion_destajo_pct=fila.retencion_destajo_pct.cuantizar().serializar(),
+            fondo_garantia_pct=fila.fondo_garantia_pct.cuantizar().serializar(),
+            iva_acreditable=fila.iva_acreditable,
+            umbral_alerta_pct=None
+            if fila.umbral_alerta_pct is None
+            else fila.umbral_alerta_pct.cuantizar().serializar(),
+            estado=EstadoObra(fila.estado),
+            linea_base_vigente_id=fila.linea_base_vigente_id,
+            creado_en=fila.creado_en,
+            **extra,
+        )
+
+
+class ListaObras(BaseModel):
+    elementos: list[Obra]
+    paginacion: MetaPagina
+
+    @classmethod
+    def desde(cls, pagina: ObrasConsultadas) -> ListaObras:
+        return cls(
+            elementos=[Obra.desde(fila) for fila in pagina.elementos],
             paginacion=MetaPagina(
                 pagina=pagina.pagina, tamano_pagina=pagina.tamano_pagina, total=pagina.total
             ),

@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from sqlalchemy.engine import Engine
 
 from cimenta.presupuesto.api.rutas_linea_base import enrutador
+from cimenta.presupuesto.api.rutas_obras import enrutador as enrutador_obras
 from cimenta.presupuesto.api.rutas_presupuesto_control import enrutador as enrutador_control
 from cimenta.presupuesto.aplicacion.contexto import construir_contexto
 
@@ -23,3 +24,4 @@ def montar_presupuesto(
     aplicacion.state.presupuesto = construir_contexto(proveedor_motor=proveedor_motor, reloj=reloj)
     aplicacion.include_router(enrutador)
     aplicacion.include_router(enrutador_control)
+    aplicacion.include_router(enrutador_obras)

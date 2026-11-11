@@ -1,0 +1,196 @@
+FFFFFFFF                                                                 [100%]
+================================== FAILURES ===================================
+____________ test_hdu001_esc02_alta_guarda_la_obra_y_asienta_crear ____________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFE0104E00>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFDFD2D7F0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001AFDFD2DA90>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001AFDFD2D940>
+
+    def test_hdu001_esc02_alta_guarda_la_obra_y_asienta_crear(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-09 · HDU-001 esc. 2 · CA-1 · RN-25 — una fila en `obra` y un asiento `CREAR` con el dato exacto.
+    
+        Tres porcentajes distintos (retención, fondo y umbral) para que un intercambio no pase; el reloj
+        avanzado para que `ocurrido_en` y `creado_en` sean los del reloj inyectado y no la hora de la base.
+        Variantes de `CA-1`: umbral ausente guarda `NULL`, `iva_acreditable` `true` se guarda como `true`, y
+        un código con espacios y minúsculas se guarda recortado y en mayúsculas (D-1).
+        """
+>       from cimenta.presupuesto.aplicacion.obras import crear_obra
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.aplicacion.obras'
+
+tests\test_tkt012a_alta_obra.py:164: ModuleNotFoundError
+___________ test_hdu001_esc02_alta_bitacora_en_la_misma_transaccion ___________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFE0106980>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFDFD8B750>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001AFDFD8B890>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001AFDFCFE520>
+
+    def test_hdu001_esc02_alta_bitacora_en_la_misma_transaccion(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-10 · HDU-001 esc. 2 · CA-1 · regla 8 — si asentar falla, no queda la obra (`M-6`).
+    
+        `asentar` se sustituye por uno que, antes de lanzar, comprueba que corre en la sesión del alta y que
+        ve la obra todavía sin confirmar: la bitácora se escribe en la misma transacción que el cambio. Al
+        lanzar, la transacción se deshace y no queda fila en `obra` ni en `bitacora`. Con `asentar` en una
+        sesión nueva tras confirmar (`M-6`) la obra quedaría guardada y la prueba cae.
+        """
+>       from cimenta.presupuesto.aplicacion import obras
+E       ImportError: cannot import name 'obras' from 'cimenta.presupuesto.aplicacion' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\presupuesto\aplicacion\__init__.py)
+
+tests\test_tkt012a_alta_obra.py:278: ImportError
+___________________ test_hdu001_esc03_alta_codigo_duplicado ___________________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFE0107E20>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFE0270690>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001AFE02707D0>
+
+    def test_hdu001_esc03_alta_codigo_duplicado(
+        contexto: Contexto, base: Base, datos_presupuesto: DatosPresupuesto
+    ) -> None:
+        """TC-11 · HDU-001 esc. 3 · CA-2 — `409` `CODIGO_OBRA_DUPLICADO` con la obra existente y `VER_OBRA` (`M-3`, `M-7`).
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`), `codigo` del catálogo, el detalle
+        con el id y el «código · nombre» de la obra existente y la acción `VER_OBRA` con método, ruta y los
+        seis roles de lectura. La unicidad es del motor: sin la rama del `23505` (`M-3`) el rechazo saldría
+        `ESTADO_NO_PERMITE_OPERACION`. Con D-1, `ap-058-25` y `  ap-058-25 ` también chocan (`M-7`). Un
+        rechazo no escribe: ni una fila en `obra` ni un segundo `CREAR`.
+        """
+>       from cimenta.presupuesto.aplicacion.obras import (
+            ROLES_ALTA,
+            ROLES_LECTURA_OBRA,
+            crear_obra,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.aplicacion.obras'
+
+tests\test_tkt012a_alta_obra.py:322: ModuleNotFoundError
+____________ test_hdu001_esc03_dos_altas_concurrentes_mismo_codigo ____________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFE01ED2D0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFE01FC2B0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001AFE01FC3E0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001AFE01FC510>
+
+    def test_hdu001_esc03_dos_altas_concurrentes_mismo_codigo(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-12 · HDU-001 esc. 3 · CA-3 · `uq_obra_codigo` — dos altas con el mismo código: pasa una sola (`M-3`).
+    
+        Determinista y sin `sleep`. El hilo A se pausa dentro de `repositorio_obra.insertar_obra`, con la
+        fila ya insertada y sin confirmar; el hilo B arranca y su `INSERT` queda detenido en el índice único
+        (la prueba lo espera con `esperar_hasta` sobre `pg_blocking_pids`); entonces se libera a A, que
+        confirma. B recibe la violación `23505` y responde `CODIGO_OBRA_DUPLICADO` con la obra de A, no
+        `500` ni `ESTADO_NO_PERMITE_OPERACION`. El hilo pausado se libera siempre en `finally`.
+    
+        Requiere que el caso de uso llame a `repositorio_obra.insertar_obra` por el módulo, no por un
+        nombre importado: es lo que permite la envoltura (mismo patrón que `repositorio_linea_base` en
+        TKT-017).
+        """
+>       from cimenta.presupuesto.aplicacion import obras
+E       ImportError: cannot import name 'obras' from 'cimenta.presupuesto.aplicacion' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\presupuesto\aplicacion\__init__.py)
+
+tests\test_tkt012a_alta_obra.py:381: ImportError
+_______________ test_tkt012a_alta_sin_una_unica_empresa_activa ________________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFE01EEB90>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFE01FCB00>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001AFE01FD0F0>
+
+    @pytest.mark.usefixtures("empresa_de_la_migracion")
+    def test_tkt012a_alta_sin_una_unica_empresa_activa(
+        contexto: Contexto, base: Base, datos_presupuesto: DatosPresupuesto
+    ) -> None:
+        """TC-13 · CA-1 (A9) — con dos empresas activas o con ninguna, `RuntimeError` y ninguna fila.
+    
+        No es contrato de error: es un fallo de despliegue que responde `500` con su traza. Se comprueba
+        el mensaje con la cuenta real (2 y 0) y que ni `obra` ni `bitacora` recibieron nada.
+        """
+>       from cimenta.presupuesto.aplicacion.obras import crear_obra
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.aplicacion.obras'
+
+tests\test_tkt012a_alta_obra.py:465: ModuleNotFoundError
+______________ test_hdu001_esc02_alta_porcentaje_fuera_de_rango _______________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFE01EFC10>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFDFDB2450>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001AFDFDB2570>
+
+    def test_hdu001_esc02_alta_porcentaje_fuera_de_rango(
+        contexto: Contexto, base: Base, datos_presupuesto: DatosPresupuesto
+    ) -> None:
+        """Apoyo de `M-4` · HDU-001 esc. 2 · CA-5 · PA-02 — el rango se rechaza en el caso de uso, no en el motor.
+    
+        Las cinco filas de `CA-5`, cada una con su `ErrorDeCampo` `FUERA_DE_RANGO` y el mensaje del diseño;
+        y los tres fuera de rango a la vez, en el orden fijo retención, fondo, umbral. La validación corre
+        **antes de abrir la transacción**: la prueba deja dos empresas activas, que haría fallar la
+        transacción con `RuntimeError` (A9), y aun así el rechazo es `ValidacionRechazada`. Sin la llamada a
+        `porcentajes_fuera_de_rango` (`M-4`) el `CHECK` del motor daría `23514` y la prueba cae.
+        """
+>       from cimenta.presupuesto.aplicacion.obras import crear_obra
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.aplicacion.obras'
+
+tests\test_tkt012a_alta_obra.py:506: ModuleNotFoundError
+__________________ test_tkt012a_alta_obtener_y_listar_obras ___________________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFE01AD0C0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFDFD4E7A0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001AFDFD4E8B0>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001AFDFD4E690>
+
+    def test_tkt012a_alta_obtener_y_listar_obras(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """Apoyo · CA-7 · CA-8 — `obtener_obra` y `listar_obras` leen lo que `crear_obra` guardó.
+    
+        Tres obras dadas de alta fuera de orden de código: la lista las devuelve por código, con la ventana
+        y el total correctos, con el filtro por estado, y una página inalcanzable —aun una enorme— da una
+        página vacía con el total real (`D20`). `obtener_obra` devuelve la obra completa, con
+        `linea_base_vigente_id` nulo y los tres porcentajes distintos.
+        """
+>       from cimenta.presupuesto.aplicacion.obras import (
+            ObrasConsultadas,
+            crear_obra,
+            listar_obras,
+            obtener_obra,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.aplicacion.obras'
+
+tests\test_tkt012a_alta_obra.py:587: ModuleNotFoundError
+____________________ test_tkt012a_obtener_obra_inexistente ____________________
+
+contexto = <functools._lru_cache_wrapper object at 0x000001AFDFD6E2A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001AFDAFC7F00>
+
+    def test_tkt012a_obtener_obra_inexistente(contexto: Contexto, base: Base) -> None:
+        """Apoyo · CA-8 — la obra que no existe responde `NO_ENCONTRADO` con `recurso` `obra` y no escribe."""
+>       from cimenta.presupuesto.aplicacion.obras import obtener_obra
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.aplicacion.obras'
+
+tests\test_tkt012a_alta_obra.py:644: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012a_alta_obra.py::test_hdu001_esc02_alta_guarda_la_obra_y_asienta_crear
+FAILED tests/test_tkt012a_alta_obra.py::test_hdu001_esc02_alta_bitacora_en_la_misma_transaccion
+FAILED tests/test_tkt012a_alta_obra.py::test_hdu001_esc03_alta_codigo_duplicado
+FAILED tests/test_tkt012a_alta_obra.py::test_hdu001_esc03_dos_altas_concurrentes_mismo_codigo
+FAILED tests/test_tkt012a_alta_obra.py::test_tkt012a_alta_sin_una_unica_empresa_activa
+FAILED tests/test_tkt012a_alta_obra.py::test_hdu001_esc02_alta_porcentaje_fuera_de_rango
+FAILED tests/test_tkt012a_alta_obra.py::test_tkt012a_alta_obtener_y_listar_obras
+FAILED tests/test_tkt012a_alta_obra.py::test_tkt012a_obtener_obra_inexistente
+8 failed in 3.94s

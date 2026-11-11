@@ -6,6 +6,7 @@ export type Decimal = InstanceType<typeof Decimal>;
 
 const DECIMAL_PLANO = /^-?\d+(\.\d+)?$/;
 const ENTERO_NO_NEGATIVO = /^\d{1,9}$/;
+const PORCENTAJE_TECLEADO = /^\d{1,3}(\.\d{1,4})?$/;
 const FORMATO_IMPORTE = new Intl.NumberFormat("es-MX", {
   style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2,
 });
@@ -36,6 +37,12 @@ export function formatearCantidad(valor: string | Decimal, unidad?: string): str
   if (texto === null) return null;
   const cifra = FORMATO_CANTIDAD.format(texto);
   return unidad === undefined ? cifra : `${cifra} ${unidad}`;
+}
+
+/** "15" → "0.150000"; "12.5" → "0.125000". Lo que no es un porcentaje de hasta cuatro decimales → null (TKT-012a TC-F01). */
+export function porcentajeAFraccion(texto: string): string | null {
+  const limpio = texto.trim();
+  return PORCENTAJE_TECLEADO.test(limpio) ? new Decimal(limpio).div(100).toFixed(6) : null;
 }
 
 /** Cabecera Retry-After en segundos → entero; cualquier otra forma → null. Vive aquí porque este

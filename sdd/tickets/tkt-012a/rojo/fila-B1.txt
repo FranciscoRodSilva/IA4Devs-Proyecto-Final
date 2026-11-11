@@ -1,0 +1,445 @@
+
+> cimenta-frontend@0.0.0 test
+> vitest run dinero ConflictoEnLinea
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/compartido/dinero/dinero.test.ts (25 tests | 11 failed) 11ms
+   ❯ TKT-008 · dinero del cliente (25)
+     × hdu001_esc02 · TC-F01 · 15 se convierte en 0.150000 2ms
+     × hdu001_esc02 · TC-F01 · 5 se convierte en 0.050000 0ms
+     × hdu001_esc02 · TC-F01 · 12.5 se convierte en 0.125000 0ms
+     × hdu001_esc02 · TC-F01 ·  15  se convierte en 0.150000 0ms
+     × hdu001_esc02 · TC-F01 · 0 se convierte en 0.000000 0ms
+     × hdu001_esc02 · TC-F01 · 100 se convierte en 1.000000 0ms
+     × hdu001_esc02 · TC-F01 · rechazo: "" no es un porcentaje 0ms
+     × hdu001_esc02 · TC-F01 · rechazo: "abc" no es un porcentaje 0ms
+     × hdu001_esc02 · TC-F01 · rechazo: "1e2" no es un porcentaje 0ms
+     × hdu001_esc02 · TC-F01 · rechazo: "15.12345" no es un porcentaje 0ms
+     × hdu001_esc02 · TC-F01 · rechazo: "-5" no es un porcentaje 0ms
+ ❯ |cliente| src/compartido/formularios/ConflictoEnLinea.test.tsx (3 tests | 1 failed) 104ms
+   ❯ TKT-008 · conflicto en línea (3)
+     × hdu001_esc03 · TC-F02 · el código duplicado muestra la obra existente con «Ver la obra» y sin su UUID 7ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/compartido/formularios/ConflictoEnLinea.test.tsx > TKT-008 · conflicto en línea > hdu001_esc03 · TC-F02 · el código duplicado muestra la obra existente con «Ver la obra» y sin su UUID
+TestingLibraryElementError: Unable to find an element with the text: Obra existente, which matches selector 'dt'. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-labelledby[39m=[32m"_r_2_"[39m
+      [33maria-live[39m=[32m"polite"[39m
+      [33mclass[39m=[32m"rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"[39m
+      [33mdata-estado[39m=[32m"bloqueado"[39m
+    [36m>[39m
+      [36m<h3[39m
+        [33mclass[39m=[32m"font-semibold"[39m
+        [33mid[39m=[32m"_r_2_"[39m
+      [36m>[39m
+        [0mNo se puede completar[0m
+      [36m</h3>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm font-medium"[39m
+      [36m>[39m
+        [0mCODIGO_OBRA_DUPLICADO[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-1"[39m
+      [36m>[39m
+        [0mYa existe una obra con el código AP-058-25.[0m
+      [36m</p>[39m
+      [36m<dl[39m
+        [33mclass[39m=[32m"mt-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-wrap gap-x-3 py-1"[39m
+        [36m>[39m
+          [36m<dt[39m
+            [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+          [36m>[39m
+            [0mobra_existente_id[0m
+          [36m</dt>[39m
+          [36m<dd>[39m
+            [0m9a1f2b3c-4d5e-4f60-8a71-b2c3d4e5f607[0m
+          [36m</dd>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-wrap gap-x-3 py-1"[39m
+        [36m>[39m
+          [36m<dt[39m
+            [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+          [36m>[39m
+            [0mobra_existente[0m
+          [36m</dt>[39m
+          [36m<dd>[39m
+            [0mAP-058-25 · Union Square F2[0m
+          [36m</dd>[39m
+        [36m</div>[39m
+      [36m</dl>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mt-4 flex flex-wrap items-center gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mVER_OBRA[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/compartido/formularios/ConflictoEnLinea.test.tsx:64:19
+     62|     render(<ConflictoEnLinea error={error} alAccion={vi.fn()} />);
+     63|
+     64|     expect(screen.getByText("Obra existente", { selector: "dt" })).toB…
+       |                   ^
+     65|     expect(screen.getByText("AP-058-25 · Union Square F2")).toBeInTheD…
+     66|     expect(screen.getByRole("button", { name: "Ver la obra" })).toBeIn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · 15 se convierte en 0.150000
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · 5 se convierte en 0.050000
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · 12.5 se convierte en 0.125000
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 ·  15  se convierte en 0.150000
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · 0 se convierte en 0.000000
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · 100 se convierte en 1.000000
+TypeError: porcentajeAFraccion is not a function
+ ❯ src/compartido/dinero/dinero.test.ts:93:12
+     91|
+     92|   test.each(PORCENTAJES_VALIDOS)("hdu001_esc02 · TC-F01 · $entrada se …
+     93|     expect(porcentajeAFraccion(entrada)).toBe(esperado);
+       |            ^
+     94|   });
+     95|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · rechazo: "" no es un porcentaje
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · rechazo: "abc" no es un porcentaje
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · rechazo: "1e2" no es un porcentaje
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · rechazo: "15.12345" no es un porcentaje
+ FAIL  |cliente| src/compartido/dinero/dinero.test.ts > TKT-008 · dinero del cliente > hdu001_esc02 · TC-F01 · rechazo: "-5" no es un porcentaje
+TypeError: porcentajeAFraccion is not a function
+ ❯ src/compartido/dinero/dinero.test.ts:100:12
+     98|
+     99|   test.each(PORCENTAJES_NO_VALIDOS)("hdu001_esc02 · TC-F01 · rechazo: …
+    100|     expect(porcentajeAFraccion(entrada), `porcentajeAFraccion(${JSON.s…
+       |            ^
+    101|   });
+    102| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  12 failed | 16 passed (28)
+   Start at  19:22:06
+   Duration  12.15s (environment 67%, setup 29%, import 2%, transform 2%, tests 1%)
+
+
+
+## TC-86 actualizado
+
+$ npm test -- FormularioCatalogo
+
+> cimenta-frontend@0.0.0 test
+> vitest run FormularioCatalogo
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx (21 tests | 1 failed) 8769ms
+   ❯ TKT-008 · formulario de catálogo (21)
+     × tkt008_ca11_esc05 · duplicado en línea (TC-86) 609ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx > TKT-008 · formulario de catálogo > tkt008_ca11_esc05 · duplicado en línea (TC-86)
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Ver la obra"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Nueva obra":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"base-ui-_r_16_"[39m
+    [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+    [33mdata-base-ui-focusable[39m=[32m""[39m
+    [33mdata-open[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mid[39m=[32m"_r_14_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Nueva obra":
+  [36m<h2[39m
+    [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+    [33mdata-slot[39m=[32m"dialog-title"[39m
+    [33mid[39m=[32m"base-ui-_r_16_"[39m
+  [36m/>[39m
+
+  Name "No se puede completar":
+  [36m<h3[39m
+    [33mclass[39m=[32m"font-semibold"[39m
+    [33mid[39m=[32m"_r_1d_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Código":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_17_"[39m
+    [33mname[39m=[32m"codigo"[39m
+    [33mtype[39m=[32m"text"[39m
+  [36m/>[39m
+
+  Name "Nombre":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_1a_"[39m
+    [33mname[39m=[32m"nombre"[39m
+    [33mtype[39m=[32m"text"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  region:
+
+  Name "No se puede completar":
+  [36m<section[39m
+    [33maria-labelledby[39m=[32m"_r_1d_"[39m
+    [33mclass[39m=[32m"rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"[39m
+    [33mdata-estado[39m=[32m"bloqueado"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-medium"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  term:
+
+  Name "":
+  [36m<dt[39m
+    [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<dt[39m
+    [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  definition:
+
+  Name "":
+  [36m<dd />[39m
+
+  Name "":
+  [36m<dd />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "VER_OBRA":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Guardar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  Name "Cerrar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg absolute top-2 right-2"[39m
+    [33mdata-slot[39m=[32m"dialog-close"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow-y: hidden; overflow-x: hidden;"[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-base-ui-inert[39m=[32m""[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0m+[0m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-base-ui-portal[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-portal"[39m
+    [33mid[39m=[32m"_r_15_"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mclass[39m=[32m"fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-overlay"[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<span[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-focus-guard[39m=[32m""[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-type[39m=[32m"inside"[39m
+      [33mstyle[39m=[32m"clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0px; padding: 0px; width: 1px; height: 1px; margin: 0px; position: fixed; top: 0px; left: 0px;"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"base-ui-_r_16_"[39m
+      [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+      [33mdata-base-ui-focusable[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-content"[39m
+      [33mid[39m=[32m"_r_14_"[39m
+      [33mrole[39m=[32m"dialog"[39m
+      [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-col gap-2"[39m
+        [33mdata-slot[39m=[32m"dialog-header"[39m
+      [36m>[39m
+        [36m<h2[39m
+          [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+          [33mdata-slot[39m=[32m"dialog-title"[39m
+          [33mid[39m=[32m"base-ui-_r_16_"[39m
+        [36m>[39m
+          [0mNueva obra[0m
+        [36m</h2>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"grid gap-4"[39m
+        [33mnovalidate[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_17_"[39m
+          [36m>[39m
+            [0mCódigo[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_17_"[39m
+            [33mname[39m=[32m"codigo"[39m
+            [33mtype[39m=[32m"text"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_1a_"[39m
+          [36m>[39m
+            [0mNombre[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_1a_"[39m
+            [33mname[39m=[32m"nombre"[39m
+            [33mtype[39m=[32m"text"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-live[39m=[32m"polite"[39m
+        [36m>[39m
+          [36m<section[39m
+            [33maria-labelledby[39m=[32m"_r_1d_"[39m
+            [33mclass[39m=[32m"rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"[39m
+            [33mdata-estado[39m=[32m"bloqueado"[39m
+          [36m>[39m
+            [36m<h3[39m
+              [33mclass[39m=[32m"font-semibold"[39m
+              [33mid[39m=[32m"_r_1d_"[39m
+            [36m>[39m
+              [0mNo se puede completar[0m
+            [36m</h3>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm font-medium"[39m...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/compartido/formularios/FormularioCatalogo.test.tsx:275:19
+    273|     expect(screen.getByText(NOMBRE)).toBeInTheDocument();
+    274|     // TKT-012a fila B1 · decisión de la persona dueña (2026-11-10): l…
+    275|     expect(screen.getByRole("button", { name: "Ver la obra" })).toBeIn…
+       |                   ^
+    276|     // No es un error de forma ni se delega a la pantalla de bloqueo.
+    277|     expect(alBloqueo).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 20 passed (21)
+   Start at  19:34:34
+   Duration  10.25s (tests 86%, environment 7%, import 4%, setup 2%, transform 1%)
+
+EXIT=1

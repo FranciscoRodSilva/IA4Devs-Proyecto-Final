@@ -1,0 +1,1120 @@
+$ npm test -- FormularioCatalogo
+
+> cimenta-frontend@0.0.0 test
+> vitest run FormularioCatalogo
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx (26 tests | 5 failed) 10241ms
+   ❯ TKT-012a · formulario de catálogo con casilla y desplegable (5)
+     × TKT-012a · hdu001_esc02 · CA-10 · la casilla marcada envía true (TC-F03) 262ms
+     × TKT-012a · hdu001_esc02 · CA-10 · la casilla sin marcar envía false (TC-F03) 226ms
+     × TKT-012a · hdu001_esc02 · CA-10 · el desplegable sin tocar envía su valor inicial (TC-F03) 250ms
+     × TKT-012a · hdu001_esc02 · CA-10 · el desplegable tras elegir otra opción envía la elegida (TC-F03) 248ms
+     × TKT-012a · hdu001_esc02 · CA-11 · el 422 sobre la casilla y sobre el desplegable se pinta junto a cada uno (TC-F04, CA-R3) 232ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx > TKT-012a · formulario de catálogo con casilla y desplegable > TKT-012a · hdu001_esc02 · CA-10 · la casilla marcada envía true (TC-F03)
+TestingLibraryElementError: Unable to find an accessible element with the role "checkbox" and name "IVA acreditable"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Alta de prueba":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"base-ui-_r_75_"[39m
+    [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+    [33mdata-base-ui-focusable[39m=[32m""[39m
+    [33mdata-open[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mid[39m=[32m"_r_73_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Alta de prueba":
+  [36m<h2[39m
+    [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+    [33mdata-slot[39m=[32m"dialog-title"[39m
+    [33mid[39m=[32m"base-ui-_r_75_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Código":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_76_"[39m
+    [33mname[39m=[32m"codigo"[39m
+    [33mtype[39m=[32m"text"[39m
+  [36m/>[39m
+
+  Name "IVA acreditable":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_79_"[39m
+    [33mname[39m=[32m"iva_acreditable"[39m
+    [33mtype[39m=[32m"casilla"[39m
+  [36m/>[39m
+
+  Name "Modalidad":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_7c_"[39m
+    [33mname[39m=[32m"modalidad"[39m
+    [33mtype[39m=[32m"desplegable"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Guardar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  Name "Cerrar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg absolute top-2 right-2"[39m
+    [33mdata-slot[39m=[32m"dialog-close"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow-y: hidden; overflow-x: hidden;"[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-base-ui-inert[39m=[32m""[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0m+[0m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-base-ui-portal[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-portal"[39m
+    [33mid[39m=[32m"_r_74_"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mclass[39m=[32m"fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-overlay"[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<span[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-focus-guard[39m=[32m""[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-type[39m=[32m"inside"[39m
+      [33mstyle[39m=[32m"clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0px; padding: 0px; width: 1px; height: 1px; margin: 0px; position: fixed; top: 0px; left: 0px;"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"base-ui-_r_75_"[39m
+      [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+      [33mdata-base-ui-focusable[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-content"[39m
+      [33mid[39m=[32m"_r_73_"[39m
+      [33mrole[39m=[32m"dialog"[39m
+      [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-col gap-2"[39m
+        [33mdata-slot[39m=[32m"dialog-header"[39m
+      [36m>[39m
+        [36m<h2[39m
+          [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+          [33mdata-slot[39m=[32m"dialog-title"[39m
+          [33mid[39m=[32m"base-ui-_r_75_"[39m
+        [36m>[39m
+          [0mAlta de prueba[0m
+        [36m</h2>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"grid gap-4"[39m
+        [33mnovalidate[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_76_"[39m
+          [36m>[39m
+            [0mCódigo[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_76_"[39m
+            [33mname[39m=[32m"codigo"[39m
+            [33mtype[39m=[32m"text"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_79_"[39m
+          [36m>[39m
+            [0mIVA acreditable[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_79_"[39m
+            [33mname[39m=[32m"iva_acreditable"[39m
+            [33mtype[39m=[32m"casilla"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_7c_"[39m
+          [36m>[39m
+            [0mModalidad[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ casilla src/compartido/formularios/FormularioCatalogo.test.tsx:670:32
+    668|   }
+    669|
+    670|   const casilla = () => screen.getByRole("checkbox", { name: "IVA acre…
+       |                                ^
+    671|   const desplegable = () => screen.getByRole("combobox", { name: "Moda…
+    672|
+ ❯ src/compartido/formularios/FormularioCatalogo.test.tsx:679:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx > TKT-012a · formulario de catálogo con casilla y desplegable > TKT-012a · hdu001_esc02 · CA-10 · la casilla sin marcar envía false (TC-F03)
+TestingLibraryElementError: Unable to find an accessible element with the role "checkbox" and name "IVA acreditable"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Alta de prueba":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"base-ui-_r_7h_"[39m
+    [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+    [33mdata-base-ui-focusable[39m=[32m""[39m
+    [33mdata-open[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mid[39m=[32m"_r_7f_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Alta de prueba":
+  [36m<h2[39m
+    [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+    [33mdata-slot[39m=[32m"dialog-title"[39m
+    [33mid[39m=[32m"base-ui-_r_7h_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Código":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_7i_"[39m
+    [33mname[39m=[32m"codigo"[39m
+    [33mtype[39m=[32m"text"[39m
+  [36m/>[39m
+
+  Name "IVA acreditable":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_7l_"[39m
+    [33mname[39m=[32m"iva_acreditable"[39m
+    [33mtype[39m=[32m"casilla"[39m
+  [36m/>[39m
+
+  Name "Modalidad":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_7o_"[39m
+    [33mname[39m=[32m"modalidad"[39m
+    [33mtype[39m=[32m"desplegable"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Guardar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  Name "Cerrar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg absolute top-2 right-2"[39m
+    [33mdata-slot[39m=[32m"dialog-close"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow-y: hidden; overflow-x: hidden;"[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-base-ui-inert[39m=[32m""[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0m+[0m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-base-ui-portal[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-portal"[39m
+    [33mid[39m=[32m"_r_7g_"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mclass[39m=[32m"fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-overlay"[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<span[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-focus-guard[39m=[32m""[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-type[39m=[32m"inside"[39m
+      [33mstyle[39m=[32m"clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0px; padding: 0px; width: 1px; height: 1px; margin: 0px; position: fixed; top: 0px; left: 0px;"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"base-ui-_r_7h_"[39m
+      [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+      [33mdata-base-ui-focusable[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-content"[39m
+      [33mid[39m=[32m"_r_7f_"[39m
+      [33mrole[39m=[32m"dialog"[39m
+      [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-col gap-2"[39m
+        [33mdata-slot[39m=[32m"dialog-header"[39m
+      [36m>[39m
+        [36m<h2[39m
+          [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+          [33mdata-slot[39m=[32m"dialog-title"[39m
+          [33mid[39m=[32m"base-ui-_r_7h_"[39m
+        [36m>[39m
+          [0mAlta de prueba[0m
+        [36m</h2>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"grid gap-4"[39m
+        [33mnovalidate[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_7i_"[39m
+          [36m>[39m
+            [0mCódigo[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_7i_"[39m
+            [33mname[39m=[32m"codigo"[39m
+            [33mtype[39m=[32m"text"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_7l_"[39m
+          [36m>[39m
+            [0mIVA acreditable[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_7l_"[39m
+            [33mname[39m=[32m"iva_acreditable"[39m
+            [33mtype[39m=[32m"casilla"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_7o_"[39m
+          [36m>[39m
+            [0mModalidad[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ casilla src/compartido/formularios/FormularioCatalogo.test.tsx:670:32
+    668|   }
+    669|
+    670|   const casilla = () => screen.getByRole("checkbox", { name: "IVA acre…
+       |                                ^
+    671|   const desplegable = () => screen.getByRole("combobox", { name: "Moda…
+    672|
+ ❯ src/compartido/formularios/FormularioCatalogo.test.tsx:693:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx > TKT-012a · formulario de catálogo con casilla y desplegable > TKT-012a · hdu001_esc02 · CA-10 · el desplegable sin tocar envía su valor inicial (TC-F03)
+TestingLibraryElementError: Unable to find an accessible element with the role "combobox" and name "Modalidad"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Alta de prueba":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"base-ui-_r_7t_"[39m
+    [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+    [33mdata-base-ui-focusable[39m=[32m""[39m
+    [33mdata-open[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mid[39m=[32m"_r_7r_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Alta de prueba":
+  [36m<h2[39m
+    [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+    [33mdata-slot[39m=[32m"dialog-title"[39m
+    [33mid[39m=[32m"base-ui-_r_7t_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Código":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_7u_"[39m
+    [33mname[39m=[32m"codigo"[39m
+    [33mtype[39m=[32m"text"[39m
+  [36m/>[39m
+
+  Name "IVA acreditable":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_81_"[39m
+    [33mname[39m=[32m"iva_acreditable"[39m
+    [33mtype[39m=[32m"casilla"[39m
+  [36m/>[39m
+
+  Name "Modalidad":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_84_"[39m
+    [33mname[39m=[32m"modalidad"[39m
+    [33mtype[39m=[32m"desplegable"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Guardar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  Name "Cerrar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg absolute top-2 right-2"[39m
+    [33mdata-slot[39m=[32m"dialog-close"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow-y: hidden; overflow-x: hidden;"[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-base-ui-inert[39m=[32m""[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0m+[0m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-base-ui-portal[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-portal"[39m
+    [33mid[39m=[32m"_r_7s_"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mclass[39m=[32m"fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-overlay"[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<span[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-focus-guard[39m=[32m""[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-type[39m=[32m"inside"[39m
+      [33mstyle[39m=[32m"clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0px; padding: 0px; width: 1px; height: 1px; margin: 0px; position: fixed; top: 0px; left: 0px;"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"base-ui-_r_7t_"[39m
+      [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+      [33mdata-base-ui-focusable[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-content"[39m
+      [33mid[39m=[32m"_r_7r_"[39m
+      [33mrole[39m=[32m"dialog"[39m
+      [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-col gap-2"[39m
+        [33mdata-slot[39m=[32m"dialog-header"[39m
+      [36m>[39m
+        [36m<h2[39m
+          [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+          [33mdata-slot[39m=[32m"dialog-title"[39m
+          [33mid[39m=[32m"base-ui-_r_7t_"[39m
+        [36m>[39m
+          [0mAlta de prueba[0m
+        [36m</h2>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"grid gap-4"[39m
+        [33mnovalidate[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_7u_"[39m
+          [36m>[39m
+            [0mCódigo[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_7u_"[39m
+            [33mname[39m=[32m"codigo"[39m
+            [33mtype[39m=[32m"text"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_81_"[39m
+          [36m>[39m
+            [0mIVA acreditable[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_81_"[39m
+            [33mname[39m=[32m"iva_acreditable"[39m
+            [33mtype[39m=[32m"casilla"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_84_"[39m
+          [36m>[39m
+            [0mModalidad[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ desplegable src/compartido/formularios/FormularioCatalogo.test.tsx:671:36
+    669|
+    670|   const casilla = () => screen.getByRole("checkbox", { name: "IVA acre…
+    671|   const desplegable = () => screen.getByRole("combobox", { name: "Moda…
+       |                                    ^
+    672|
+    673|   test("TKT-012a · hdu001_esc02 · CA-10 · la casilla marcada envía tru…
+ ❯ src/compartido/formularios/FormularioCatalogo.test.tsx:706:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx > TKT-012a · formulario de catálogo con casilla y desplegable > TKT-012a · hdu001_esc02 · CA-10 · el desplegable tras elegir otra opción envía la elegida (TC-F03)
+TestingLibraryElementError: Unable to find an accessible element with the role "combobox" and name "Modalidad"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Alta de prueba":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"base-ui-_r_89_"[39m
+    [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+    [33mdata-base-ui-focusable[39m=[32m""[39m
+    [33mdata-open[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mid[39m=[32m"_r_87_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Alta de prueba":
+  [36m<h2[39m
+    [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+    [33mdata-slot[39m=[32m"dialog-title"[39m
+    [33mid[39m=[32m"base-ui-_r_89_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Código":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_8a_"[39m
+    [33mname[39m=[32m"codigo"[39m
+    [33mtype[39m=[32m"text"[39m
+  [36m/>[39m
+
+  Name "IVA acreditable":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_8d_"[39m
+    [33mname[39m=[32m"iva_acreditable"[39m
+    [33mtype[39m=[32m"casilla"[39m
+  [36m/>[39m
+
+  Name "Modalidad":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_8g_"[39m
+    [33mname[39m=[32m"modalidad"[39m
+    [33mtype[39m=[32m"desplegable"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Guardar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  Name "Cerrar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg absolute top-2 right-2"[39m
+    [33mdata-slot[39m=[32m"dialog-close"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow-y: hidden; overflow-x: hidden;"[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-base-ui-inert[39m=[32m""[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0m+[0m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-base-ui-portal[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-portal"[39m
+    [33mid[39m=[32m"_r_88_"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mclass[39m=[32m"fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-overlay"[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<span[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-focus-guard[39m=[32m""[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-type[39m=[32m"inside"[39m
+      [33mstyle[39m=[32m"clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0px; padding: 0px; width: 1px; height: 1px; margin: 0px; position: fixed; top: 0px; left: 0px;"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"base-ui-_r_89_"[39m
+      [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+      [33mdata-base-ui-focusable[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-content"[39m
+      [33mid[39m=[32m"_r_87_"[39m
+      [33mrole[39m=[32m"dialog"[39m
+      [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-col gap-2"[39m
+        [33mdata-slot[39m=[32m"dialog-header"[39m
+      [36m>[39m
+        [36m<h2[39m
+          [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+          [33mdata-slot[39m=[32m"dialog-title"[39m
+          [33mid[39m=[32m"base-ui-_r_89_"[39m
+        [36m>[39m
+          [0mAlta de prueba[0m
+        [36m</h2>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"grid gap-4"[39m
+        [33mnovalidate[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_8a_"[39m
+          [36m>[39m
+            [0mCódigo[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_8a_"[39m
+            [33mname[39m=[32m"codigo"[39m
+            [33mtype[39m=[32m"text"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_8d_"[39m
+          [36m>[39m
+            [0mIVA acreditable[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_8d_"[39m
+            [33mname[39m=[32m"iva_acreditable"[39m
+            [33mtype[39m=[32m"casilla"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_8g_"[39m
+          [36m>[39m
+            [0mModalidad[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ desplegable src/compartido/formularios/FormularioCatalogo.test.tsx:671:36
+    669|
+    670|   const casilla = () => screen.getByRole("checkbox", { name: "IVA acre…
+    671|   const desplegable = () => screen.getByRole("combobox", { name: "Moda…
+       |                                    ^
+    672|
+    673|   test("TKT-012a · hdu001_esc02 · CA-10 · la casilla marcada envía tru…
+ ❯ src/compartido/formularios/FormularioCatalogo.test.tsx:719:33
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx > TKT-012a · formulario de catálogo con casilla y desplegable > TKT-012a · hdu001_esc02 · CA-11 · el 422 sobre la casilla y sobre el desplegable se pinta junto a cada uno (TC-F04, CA-R3)
+TestingLibraryElementError: Unable to find an accessible element with the role "checkbox" and name "IVA acreditable"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Alta de prueba":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"base-ui-_r_8l_"[39m
+    [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+    [33mdata-base-ui-focusable[39m=[32m""[39m
+    [33mdata-open[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mid[39m=[32m"_r_8j_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Alta de prueba":
+  [36m<h2[39m
+    [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+    [33mdata-slot[39m=[32m"dialog-title"[39m
+    [33mid[39m=[32m"base-ui-_r_8l_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Código":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_8m_"[39m
+    [33mname[39m=[32m"codigo"[39m
+    [33mtype[39m=[32m"text"[39m
+  [36m/>[39m
+
+  Name "IVA acreditable":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_8p_"[39m
+    [33mname[39m=[32m"iva_acreditable"[39m
+    [33mtype[39m=[32m"casilla"[39m
+  [36m/>[39m
+
+  Name "Modalidad":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+    [33mdata-slot[39m=[32m"input"[39m
+    [33mid[39m=[32m"_r_8s_"[39m
+    [33mname[39m=[32m"modalidad"[39m
+    [33mtype[39m=[32m"desplegable"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Guardar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  Name "Cerrar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg absolute top-2 right-2"[39m
+    [33mdata-slot[39m=[32m"dialog-close"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow-y: hidden; overflow-x: hidden;"[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-base-ui-inert[39m=[32m""[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0m+[0m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-base-ui-portal[39m=[32m""[39m
+    [33mdata-slot[39m=[32m"dialog-portal"[39m
+    [33mid[39m=[32m"_r_8k_"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"position: fixed; inset: 0px; user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mclass[39m=[32m"fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-overlay"[39m
+      [33mrole[39m=[32m"presentation"[39m
+      [33mstyle[39m=[32m"user-select: none; -webkit-user-select: none;"[39m
+    [36m/>[39m
+    [36m<span[39m
+      [33maria-hidden[39m=[32m"true"[39m
+      [33mdata-base-ui-focus-guard[39m=[32m""[39m
+      [33mdata-base-ui-inert[39m=[32m""[39m
+      [33mdata-type[39m=[32m"inside"[39m
+      [33mstyle[39m=[32m"clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0px; padding: 0px; width: 1px; height: 1px; margin: 0px; position: fixed; top: 0px; left: 0px;"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m/>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"base-ui-_r_8l_"[39m
+      [33mclass[39m=[32m"fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"[39m
+      [33mdata-base-ui-focusable[39m=[32m""[39m
+      [33mdata-open[39m=[32m""[39m
+      [33mdata-slot[39m=[32m"dialog-content"[39m
+      [33mid[39m=[32m"_r_8j_"[39m
+      [33mrole[39m=[32m"dialog"[39m
+      [33mstyle[39m=[32m"--nested-dialogs: 0;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-col gap-2"[39m
+        [33mdata-slot[39m=[32m"dialog-header"[39m
+      [36m>[39m
+        [36m<h2[39m
+          [33mclass[39m=[32m"font-heading text-base leading-none font-medium"[39m
+          [33mdata-slot[39m=[32m"dialog-title"[39m
+          [33mid[39m=[32m"base-ui-_r_8l_"[39m
+        [36m>[39m
+          [0mAlta de prueba[0m
+        [36m</h2>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"grid gap-4"[39m
+        [33mnovalidate[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_8m_"[39m
+          [36m>[39m
+            [0mCódigo[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_8m_"[39m
+            [33mname[39m=[32m"codigo"[39m
+            [33mtype[39m=[32m"text"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_8p_"[39m
+          [36m>[39m
+            [0mIVA acreditable[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=[32m"h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"[39m
+            [33mdata-slot[39m=[32m"input"[39m
+            [33mid[39m=[32m"_r_8p_"[39m
+            [33mname[39m=[32m"iva_acreditable"[39m
+            [33mtype[39m=[32m"casilla"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"[39m
+            [33mdata-slot[39m=[32m"label"[39m
+            [33mfor[39m=[32m"_r_8s_"[39m
+          [36m>[39m
+            [0mModalidad[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33mclass[39m=...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ casilla src/compartido/formularios/FormularioCatalogo.test.tsx:670:32
+    668|   }
+    669|
+    670|   const casilla = () => screen.getByRole("checkbox", { name: "IVA acre…
+       |                                ^
+    671|   const desplegable = () => screen.getByRole("combobox", { name: "Moda…
+    672|
+ ❯ src/compartido/formularios/FormularioCatalogo.test.tsx:743:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 21 passed (26)
+   Start at  19:38:21
+   Duration  11.75s (tests 88%, environment 6%, import 3%, setup 2%, transform 1%)
+
+[exit 1]

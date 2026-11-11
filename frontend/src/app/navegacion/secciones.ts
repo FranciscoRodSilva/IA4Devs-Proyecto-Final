@@ -9,7 +9,8 @@ export type ClaveSeccion =
   | "PROVEEDORES"
   | "RECEPCION"
   | "AUTORIZACIONES"
-  | "BITACORA";
+  | "BITACORA"
+  | "OBRAS";
 
 export interface Seccion {
   clave: ClaveSeccion;
@@ -39,6 +40,7 @@ export const SECCIONES: readonly Seccion[] = [
   { clave: "RECEPCION", grupo: "Almacén", titulo: "Recepción · Pendientes de recibir", ruta: "/almacen/recepcion", roles: ["ALMACEN", "RESIDENTE", "COMPRAS", "DIRECCION_GENERAL", "DIRECTOR_PROYECTOS"] },
   { clave: "AUTORIZACIONES", grupo: "Dirección", titulo: "Autorizaciones", ruta: "/direccion/autorizaciones", roles: ["DIRECCION_GENERAL"] },
   { clave: "BITACORA", grupo: "Dirección", titulo: "Bitácora de excepciones", ruta: "/direccion/bitacora", roles: ["DIRECCION_GENERAL", "DIRECTOR_PROYECTOS"] },
+  { clave: "OBRAS", grupo: "Obra", titulo: "Obras", ruta: "/obras", roles: TODOS },
 ];
 
 export const NOMBRE_ROL: Readonly<Record<Rol, string>> = {

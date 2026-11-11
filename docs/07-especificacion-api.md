@@ -264,14 +264,14 @@ Base `/api/v1`. **Roles**: DG Dirección General · DP Director de Proyectos · 
 |---|---|---|---|---|---|
 | `GET` | `/tipos-partida` | Todos | — | HDU-002 · 1 | TKT-012 |
 | `GET` | `/insumos` | Todos | — | HDU-001 · 10 | TKT-012 |
-| `POST` | `/obras` | DP, DG | RN-25 | HDU-001 · 2, 3 | TKT-012 |
-| `GET` | `/obras` | Todos | — | HDU-001 · 2 | TKT-012 |
-| `GET` | `/obras/{obra_id}` | Todos | — | — | TKT-012 |
-| `PATCH` | `/obras/{obra_id}` | DP, DG | RN-25 | — | TKT-012 |
-| `DELETE` | `/obras/{obra_id}` | DP, DG | RN-01 | HDU-001 · 20 | TKT-012 |
-| `POST` | `/obras/{obra_id}/suspension` | DP, DG | — | HDU-001 · 20 | TKT-012 |
-| `POST` | `/obras/{obra_id}/reactivacion` | DP, DG | — | — | TKT-012 |
-| `POST` | `/obras/{obra_id}/cierre` | DP, DG | — | HDU-001 · 20 | TKT-012 |
+| `POST` | `/obras` | DP, DG | RN-25 | HDU-001 · 2, 3 | TKT-012a |
+| `GET` | `/obras` | Todos | — | HDU-001 · 2 | TKT-012a |
+| `GET` | `/obras/{obra_id}` | Todos | — | — | TKT-012a |
+| `PATCH` | `/obras/{obra_id}` | DP, DG | RN-25 | — | TKT-012b |
+| `DELETE` | `/obras/{obra_id}` | DP, DG | RN-01 | HDU-001 · 20 | TKT-012b |
+| `POST` | `/obras/{obra_id}/suspension` | DP, DG | — | HDU-001 · 20 | TKT-012b |
+| `POST` | `/obras/{obra_id}/reactivacion` | DP, DG | — | — | TKT-012b |
+| `POST` | `/obras/{obra_id}/cierre` | DP, DG | — | HDU-001 · 20 | TKT-012b |
 | `POST` | `/obras/{obra_id}/importaciones` | DP | RN-01 | HDU-001 · 4, 21, 24 | TKT-018, TKT-059 |
 | `GET` | `/obras/{obra_id}/importaciones` | DP, DG | — | — | TKT-018 |
 | `GET` | `/importaciones/{importacion_id}` | DP, DG | — | HDU-001 · 4, 5, 10 | TKT-018, TKT-015 |
