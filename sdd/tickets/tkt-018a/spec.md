@@ -1,6 +1,6 @@
 # Spec · TKT-018a · Pantalla de línea base y presupuesto de control
 
-> [← index](_index.md) | Siguiente: design (se enlaza en `/sdd-disenar`)
+> [← index](_index.md) | Siguiente: [design](design.md)
 
 ## Contexto y problema
 

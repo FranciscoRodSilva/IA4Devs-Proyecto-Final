@@ -19,7 +19,7 @@ export const obrasOptions = (api: ClienteApi) =>
     staleTime: 30_000,
   });
 
-/** Una obra con su línea base vigente, si la hay. Cuelga de `claves.obras`: el mismo prefijo la invalida. */
+/** Una obra por su identificador (`GET /api/v1/obras/{obra_id}`); trae `linea_base_vigente_id`. Cuelga de `claves.obras`: el mismo prefijo la invalida. */
 export const obraOptions = (api: ClienteApi, obraId: string) =>
   queryOptions({
     queryKey: [...claves.obras, obraId] as const,

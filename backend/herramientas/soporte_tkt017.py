@@ -1,4 +1,9 @@
-"""Ayudantes de prueba para TKT-017 (materialización y línea base)."""
+"""Ayudantes de prueba para TKT-017 (materialización y línea base).
+
+Lo usan las pruebas de TKT-017 y, desde TKT-018a, la semilla local `herramientas.semilla_linea_base_local`
+(`preparacion_sintetica()`), que lo importa como cualquier herramienta de `herramientas/`. Ningún módulo de
+`cimenta/` lo importa: es código de prueba y de operación local, nunca de producción.
+"""
 
 from __future__ import annotations
 

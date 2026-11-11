@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · entrega c
+PENDIENTE FUSIÓN
 
 ## Ficha
 
@@ -28,8 +28,9 @@ LISTO PARA EJECUTAR · entrega c
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-10 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a y b escritas y revisadas; entrega c pendiente |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a, b y c escritas y revisadas |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-11 |
+| PR | Pendiente | `/sdd-completar` | Se abre tras este commit |
 
 ## Log de estados
 
@@ -42,6 +43,9 @@ LISTO PARA EJECUTAR · entrega c
 | 2026-11-11 | `EN REVISIÓN · entrega a` | `LISTO PARA EJECUTAR · entrega b` | `/sdd-revisar` | Entrega a revisada y acumulada en la rama del ticket, sin PR. Suite real: backend con 2767 pruebas en verde y 26 omitidas (`PA-T3`), 16 contratos de `import-linter`, Vitest 344 de 344, y `eslint`, `tsc`, `tipos:verificar` y `verificar_docs` limpios. `auditor-arquitectura` y `auditor-seguridad`: `APROBADO` en la primera pasada. `auditor-codigo`: `REQUIERE CAMBIOS` (un Mayor, `COD-1`: `formatearFecha` lanzaba ante una fecha inválida y dejaba la ruta en blanco; siete Menores) y `APROBADO` tras el ciclo 1. `auditor-docs`: `REQUIERE CAMBIOS` (dos Mayores, `DOC-1` y `DOC-2`: la documentación aplazada a B4 no enumeraba el wireframe §2b, §12 y §13) y `APROBADO` tras el ciclo 2. Dos ciclos de `corrector-revision` y seis pruebas nuevas. `DOC-7` no se aplicó por decisión del orquestador, porque pedía reformular salida literal, y el auditor lo retiró. Queda una pregunta para la persona dueña (`SEG-1`: los endpoints de línea base comprueban el rol y no una asignación por obra) y la documentación de wireframes sigue en la fila B4. Siguiente: `/sdd-ejecutar TKT-018a` sobre la entrega b |
 | 2026-11-11 | `LISTO PARA EJECUTAR · entrega b` | `EN REVISIÓN · entrega b` | `/sdd-ejecutar` | Entrega b (filas B1 a B4) ejecutada con TDD fila por fila. Vitest 417 de 417, `eslint`, `tsc` y `tipos:verificar` limpios, generado sin cambios. Siete mutantes del diseño más variantes, ninguno sobrevive. `auditor-arquitectura`: `APROBADO` en el primer ciclo. B2 y B3 en `sonnet` por el disparador `RN-03`. Un archivo más que el diseño: `DetalleCifras.tsx` (un espacio). Documentación de wireframes hecha. Entrega c sin ejecutar. Siguiente: `/sdd-revisar TKT-018a` sobre la entrega b |
 | 2026-11-11 | `EN REVISIÓN · entrega b` | `LISTO PARA EJECUTAR · entrega c` | `/sdd-revisar` | Entrega b revisada y acumulada en la rama del ticket, sin PR. Suite real: Vitest 438 de 438, `eslint`, `tsc`, `tipos:verificar` y `verificar_docs` limpios; el diff no toca backend ni contrato. `auditor-arquitectura` y `auditor-seguridad`: `APROBADO` en la primera pasada. `auditor-docs`: `REQUIERE CAMBIOS` (`DOC-1`) y corregido. `auditor-codigo`: `REQUIERE CAMBIOS` (tres Mayores, `COD-1` a `COD-3`: cola de confirmaciones, pruebas de la cola y confirmación de la recaptura con valores distintos de los del `409`) y dos ciclos de corrección con `corrector-revision` en `sonnet`; `F002` (segundo `PUT` concurrente en el diálogo) resuelto; `F003`, un Menor de pruebas, lo resolvió el orquestador sin tercera reauditoría y se comunica a la persona dueña. Veintiuna pruebas más que al cerrar la ejecución. Quedan dos preguntas para la persona dueña: `DOC-5` (ADR de `D-5`) y el marcador `(aprobado · D-7)` del wireframe. La entrega c sigue pendiente y su disparador de recorte no se cumplió. Siguiente: `/sdd-ejecutar TKT-018a` sobre la entrega c |
+| 2026-11-11 | `LISTO PARA EJECUTAR · entrega c` | `EN REVISIÓN · entrega c` | `/sdd-ejecutar` | Entrega c (filas C1 y C2, *Should*) ejecutada con TDD fila por fila: semilla local de línea base `BORRADOR` y E2E del congelado y la captura de un tope. Backend: 2772 pruebas en verde y 26 omitidas (`PA-T3`), `ruff`, `mypy`, `lint-imports` (16 contratos) y `verificar_float` limpios. Frontend: Vitest 438 de 438 y Playwright 6 de 6. `auditor-arquitectura`: `APROBADO` en el primer ciclo, con dos observaciones. El rojo de C1 fue de módulo ausente y se repitió por comportamiento con un esqueleto no funcional creado por el orquestador, que además corrigió un import para respetar la interfaz publicada. Sin mutación: el diseño no la pide para la entrega c. Siguiente: `/sdd-revisar TKT-018a` sobre la entrega c |
+| 2026-11-11 | `EN REVISIÓN · entrega c` | `LISTO PARA PR` | `/sdd-revisar` | Entrega c revisada, última del ticket: sin commit, lo hace `/sdd-completar`. Suite real: backend 2778 en verde y 26 omitidas (`PA-T3`), `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios; Vitest 438 de 438; Playwright 6 de 6; `tipos:verificar` y `verificar_docs` limpios; sin cambios en `backend/cimenta`, contrato ni tipos generados. `auditor-arquitectura` y `auditor-seguridad`: `APROBADO` en la primera pasada. `auditor-docs` (`DOC-1` a `DOC-4`) y `auditor-codigo` (`COD-1` a `COD-3`): `REQUIERE CAMBIOS` y `APROBADO` tras un ciclo con `corrector-revision` en `haiku`, con las pruebas antes del código (seis pruebas nuevas de la semilla, `SEG-4` aplicada). Con la entrega c queda cumplido el ticket: `CA-1` a `CA-13`, `CA-R1`, `CA-R2` y `CA-S1`. Pendientes para la persona dueña: `DOC-5` (ADR de `D-5`), el marcador `(aprobado · D-7)` del wireframe, `F001` (la semilla crea la obra sin bitácora hasta que `crear_obra` esté en la interfaz) y `SEG-1` a `SEG-3` de la entrega c, previas a la entrega. Siguiente: `/sdd-completar TKT-018a` |
+| 2026-11-11 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Delta escrito y enlazado; `auditor-docs` del cierre: `REQUIERE CAMBIOS` (`DOC-1` Mayor, `DOC-2` y `DOC-3` Menores) y aplicados `DOC-2` a `DOC-5`; `DOC-1` lo resolvió la persona dueña (sin ADR para `D-5`). Registro de evolución y `meta-sdd` hechos: dos patrones nuevos y ocho decisiones propuestas, ninguna aplicada. Siguiente: commit, push y PR único del ticket |
 
 ## Decisiones registradas
 
@@ -52,6 +56,7 @@ LISTO PARA EJECUTAR · entrega c
 - **2026-11-10 · persona dueña (durante la ejecución).** Excepción de sesión: todos los agentes corren en Fable 5.2 con esfuerzo medio, sin cambiar el modelo declarado de cada agente.
 - **2026-11-10 · persona dueña (aprobación del diseño).** D-1: la interfaz oculta el borrador a Compras. D-2: se muestra la línea base `CONGELADA` y, si no hay, el `BORRADOR` de mayor versión. D-3: el motivo del congelado va en línea. D-4: solo se muestra lo que trae el contrato. D-5: `PUT` secuencial por fila con éxito parcial. D-6: la rama sale de `Produccion` tras fusionar TKT-012a. D-7: las entradas de menú «Línea base» y «Presupuesto de control» muestran «elegir obra» sin tocar `secciones.ts`. D-8: el `403` muestra el mensaje del servidor. D-9: el E2E usa tres usuarios de humo. D-10: el cliente no pinta el aviso «mayor que la venta»: lo decide el `409` del servidor. D-11: las comas de millares se rechazan.
 - **2026-11-11 · persona dueña (tras `/sdd-revisar` de la entrega a).** `SEG-1`: Director de Proyectos, Dirección General y Compras ven todas las obras por diseño. Los endpoints de línea base comprueban el rol y no una asignación de la persona a la obra, y así debe ser: no hace falta ticket de backend.
+- **2026-11-11 · persona dueña (en `/sdd-completar`).** `D-5` no tendrá ADR: es una decisión de presentación del cliente, ya aprobada y justificada en el diseño y probada por el éxito parcial; escribirlo obligaría a actualizar los conteos de ADR de la documentación.
 
 ## Tickets futuros sugeridos
 

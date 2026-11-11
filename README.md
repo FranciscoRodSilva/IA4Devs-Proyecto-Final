@@ -67,7 +67,7 @@ uv run --env-file ../.env alembic upgrade head
 uv run --env-file ../.env python -m herramientas.contrasenas_roles
 ```
 
-**3. Sembrar los usuarios de prueba.** Desde `backend/`. Hay dos siembras, y las dos escriben solo en una base local: se niegan a conectar o a escribir si el host no es local.
+**3. Sembrar los usuarios de prueba.** Desde `backend/`. Hay tres siembras, y las tres escriben solo en una base local: se niegan a conectar o a escribir si el host no es local.
 
 El usuario de prueba manual, `prueba.compras@cimenta.test`, lo siembra el script de `frontend/e2e/` con las credenciales de `.env`:
 
@@ -81,13 +81,32 @@ En Windows PowerShell:
 $env:PYTHONPATH = "."; uv run --env-file ../.env python ../frontend/e2e/sembrar_usuario_humo.py
 ```
 
-Es idempotente: si el usuario ya existe, le restablece la contraseña. Sin más variables siembra un usuario con el rol `COMPRAS`; `CIMENTA_HUMO_ROL` (por omisión `COMPRAS`) y `CIMENTA_HUMO_NOMBRE` permiten sembrar otro rol y otro nombre. El humo de Playwright usa esa vía: su preparación global (`frontend/e2e/preparacion-global.ts`) siembra `humo.compras@cimenta.test` y, para el recorrido de alta de obras, `humo.director@cimenta.test` con el rol `DIRECTOR_PROYECTOS`, y deja sus datos de acceso en `CIMENTA_HUMO_DP_CORREO` y `CIMENTA_HUMO_DP_CONTRASENA`, con una contraseña aleatoria en cada corrida.
+Es idempotente: si el usuario ya existe, le restablece la contraseña. Sin más variables siembra un usuario con el rol `COMPRAS`; `CIMENTA_HUMO_ROL` (por omisión `COMPRAS`) y `CIMENTA_HUMO_NOMBRE` permiten sembrar otro rol y otro nombre. El humo de Playwright usa esa vía: su preparación global (`frontend/e2e/preparacion-global.ts`) siembra `humo.compras@cimenta.test`, `humo.director@cimenta.test` con el rol `DIRECTOR_PROYECTOS` y `humo.direccion@cimenta.test` con el rol `DIRECCION_GENERAL`, y deja sus datos de acceso en `CIMENTA_HUMO_DP_CORREO`, `CIMENTA_HUMO_DP_CONTRASENA`, `CIMENTA_HUMO_DG_CORREO` y `CIMENTA_HUMO_DG_CONTRASENA`, con una contraseña aleatoria en cada corrida.
 
 Un usuario por cada rol de acceso, con 27 insumos sintéticos y su precio general, lo siembra `herramientas.semilla_local`. El correo de cada usuario es `<rol en minúsculas>@cimenta.test` y su contraseña es la de `CIMENTA_SEMILLA_CONTRASENA`, que se define en `.env` antes de sembrar (va vacía en `.env.example`). No sobrescribe nada que ya exista:
 
 ```bash
 uv run --env-file ../.env python -m herramientas.semilla_local
 ```
+
+Para ver la pantalla de línea base (`/obras/<id>/linea-base`) hace falta una obra con su línea base. `herramientas.semilla_linea_base_local` crea una obra de demostración en `PLANEACION`, con su línea base en `BORRADOR`, por el caso de uso de confirmación de importaciones de `presupuesto` (`materializar_importacion`), que la semilla llama directamente porque la aplicación todavía no tiene la ruta HTTP de confirmación. Se ejecuta después de `herramientas.semilla_local`, porque toma de allí el usuario Director de Proyectos:
+
+```bash
+uv run --env-file ../.env python -m herramientas.semilla_linea_base_local
+```
+
+Sin variables, la obra se llama `DEMO-018A` y el usuario es `director_proyectos@cimenta.test`. Dos variables opcionales lo cambian:
+
+- `CIMENTA_SEMILLA_LB_CODIGO` fija el código de la obra. Por omisión vale `DEMO-018A`.
+- `CIMENTA_SEMILLA_LB_CORREO` fija el correo del usuario que la siembra. Por omisión vale `director_proyectos@cimenta.test`.
+
+Cada ejecución necesita un código de obra nuevo: si ya existe, la semilla sale con un aviso y no escribe nada. Por eso, para sembrar otra obra con el mismo código, cámbialo primero:
+
+```bash
+CIMENTA_SEMILLA_LB_CODIGO=DEMO-018B uv run --env-file ../.env python -m herramientas.semilla_linea_base_local
+```
+
+En Windows PowerShell, define la variable antes de ejecutar el comando, con `$env:CIMENTA_SEMILLA_LB_CODIGO = "DEMO-018B"`. La semilla también se niega a escribir si la base no es local, con el mismo control que `semilla_local`, y la base tiene que estar migrada. La última línea de la salida es `OBRA_ID=<uuid>`. Con el cliente en marcha, la pantalla queda en `http://localhost:5173/obras/<OBRA_ID>/linea-base`. La línea base sale en `BORRADOR`: el Director de Proyectos la congela desde esa pantalla, y después Dirección General puede capturar los topes de control.
 
 **4. Arrancar el API.** Desde `backend/`, en una terminal que se queda abierta:
 
@@ -127,7 +146,7 @@ npm test
 npm run e2e   # humo de Playwright: inicia sesión, ve el armazón y cierra sesión
 ```
 
-`npm run e2e` siembra su propio usuario, `humo.compras@cimenta.test`, con una contraseña aleatoria en cada corrida, y no interfiere con el usuario de prueba manual.
+`npm run e2e` siembra sus propios usuarios de humo, con una contraseña aleatoria en cada corrida, y no interfiere con el usuario de prueba manual: `humo.compras@cimenta.test` (Compras), `humo.director@cimenta.test` (Director de Proyectos) y `humo.direccion@cimenta.test` (Dirección General). Además, siembra por su cuenta una obra nueva `E2E-LB-<8 hex>` con su línea base en `BORRADOR`, con un código distinto en cada corrida, para el recorrido de la línea base. Nada de eso necesita haber ejecutado `herramientas.semilla_local` ni la semilla de demostración: sí necesita la base migrada.
 
 ---
 

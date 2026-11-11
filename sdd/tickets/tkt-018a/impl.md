@@ -1,6 +1,6 @@
 # Impl · TKT-018a · Pantalla de línea base y presupuesto de control
 
-> [← index](_index.md) | [← design](design.md) | Siguiente: `delta.md` (se enlaza en `/sdd-completar`)
+> [← index](_index.md) | [← design](design.md) | Siguiente: [delta](delta.md)
 
 El ticket se ejecuta en tres entregas sobre la rama `tkt-018a-pantalla-linea-base`. Cada entrega añade su sección a este archivo sin reescribir las anteriores.
 
@@ -771,3 +771,187 @@ Hay prueba de rechazo para cada regla implicada (`RN-03`: tope mal formado, `422
 - El delta del ticket debe decir que, si la entrega c se recorta, la pantalla solo se verá con línea base real a partir de TKT-018b.
 
 **Veredicto de la entrega b: aprobada.** Queda acumulada en la rama `tkt-018a-pantalla-linea-base`, sin PR. Siguiente: `/sdd-ejecutar TKT-018a` sobre la entrega c, o recortarla con `/sdd-escalar` y pasar a `/sdd-completar`.
+
+## Entrega c · semilla local y E2E (filas C1 y C2, *Should*)
+
+Entrega c ejecutada el 2026-11-11 en la rama `tkt-018a-pantalla-linea-base`, que ya traía las entregas a y b (la b, en el commit `00fe418`). El disparador de recorte del diseño no se cumplió: la entrega b se aprobó el mismo día. Docker estaba en marcha. No hay cambio en `backend/cimenta`, en el contrato ni en los tipos generados.
+
+### Qué se implementó
+
+- **C1.** `backend/herramientas/semilla_linea_base_local.py`: `sembrar_linea_base` prepara en una transacción la obra en `PLANEACION`, el insumo de mano de obra `MO-001` y una importación `VALIDADO`, y confirma la importación con el caso de uso `materializar_importacion` de la interfaz publicada de `presupuesto`, que crea la línea base `BORRADOR` con su bitácora. `main()` niega cualquier base que no sea local antes de abrir una conexión y deja `OBRA_ID=<uuid>` en la última línea. El docstring de `backend/herramientas/soporte_tkt017.py` dice ahora que también lo usa esta semilla y que ningún módulo de `cimenta/` lo importa.
+- **C2.** `frontend/e2e/preparacion-global.ts` siembra el tercer usuario de humo (`humo.direccion@cimenta.test`, Dirección General), ejecuta la semilla con una obra `E2E-LB-<8 hex>` y deja `CIMENTA_HUMO_LB_OBRA_ID`; `frontend/e2e/linea-base.spec.ts` recorre el congelado como Director de Proyectos y la captura de un tope como Dirección General.
+- **Documentación.** `README.md` y `docs/arranque-local.md` explican cómo sembrar una línea base de demostración y qué siembra el E2E.
+
+### Ajustes respecto al design
+
+| Fila | Ajuste | Motivo |
+|---|---|---|
+| C1 | `insumo.creado_en_importacion` se inserta con `false` para `MO-001` | La columna es `NOT NULL` sin valor por omisión y el diseño no la mencionaba; es un insumo registrado, no uno dado de alta por la importación |
+| C1 | `importacion.preparacion` se escribe con `json.dumps(preparacion_a_json(…))` y `CAST(:preparacion AS jsonb)` | Con `text()` de SQLAlchemy |
+| C1 | Sin empresa activa, `SystemExit("No hay empresa activa en la base; ejecuta las migraciones. No se ha escrito nada.")` | El diseño no decía qué hacer; no es una regla de negocio nueva |
+| C1 | Usuario resuelto por correo con `SELECT id FROM usuario WHERE email = :correo`; si falta, `SystemExit("Falta el usuario …; ejecuta herramientas.semilla_local.")` | Texto que el diseño ya fijaba; la consulta no filtra por `activo` |
+| C1 | El reloj de `main()` es `datetime.now(UTC)` local a la herramienta | Así no se importa `cimenta.presupuesto.aplicacion.contexto`, que el diseño no listaba |
+| C1 | `ContextoPresupuesto` se importa de `cimenta.presupuesto.interfaz`, que ya lo publica | El desarrollador lo había importado de `aplicacion.contexto`; el orquestador lo corrigió para respetar la lista de importaciones del diseño |
+| C1 | `E-5`, `E-6` y `E-7` quedan comprobadas por TC-S1; `E-8` por TC-E1 | Eran afirmaciones sin ejecutar |
+| C2 | `docs/arranque-local.md` actualiza la lista de escenarios del E2E | El texto decía «entrar y salir, credenciales incorrectas y el menú en un teléfono» |
+| C2 | `frontend/test-results/.last-run.json`, que Playwright reescribe y está versionado, se restauró con `git checkout` | No es parte del cambio |
+
+### Archivos tocados
+
+| Archivo | Cambio |
+|---|---|
+| `backend/herramientas/semilla_linea_base_local.py` | Nuevo |
+| `backend/tests/test_tkt018a_semilla_linea_base.py` | Nuevo (cinco pruebas) |
+| `backend/herramientas/soporte_tkt017.py` | Solo el docstring |
+| `frontend/e2e/preparacion-global.ts` | Tercer usuario y semilla |
+| `frontend/e2e/linea-base.spec.ts` | Nuevo (TC-E1) |
+| `README.md`, `docs/arranque-local.md` | Cómo sembrar la línea base de demostración |
+
+### Ciclo TDD por fila
+
+| Fila | Rojo | Verde | Refactor |
+|---|---|---|---|
+| C1 | Primer rojo: las cinco pruebas fallaron con `ModuleNotFoundError: No module named 'herramientas.semilla_linea_base_local'`; el tester no creó un esqueleto porque su rol no escribe producción. Rojo por comportamiento: el orquestador creó un esqueleto no funcional (`NotImplementedError`) y las cinco fallaron con `NotImplementedError` (`5 failed in 2.63s`) | `5 passed`; `ruff check`, `ruff format --check`, `mypy .` (287 archivos), `lint-imports` (16 contratos cumplidos), `verificar_float` (34 archivos, 0 hallazgos) y las 38 pruebas de `test_tkt010_semilla_local.py` en verde | `ruff format` sobre los dos archivos; el orquestador corrigió el import de `ContextoPresupuesto` y repitió las cinco pruebas, `ruff`, `mypy` y `lint-imports` |
+| C2 | `npm run e2e`: `1 failed, 5 passed`; el spec falla con «Falta CIMENTA_HUMO_LB_OBRA_ID: la fija la preparación global (e2e/preparacion-global.ts).» y `humo.spec.ts` y `obras.spec.ts` siguen verdes | `npm run e2e`: `6 passed (13.9s)`, entre ellos `hdu001_esc14 · congelar como DP y capturar como DG` (2.0s) | Ninguno |
+
+Ejecución con dos pasos del orquestador en C1 (el esqueleto y la corrección del import), declarados arriba; los tests no los tocó ningún desarrollador.
+
+### Evidencia de ejecución al cerrar
+
+```text
+backend/  uv run pytest -q -x      → 2772 passed, 26 skipped in 573.32s (0:09:33)
+backend/  uv run ruff check .      → All checks passed!
+backend/  uv run ruff format --check . → 287 files already formatted
+backend/  uv run mypy .            → Success: no issues found in 287 source files
+backend/  uv run lint-imports      → Contracts: 16 kept, 0 broken.
+backend/  verificar_float          → archivos revisados: 34; hallazgos: 0
+frontend/ npm run e2e              → 6 passed (13.9s)
+frontend/ npm test                 → Test Files 23 passed (23) · Tests 438 passed (438)
+raíz      python tools/verificar_docs.py → ✓ Sin problemas.
+raíz      vale README.md docs/arranque-local.md → 0 errors, 0 warnings and 0 suggestions
+```
+
+Las 26 pruebas omitidas son las de `PA-T3` (faltan los archivos reales del catálogo), las mismas que en la revisión de la entrega a. La suite de backend pasó de 2767 a 2772 pruebas: las cinco de la semilla.
+
+### Mutación en rutas críticas
+
+El diseño no pide mutantes para la entrega c (su tabla de mutación cubre las rutas de dinero y límite de las filas A y B). La semilla es una herramienta de preparación de datos que no decide ninguna regla. Queda anotado como decisión de alcance del diseño, no como mutación probada.
+
+### Modelo por paso
+
+| Despacho | Agente | Modelo | Motivo |
+|---|---|---|---|
+| Rojo C1 | `tester-backend` | `sonnet` | Por omisión |
+| Verde C1 | `desarrollador-aplicacion` | `haiku` | Diseño |
+| Rojo C2 | `tester-frontend` | `sonnet` | Por omisión |
+| Verde C2 y documentación | `desarrollador-react` | `haiku` | Diseño |
+| Auditoría de cierre | `auditor-arquitectura` | `sonnet` | Por omisión; sin esquema, no hubo `auditor-sql` |
+
+Ningún paso subió ni bajó de modelo.
+
+### Efectos sobre el entorno local
+
+El tester del E2E ejecutó `herramientas.contrasenas_roles` contra la base local (paso documentado de `docs/arranque-local.md`), que fija las contraseñas de los roles `cimenta_aplicacion` y `cimenta_lectura`. Cada corrida de `npm run e2e` añade a la base de humo las obras `E2E-` y `E2E-LB-` (riesgo declarado en el diseño). Playwright dejó modificado `frontend/test-results/.last-run.json` y se restauró.
+
+### Auditorías
+
+`auditor-arquitectura`: **`APROBADO`** en el primer ciclo, sin hallazgos Críticos, Mayores ni Menores y con dos observaciones sin acción. Resumen de su sección «Qué verifiqué»: ruff, mypy, `lint-imports`, `verificar_float` y las cinco pruebas en verde; sin `float`; `exigir_base_local()` antes de abrir ninguna conexión y la prueba de que no se llama a `create_engine` ante host remoto o `PGHOSTADDR`; la línea base la crea el caso de uso con su bitácora y la semilla no hace SQL sobre `linea_base` ni `bitacora`; el SQL directo se limita a `obra`, `insumo` e `importacion`; importaciones solo de la interfaz publicada, `preparacion_json` y `herramientas.*`; sin secretos en el repositorio ni en la salida; sin fase 2; `backend/cimenta` y `docs/api` sin cambios.
+
+| ID | Observación | Acción |
+|---|---|---|
+| `O001` | Ninguna prueba cubre «Falta el usuario …» ni que `OBRA_ID=` sea la última línea de `main()`, de la que depende `preparacion-global.ts` | Ninguna; el E2E la ejercita de punta a punta |
+| `O002` | `herramientas/` queda fuera de `import-linter` y `soporte_tkt017` llega transitivamente a `presupuesto.dominio` | Ninguna: el diseño lo declara y es el patrón de `soporte_tkt017_entorno.py` |
+
+### Resultado contra los criterios de aceptación
+
+| Criterio | Nivel | Resultado | Evidencia |
+|---|---|---|---|
+| `CA-S1` | `[S]` | Cumplido | TC-S1 a TC-S3, TC-E1 |
+
+Hay prueba de rechazo para la regla implicada de la semilla (negarse fuera de la base local y ante un código de obra repetido): TC-S2 y TC-S3. El resto de los criterios `[M]` se cerraron en las entregas a y b.
+
+### Pendientes
+
+- **`/sdd-revisar TKT-018a` sobre la entrega c.** Es la última: al aprobarla el estado pasa a `LISTO PARA PR` y sigue `/sdd-completar`.
+- **Decisiones para la persona dueña**, abiertas desde la entrega b: `DOC-5` (ADR de `D-5`) y el marcador `(aprobado · D-7)` de `docs/08-wireframes.md` §2.
+- `markdownlint-cli2` y `lychee` no están instalados en esta máquina; los corre CI en el PR.
+
+### Verificación final de `/sdd-revisar` · entrega c
+
+Revisión ejecutada el 2026-11-11 sobre el diff de la entrega c: `git diff HEAD` desde el cierre de la entrega b (`00fe418`) más los archivos nuevos `backend/herramientas/semilla_linea_base_local.py`, `backend/tests/test_tkt018a_semilla_linea_base.py` y `frontend/e2e/linea-base.spec.ts`. Es la última entrega del ticket.
+
+#### Completitud, corrección y coherencia
+
+- **Completitud.** `CA-S1`, el único criterio de la entrega, tiene resultado y evidencia. Cada fila (C1 y C2) tiene su rojo registrado en la sección «Entrega c»; el de C1 se obtuvo en dos pasos declarados (módulo ausente y después esqueleto no funcional).
+- **Corrección.** Se implementó lo de la spec y del diseño, con los ajustes declarados en la sección «Entrega c». El ciclo de corrección añadió, sin ampliar el alcance, la traducción del `ValueError` del puerto y las pruebas de `main()`.
+- **Coherencia.** Los archivos de `impl.md` coinciden con los del diseño. `git diff HEAD --stat -- backend/cimenta docs/api frontend/src` está vacío: la entrega no toca la aplicación, el contrato ni los tipos generados.
+
+#### Suite ejecutada en la revisión
+
+Docker en marcha (`docker info`: 29.9.3). Cifras copiadas de la última corrida, posterior al ciclo de corrección:
+
+```text
+backend/  uv run pytest -q         → 2778 passed, 26 skipped in 555.28s (0:09:15)
+backend/  uv run ruff check .      → All checks passed!
+backend/  uv run ruff format --check . → 287 files already formatted
+backend/  uv run mypy .            → Success: no issues found in 287 source files
+backend/  uv run lint-imports      → Contracts: 16 kept, 0 broken.
+backend/  verificar_float          → archivos revisados: 34; hallazgos: 0
+frontend/ npm test                 → Test Files 23 passed (23) · Tests 438 passed (438)
+frontend/ npm run lint             → eslint . (sin salida)
+frontend/ npm run typecheck        → tsc --noEmit (sin salida)
+frontend/ npm run tipos:verificar  → Tipos al día.
+frontend/ npm run e2e              → 6 passed (13.5s)
+raíz      python tools/verificar_docs.py → ✓ Sin problemas.
+raíz      vale README.md docs/arranque-local.md docs/08-wireframes.md → 0 errors, 0 warnings and 0 suggestions
+```
+
+Las 26 pruebas omitidas son las de `PA-T3` (faltan los archivos reales del catálogo). La suite de backend pasó de 2772 a 2778 pruebas: las seis que el ciclo de corrección añadió a la semilla (la suite de la semilla pasó de 5 a 11). La sección «Entrega c» de arriba cita las cifras previas al ciclo (cinco pruebas y 2772); esta verificación las sustituye. `markdownlint-cli2` y `lychee` no están instalados en esta máquina; los corre CI en el PR.
+
+#### Auditorías de la revisión
+
+| Auditor | Primera pasada | Final |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` (`F001` a `F003`, observaciones) | `APROBADO` |
+| `auditor-seguridad` | `APROBADO` (`SEG-1` a `SEG-4`, Bajas) | `APROBADO`; `SEG-4` aplicada |
+| `auditor-docs` | `REQUIERE CAMBIOS` (`DOC-1` y `DOC-2` Mayores; `DOC-3` y `DOC-4` Menores) | `APROBADO` tras un ciclo |
+| `auditor-codigo` | `REQUIERE CAMBIOS` (`COD-1` Mayor; `COD-2` y `COD-3` Menores) | `APROBADO` tras un ciclo |
+
+No hubo `auditor-sql`: no hay esquema ni migración.
+
+#### Ciclo de corrección
+
+Un ciclo, con las pruebas antes del código:
+
+- **`COD-1` (Mayor).** En `preparacion-global.ts`, `sembrarLineaBaseDeHumo` hacía `split` sobre `stdout` antes de mirar el fallo; con `uv` fuera del `PATH`, `stdout` y `status` son `null` y salía un `TypeError` que tapaba el mensaje guiado. Ahora se comprueba el fallo antes de parsear. La reauditoría lo comprobó con un `spawnSync` real de un ejecutable inexistente: sale el mensaje guiado con `spawnSync uv ENOENT`. No tiene prueba automatizada (el fallo del proceso hijo de la preparación global no se prueba con Vitest ni con Playwright); queda como observación del auditor (`OBS-8`).
+- **`COD-2` (Menor).** Los helpers `ejecutarEnBackend` y `detalleDelFallo` sustituyen la duplicación entre los dos `spawnSync`.
+- **`COD-3` (Menor) y `SEG-4` (Baja).** Seis pruebas nuevas: `main()` imprime `OBRA_ID=<uuid>` en la última línea y coincide con una fila de `obra`; las variables vacías caen a los valores por omisión; un correo inexistente sale con «Falta el usuario» sin escribir nada; el caso `PGSERVICE` de TC-S2; y el puerto no numérico. La del puerto nació en rojo por comportamiento (`ValueError`) y `main()` ahora lo traduce a `SystemExit` como `semilla_local.main()`. Las demás nacieron en verde (cobertura que faltaba) y seis mutantes las matan: línea extra tras `OBRA_ID=`, `OBRA=` en lugar de `OBRA_ID=`, el mensaje de «Falta el usuario», la omisión de las dos variables vacías y quitar `PGSERVICE` de la guarda. La huella SHA-256 de los `.py` de `backend/` fue idéntica antes y después de cada mutante.
+- **`DOC-1` a `DOC-4`.** Aplicados con el texto literal del auditor en `README.md` y `docs/arranque-local.md`.
+- **`SEG-2`** (`hide_parameters` en `sembrar_usuario_humo.py`) no se aplicó: el archivo es anterior a esta entrega y está fuera de su diff. `SEG-1` (la guarda no considera el puerto) y `SEG-3` (el trazado de Playwright registra las contraseñas aleatorias de cada corrida) son observaciones previas a la entrega y quedan para la persona dueña.
+
+#### Mutación de la revisión
+
+El diseño no pide mutantes para la entrega c y la semilla no decide ninguna regla; los mutantes arriba son los de las pruebas añadidas. La mutación de las rutas críticas del ticket se probó en las entregas a y b.
+
+#### Resultado por criterio de la entrega c
+
+| Criterio | Nivel | Resultado | Evidencia |
+|---|---|---|---|
+| `CA-S1` | `[S]` | Cumplido | TC-S1 a TC-S3, las pruebas de `main()` y TC-E1 |
+
+Hay prueba de rechazo para la regla implicada de la semilla: negarse fuera de la base local (host remoto, `PGHOSTADDR`, `PGSERVICE`, host ausente y puerto no numérico) y ante un código de obra repetido o un usuario inexistente.
+
+#### Resultado del ticket
+
+Con esta entrega queda cumplido el ticket completo: `CA-1` a `CA-13`, `CA-R1` y `CA-R2` (`[M]`, entregas a y b) y `CA-S1` (`[S]`, entrega c). La suite de Vitest es de 438 pruebas, la de backend de 2778 y el E2E de 6. Los criterios que solo se verifican con el pipeline de un PR real (los trabajos de `ci.yml`) se verifican en `/sdd-completar`, que no fusiona sin esa evidencia.
+
+#### Desviaciones y pendientes para la persona dueña
+
+- **`DOC-5`** (de la entrega b): el diseño dice que no merece ADR, pero fija un `PUT` secuencial por fila en lugar de una ruta por lotes (`D-5`). Decidir si se escribe el ADR.
+- **Marcador `(aprobado · D-7)`** en `docs/08-wireframes.md` §2: conservarlo o quitarlo.
+- **`F001` de `auditor-arquitectura`.** La semilla crea la obra y la importación con `INSERT` directo porque `crear_obra` no está en la interfaz publicada de `presupuesto`, y la obra nace sin asiento de bitácora; solo afecta a una base local. Si TKT-018b o un ticket posterior publica `crear_obra`, migrar la semilla a ella. Debe constar en el delta.
+- **`SEG-1`** (la guarda de base local no considera el puerto, como un túnel `ssh -L`), previa a esta entrega y presente en las tres siembras.
+- **Delta:** debe decir que la pantalla solo se ve con línea base real mediante la semilla local hasta TKT-018b.
+- **Base local de desarrollo:** la reauditoría dejó un usuario `x@y.z` (rol `COMPRAS`) y el E2E añade en cada corrida obras `E2E-` y `E2E-LB-`.
+
+**Veredicto de la entrega c: aprobada. Último paso del ticket: `LISTO PARA PR`.** No se commitea aquí: el commit, el push y el PR único los hace `/sdd-completar`. Siguiente: `/sdd-completar TKT-018a`.
