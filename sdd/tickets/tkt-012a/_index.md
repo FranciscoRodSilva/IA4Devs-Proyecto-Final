@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN
+ARCHIVADO
 
 ## Ficha
 
@@ -30,6 +30,7 @@ PENDIENTE FUSIÓN
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a y b escritas |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-10 |
+| PR | [#56](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/56) | `/sdd-completar` | Fusionado el 2026-11-10 (merge `8047ca1`) |
 
 ## Log de estados
 
@@ -41,6 +42,7 @@ PENDIENTE FUSIÓN
 | 2026-11-10 | `LISTO PARA EJECUTAR` | `EN REVISIÓN · entregas a y b` | `/sdd-ejecutar` | Entregas a (backend, A1 a A5) y b (frontend y extremo a extremo, B1 a B5) ejecutadas con TDD sobre la rama `tkt-012a-alta-de-obras`. Entrega a: suite de backend 2765 passed, siete mutantes caídos, `auditor-arquitectura` `APROBADO`. Entrega b: 255 pruebas de frontend y `npm run e2e` 5 passed; `auditor-seguridad` `APROBADO`; `auditor-arquitectura` y `auditor-codigo` con menores corregidos. Decisiones de la persona dueña durante la ejecución: renombrar la rama local previa, actualizar TC-86 de TKT-008c por la etiqueta «Ver la obra» y detener un Vite ajeno en el puerto 5173. Quedan para decidir F002 y F007 de `auditor-codigo` y cuatro huecos de la pantalla (ver `impl.md`). Siguiente: `/sdd-revisar TKT-012a` |
 | 2026-11-10 | `EN REVISIÓN · entregas a y b` | `LISTO PARA PR` | `/sdd-revisar` | Revisión del ticket completo. Suite de backend 2767 passed y 26 omitidos, frontend 255 passed, E2E 5 passed, linters y `lint-imports` limpios. Auditorías: arquitectura y seguridad `APROBADO`; código y documentación `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`. Decisiones de la persona dueña: ADR nuevo de la unicidad del código de obra (41 ADR) y F002 y F007 como deuda. Quedan comunicados N002, F011 y N008, y cuatro huecos de la pantalla. `docs/api/openapi.yaml` toca `maxLength` (D-5) y se señala a quien aprueba. Siguiente: `/sdd-completar TKT-012a` |
 | 2026-11-10 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Delta escrito, evolución registrada (`meta-sdd` propone siete cambios al toolkit, ninguno aplicado) y documentación auditada en tres ciclos. Decisiones de la persona dueña: el PR lleva `docs/05` completo y las carpetas de planificación de tkt-018a y tkt-029a, y el delta las declara. Se abre el único PR del ticket. Tras fusionar pasará a `ARCHIVADO` |
+| 2026-11-10 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar` | PR #56 fusionado en `Produccion` con las diez comprobaciones en verde (la rama no tiene protección, así que no hubo omisión). La planificación queda archivada y el número del PR consta en el comentario de registro. El despliegue es un evento posterior |
 
 ## Decisiones registradas
 
