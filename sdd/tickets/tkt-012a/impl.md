@@ -399,4 +399,3 @@ Hallazgos de las entregas que siguen para la persona dueña: los cuatro huecos d
 `CIMENTA_HUMO_*` en `README.md`: la fila 264 del README también se actualizó a 41 ADR.
 
 Se verifica en `/sdd-completar`: los trabajos de `ci.yml` del PR real y las comprobaciones requeridas.
-

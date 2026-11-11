@@ -10,7 +10,7 @@ El alta de una obra (TKT-012a) tiene que rechazar un código que ya existe. Lo e
 
 El índice único `uq_obra_codigo` existe desde la migración `0006`, de modo que el motor ya impide la duplicación. Queda decidir quién da la respuesta al cliente y con qué forma: un `409` `CONFLICTO` con el código `CODIGO_OBRA_DUPLICADO`, que lleva la obra existente y la acción `VER_OBRA`, y no un `500` por un `IntegrityError` sin traducir.
 
-Se suman dos decisiones del mismo caso de uso. La primera es si el código se compara tal como llega o normalizado: `ap-058-25 ` y `AP-058-25` son la misma obra para quien la nombra. La segunda es dónde se comprueba el rango de 0 a 1 de la retención de destajo y del fondo de garantía (`PA-02`) y el umbral de alerta no negativo (`PA-18`). Los `CHECK` de la migración `0006` ya lo imponen en la base, pero una violación llegaría como `23514`, un `SQLSTATE` que nadie traduce, y el cliente recibiría un `500`.
+Se suman dos decisiones del mismo caso de uso. La primera es si el código se compara tal como llega o normalizado: `ap-058-25`, con un espacio al final, y `AP-058-25` son la misma obra para quien la nombra. La segunda es dónde se comprueba el rango de 0 a 1 de la retención de destajo y del fondo de garantía (`PA-02`) y el umbral de alerta no negativo (`PA-18`). Los `CHECK` de la migración `0006` ya lo imponen en la base, pero una violación llegaría como `23514`, un `SQLSTATE` que nadie traduce, y el cliente recibiría un `500`.
 
 [ADR-031](20261101-inmutabilidad-de-la-linea-base-en-el-motor.md) fijó que la traducción del `SQLSTATE` del motor vive en un solo punto, `cimenta/presupuesto/aplicacion/traduccion_motor.py`. Ese módulo cubre `IN001` y el `23505` de la línea base congelada, pero no el de `uq_obra_codigo`.
 
@@ -29,7 +29,7 @@ Se suman dos decisiones del mismo caso de uso. La primera es si el código se co
 
 **Normalización del código**
 
-* Igualdad exacta: se guarda lo que llega. `ap-058-25 ` y `AP-058-25` serían dos obras distintas.
+* Igualdad exacta: se guarda lo que llega. `ap-058-25`, con un espacio al final, y `AP-058-25` serían dos obras distintas.
 * Solo recortar los espacios.
 * Recortar y pasar a mayúsculas, como la clave de insumo de TKT-014 (descripción recortada, en mayúsculas y con los espacios interiores colapsados, decisión de 2026-11-03). La `A2` de 2026-11-02 partía de un código que no existe y quedó sustituida. La persona dueña lo aprobó como `D-1` el 2026-11-10.
 
