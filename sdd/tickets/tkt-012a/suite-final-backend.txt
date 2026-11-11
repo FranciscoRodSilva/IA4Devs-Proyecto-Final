@@ -1,0 +1,6 @@
+SKIPPED [1] tests\test_tkt015_archivos_reales.py:120: CIMENTA_CATALOGO_ENITI no está definida: la prueba contra el archivo real se omite (PA-T3)
+SKIPPED [1] tests\test_tkt015_archivos_reales.py:136: CIMENTA_CATALOGO_ENITI no está definida: la prueba contra el archivo real se omite (PA-T3)
+SKIPPED [1] tests\test_tkt015_archivos_reales.py:172: CIMENTA_CATALOGO_ENITI no está definida: la prueba contra el archivo real se omite (PA-T3)
+SKIPPED [1] tests\test_tkt015_archivos_reales.py:180: CIMENTA_CATALOGO_UNION no está definida: la prueba contra el archivo real se omite (PA-T3)
+SKIPPED [1] tests\test_tkt016_archivo_real.py:44: CIMENTA_CATALOGO_UNION no está definida: la prueba contra el archivo real se omite (PA-T3)
+2767 passed, 26 skipped in 560.56s (0:09:20)

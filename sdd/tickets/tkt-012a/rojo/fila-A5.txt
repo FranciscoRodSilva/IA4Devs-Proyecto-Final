@@ -1,0 +1,6 @@
+
+> cimenta-frontend@0.0.0 tipos:verificar
+> node scripts/tipos.ts verificar
+
+Difiere: src/api/generado/servidor.ts
+Ejecuta npm run tipos:generar y versiona el resultado.

@@ -1,0 +1,18 @@
+
+> cimenta-frontend@0.0.0 e2e
+> playwright test
+
+[WebServer] INFO:     Started server process [29672]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+
+Running 5 tests using 1 worker
+
+  ok 1 [chromium] › e2e\humo.spec.ts:44:1 › tkt008_ca14_esc01 · entrar y salir (688ms)
+  ok 2 [chromium] › e2e\humo.spec.ts:57:1 › tkt008_ca14_esc02 · credenciales incorrectas (555ms)
+  ok 3 [chromium] › e2e\humo.spec.ts:68:3 › teléfono › tkt008_ca07_esc08 · teléfono (588ms)
+  ok 4 [chromium] › e2e\obras.spec.ts:59:1 › hdu001_esc02 · alta de obra de punta a punta (1.1s)
+  ok 5 [chromium] › e2e\obras.spec.ts:72:1 › hdu001_esc03 · el mismo código otra vez (1.6s)
+
+  5 passed (9.5s)

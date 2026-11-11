@@ -1,0 +1,138 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 8 items
+
+tests\test_tkt012a_dominio_obra.py FFFFFFFF                              [100%]
+
+================================== FAILURES ===================================
+________________ test_hdu001_esc02_dominio_normaliza_el_codigo ________________
+
+    def test_hdu001_esc02_dominio_normaliza_el_codigo() -> None:
+        """TC-01 · HDU-001 esc. 2 · CA-1 — feliz: el código se recorta y se pasa a mayúsculas (D-1)."""
+>       from cimenta.presupuesto.dominio.obra import normalizar_codigo_obra
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:22: ModuleNotFoundError
+___________ test_hdu001_esc02_dominio_porcentajes_en_rango_y_bordes ___________
+
+    def test_hdu001_esc02_dominio_porcentajes_en_rango_y_bordes() -> None:
+        """TC-02 · HDU-001 esc. 2 · CA-5 — feliz y borde: los extremos del rango se admiten.
+    
+        Retención y fondo admiten 0.000000 y 1.000000; el umbral admite 0.000000; el umbral
+        ausente (`None`) no es un rango que comprobar. Ninguno de estos casos rechaza.
+        """
+>       from cimenta.presupuesto.dominio.obra import porcentajes_fuera_de_rango
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:33: ModuleNotFoundError
+__ test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[retencion-bajo-cero] ___
+
+parametro = 'retencion_destajo', valor = '-0.010000'
+afectado = 'RETENCION_DESTAJO'
+
+    @pytest.mark.parametrize(("parametro", "valor", "afectado"), CASOS_FUERA_DE_RANGO)
+    def test_hdu001_esc02_dominio_porcentaje_fuera_de_rango(
+        parametro: str, valor: str, afectado: str
+    ) -> None:
+        """TC-03 · HDU-001 esc. 2 · CA-5 — rechazo: devuelve exactamente el parámetro afectado.
+    
+        Los demás parámetros quedan en rango; por eso la tupla debe ser exactamente el único
+        parámetro fuera, sin ninguno de más.
+        """
+>       from cimenta.presupuesto.dominio.obra import ParametroObra, porcentajes_fuera_de_rango
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:71: ModuleNotFoundError
+__ test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[retencion-sobre-uno] ___
+
+parametro = 'retencion_destajo', valor = '1.000001'
+afectado = 'RETENCION_DESTAJO'
+
+    @pytest.mark.parametrize(("parametro", "valor", "afectado"), CASOS_FUERA_DE_RANGO)
+    def test_hdu001_esc02_dominio_porcentaje_fuera_de_rango(
+        parametro: str, valor: str, afectado: str
+    ) -> None:
+        """TC-03 · HDU-001 esc. 2 · CA-5 — rechazo: devuelve exactamente el parámetro afectado.
+    
+        Los demás parámetros quedan en rango; por eso la tupla debe ser exactamente el único
+        parámetro fuera, sin ninguno de más.
+        """
+>       from cimenta.presupuesto.dominio.obra import ParametroObra, porcentajes_fuera_de_rango
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:71: ModuleNotFoundError
+____ test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[fondo-bajo-cero] _____
+
+parametro = 'fondo_garantia', valor = '-0.010000', afectado = 'FONDO_GARANTIA'
+
+    @pytest.mark.parametrize(("parametro", "valor", "afectado"), CASOS_FUERA_DE_RANGO)
+    def test_hdu001_esc02_dominio_porcentaje_fuera_de_rango(
+        parametro: str, valor: str, afectado: str
+    ) -> None:
+        """TC-03 · HDU-001 esc. 2 · CA-5 — rechazo: devuelve exactamente el parámetro afectado.
+    
+        Los demás parámetros quedan en rango; por eso la tupla debe ser exactamente el único
+        parámetro fuera, sin ninguno de más.
+        """
+>       from cimenta.presupuesto.dominio.obra import ParametroObra, porcentajes_fuera_de_rango
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:71: ModuleNotFoundError
+____ test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[fondo-sobre-uno] _____
+
+parametro = 'fondo_garantia', valor = '1.000001', afectado = 'FONDO_GARANTIA'
+
+    @pytest.mark.parametrize(("parametro", "valor", "afectado"), CASOS_FUERA_DE_RANGO)
+    def test_hdu001_esc02_dominio_porcentaje_fuera_de_rango(
+        parametro: str, valor: str, afectado: str
+    ) -> None:
+        """TC-03 · HDU-001 esc. 2 · CA-5 — rechazo: devuelve exactamente el parámetro afectado.
+    
+        Los demás parámetros quedan en rango; por eso la tupla debe ser exactamente el único
+        parámetro fuera, sin ninguno de más.
+        """
+>       from cimenta.presupuesto.dominio.obra import ParametroObra, porcentajes_fuera_de_rango
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:71: ModuleNotFoundError
+____ test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[umbral-negativo] _____
+
+parametro = 'umbral_alerta', valor = '-0.000001', afectado = 'UMBRAL_ALERTA'
+
+    @pytest.mark.parametrize(("parametro", "valor", "afectado"), CASOS_FUERA_DE_RANGO)
+    def test_hdu001_esc02_dominio_porcentaje_fuera_de_rango(
+        parametro: str, valor: str, afectado: str
+    ) -> None:
+        """TC-03 · HDU-001 esc. 2 · CA-5 — rechazo: devuelve exactamente el parámetro afectado.
+    
+        Los demás parámetros quedan en rango; por eso la tupla debe ser exactamente el único
+        parámetro fuera, sin ninguno de más.
+        """
+>       from cimenta.presupuesto.dominio.obra import ParametroObra, porcentajes_fuera_de_rango
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:71: ModuleNotFoundError
+__________ test_hdu001_esc02_dominio_varios_fuera_de_rango_en_orden ___________
+
+    def test_hdu001_esc02_dominio_varios_fuera_de_rango_en_orden() -> None:
+        """TC-04 · HDU-001 esc. 2 · CA-5 — rechazo: con tres fuera, la tupla sale en orden fijo.
+    
+        El orden es RETENCION_DESTAJO, FONDO_GARANTIA, UMBRAL_ALERTA; cada uno aparece una vez.
+        """
+>       from cimenta.presupuesto.dominio.obra import ParametroObra, porcentajes_fuera_de_rango
+E       ModuleNotFoundError: No module named 'cimenta.presupuesto.dominio.obra'
+
+tests\test_tkt012a_dominio_obra.py:94: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_normaliza_el_codigo
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_porcentajes_en_rango_y_bordes
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[retencion-bajo-cero]
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[retencion-sobre-uno]
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[fondo-bajo-cero]
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[fondo-sobre-uno]
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_porcentaje_fuera_de_rango[umbral-negativo]
+FAILED tests/test_tkt012a_dominio_obra.py::test_hdu001_esc02_dominio_varios_fuera_de_rango_en_orden
+============================== 8 failed in 0.24s ==============================

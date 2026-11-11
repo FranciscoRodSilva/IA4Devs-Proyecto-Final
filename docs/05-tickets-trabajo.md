@@ -625,6 +625,15 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 
 **Non-goals** — No importa presupuesto. No gestiona permisos por obra.
 
+**Partición en dos tickets hermanos** (aprobada el 2026-11-10 por la persona dueña, por el plazo de la tercera entrega): TKT-012a abre el flujo de la obra y TKT-012b lo completa. Cada uno lleva su PR.
+
+| Ticket | Contenido | Migración | Depende de | Escenarios de HDU-001 |
+|---|---|---|---|---|
+| TKT-012a | `crear_obra`, `listar_obras` y `obtener_obra`, y la pantalla de obras con el formulario de alta y la prueba de extremo a extremo | Ninguna | TKT-011b, TKT-010, TKT-017 y TKT-008 | 1, 2 y 3 (el 14, solo como regresión de CA-R1) |
+| TKT-012b | `actualizar_obra`, `eliminar_obra`, `suspender_obra`, `reactivar_obra` y `cerrar_obra`, con la máquina de estados y la definición de «historial». Antes de diseñarla hay que resolver qué cuenta como «movimientos» en `OBRA_CON_HISTORIAL` y la acción de bitácora del borrado | Posible, si se añade `ELIMINAR` al catálogo de acciones | TKT-012a | 20 |
+
+`listar_tipos_partida` y `listar_insumos`, que el borrador asigna a TKT-012, se construyen con su primer consumidor: la captura de requisición y la previsualización de la importación (TKT-018).
+
 ---
 
 ### TKT-013 · Lector del catálogo de conceptos
@@ -814,6 +823,15 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 - [ ] La línea base congelada se muestra en modo lectura, sin controles de edición
 
 **Non-goals** — No permite editar conceptos; una corrección se hace reimportando. No construye el componente de subida reutilizable con cámara y compresión: es de la fase 2 (TKT-065); aquí basta un selector de archivo.
+
+**Partición en dos tickets hermanos** (aprobada el 2026-11-10 por la persona dueña, por el plazo de la tercera entrega): TKT-018a entrega la pantalla de la línea base, el congelado y el presupuesto de control con lo que TKT-017 ya dejó en el servidor, y TKT-018b entrega la importación, que depende de TKT-059. Cada uno lleva su PR.
+
+| Ticket | Contenido | Migración | Depende de | Escenarios de HDU-001 |
+|---|---|---|---|---|
+| TKT-018a | Pantalla de la línea base de una obra (estado, importe de venta y desglose), congelar con motivo y modo lectura, y el presupuesto de control por tipo de partida (primera captura, tope superior a la venta con confirmación, recaptura), solo frontend. La obra de contexto va en la ruta, con un enlace desde la lista de obras de TKT-012a. Sin backend nuevo | Ninguna | TKT-017, TKT-012a | 14, 15, 17, 18, 19, 22 y 23 |
+| TKT-018b | Todo el flujo de importación: rutas, subida por `archivo`, análisis, previsualización con la asignación de tipos de partida, errores por hoja y fila, confirmación, y la deuda de TKT-017 (`motivo_reemplazo` sin `NUL`, archivo real del catálogo) | Ninguna prevista | TKT-018a, TKT-059 | 4 a 13, 21 y 24 a 29 |
+
+La captura del presupuesto de control (boceto 4b de `docs/08-wireframes.md`) no era criterio de ningún ticket: la incorpora TKT-018a por decisión de la persona dueña. Las tablas «Ver conceptos» y «Ver explosión por tipo de partida» del boceto 4a quedan como ticket futuro.
 
 ---
 
@@ -1093,6 +1111,15 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 - [ ] Tests `test_hdu004_esc02_…`, `esc03` y `esc12` en verde. El de la baja usa una orden `PARCIAL` **sembrada con `cantidad_recibida` mayor que cero** por la vía de pruebas —las órdenes reales llegan con TKT-030 y las entradas con TKT-035—, contra PostgreSQL real y no con dobles; el mismo escenario verifica que desactivar ese proveedor sí procede
 
 **Non-goals** — No registra facturas, anticipos ni consignación (`RN-15`, `RN-16`, v1.1). No valida el RFC contra el SAT.
+
+**Partición en dos tickets hermanos** (aprobada el 2026-11-10 por la persona dueña, por el plazo de la tercera entrega): TKT-029a entrega el catálogo sin lo que necesita órdenes de compra, y TKT-029b lo completa cuando existan. Cada uno lleva su PR.
+
+| Ticket | Contenido | Migración | Depende de | Escenarios de HDU-004 |
+|---|---|---|---|---|
+| TKT-029a | Esquema `proveedor` y `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`, `actualizar_proveedor` y `desactivar_proveedor`, solo backend | `0012`, cuelga de `0011` | TKT-003, TKT-005, TKT-006, TKT-007 | 2, 3 y la mitad de desactivación del 12 |
+| TKT-029b | `dar_baja_proveedor` con `PROVEEDOR_CON_ORDENES_ABIERTAS`, su prueba con una orden `PARCIAL` sembrada y el puerto `CatalogoProveedores`. Antes de diseñarla hay que decidir el verbo de bitácora de la baja y la máquina de estados del proveedor | Ninguna prevista | TKT-029a, TKT-019 | 12, completo |
+
+La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcilia el boceto de `docs/08-wireframes.md`, hoy en desacuerdo con el borrador sobre la baja.
 
 ---
 

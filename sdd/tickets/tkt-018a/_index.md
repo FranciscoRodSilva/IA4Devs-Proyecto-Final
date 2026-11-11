@@ -1,0 +1,54 @@
+# TKT-018a · Pantalla de línea base y presupuesto de control
+
+> Hub del ticket. Se lee **primero**, siempre.
+
+## Estado
+
+LISTO PARA EJECUTAR
+
+## Ficha
+
+| | |
+|---|---|
+| **Tipo** | Funcionalidad |
+| **Historia** | [[HDU-001]] — escenarios 14, 15, 17, 18, 19, 22 y 23 |
+| **Épica / sprint** | HDU-001 · Obra y línea base, fase 1 |
+| **Puntos** | Talla M en el backlog; parte de TKT-018 partido en TKT-018a y TKT-018b |
+| **Reglas implicadas** | `RN-01`, `RN-03`, `RN-04`, `PA-01`, `PA-03` |
+| **Invariantes en riesgo** | Ninguno de backend; regresión de las pruebas compartidas de TKT-008 y TKT-012a y del contrato publicado |
+| **Módulos en alcance** | Frontend: `modulos/presupuesto` y componentes compartidos. Sin módulo de backend |
+| **Capas en alcance** | frontend. Sin backend ni migración (el script de semilla, *Should*, vive en `backend/herramientas`) |
+| **Criterios `[M]`** | `CA-1` a `CA-13`, `CA-R1` y `CA-R2`; `CA-S1` es *Should* |
+| **Depende de** | TKT-017 (ARCHIVADO) y TKT-012a (LISTO PARA EJECUTAR: debe integrarse antes de ramificar esta entrega) |
+| **Rama** | `tkt-018a-pantalla-linea-base` (sale de `Produccion` después de integrar TKT-012a) |
+
+## Artefactos
+
+| Artefacto | Enlace | Comando | Estado |
+|---|---|---|---|
+| Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-10 |
+| Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
+| Impl | `impl.md` (se enlaza en `/sdd-ejecutar`) | `/sdd-ejecutar` | Pendiente |
+| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+
+## Log de estados
+
+| Fecha | De | A | Comando | Motivo |
+|---|---|---|---|---|
+| 2026-11-10 | — | `SPEC PENDIENTE` | `/sdd-definir` | Spec creada. TKT-018 partido en TKT-018a (pantalla) y TKT-018b (importación) por el plazo de la tercera entrega. Must validado por la persona dueña: línea base, congelado con motivo y captura y recaptura del tope, con la obra de contexto en la ruta; solo frontend. 13 criterios `[M]` más dos de regresión y uno *Should*; rechazos de cada respuesta del servidor del congelado, tope superior a la venta, recaptura sin motivo o sin rol, importes mal formados y éxito parcial. Cinco objeciones adversariales incorporadas, entre ellas una cita de regla equivocada que se corrigió. Ocho preguntas abiertas con recomendación para el diseño. INVEST sin fallos, con reservas en tamaño y en orden de ejecución |
+| 2026-11-10 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito por `arquitecto-tecnico` (opus): una sola pantalla en `/obras/:obraId/linea-base` con la línea base y el congelado arriba y el presupuesto de control abajo, sin backend ni tipos nuevos. Filas A1 a A5 (línea base y congelado, ~340 líneas), B1 a B4 (tope de control, ~340) y C1 y C2 (semilla local y E2E, ~140, recortable) en tres entregas y un solo PR. `revisor-impacto`: sin frontera cruzada (16 contratos en verde), diseño incompleto; sus hallazgos se incorporaron, entre ellos que el 403 muestre el mensaje del servidor como en TKT-012a y que la rama dependa de que `servidor.ts` ya traiga `obtener_obra`. Once decisiones esperan a la persona dueña (D-1 a D-11) |
+| 2026-11-10 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones de D-1 a D-11, incluida la entrega c (semilla local y E2E). Spec ajustada: el `403` muestra el mensaje del servidor. Siguiente: ejecutar después de integrar TKT-012a, con `/sdd-ejecutar TKT-018a` sobre la entrega a (filas A1 a A5) |
+
+## Decisiones registradas
+
+- **2026-11-10 · persona dueña.** Partir TKT-018: TKT-018a sin importación, que necesita TKT-059 y pasa a TKT-018b.
+- **2026-11-10 · persona dueña.** La captura y recaptura del presupuesto de control entra en TKT-018a, aunque ningún ticket la tenía como criterio; sin tope el hilo vertical no avanza.
+- **2026-11-10 · persona dueña.** La obra de contexto va en la ruta (`/obras/:obraId/…`), con un enlace «Línea base» por obra en la lista de TKT-012a; sin selector de obra.
+- **2026-11-10 · persona dueña (aprobación del diseño).** D-1: la interfaz oculta el borrador a Compras. D-2: se muestra la línea base `CONGELADA` y, si no hay, el `BORRADOR` de mayor versión. D-3: el motivo del congelado va en línea. D-4: solo se muestra lo que trae el contrato. D-5: `PUT` secuencial por fila con éxito parcial. D-6: la rama sale de `Produccion` tras fusionar TKT-012a. D-7: las entradas de menú «Línea base» y «Presupuesto de control» muestran «elegir obra» sin tocar `secciones.ts`. D-8: el `403` muestra el mensaje del servidor. D-9: el E2E usa tres usuarios de humo. D-10: el cliente no pinta el aviso «mayor que la venta»: lo decide el `409` del servidor. D-11: las comas de millares se rechazan.
+
+## Tickets futuros sugeridos
+
+- **TKT-018b** · Flujo de importación completo (subida por `archivo`, análisis, previsualización, errores, confirmación) y la deuda de TKT-017 que va con él.
+- **Tablas «Ver conceptos» y «Ver explosión por tipo de partida»** del boceto 4a, con su paginación.
+- **Selector de obra del armazón** (wireframe §2).
+- **Quién importó y cuándo, con los conteos de conceptos e insumos**, que el boceto 4a dibuja y el contrato no trae: exigiría ampliar `LineaBase` en el backend.
