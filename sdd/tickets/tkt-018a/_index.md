@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN
+ARCHIVADO
 
 ## Ficha
 
@@ -30,7 +30,7 @@ PENDIENTE FUSIÓN
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a, b y c escritas y revisadas |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-11 |
-| PR | Pendiente | `/sdd-completar` | Se abre tras este commit |
+| PR | [#58](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/58) | `/sdd-completar` | Fusionado el 2026-11-11 |
 
 ## Log de estados
 
@@ -46,6 +46,7 @@ PENDIENTE FUSIÓN
 | 2026-11-11 | `LISTO PARA EJECUTAR · entrega c` | `EN REVISIÓN · entrega c` | `/sdd-ejecutar` | Entrega c (filas C1 y C2, *Should*) ejecutada con TDD fila por fila: semilla local de línea base `BORRADOR` y E2E del congelado y la captura de un tope. Backend: 2772 pruebas en verde y 26 omitidas (`PA-T3`), `ruff`, `mypy`, `lint-imports` (16 contratos) y `verificar_float` limpios. Frontend: Vitest 438 de 438 y Playwright 6 de 6. `auditor-arquitectura`: `APROBADO` en el primer ciclo, con dos observaciones. El rojo de C1 fue de módulo ausente y se repitió por comportamiento con un esqueleto no funcional creado por el orquestador, que además corrigió un import para respetar la interfaz publicada. Sin mutación: el diseño no la pide para la entrega c. Siguiente: `/sdd-revisar TKT-018a` sobre la entrega c |
 | 2026-11-11 | `EN REVISIÓN · entrega c` | `LISTO PARA PR` | `/sdd-revisar` | Entrega c revisada, última del ticket: sin commit, lo hace `/sdd-completar`. Suite real: backend 2778 en verde y 26 omitidas (`PA-T3`), `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios; Vitest 438 de 438; Playwright 6 de 6; `tipos:verificar` y `verificar_docs` limpios; sin cambios en `backend/cimenta`, contrato ni tipos generados. `auditor-arquitectura` y `auditor-seguridad`: `APROBADO` en la primera pasada. `auditor-docs` (`DOC-1` a `DOC-4`) y `auditor-codigo` (`COD-1` a `COD-3`): `REQUIERE CAMBIOS` y `APROBADO` tras un ciclo con `corrector-revision` en `haiku`, con las pruebas antes del código (seis pruebas nuevas de la semilla, `SEG-4` aplicada). Con la entrega c queda cumplido el ticket: `CA-1` a `CA-13`, `CA-R1`, `CA-R2` y `CA-S1`. Pendientes para la persona dueña: `DOC-5` (ADR de `D-5`), el marcador `(aprobado · D-7)` del wireframe, `F001` (la semilla crea la obra sin bitácora hasta que `crear_obra` esté en la interfaz) y `SEG-1` a `SEG-3` de la entrega c, previas a la entrega. Siguiente: `/sdd-completar TKT-018a` |
 | 2026-11-11 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Delta escrito y enlazado; `auditor-docs` del cierre: `REQUIERE CAMBIOS` (`DOC-1` Mayor, `DOC-2` y `DOC-3` Menores) y aplicados `DOC-2` a `DOC-5`; `DOC-1` lo resolvió la persona dueña (sin ADR para `D-5`). Registro de evolución y `meta-sdd` hechos: dos patrones nuevos y ocho decisiones propuestas, ninguna aplicada. Siguiente: commit, push y PR único del ticket |
+| 2026-11-11 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | persona dueña | PR #58 fusionado por la persona dueña, a mano, el 2026-11-11 a las 21:36 UTC, con el commit `6bfa1d7` en `Produccion`. Las diez comprobaciones requeridas no se ejecutaron: los workflows `CI` y `Etiqueta de origen` quedaron en cola sin runner desde las 20:26 UTC, y `Produccion` no tenía protección de rama. Quedan sin verificar en CI `markdownlint-cli2`, `lychee` y el resto de los trabajos de `ci.yml`; conviene lanzar `CI` sobre `Produccion` cuando haya runner. Planificación archivada; el número del PR consta en el comentario de registro. El despliegue es un evento posterior |
 
 ## Decisiones registradas
 
