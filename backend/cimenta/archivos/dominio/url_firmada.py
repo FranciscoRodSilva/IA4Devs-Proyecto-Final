@@ -9,7 +9,7 @@ cambiarla sin invalidar la firma. Sin efectos secundarios.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -18,7 +18,10 @@ class UrlFirmada:
 
     `cabeceras` lleva `x-amz-checksum-sha256` con el SHA-256 en base64. `Content-Length` no se
     devuelve porque el navegador lo fija y JavaScript no puede asignarlo.
+
+    La URL es una credencial de portador (RNF-06, ADR-016): `repr` no la muestra, para que ningún
+    registro ni mensaje de error la arrastre. Quien llama la sigue leyendo por `url`.
     """
 
-    url: str
+    url: str = field(repr=False)
     cabeceras: dict[str, str]

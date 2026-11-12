@@ -1,0 +1,5 @@
+FAILED tests/test_tkt059_ajustes.py::test_tkt059_ca02_crear_aplicacion_acepta_almacen_como_argumento_por_nombre
+FAILED tests/test_tkt059_infraestructura.py::test_tkt059_car1_humo_arranca_con_el_env_derivado
+FAILED tests/test_tkt059_infraestructura.py::test_tkt059_car1_humo_sin_la_clave_secreta_generada_no_arranca
+FAILED tests/test_tkt057_arranque.py::test_tkt057_ca15_esc2_el_servidor_solo_recibe_la_contrasena_de_aplicacion
+68 failed, 68 passed in 13.33s

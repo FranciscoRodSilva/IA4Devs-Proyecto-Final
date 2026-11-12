@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · entrega TKT-059c
+LISTO PARA EJECUTAR · entrega TKT-059d
 
 Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, TKT-059c, TKT-059d y TKT-059e. `ARCHIVADO` solo al cerrar TKT-059e.
 
@@ -30,7 +30,7 @@ Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, T
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-05 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-05 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Sección de la entrega 059a escrita el 2026-11-11; las demás entregas añaden la suya |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Secciones de las entregas 059a, 059b y 059c escritas; las demás entregas añaden la suya |
 | Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -47,6 +47,10 @@ Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, T
 | 2026-11-11 | `LISTO PARA EJECUTAR` (entrega 059b) | `EN REVISIÓN` (entrega 059b) | `/sdd-ejecutar TKT-059b` | Filas 5 a 7 ejecutadas con TDD. Puerto y adaptador `AlmacenS3` con dos clientes `boto3`; detector del tipo por los bytes con lecturas por rango y firma propia de HEIC. Ajuste: `UrlFirmada` vive en `dominio/` por el contrato de capas. Suite `2959 passed, 26 skipped` más cinco tests añadidos después (46 pasan en los dos archivos de la entrega); `pip-audit` limpio. Mutación: `M-06`, `M-07`, `M-08`, `M-16` y `M-21` caen; una laguna (`M-08c`) y tres huecos de la auditoría cerrados con tests. `auditor-arquitectura` `APROBADO` tras un ciclo. ADR nuevo de la confirmación (43 ADR). Decisión de la persona dueña (2026-11-11): se deja la regla `ftyp` del diseño, que clasifica `avif`, `qt` y `3gp` como `video/mp4`. Siguiente: `/sdd-revisar TKT-059` |
 
 | 2026-11-11 | `EN REVISIÓN` (entrega 059b) | `LISTO PARA EJECUTAR · TKT-059c` | `/sdd-revisar TKT-059` | Entrega 059b revisada y acumulada en la rama `tkt-059-archivos-minimo`, sin PR. Dos ciclos de corrección: `auditor-arquitectura`, `auditor-codigo` y `auditor-seguridad` `APROBADO`; `auditor-docs` `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` (`N001` a `N006`, `O-N1` y `O-N2`, solo redacción; comunicados a la persona dueña). Se cerraron un fallo real (`LookupError` o `ValueError` con una codificación XML desconocida), la amplificación de memoria (`MAXIMO_PARTE` baja de 1 MiB a 256 KiB), el fallo abierto de la lista blanca (RIFF como WebP, candidatas débiles), la entrada duplicada de `[Content_Types].xml` y el rango inválido de `leer_rango`. Suite `3019 passed, 26 skipped`. Pendientes para 059c: `O4` y `O5` de seguridad, `NUL` en `nombre_original`, `field(repr=False)` en `UrlFirmada.url`, validar la disposición en `url_lectura`. Siguiente: `/sdd-ejecutar TKT-059c` (filas 8 a 10) |
+
+| 2026-11-12 | `LISTO PARA EJECUTAR` (entrega 059c) | `EN REVISIÓN` (entrega 059c) | `/sdd-ejecutar TKT-059c` | Filas 8 a 10 ejecutadas con TDD (se pidió también 059a y 059b, ya revisadas y acumuladas: no se reejecutaron). Diez campos de ajustes y almacén obligatorio con base, `ContextoArchivos` y composición perezosa en la fábrica, repositorio de `archivo` y `registrar_archivo`. Decisión de la persona dueña: `NUL` y sustitutos Unicode en `nombre_original` se rechazan con `FORMATO` en `evaluar_declaracion` (hallazgo F001). Suite `3162 passed, 26 skipped`; `M-05b`, `X1` y `X2` caen; `pip-audit` limpio. `auditor-arquitectura` `APROBADO` tras un ciclo. Pendientes para 059d o 059e: `O4`, `O5` y `Body.read(fin - inicio + 1)`. Siguiente: `/sdd-revisar TKT-059` |
+
+| 2026-11-12 | `EN REVISIÓN` (entrega 059c) | `LISTO PARA EJECUTAR · TKT-059d` | `/sdd-revisar TKT-059` | Entrega 059c revisada y acumulada en la rama `tkt-059-archivos-minimo`, sin PR. Un ciclo de corrección: `auditor-arquitectura`, `auditor-codigo` y `auditor-seguridad` `APROBADO`; `auditor-docs` `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` (`F001` a `F006`, solo redacción y cifras; comunicados a la persona dueña). Decisión de la persona dueña: `registrar_archivo` rechaza con `ValueError` un `referencia_tipo` fuera de los seis valores o distinto de `OBRA` sin `referencia_id`. Suite `3162 passed, 26 skipped`. Pendientes: `O4`, `O5` y `Body.read(fin - inicio + 1)` de 059b sin decisión de aplazamiento registrada; para TKT-018, el DTO con `Literal` de `referencia_tipo` y la verificación de rol y obra. Siguiente: `/sdd-ejecutar TKT-059d` (filas 11 a 13) |
 
 ## Decisiones registradas
 

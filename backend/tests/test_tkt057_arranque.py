@@ -110,13 +110,26 @@ def test_tkt057_ca15_esc2_el_servidor_solo_recibe_la_contrasena_de_aplicacion() 
     )
 
     campos = set(AjustesServidor.model_fields)
+    # TKT-059 fila 8 ajusta este caso: los ajustes pasan de cuatro a catorce campos (el almacén y los
+    # archivos). `archivos_vida_url_lectura` contiene «lectura» sin ser una credencial.
     assert campos == {
         "db_contrasena_aplicacion",
         "almacen_origen",
         "trabajos_intervalo_latido",
         "trabajos_umbral_vencimiento",
+        "almacen_endpoint",
+        "almacen_bucket",
+        "almacen_clave_acceso",
+        "almacen_clave_secreta",
+        "archivos_vida_url_subida",
+        "archivos_vida_url_lectura",
+        "archivos_umbral_pendiente",
+        "archivos_limite_imagen_bytes",
+        "archivos_limite_video_bytes",
+        "archivos_limite_documento_bytes",
     }
-    assert not any("migracion" in campo or "lectura" in campo for campo in campos)
+    campos_de_base = {campo for campo in campos if campo.startswith("db_")}
+    assert campos_de_base == {"db_contrasena_aplicacion"}
     assert ajustes.db_contrasena_aplicacion.get_secret_value() == CONTRASENA_APLICACION
     assert ajustes.almacen_origen is None
 

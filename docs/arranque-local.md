@@ -102,6 +102,8 @@ uv run --env-file ../.env python -m herramientas.almacen_local
 
 `CIMENTA_SPA_ORIGEN` (por omisión `http://localhost:5173`, el origen de Vite) es el origen desde el que el navegador sube y lee objetos. MinIO no implementa `put_bucket_cors` (responde 501), así que el CORS no lo aplica ningún código: `compose.almacen.yaml` lo fija con `MINIO_API_CORS_ALLOW_ORIGIN`, tomando el valor de esa variable. Si cambias el origen de la SPA, vuelve a crear el contenedor con el mismo comando. La consola de MinIO queda en `http://127.0.0.1:9001` y el API en `http://127.0.0.1:9000`; ambos puertos se publican solo a `127.0.0.1`.
 
+Desde TKT-059c, la aplicación con las variables de base configuradas (`CIMENTA_DB_HOST`, `CIMENTA_DB_PUERTO` y `CIMENTA_DB_NOMBRE`) no arranca si falta alguna de las cuatro variables del almacén: `CIMENTA_ALMACEN_ORIGEN`, `CIMENTA_ALMACEN_BUCKET`, `CIMENTA_ALMACEN_CLAVE_ACCESO` y `CIMENTA_ALMACEN_CLAVE_SECRETA`. El error nombra las que faltan y nunca sus valores. Sin variables de base el servidor sigue arrancando sin almacén. `CIMENTA_ALMACEN_ENDPOINT` es opcional: si falta, el servidor opera sobre el origen. Las vidas de las URL, el umbral del barrido y los límites por categoría tienen valores por omisión y se ajustan con las variables `CIMENTA_ARCHIVOS_*` de `.env.example`.
+
 ## Frontend
 
 Desde `frontend/`:

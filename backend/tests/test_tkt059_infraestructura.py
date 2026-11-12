@@ -627,3 +627,80 @@ def test_tkt059_car1_control_humo_detecta_la_generacion_despues_de_levantar() ->
     assert problemas_de_humo_almacen(despues) == [
         "la clave del almacén se genera después de docker compose up"
     ]
+
+
+# ---------------------------------------------------------------------------------------------
+# TC-45b · fila 8: el entorno que deriva `humo` arranca con la obligatoriedad del almacén
+# ---------------------------------------------------------------------------------------------
+
+CONTRASENAS_GENERADAS_POR_HUMO = {
+    f"CIMENTA_DB_CONTRASENA_{rol}": f"generada-tkt059-{rol.lower()}-0a1b2c"
+    for rol in ("MIGRACION", "APLICACION", "LECTURA")
+}
+CLAVE_SECRETA_GENERADA_POR_HUMO = "generada-tkt059-almacen-3d4e5f"
+
+
+def _entorno_derivado_por_humo(
+    texto_env_example: str, *, con_clave_secreta: bool
+) -> dict[str, str]:
+    """El `.env` que arma el paso «Preparar el entorno…» de `humo`, leído como mapa.
+
+    `grep -v -e '^CIMENTA_DB_CONTRASENA_' -e '^CIMENTA_ALMACEN_CLAVE_SECRETA=' .env.example > .env`
+    deja las claves activas de `.env.example` sin esas cuatro; después se anexan las tres contraseñas
+    generadas y la clave secreta generada. Con `con_clave_secreta=False` se omite esa última línea.
+    """
+    activas = _claves_activas(texto_env_example)
+    mapa = {
+        clave: valor
+        for clave, valor in activas.items()
+        if not clave.startswith("CIMENTA_DB_CONTRASENA_")
+        and clave != "CIMENTA_ALMACEN_CLAVE_SECRETA"
+    }
+    mapa.update(CONTRASENAS_GENERADAS_POR_HUMO)
+    if con_clave_secreta:
+        mapa["CIMENTA_ALMACEN_CLAVE_SECRETA"] = CLAVE_SECRETA_GENERADA_POR_HUMO
+    return mapa
+
+
+def test_tkt059_car1_humo_arranca_con_el_env_derivado() -> None:
+    """TC-45b · CA-R1 · fila 8 — con el mapa que arma `humo` (claves activas de .env.example más las contraseñas y la clave generadas), `cargar_ajustes` no lanza y toma el almacén del ejemplo."""
+    from herramientas.conexion import variables_de_base_presentes
+    from servidor.ajustes import cargar_ajustes
+
+    entorno = _entorno_derivado_por_humo(_texto(ENV_EJEMPLO), con_clave_secreta=True)
+    assert variables_de_base_presentes(
+        entorno
+    )  # anti-verde vacío: el mapa tiene base, así que el almacén se exige
+
+    ajustes = cargar_ajustes(entorno)
+
+    assert ajustes.almacen_origen == ORIGEN_ALMACEN_LOCAL
+    assert ajustes.almacen_bucket == "cimenta"
+    assert ajustes.almacen_clave_acceso == "cimenta-local"
+    assert ajustes.almacen_clave_secreta is not None
+    assert ajustes.almacen_clave_secreta.get_secret_value() == CLAVE_SECRETA_GENERADA_POR_HUMO
+    assert ajustes.almacen_endpoint is None
+    assert (
+        ajustes.db_contrasena_aplicacion.get_secret_value()
+        == CONTRASENAS_GENERADAS_POR_HUMO["CIMENTA_DB_CONTRASENA_APLICACION"]
+    )
+
+
+def test_tkt059_car1_humo_sin_la_clave_secreta_generada_no_arranca() -> None:
+    """TC-45b · CA-R1 · fila 8 — si el paso de `humo` no genera la clave secreta, `cargar_ajustes` se niega nombrándola y sin ningún valor."""
+    from herramientas.conexion import variables_de_base_presentes
+    from servidor.ajustes import ConfiguracionInvalida, cargar_ajustes
+
+    entorno = _entorno_derivado_por_humo(_texto(ENV_EJEMPLO), con_clave_secreta=False)
+    assert variables_de_base_presentes(entorno)
+
+    with pytest.raises(ConfiguracionInvalida) as excepcion:
+        cargar_ajustes(entorno)
+
+    mensaje = str(excepcion.value)
+    assert mensaje == (
+        "Configuración incompleta o inválida: CIMENTA_ALMACEN_CLAVE_SECRETA. "
+        "Defínelas en el entorno; las claves están en .env.example."
+    )
+    assert not any(valor in mensaje for valor in entorno.values() if valor)
+    assert excepcion.value.__cause__ is None

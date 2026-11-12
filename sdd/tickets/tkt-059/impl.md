@@ -493,6 +493,197 @@ Cobertura de ramas de los dos módulos de la entrega, medida por `auditor-codigo
 | `auditor-seguridad` | `APROBADO` | 1 |
 | `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `N001` a `N006`, `O-N1` y `O-N2`, todos de redacción, resueltos por el orquestador con el texto literal del auditor tras el segundo ciclo | 2 |
 
-Observaciones de `auditor-seguridad` que quedan abiertas, ambas de prioridad baja: `O4` (algunas firmas defectuosas de `puremagic`, como `\x89PNG` escrito como texto o `%PDF` sin guion, producen un tipo de la lista blanca; el segundo ciclo cerró el caso de una candidata débil en el respaldo, pero las candidatas de máxima confianza con firma defectuosa siguen igual, y el objeto se sirve con ese tipo sin que el navegador lo interprete como HTML) y `O5` (un ZIP con `nlen` mayor que lo que queda del directorio coincide con `[Content_Types].xml` aunque `zipfile` lo rechace; el consumidor del `.xlsx` debe seguir validando con su propio analizador). Ambas se atienden en 059c. Observaciones de `auditor-codigo`: `O-9` a `O-11` (estéticas).
+Observaciones de `auditor-seguridad` que quedan abiertas, ambas de prioridad baja: `O4` (algunas firmas defectuosas de `puremagic`, como `\x89PNG` escrito como texto o `%PDF` sin guion, producen un tipo de la lista blanca; el segundo ciclo cerró el caso de una candidata débil en el respaldo, pero las candidatas de máxima confianza con firma defectuosa siguen igual, y el objeto se sirve con ese tipo sin que el navegador lo interprete como HTML) y `O5` (un ZIP con `nlen` mayor que lo que queda del directorio coincide con `[Content_Types].xml` aunque `zipfile` lo rechace; el consumidor del `.xlsx` debe seguir validando con su propio analizador). Ambas pasan a 059d o 059e (ver «Entrega TKT-059c»). Observaciones de `auditor-codigo`: `O-9` a `O-11` (estéticas).
 
 Resultado por criterio de 059b: todos los `[M]` de su alcance cumplidos con evidencia (ver la tabla de criterios de esta sección). Los criterios `CA-2`, `CA-4`, `CA-5` y `CA-6` se completan en 059c a 059e con los casos de uso y las rutas. Desviaciones: las de «Ajustes respecto al design (059b)» y el ciclo 1 de `/sdd-revisar`.
+
+
+## Entrega TKT-059c · Ajustes y alta (filas 8 a 10)
+
+Fecha de ejecución: 2026-11-12. Misma rama del ticket, `tkt-059-archivos-minimo`, partiendo del commit de cierre de 059b (`6bf304c`). La petición de ejecución nombraba también 059a y 059b; las dos ya estaban ejecutadas, revisadas y acumuladas en la rama, así que este comando ejecutó solo 059c, que es lo que admite el gate de `_index.md`.
+
+### Qué se implementó
+
+- Diez campos nuevos en `AjustesServidor` (el endpoint interno, el bucket, las dos claves, las vidas de las URL, el umbral del barrido y los tres límites) con sus validadores, y la exigencia de las cuatro variables del almacén cuando hay variables de base, en los dos retornos de `cargar_ajustes`. El mensaje nombra las variables que faltan y nunca sus valores.
+- `ContextoArchivos`, `ConfiguracionArchivos`, `AlmacenNoConfigurado` y `construir_contexto`, y su composición en `servidor/fabrica.py`: `crear_aplicacion(..., almacen=None)` con un proveedor perezoso del almacén. Construir la aplicación no crea el cliente de `boto3`. Todavía no hay enrutador, barrido ni lector (filas 11 en adelante).
+- El repositorio de `archivo` (`insertar`, `bloquear`, `leer`, `marcar_disponible`, `marcar_caducado`) y el caso de uso `registrar_archivo` con `AltaArchivo`, que escribe la fila `PENDIENTE` en la transacción de quien llama y devuelve la URL `PUT` firmada. `contexto_de_archivos` queda publicada para TKT-018.
+- `UrlFirmada.url` y `AltaArchivo.url` salen del `repr`, porque la URL prefirmada es una credencial de portador (RNF-06, ADR-016).
+- Regla de forma nueva en `evaluar_declaracion`: un `nombre_original` con `NUL` o con un sustituto Unicode se rechaza con `FORMATO`.
+
+### Ajustes respecto al design (059c)
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-12 | `evaluar_declaracion` rechaza `NUL` y sustitutos Unicode en `nombre_original` (`FORMATO`, «El nombre contiene caracteres no permitidos.»). La tabla de «Límites y forma de la declaración» y los casos `TC-13` y `TC-49` de `design.md` lo recogen. `_defectos_nombre` acumula `DEMASIADO_LARGO` y `FORMATO`; un nombre en blanco solo da `OBLIGATORIO`. | `auditor-arquitectura` halló (F001) que un nombre con `NUL` o con un sustituto pasaba la declaración y fallaba en el `INSERT` con un `500` (`DataError` de PostgreSQL o `UnicodeEncodeError` de `psycopg`). 059b lo había dejado «para 059c». **Decisión de la persona dueña, 2026-11-12:** resolverlo como regla de forma en el dominio, sin `RN-xx` |
+| 2026-11-12 | `almacen_bucket` se valida con `^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$` y el mensaje «debe ser un nombre de bucket válido». | El diseño fija el patrón pero no el texto. El mensaje no sale al operador, porque `ConfiguracionInvalida` solo nombra la variable; dos tests lo cubren |
+| 2026-11-12 | `AltaArchivo.url` también va con `field(repr=False)`. | El diseño lo pedía solo para `UrlFirmada`; `AltaArchivo` arrastra la misma credencial hacia el registro. `auditor-arquitectura` lo aprobó y se añadió su test (F002) |
+| 2026-11-12 | `repositorio.insertar` recibe una `FilaArchivo` y no una lista de argumentos por palabra clave. | Desviación menor de la firma del diseño (observación `O-5`); el comportamiento y las columnas son los mismos |
+| 2026-11-12 | Los desarrolladores de las filas 8 y 9 escribieron todos sus pasos de una vez y corrieron la suite después, en lugar de ponerlos en verde de uno en uno. | Todos los tests de cada fila ya estaban en rojo por la misma ausencia de la funcionalidad. El verde final de cada fila es completo |
+
+Pendientes de 059b que 059c no cierra, con su destino: `O4` y `O5` de `auditor-seguridad` (firmas defectuosas de `puremagic` y `nlen` mayor que el directorio central) y pedir `Body.read(fin - inicio + 1)` en `leer_rango` siguen abiertas porque ninguna de las filas 8 a 10 las asigna. Son de prioridad baja y se atienden en 059d o 059e, o se descartan con motivo en la revisión de esa entrega. La comprobación de que XML y `.xlsx` nunca se sirven en línea (`O3`) es de la fila 14 (059e).
+
+### Archivos tocados (059c)
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/servidor/ajustes.py`, `backend/servidor/fabrica.py` | modificados | servidor |
+| `backend/cimenta/archivos/aplicacion/contexto.py`, `aplicacion/alta.py` | nuevos | aplicación |
+| `backend/cimenta/archivos/infraestructura/repositorio.py` | nuevo | infraestructura |
+| `backend/cimenta/archivos/api/dependencias.py` | nuevo | api |
+| `backend/cimenta/archivos/interfaz.py`, `dominio/url_firmada.py`, `dominio/declaracion.py` | modificados | interfaz y dominio |
+| `backend/tests/test_tkt059_ajustes.py`, `test_tkt059_alta.py` | nuevos | pruebas |
+| `backend/tests/test_tkt059_infraestructura.py` (`TC-45b`), `test_tkt057_arranque.py` (`TKT-057/TC-52`), `test_tkt059_dominio.py` (NUL y sustitutos) | modificados | pruebas |
+| `docs/arranque-local.md`, `sdd/tickets/tkt-059/design.md`, `impl.md`, `_index.md`, `rojo/fila-8.txt`, `rojo/fila-9.txt`, `rojo/f001-nul.txt` | modificados o nuevos | documentación |
+
+### Pruebas y ciclo TDD por fila (059c)
+
+| Fila | Rojo (`sdd/tickets/tkt-059/rojo/`) | Ejecutó | Verde | Mutantes |
+|---|---|---|---|---|
+| 8 | `fila-8.txt`: `68 failed, 68 passed`, cero errores. Las razones son la ausencia de los campos de ajustes y de los símbolos de `cimenta.archivos.interfaz`, y rechazos que no ocurrían | `tester-backend` (`sonnet`) → `desarrollador-aplicacion` (`haiku`) | `171 passed` en las siete suites de la fila | `X2` |
+| 9 | `fila-9.txt`: `25 failed`, cero errores. Importaciones ausentes dentro del test y el `repr` que mostraba la URL | `tester-backend` (`sonnet`) → `desarrollador-aplicacion` (`haiku`) | `102 passed` en `test_tkt059_alta.py` y `test_tkt059_ajustes.py` | `M-05b`, `X1` |
+| 10 | — | `tester-backend` (`sonnet`) | Suite completa, abajo | — |
+| F001 | `f001-nul.txt`: `16 failed, 5 passed`; los 5 son guardas de nombres válidos que nacen en verde a propósito | `tester-backend` (`sonnet`) → `desarrollador-dominio` (`haiku`) | `122 passed` en `test_tkt059_dominio.py` y `test_tkt059_alta.py` | Dieciséis mutantes de `auditor-arquitectura` |
+
+Corrección de error del propio test, hecha por `tester-backend`: el caso `par_sustituto_sin_combinar` usaba el emoji real U+1F600 (un carácter válido) en lugar de dos sustitutos escapados, y contradecía el caso válido de emoji. `desarrollador-dominio` lo señaló y no lo editó.
+
+Las filas 8 y 9 son de ejecución con subagentes: el tester escribió el rojo y un agente distinto lo puso en verde.
+
+### Mutación (059c)
+
+Protocolo de `tester-backend`: copia previa fuera del repositorio, huella SHA-256 de todos los `.py` de `backend/` antes y después, un mutante a la vez y `git status` idéntico al terminar. Huella antes y después de cada reversión: `d8d13c36a20f8593e4be7f1d56a9ff9765ba8439645c59158b181095089086bb`.
+
+| Mutante | Cambio | Test que cae |
+|---|---|---|
+| `M-05b` | `registrar_archivo` firma la URL antes de evaluar la declaración | `TC-11` (`tamano_declarado_excede_limite` por las tres categorías) y los rechazos de `TC-12` y `TC-13`: 13 failed, 12 passed |
+| `X1` | `registrar_archivo` inserta la fila antes de evaluar la declaración | Los mismos 13, por `assert 1 == 0` |
+| `X2` | `cargar_ajustes(None)` no llama a `_exigir_almacen_con_base` | `sin_mapa_tambien_se_exige_el_almacen_con_base` y `proceso_con_base_y_sin_bucket_no_arranca` |
+| F002 | Quitar `repr=False` de `AltaArchivo.url` | `alta_archivo_oculta_la_url_en_su_repr` |
+
+Ningún mutante sobrevivió.
+
+### Modelo por paso (059c)
+
+| Paso | Agente | Modelo | Motivo |
+|---|---|---|---|
+| Fila 8, rojo | `tester-backend` | `sonnet` | Valor por omisión del tester |
+| Fila 8, verde | `desarrollador-aplicacion` | `haiku` | Valor del diseño; cerró a la primera |
+| Fila 9, rojo | `tester-backend` | `sonnet` | Valor por omisión |
+| Fila 9, verde | `desarrollador-aplicacion` | `haiku` | Valor del diseño; cerró a la primera |
+| Fila 10, mutación y suite | `tester-backend` | `sonnet` | Valor por omisión |
+| F001, rojo | `tester-backend` | `sonnet` | Valor por omisión |
+| F001, verde | `desarrollador-dominio` | `haiku` | Tarea mecánica; devolvió un test equivocado y el tester lo corrigió |
+| Auditorías de cierre | `auditor-arquitectura` | `sonnet` | Valor del comando |
+
+### Resultado contra los criterios de aceptación (alcance de 059c)
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| `CA-2` esc. 1 (con base, el almacén es obligatorio) | Cumplido | `TC-05`, con el mensaje exacto y sin valores |
+| `CA-2` esc. 2 (sin base arranca sin almacén) | Cumplido | `TC-06`, `TC-07b` |
+| `CA-2` (ajustes de archivos y endpoint) | Cumplido | `TC-07` |
+| `CA-3` esc. 1 a 3 (alta, tamaño excedido, tipo fuera de lista) | Cumplido | `TC-09` a `TC-13b` |
+| `CA-R1` (regresión del arranque sin base) | Cumplido | `TKT-057/TC-51`, `TKT-057/TC-52` ajustado, `TC-45b` |
+
+El escenario 24 de HDU-001 es de TKT-018; esta entrega le deja la interfaz de alta.
+
+### Auditorías de cierre de fase (059c)
+
+| Auditor | Veredicto | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 2: el primero halló `F001` (NUL y sustitutos sin cubrir) y `F002` (sin test del `repr` de `AltaArchivo`), ambos Menores y resueltos |
+| `auditor-sql` | No aplica: la entrega no tiene esquema | — |
+
+Observaciones de `auditor-arquitectura` sin bloqueo: `O-1` (el repositorio completo se ejerce en 059d, con `M-15`, `TC-18` y `TC-28`), `O-2` (`functools.cache` no es seguro frente a hilos y, en el peor caso, se crean dos clientes `boto3` inocuos), `O-3` (`almacen_clave_acceso` es `str` y aparece en el `repr` de los ajustes; el diseño lo fija así), `O-4` (la clave foránea a `usuario` en el `MetaData` propio del repositorio es inofensiva porque nadie llama a `create_all`) y `O-6` (el aviso a TKT-058 y a `/sdd-desplegar` sobre las variables obligatorias va en el `delta.md`).
+
+Lo que `auditor-arquitectura` verificó en la reauditoría, ítem por ítem: F001 y F002 resueltos y probados con dieciséis mutantes en una copia fuera del repositorio; la pureza de `declaracion.py` (solo `re`, `dataclasses` y `tipos`); el orden y la acumulación de los defectos; que el alcance no creció; las reglas 1, 2, 11, 15 y 17; y el árbol sin cambios tras las mutaciones.
+
+### Documentación actualizada (059c)
+
+| Documento | Cambio |
+|---|---|
+| `docs/arranque-local.md` | Desde 059c, con las variables de base la aplicación no arranca sin las cuatro variables del almacén; qué es opcional |
+| `sdd/tickets/tkt-059/design.md` | Filas 8 a 10 marcadas; la fila nueva de `NUL` y sustitutos en la tabla de la declaración; `TC-13` y `TC-49` |
+
+### Hallazgos fuera de alcance (059c)
+
+| Archivo | Observación | Prioridad |
+|---|---|---|
+| `sdd/tickets/tkt-018b/` | Los cuatro problemas de `verificar_docs.py`, ajenos a este ticket | Baja |
+| `backend/tests/test_tkt059_dominio.py` | El separador de sección de `TC-50` perdió un espacio | Baja |
+
+### Verificación final de la entrega 059c
+
+Cifras copiadas de la última corrida, con Docker respondiendo (servidor 29.9.3):
+
+```text
+uv run pytest -q -ra          →  3162 passed, 26 skipped in 728.43s (0:12:08)
+uv run ruff format --check .  →  309 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 309 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+pip-audit (como el pipeline)  →  No known vulnerabilities found (corrida de la fila 10; F001 no cambia dependencias)
+python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos de TKT-018b
+python tools/extraer_mermaid.py  →  30 diagramas encontrados
+python -m unittest discover -s tools/tests -v  →  Ran 518 tests · OK
+```
+
+Los 26 saltos son las pruebas contra los archivos reales del catálogo (`CIMENTA_CATALOGO_*`, `PA-T3` de TKT-013), ajenas a este ticket.
+
+
+### Revisión de la entrega 059c (`/sdd-revisar`, 2026-11-12)
+
+Docker respondió (servidor 29.9.3). La suite completa se ejecutó dos veces durante la ejecución y la revisión (`3145` y `3162` pruebas pasadas) porque el ciclo de corrección añadió tests; la que cuenta es la última.
+
+#### Ciclo de corrección
+
+| Auditor | Hallazgo | Gravedad | Decisión |
+|---|---|---|---|
+| `auditor-codigo` | `F001` · `registrar_archivo` aceptaba un `referencia_tipo` fuera de los seis valores, o distinto de `OBRA` sin `referencia_id`, y fallaba en el `INSERT` con un `500` | Menor | **Decisión de la persona dueña, 2026-11-12:** guarda con `ValueError` antes de evaluar, insertar o firmar. Once tests nuevos, en rojo antes del código (`sdd/tickets/tkt-059/rojo/revisar-f001.txt`) y en verde después. Corregido por `corrector-revision` |
+| `auditor-codigo` | `F002` · `# type: ignore` sin justificación en el espía de los tests | Menor | Sustituido por `cast(AlmacenObjetos, espia)` |
+| `auditor-codigo` | `F003` · la lista de las cuatro variables obligatorias del almacén estaba duplicada | Menor | `AjustesServidor.almacen_obligatorio()` es ahora el único origen |
+| `auditor-codigo` | `F004` · aserción tautológica en `TKT-057/TC-52` | Menor | Eliminada |
+| `auditor-codigo` | `F005` · separador `TC-50·` sin espacio | Menor | Restaurado |
+| `auditor-docs` | `F001`, `F001b` · cifra de la suite desactualizada | Menor | Sustituida por `3162 passed, 26 skipped in 728.43s (0:12:08)` en `impl.md` y `_index.md` |
+| `auditor-docs` | `F002` · faltaban `extraer_mermaid.py` y `unittest` en la verificación final | Menor | Añadidos con su salida |
+| `auditor-docs` | `F003`, `F003b` · `CA-10` citado como ajustes; es el barrido de la fila 15 | Menor | `CA-10` quitado de la fila de `impl.md` y de `TC-07` en `design.md` |
+| `auditor-docs` | `F004` · `O4` y `O5` «se atienden en 059c» en la sección de 059b | Menor | Reemplazado por «pasan a 059d o 059e» |
+| `auditor-docs` | `F005` · el nombre del test de `TC-07` no existía | Menor | `design.md` lista los cuatro nombres reales |
+| `auditor-docs` | `F006` · `PA-T3` sin prefijo | Menor | `PA-T3 de TKT-013` |
+
+Los hallazgos de `auditor-docs` son de redacción y de cifras; el orquestador los resolvió con el texto literal del auditor, sin reauditar (paso 4 de `/sdd-revisar`), y se los comunica a la persona dueña.
+
+Observaciones que quedan abiertas, sin bloqueo:
+
+- `auditor-seguridad` · `F001` (`almacen_clave_acceso` es `str` y aparece en el `repr` de los ajustes; el diseño lo fija así), `F002` (el nombre acepta `\n` y marcas bidireccionales; el cliente debe escapar siempre `nombre_original`) y `F003` (los límites por categoría no tienen tope). Las tres son de prioridad baja.
+- `auditor-seguridad` · para TKT-018: `registrar_archivo` confía en `obra_id`, `referencia_tipo` y `referencia_id`, así que la ruta debe verificar rol y asignación a la obra, y que `referencia_id` pertenezca a ella.
+- `auditor-seguridad` · para 059d: al confirmar, la categoría del tipo leído de los bytes debería aplicar su propio límite.
+- `auditor-codigo` · `N08` para TKT-018: el DTO debe tipar `referencia_tipo` como `Literal` de los seis valores, con un test del `422`, o el cliente recibiría un `500`.
+- `auditor-codigo` · `N03`: `herramientas/almacen_local.py` tiene una tercera copia de la lista de variables, anterior a esta entrega.
+- `auditor-docs` · `O1` (el aplazamiento de `O4`, `O5` y `Body.read(fin - inicio + 1)` a 059d o 059e no tiene decisión registrada), `O2` (la regla de `NUL` y sustitutos no tiene ADR; es una regla de forma sin alternativas relevantes) y `O4` (la regla vive en `design.md` y no en `spec.md`).
+
+#### Verificación final de la entrega 059c
+
+Cifras copiadas de la última corrida, desde `backend/`:
+
+```text
+uv run pytest -q -ra          →  3162 passed, 26 skipped in 728.43s (0:12:08)
+uv run ruff format --check .  →  309 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 309 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos de TKT-018b
+```
+
+| Auditor | Veredicto final | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 2 (el ciclo 1 halló `F001` y `F002`, resueltos) |
+| `auditor-sql` | No aplica: la entrega no tiene esquema | — |
+| `auditor-codigo` | `APROBADO` | 2 (el ciclo 1 halló `F001` a `F005`, resueltos) |
+| `auditor-seguridad` | `APROBADO` | 1 |
+| `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F006` de redacción y cifras, resueltos por el orquestador con el texto literal del auditor | 1 |
+
+Resultado por criterio de 059c: todos los `[M]` de su alcance cumplidos con evidencia (`CA-2`, `CA-3` y `CA-R1`, ver la tabla de criterios de esta sección). Los criterios `CA-4` a `CA-14` se completan en 059d y 059e. Desviaciones: las de «Ajustes respecto al design (059c)» y las de este ciclo.

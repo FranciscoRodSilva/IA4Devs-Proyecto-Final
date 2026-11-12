@@ -1,0 +1,3 @@
+FAILED tests/test_tkt059_alta.py::test_tkt059_ca03_contexto_de_archivos - Imp...
+FAILED tests/test_tkt059_alta.py::test_tkt059_ca03_url_firmada_oculta_la_url_en_su_repr
+25 failed in 6.92s

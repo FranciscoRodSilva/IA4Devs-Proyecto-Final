@@ -393,6 +393,97 @@ def test_tkt059_dominio_evaluar_declaracion_campo_raiz_prefija_los_campos() -> N
     )
 
 
+MSG_NOMBRE_NO_PERMITIDO = "El nombre contiene caracteres no permitidos."
+
+
+@pytest.mark.parametrize(
+    "nombre",
+    [
+        pytest.param("\x00Presupuesto.xlsx", id="nul_al_inicio"),
+        pytest.param("Presu\x00puesto.xlsx", id="nul_en_medio"),
+        pytest.param("Presupuesto.xlsx\x00", id="nul_al_final"),
+        pytest.param("\x00", id="solo_nul"),
+        pytest.param("Presu\x00pues\x00to.xlsx", id="varios_nul"),
+        pytest.param("a\ud800b", id="sustituto_alto_solitario"),
+        pytest.param("a\udc00b", id="sustituto_bajo_solitario"),
+        pytest.param("a\udfffb", id="sustituto_ultimo_u_dfff"),
+        pytest.param("\ud800", id="solo_un_sustituto"),
+        pytest.param("a\ud83d\ude00b", id="par_sustituto_sin_combinar"),
+        pytest.param("a\x00b\ud800c", id="nul_y_sustituto_a_la_vez"),
+    ],
+)
+def test_tkt059_ca03_dominio_nombre_con_nul_o_sustituto_se_rechaza(nombre: str) -> None:
+    """TC-49 · CA-3 · RNF-06 — un NUL o un sustituto Unicode (U+D800 a U+DFFF) en el nombre produce
+    un solo defecto `FORMATO` en `nombre_original`, con el mensaje exacto; es regla de forma, sin RN."""
+    assert _evaluar(nombre=nombre) == (
+        _defecto("archivo.nombre_original", "FORMATO", MSG_NOMBRE_NO_PERMITIDO),
+    )
+
+
+@pytest.mark.parametrize(
+    "nombre",
+    [
+        pytest.param("Presupuesto ñandú torre 5 😀 final.xlsx", id="tildes_emoji_y_espacios"),
+        pytest.param("퟿a", id="u_d7ff_justo_antes_de_los_sustitutos"),
+        pytest.param("a", id="u_e000_justo_despues_de_los_sustitutos"),
+        pytest.param("a\u0001b\u001fc", id="otros_controles_no_son_nul"),
+        pytest.param("日本語 \U0001f600\U0010ffff.pdf", id="planos_astrales_validos"),
+    ],
+)
+def test_tkt059_ca03_dominio_nombre_valido_no_produce_defectos(nombre: str) -> None:
+    """TC-49 · CA-3 — el rechazo es solo de NUL y sustitutos: tildes, emoji, espacios, los bordes
+    U+D7FF y U+E000 y otros controles distintos de NUL no producen defecto."""
+    assert _evaluar(nombre=nombre) == ()
+
+
+def test_tkt059_ca03_dominio_nombre_con_nul_respeta_el_orden_de_la_tabla() -> None:
+    """TC-49 · CA-3 — orden de la tabla: el defecto del nombre con NUL va después de los otros
+    defectos de `nombre_original` y antes de los de `tamano_bytes`, `hash_sha256` y el tipo."""
+    # Con DEMASIADO_LARGO el nombre incumple dos reglas: salen las dos, en este orden.
+    assert _evaluar(nombre="\x00" + "a" * 255) == (
+        _defecto("archivo.nombre_original", "DEMASIADO_LARGO", MSG_DEMASIADO_LARGO),
+        _defecto("archivo.nombre_original", "FORMATO", MSG_NOMBRE_NO_PERMITIDO),
+    )
+    # Con el resto de los campos inválidos, el nombre va primero y el tamaño después.
+    assert _evaluar(nombre="a\x00b", tamano=0, hash_sha256="ABC", tipo="text/xml") == (
+        _defecto("archivo.nombre_original", "FORMATO", MSG_NOMBRE_NO_PERMITIDO),
+        _defecto("archivo.tamano_bytes", "NO_POSITIVO", MSG_NO_POSITIVO),
+        _defecto("archivo.hash_sha256", "FORMATO", MSG_FORMATO_HASH),
+        _defecto("archivo.tipo_declarado", "VALOR_NO_PERMITIDO", MSG_VALOR_NO_PERMITIDO),
+    )
+    # Todo junto: nombre largo con NUL, hash inválido y tamaño sobre el límite.
+    assert _evaluar(
+        nombre="a\ud800" + "b" * 255, hash_sha256="3f" * 31 + "3", tamano=LIMITE_DOCUMENTO + 1
+    ) == (
+        _defecto("archivo.nombre_original", "DEMASIADO_LARGO", MSG_DEMASIADO_LARGO),
+        _defecto("archivo.nombre_original", "FORMATO", MSG_NOMBRE_NO_PERMITIDO),
+        _defecto("archivo.hash_sha256", "FORMATO", MSG_FORMATO_HASH),
+        _defecto(
+            "archivo.tamano_bytes",
+            "FUERA_DE_RANGO",
+            "El archivo excede el límite de 26214400 bytes (25 MB) para documentos.",
+        ),
+    )
+
+
+def test_tkt059_ca03_dominio_nombre_con_nul_respeta_campo_raiz() -> None:
+    """TC-49 · CA-3 — con otro `campo_raiz`, el defecto del nombre con NUL cuelga de ese prefijo."""
+    assert _evaluar(nombre="a\x00b", campo_raiz="declaracion") == (
+        _defecto("declaracion.nombre_original", "FORMATO", MSG_NOMBRE_NO_PERMITIDO),
+    )
+
+
+def test_tkt059_ca03_dominio_nombre_en_blanco_no_se_confunde_con_nul() -> None:
+    """TC-49 · CA-3 — un nombre vacío o en blanco sigue siendo `OBLIGATORIO` y solo eso; el NUL no
+    cuenta como espacio en blanco, así que `"  \\x00"` no es `OBLIGATORIO`."""
+    assert _evaluar(nombre="  ") == (
+        _defecto("archivo.nombre_original", "OBLIGATORIO", MSG_OBLIGATORIO),
+    )
+    assert _evaluar(nombre="  \x00") == (
+        _defecto("archivo.nombre_original", "FORMATO", MSG_NOMBRE_NO_PERMITIDO),
+    )
+
+
 # --- TC-50 · tipos y disposición -----------------------------------------------------------------
 
 
