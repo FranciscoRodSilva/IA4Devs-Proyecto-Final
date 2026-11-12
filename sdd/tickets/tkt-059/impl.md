@@ -497,7 +497,6 @@ Observaciones de `auditor-seguridad` que quedan abiertas, ambas de prioridad baj
 
 Resultado por criterio de 059b: todos los `[M]` de su alcance cumplidos con evidencia (ver la tabla de criterios de esta sección). Los criterios `CA-2`, `CA-4`, `CA-5` y `CA-6` se completan en 059c a 059e con los casos de uso y las rutas. Desviaciones: las de «Ajustes respecto al design (059b)» y el ciclo 1 de `/sdd-revisar`.
 
-
 ## Entrega TKT-059c · Ajustes y alta (filas 8 a 10)
 
 Fecha de ejecución: 2026-11-12. Misma rama del ticket, `tkt-059-archivos-minimo`, partiendo del commit de cierre de 059b (`6bf304c`). La petición de ejecución nombraba también 059a y 059b; las dos ya estaban ejecutadas, revisadas y acumuladas en la rama, así que este comando ejecutó solo 059c, que es lo que admite el gate de `_index.md`.
@@ -631,7 +630,6 @@ python -m unittest discover -s tools/tests -v  →  Ran 518 tests · OK
 
 Los 26 saltos son las pruebas contra los archivos reales del catálogo (`CIMENTA_CATALOGO_*`, `PA-T3` de TKT-013), ajenas a este ticket.
 
-
 ### Revisión de la entrega 059c (`/sdd-revisar`, 2026-11-12)
 
 Docker respondió (servidor 29.9.3). La suite completa se ejecutó dos veces durante la ejecución y la revisión (`3145` y `3162` pruebas pasadas) porque el ciclo de corrección añadió tests; la que cuenta es la última.
@@ -687,7 +685,6 @@ python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos d
 | `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F006` de redacción y cifras, resueltos por el orquestador con el texto literal del auditor | 1 |
 
 Resultado por criterio de 059c: todos los `[M]` de su alcance cumplidos con evidencia (`CA-2`, `CA-3` y `CA-R1`, ver la tabla de criterios de esta sección). Los criterios `CA-4` a `CA-14` se completan en 059d y 059e. Desviaciones: las de «Ajustes respecto al design (059c)» y las de este ciclo.
-
 
 ## Entrega TKT-059d · Confirmación del archivo y su ruta (filas 11 a 13)
 
@@ -804,7 +801,6 @@ python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos d
 
 Los 26 saltos son las pruebas contra los archivos reales del catálogo (`CIMENTA_CATALOGO_*`, `PA-T3` de TKT-013), ajenas a este ticket.
 
-
 ### Revisión de la entrega 059d (`/sdd-revisar`, 2026-11-12)
 
 Docker respondió (servidor 29.9.3). La suite completa se ejecutó tres veces durante la ejecución y la revisión (`3201`, `3205` y `3206` pruebas pasadas) porque los ciclos de corrección añadieron tests; la que cuenta es la última.
@@ -856,7 +852,6 @@ python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos d
 | `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F003`, de redacción, resueltos por el orquestador con el texto literal del auditor | 1 |
 
 Resultado por criterio de 059d: todos los `[M]` de su alcance cumplidos con evidencia (`CA-4` a `CA-7`, ver la tabla de criterios de la sección «Entrega TKT-059d»). Los criterios `CA-8` a `CA-12` se completan en 059e. Desviaciones: las de «Ajustes respecto al design (059d)» y las de este ciclo.
-
 
 ## Entrega TKT-059e · Consulta, barrido, lector y prueba de rutas (filas 14 a 17)
 
@@ -1001,7 +996,6 @@ python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos d
 ```
 
 La concurrencia (`test_tkt059_confirmacion_concurrencia.py`) pasó tres veces seguidas sin intermitencia (`4 passed` cada vez). Los 26 saltos son las pruebas contra los archivos reales del catálogo (`CIMENTA_CATALOGO_ENITI` y `CIMENTA_CATALOGO_UNION`, `PA-T3` de TKT-013), ajenas a este ticket.
-
 
 ### Revisión de la entrega 059e (`/sdd-revisar`, 2026-11-12)
 
