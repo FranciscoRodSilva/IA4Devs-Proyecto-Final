@@ -1,0 +1,2321 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF                     [100%]
+================================== FAILURES ===================================
+____________ test_tkt059_ca08_descargar_un_pdf[DIRECCION_GENERAL] _____________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38AD9A510>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('b5c5fb7d-3705-4cc9-baa9-97a40a00e946'), sesion_del_director=UUID('cc65f2cc-d6e0-4a72-8043-7baa5723d48e'))
+rol = 'DIRECCION_GENERAL'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_descargar_un_pdf(escena: Escena, rol: str) -> None:
+        """TC-31 · CA-8 esc. 1 · RNF-06 · ADR-016 — un PDF `DISPONIBLE` se descarga por una URL prefirmada: `200` y `attachment`.
+    
+        Para `DIRECCION_GENERAL` y `DIRECTOR_PROYECTOS`, que no son quien subió el archivo. El cuerpo valida
+        contra `UrlDescarga` del borrador y tiene exactamente sus propiedades. La `url` empieza por el origen
+        del almacén (no por el de la aplicación), vive cinco minutos (`expira_en == reloj + 5 min`, con zona;
+        `X-Amz-Expires=300`) y se firmó una sola vez con el tipo, el nombre y la disposición de la fila. Un
+        `GET` real a esa URL, sin cookies, responde `200` con los bytes del PDF, `Content-Type:
+        application/pdf` y un `Content-Disposition` que empieza por `attachment;` y lleva el nombre.
+        """
+        archivo = escena.disponible(PDF)
+        _, sesion = escena.lector(rol)
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/e0de9a58-2051-4165-8056-a242d19843e4/descarga","correlacion_id":"ba9fc490-2352-4fce-bfd4-c200d769bda1"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:533: AssertionError
+____________ test_tkt059_ca08_descargar_un_pdf[DIRECTOR_PROYECTOS] ____________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B2F4190>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('6c3fc301-80d8-4e0b-b5d0-486999363ebf'), sesion_del_director=UUID('b95979b3-006d-4325-8341-88038b2497a2'))
+rol = 'DIRECTOR_PROYECTOS'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_descargar_un_pdf(escena: Escena, rol: str) -> None:
+        """TC-31 · CA-8 esc. 1 · RNF-06 · ADR-016 — un PDF `DISPONIBLE` se descarga por una URL prefirmada: `200` y `attachment`.
+    
+        Para `DIRECCION_GENERAL` y `DIRECTOR_PROYECTOS`, que no son quien subió el archivo. El cuerpo valida
+        contra `UrlDescarga` del borrador y tiene exactamente sus propiedades. La `url` empieza por el origen
+        del almacén (no por el de la aplicación), vive cinco minutos (`expira_en == reloj + 5 min`, con zona;
+        `X-Amz-Expires=300`) y se firmó una sola vez con el tipo, el nombre y la disposición de la fila. Un
+        `GET` real a esa URL, sin cookies, responde `200` con los bytes del PDF, `Content-Type:
+        application/pdf` y un `Content-Disposition` que empieza por `attachment;` y lleva el nombre.
+        """
+        archivo = escena.disponible(PDF)
+        _, sesion = escena.lector(rol)
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/2139c64a-296d-4a4b-8f3a-7667429136d8/descarga","correlacion_id":"14c54bd7-c1b8-4906-bd15-d22e0cf6ea86"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:533: AssertionError
+____________________ test_tkt059_ca08_una_imagen_en_linea _____________________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B199090>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('1c9ab125-4586-4ef9-8f6f-b8bb72b8bc43'), sesion_del_director=UUID('27e1e6c5-a664-4e7c-a048-c5a8a6526730'))
+
+    def test_tkt059_ca08_una_imagen_en_linea(escena: Escena) -> None:
+        """TC-32 · CA-8 esc. 2 · ADR-016 regla 3 — un JPEG `DISPONIBLE` se sirve `inline`: `disposicion` y cabecera lo dicen.
+    
+        Imagen y video son los únicos tipos que se muestran en la página; todo lo demás se descarga. El cuerpo
+        valida contra `UrlDescarga` con `disposicion` `inline`, y el `GET` real a la URL responde `200` con
+        `Content-Type: image/jpeg` y un `Content-Disposition` que empieza por `inline;`.
+        """
+        archivo = escena.disponible(JPEG)
+        _, sesion = escena.lector("DIRECCION_GENERAL")
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/7c093c85-186c-4812-b619-0fcb9c6534e5/descarga","correlacion_id":"b8150ae2-4aba-4b9e-b4d2-125fe37aacda"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:580: AssertionError
+________________ test_tkt059_ca08_metadatos[DIRECCION_GENERAL] ________________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B558E90>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('8daeb113-ad59-421c-8e7d-02cabe8439b9'), sesion_del_director=UUID('a00a4fb0-3c18-45cd-904e-237b5cd93e55'))
+rol = 'DIRECCION_GENERAL'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_metadatos(escena: Escena, rol: str) -> None:
+        """TC-34 · CA-8 esc. 4 · ADR-016 — los metadatos de un archivo `DISPONIBLE`: `200`, valida contra `Archivo` y no lleva `clave_objeto`.
+    
+        Para los dos roles de lectura, ninguno de los cuales subió el archivo. Las claves del cuerpo son
+        exactamente las propiedades del esquema del borrador; nada de la clave del objeto, del bucket ni de una
+        dirección del almacén. Se lee solo de la base: no se llama al almacén.
+        """
+        archivo = escena.disponible(XLSX)
+        _, sesion = escena.lector(rol)
+    
+        respuesta = escena.consultar(ruta_de_metadatos(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/1aab9806-1cd7-4803-ae1c-cbbe56509cc4","correlacion_id":"9a474427-c135-4112-b955-c62ce247bad8"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:614: AssertionError
+_______________ test_tkt059_ca08_metadatos[DIRECTOR_PROYECTOS] ________________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B558C30>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('7dac922c-c356-4d12-ab33-08af69cd6f3a'), sesion_del_director=UUID('d31af710-9f9b-4607-ba6e-6b6b26ad9f7a'))
+rol = 'DIRECTOR_PROYECTOS'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_metadatos(escena: Escena, rol: str) -> None:
+        """TC-34 · CA-8 esc. 4 · ADR-016 — los metadatos de un archivo `DISPONIBLE`: `200`, valida contra `Archivo` y no lleva `clave_objeto`.
+    
+        Para los dos roles de lectura, ninguno de los cuales subió el archivo. Las claves del cuerpo son
+        exactamente las propiedades del esquema del borrador; nada de la clave del objeto, del bucket ni de una
+        dirección del almacén. Se lee solo de la base: no se llama al almacén.
+        """
+        archivo = escena.disponible(XLSX)
+        _, sesion = escena.lector(rol)
+    
+        respuesta = escena.consultar(ruta_de_metadatos(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/c38afdd3-8e22-4164-bb6f-1b083ed78f6c","correlacion_id":"6353e995-fdae-45a8-b617-0bd4974a4e43"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:614: AssertionError
+________ test_tkt059_ca08_metadatos_de_un_caducado[DIRECCION_GENERAL] _________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B3CF410>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('dba43b5c-357f-47f5-9d9b-dfb2fedeb0a4'), sesion_del_director=UUID('25297eee-f9cd-4171-b795-7a06c21bc7d2'))
+rol = 'DIRECCION_GENERAL'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_metadatos_de_un_caducado(escena: Escena, rol: str) -> None:
+        """TC-34 · CA-8 esc. 4 — un archivo `CADUCADO` también se consulta: sale con ese estado y valida contra `Archivo`.
+    
+        Los metadatos no dependen de que el archivo se pueda descargar. La fila no cambia y no se asienta nada.
+        """
+        archivo = escena.alta(PDF)
+        escena.poner_estado(archivo, "CADUCADO")
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+    
+        respuesta = escena.consultar(ruta_de_metadatos(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/60779563-38a2-4e16-8077-8f4b768d2457","correlacion_id":"cdfa2420-36ba-4f61-ae8f-6c0c0f06ebd4"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:653: AssertionError
+________ test_tkt059_ca08_metadatos_de_un_caducado[DIRECTOR_PROYECTOS] ________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C8D7240>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('83d86ab9-1284-4175-84fb-c51b6aff437b'), sesion_del_director=UUID('386b020d-8a45-4533-a274-a870b65928a0'))
+rol = 'DIRECTOR_PROYECTOS'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_metadatos_de_un_caducado(escena: Escena, rol: str) -> None:
+        """TC-34 · CA-8 esc. 4 — un archivo `CADUCADO` también se consulta: sale con ese estado y valida contra `Archivo`.
+    
+        Los metadatos no dependen de que el archivo se pueda descargar. La fila no cambia y no se asienta nada.
+        """
+        archivo = escena.alta(PDF)
+        escena.poner_estado(archivo, "CADUCADO")
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+    
+        respuesta = escena.consultar(ruta_de_metadatos(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/3af857c7-d732-49d7-b5cb-da97131308c4","correlacion_id":"d2900840-1a70-4d3c-be78-5347ae60dfae"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:653: AssertionError
+_______ test_tkt059_ca08_metadatos_de_un_pendiente_o_anulado[PENDIENTE] _______
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C955260>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('36a26114-c85c-4732-b663-890c2ab7eaad'), sesion_del_director=UUID('d6120de5-1175-4c1d-af44-702b346c4538'))
+estado = 'PENDIENTE'
+
+    @pytest.mark.parametrize("estado", ["PENDIENTE", "ANULADO"])
+    def test_tkt059_ca08_metadatos_de_un_pendiente_o_anulado(escena: Escena, estado: str) -> None:
+        """TC-34 (extra, asumido) · CA-8 esc. 4 — los metadatos no se niegan por estado: `PENDIENTE` y `ANULADO` salen con el suyo.
+    
+        El diseño solo restringe la descarga por estado; `obtener_archivo` devuelve la fila tal cual. La
+        asunción queda anotada en el informe de la fila 14.
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+    
+        respuesta = escena.consultar(ruta_de_metadatos(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/7009bb02-6df7-47f3-a937-1a31b2265238","correlacion_id":"78981243-cf17-4d29-8b34-4b6d92dc05b4"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:679: AssertionError
+________ test_tkt059_ca08_metadatos_de_un_pendiente_o_anulado[ANULADO] ________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C955E10>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('632a175d-616d-4b69-9df4-a309ea00d7b8'), sesion_del_director=UUID('4eb7b3fc-8532-456d-b55b-c8176b3f3b55'))
+estado = 'ANULADO'
+
+    @pytest.mark.parametrize("estado", ["PENDIENTE", "ANULADO"])
+    def test_tkt059_ca08_metadatos_de_un_pendiente_o_anulado(escena: Escena, estado: str) -> None:
+        """TC-34 (extra, asumido) · CA-8 esc. 4 — los metadatos no se niegan por estado: `PENDIENTE` y `ANULADO` salen con el suyo.
+    
+        El diseño solo restringe la descarga por estado; `obtener_archivo` devuelve la fila tal cual. La
+        asunción queda anotada en el informe de la fila 14.
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+    
+        respuesta = escena.consultar(ruta_de_metadatos(archivo.archivo_id), sesion)
+    
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/9002d836-15ab-4c6c-9e21-a2e5e1a7d6fc","correlacion_id":"6206e800-c1a3-443e-a176-b64a25f3a117"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:679: AssertionError
+____ test_tkt059_ca09_descarga_no_disponible[pendiente-DIRECCION_GENERAL] _____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C8D78A0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('ee4529a9-0b5c-4074-9b07-e01d1353fb47'), sesion_del_director=UUID('1170c052-131e-449d-942e-421c5c38ec46'))
+rol = 'DIRECCION_GENERAL', estado = 'PENDIENTE'
+codigo = 'ARCHIVO_NO_DISPONIBLE'
+mensaje = 'El archivo todavía no está disponible.'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    @pytest.mark.parametrize(
+        ("estado", "codigo", "mensaje"),
+        [
+            pytest.param("PENDIENTE", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="pendiente"),
+            pytest.param("ANULADO", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="anulado"),
+            pytest.param("CADUCADO", "ARCHIVO_CADUCADO", MENSAJE_CADUCADO_AL_DESCARGAR, id="caducado"),
+        ],
+    )
+    def test_tkt059_ca09_descarga_no_disponible(
+        escena: Escena, rol: str, estado: str, codigo: str, mensaje: str
+    ) -> None:
+        """TC-35 · CA-9 esc. 1 y 2 · ADR-016 — una descarga que todavía no existe o ya no existe es un `409` `CONFLICTO`, no una URL.
+    
+        `PENDIENTE` (nadie confirm\xf3) y `ANULADO` \u2192 `ARCHIVO_NO_DISPONIBLE`; `CADUCADO` \u2192 `ARCHIVO_CADUCADO`. El
+        cuerpo es exacto: `tipo`, `codigo`, `mensaje` literal del diseño, `detalle` con solo `archivo_id` y
+        `estado_archivo`, y `acciones` vacías; ninguna `url`. El almacén no firma nada y no se le consulta, y
+        la fila y la bitácora quedan como estaban (el `409` no es un `DENEGAR`).
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        assert antes.fila["estado"] == estado
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       _exigir_conflicto(
+            respuesta,
+            codigo=codigo,
+            mensaje=mensaje,
+            detalle={"archivo_id": str(archivo.archivo_id), "estado_archivo": estado},
+        )
+
+tests\test_tkt059_consulta.py:717: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:416: in _exigir_conflicto
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 409
+esperado = {'tipo': 'CONFLICTO', 'codigo': 'ARCHIVO_NO_DISPONIBLE', 'mensaje': 'El archivo todavía no está disponible.', 'detalle': {'archivo_id': 'ed6064a8-53b3-41b5-bc04-d2a4254a78f0', 'estado_archivo': 'PENDIENTE'}, ...}
+esquema = 'ErrorConflictoEstado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ed6064a8-53b3-41b5-bc04-d2a4254a78f0/descarga","correlacion_id":"291ad760-30c8-475a-a51b-4f71a5f0b971"}
+E       assert 404 == 409
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+____ test_tkt059_ca09_descarga_no_disponible[pendiente-DIRECTOR_PROYECTOS] ____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38CEAC5A0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('ab7d49b6-4394-41a4-961b-9d7ff83c0847'), sesion_del_director=UUID('202982b6-4be4-4abe-9fda-6e100dc76ac4'))
+rol = 'DIRECTOR_PROYECTOS', estado = 'PENDIENTE'
+codigo = 'ARCHIVO_NO_DISPONIBLE'
+mensaje = 'El archivo todavía no está disponible.'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    @pytest.mark.parametrize(
+        ("estado", "codigo", "mensaje"),
+        [
+            pytest.param("PENDIENTE", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="pendiente"),
+            pytest.param("ANULADO", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="anulado"),
+            pytest.param("CADUCADO", "ARCHIVO_CADUCADO", MENSAJE_CADUCADO_AL_DESCARGAR, id="caducado"),
+        ],
+    )
+    def test_tkt059_ca09_descarga_no_disponible(
+        escena: Escena, rol: str, estado: str, codigo: str, mensaje: str
+    ) -> None:
+        """TC-35 · CA-9 esc. 1 y 2 · ADR-016 — una descarga que todavía no existe o ya no existe es un `409` `CONFLICTO`, no una URL.
+    
+        `PENDIENTE` (nadie confirm\xf3) y `ANULADO` \u2192 `ARCHIVO_NO_DISPONIBLE`; `CADUCADO` \u2192 `ARCHIVO_CADUCADO`. El
+        cuerpo es exacto: `tipo`, `codigo`, `mensaje` literal del diseño, `detalle` con solo `archivo_id` y
+        `estado_archivo`, y `acciones` vacías; ninguna `url`. El almacén no firma nada y no se le consulta, y
+        la fila y la bitácora quedan como estaban (el `409` no es un `DENEGAR`).
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        assert antes.fila["estado"] == estado
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       _exigir_conflicto(
+            respuesta,
+            codigo=codigo,
+            mensaje=mensaje,
+            detalle={"archivo_id": str(archivo.archivo_id), "estado_archivo": estado},
+        )
+
+tests\test_tkt059_consulta.py:717: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:416: in _exigir_conflicto
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 409
+esperado = {'tipo': 'CONFLICTO', 'codigo': 'ARCHIVO_NO_DISPONIBLE', 'mensaje': 'El archivo todavía no está disponible.', 'detalle': {'archivo_id': 'ff894d2a-8226-4456-8b69-c1290f01399b', 'estado_archivo': 'PENDIENTE'}, ...}
+esquema = 'ErrorConflictoEstado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ff894d2a-8226-4456-8b69-c1290f01399b/descarga","correlacion_id":"12d69bda-26b9-40c3-9473-0633584e0be7"}
+E       assert 404 == 409
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_____ test_tkt059_ca09_descarga_no_disponible[anulado-DIRECCION_GENERAL] ______
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38CDA49E0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('755e6eb3-9091-4f68-b5e5-042db227040d'), sesion_del_director=UUID('6c72fdb3-e602-4b39-ad3d-c6b0f500b513'))
+rol = 'DIRECCION_GENERAL', estado = 'ANULADO', codigo = 'ARCHIVO_NO_DISPONIBLE'
+mensaje = 'El archivo todavía no está disponible.'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    @pytest.mark.parametrize(
+        ("estado", "codigo", "mensaje"),
+        [
+            pytest.param("PENDIENTE", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="pendiente"),
+            pytest.param("ANULADO", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="anulado"),
+            pytest.param("CADUCADO", "ARCHIVO_CADUCADO", MENSAJE_CADUCADO_AL_DESCARGAR, id="caducado"),
+        ],
+    )
+    def test_tkt059_ca09_descarga_no_disponible(
+        escena: Escena, rol: str, estado: str, codigo: str, mensaje: str
+    ) -> None:
+        """TC-35 · CA-9 esc. 1 y 2 · ADR-016 — una descarga que todavía no existe o ya no existe es un `409` `CONFLICTO`, no una URL.
+    
+        `PENDIENTE` (nadie confirm\xf3) y `ANULADO` \u2192 `ARCHIVO_NO_DISPONIBLE`; `CADUCADO` \u2192 `ARCHIVO_CADUCADO`. El
+        cuerpo es exacto: `tipo`, `codigo`, `mensaje` literal del diseño, `detalle` con solo `archivo_id` y
+        `estado_archivo`, y `acciones` vacías; ninguna `url`. El almacén no firma nada y no se le consulta, y
+        la fila y la bitácora quedan como estaban (el `409` no es un `DENEGAR`).
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        assert antes.fila["estado"] == estado
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       _exigir_conflicto(
+            respuesta,
+            codigo=codigo,
+            mensaje=mensaje,
+            detalle={"archivo_id": str(archivo.archivo_id), "estado_archivo": estado},
+        )
+
+tests\test_tkt059_consulta.py:717: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:416: in _exigir_conflicto
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 409
+esperado = {'tipo': 'CONFLICTO', 'codigo': 'ARCHIVO_NO_DISPONIBLE', 'mensaje': 'El archivo todavía no está disponible.', 'detalle': {'archivo_id': 'dd6a6499-3e48-4e78-b431-2dda9c3271a6', 'estado_archivo': 'ANULADO'}, ...}
+esquema = 'ErrorConflictoEstado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/dd6a6499-3e48-4e78-b431-2dda9c3271a6/descarga","correlacion_id":"61a6f1ed-c99b-4d25-bd24-3924f6dac303"}
+E       assert 404 == 409
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_____ test_tkt059_ca09_descarga_no_disponible[anulado-DIRECTOR_PROYECTOS] _____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38CFEC7C0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('26e6f4d5-fa45-4664-bb0d-f5375faffd9a'), sesion_del_director=UUID('2a651cab-8ed1-44e1-8bda-2a26147e2e1f'))
+rol = 'DIRECTOR_PROYECTOS', estado = 'ANULADO', codigo = 'ARCHIVO_NO_DISPONIBLE'
+mensaje = 'El archivo todavía no está disponible.'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    @pytest.mark.parametrize(
+        ("estado", "codigo", "mensaje"),
+        [
+            pytest.param("PENDIENTE", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="pendiente"),
+            pytest.param("ANULADO", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="anulado"),
+            pytest.param("CADUCADO", "ARCHIVO_CADUCADO", MENSAJE_CADUCADO_AL_DESCARGAR, id="caducado"),
+        ],
+    )
+    def test_tkt059_ca09_descarga_no_disponible(
+        escena: Escena, rol: str, estado: str, codigo: str, mensaje: str
+    ) -> None:
+        """TC-35 · CA-9 esc. 1 y 2 · ADR-016 — una descarga que todavía no existe o ya no existe es un `409` `CONFLICTO`, no una URL.
+    
+        `PENDIENTE` (nadie confirm\xf3) y `ANULADO` \u2192 `ARCHIVO_NO_DISPONIBLE`; `CADUCADO` \u2192 `ARCHIVO_CADUCADO`. El
+        cuerpo es exacto: `tipo`, `codigo`, `mensaje` literal del diseño, `detalle` con solo `archivo_id` y
+        `estado_archivo`, y `acciones` vacías; ninguna `url`. El almacén no firma nada y no se le consulta, y
+        la fila y la bitácora quedan como estaban (el `409` no es un `DENEGAR`).
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        assert antes.fila["estado"] == estado
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       _exigir_conflicto(
+            respuesta,
+            codigo=codigo,
+            mensaje=mensaje,
+            detalle={"archivo_id": str(archivo.archivo_id), "estado_archivo": estado},
+        )
+
+tests\test_tkt059_consulta.py:717: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:416: in _exigir_conflicto
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 409
+esperado = {'tipo': 'CONFLICTO', 'codigo': 'ARCHIVO_NO_DISPONIBLE', 'mensaje': 'El archivo todavía no está disponible.', 'detalle': {'archivo_id': '020795c0-37fb-45f4-86af-7b5b43d3c46f', 'estado_archivo': 'ANULADO'}, ...}
+esquema = 'ErrorConflictoEstado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/020795c0-37fb-45f4-86af-7b5b43d3c46f/descarga","correlacion_id":"212243b8-50e0-4f47-8df9-5ad265211cc1"}
+E       assert 404 == 409
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_____ test_tkt059_ca09_descarga_no_disponible[caducado-DIRECCION_GENERAL] _____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D21CC00>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('59d21624-0aa0-40ce-b4e7-5c400cb6d270'), sesion_del_director=UUID('6a4708cc-cca4-4369-96d6-18b0d71e9166'))
+rol = 'DIRECCION_GENERAL', estado = 'CADUCADO', codigo = 'ARCHIVO_CADUCADO'
+mensaje = 'La subida del archivo caducó y no se puede descargar.'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    @pytest.mark.parametrize(
+        ("estado", "codigo", "mensaje"),
+        [
+            pytest.param("PENDIENTE", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="pendiente"),
+            pytest.param("ANULADO", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="anulado"),
+            pytest.param("CADUCADO", "ARCHIVO_CADUCADO", MENSAJE_CADUCADO_AL_DESCARGAR, id="caducado"),
+        ],
+    )
+    def test_tkt059_ca09_descarga_no_disponible(
+        escena: Escena, rol: str, estado: str, codigo: str, mensaje: str
+    ) -> None:
+        """TC-35 · CA-9 esc. 1 y 2 · ADR-016 — una descarga que todavía no existe o ya no existe es un `409` `CONFLICTO`, no una URL.
+    
+        `PENDIENTE` (nadie confirm\xf3) y `ANULADO` \u2192 `ARCHIVO_NO_DISPONIBLE`; `CADUCADO` \u2192 `ARCHIVO_CADUCADO`. El
+        cuerpo es exacto: `tipo`, `codigo`, `mensaje` literal del diseño, `detalle` con solo `archivo_id` y
+        `estado_archivo`, y `acciones` vacías; ninguna `url`. El almacén no firma nada y no se le consulta, y
+        la fila y la bitácora quedan como estaban (el `409` no es un `DENEGAR`).
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        assert antes.fila["estado"] == estado
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       _exigir_conflicto(
+            respuesta,
+            codigo=codigo,
+            mensaje=mensaje,
+            detalle={"archivo_id": str(archivo.archivo_id), "estado_archivo": estado},
+        )
+
+tests\test_tkt059_consulta.py:717: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:416: in _exigir_conflicto
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 409
+esperado = {'tipo': 'CONFLICTO', 'codigo': 'ARCHIVO_CADUCADO', 'mensaje': 'La subida del archivo caducó y no se puede descargar.', 'detalle': {'archivo_id': '6e0b352e-736d-441e-b9ba-94b54d850b25', 'estado_archivo': 'CADUCADO'}, ...}
+esquema = 'ErrorConflictoEstado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/6e0b352e-736d-441e-b9ba-94b54d850b25/descarga","correlacion_id":"18d7db67-7394-4e2a-b0c4-2dc2d05d67b7"}
+E       assert 404 == 409
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+____ test_tkt059_ca09_descarga_no_disponible[caducado-DIRECTOR_PROYECTOS] _____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D334AF0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('52d37c77-d60b-4827-8f72-6678ab62879b'), sesion_del_director=UUID('04c20bac-9bb5-472c-b841-3c848bc70f84'))
+rol = 'DIRECTOR_PROYECTOS', estado = 'CADUCADO', codigo = 'ARCHIVO_CADUCADO'
+mensaje = 'La subida del archivo caducó y no se puede descargar.'
+
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    @pytest.mark.parametrize(
+        ("estado", "codigo", "mensaje"),
+        [
+            pytest.param("PENDIENTE", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="pendiente"),
+            pytest.param("ANULADO", "ARCHIVO_NO_DISPONIBLE", MENSAJE_NO_DISPONIBLE, id="anulado"),
+            pytest.param("CADUCADO", "ARCHIVO_CADUCADO", MENSAJE_CADUCADO_AL_DESCARGAR, id="caducado"),
+        ],
+    )
+    def test_tkt059_ca09_descarga_no_disponible(
+        escena: Escena, rol: str, estado: str, codigo: str, mensaje: str
+    ) -> None:
+        """TC-35 · CA-9 esc. 1 y 2 · ADR-016 — una descarga que todavía no existe o ya no existe es un `409` `CONFLICTO`, no una URL.
+    
+        `PENDIENTE` (nadie confirm\xf3) y `ANULADO` \u2192 `ARCHIVO_NO_DISPONIBLE`; `CADUCADO` \u2192 `ARCHIVO_CADUCADO`. El
+        cuerpo es exacto: `tipo`, `codigo`, `mensaje` literal del diseño, `detalle` con solo `archivo_id` y
+        `estado_archivo`, y `acciones` vacías; ninguna `url`. El almacén no firma nada y no se le consulta, y
+        la fila y la bitácora quedan como estaban (el `409` no es un `DENEGAR`).
+        """
+        archivo = escena.alta(PDF)
+        if estado != "PENDIENTE":
+            escena.poner_estado(archivo, estado)
+        _, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        assert antes.fila["estado"] == estado
+    
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion)
+    
+>       _exigir_conflicto(
+            respuesta,
+            codigo=codigo,
+            mensaje=mensaje,
+            detalle={"archivo_id": str(archivo.archivo_id), "estado_archivo": estado},
+        )
+
+tests\test_tkt059_consulta.py:717: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:416: in _exigir_conflicto
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 409
+esperado = {'tipo': 'CONFLICTO', 'codigo': 'ARCHIVO_CADUCADO', 'mensaje': 'La subida del archivo caducó y no se puede descargar.', 'detalle': {'archivo_id': '9e91bd7a-5bbd-497a-9034-555962227886', 'estado_archivo': 'CADUCADO'}, ...}
+esquema = 'ErrorConflictoEstado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/9e91bd7a-5bbd-497a-9034-555962227886/descarga","correlacion_id":"77829639-42e9-419a-9de9-ea928a9dcb16"}
+E       assert 404 == 409
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+______________ test_tkt059_ca09_sin_rol[COMPRAS-obtener_archivo] ______________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D374D10>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('39dcd3f4-8d1b-4eeb-8282-36d676096225'), sesion_del_director=UUID('e2afd9c5-12b2-4fc6-9f42-fd0a0ada68fa'))
+rol = 'COMPRAS', ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/8c205bae-8e4f-4947-8bd0-4578a7db71da","correlacion_id":"4411c55c-5330-499c-965e-1abde6c3be6c"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_______ test_tkt059_ca09_sin_rol[COMPRAS-obtener_url_descarga_archivo] ________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D51D260>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('bb5f3e62-f06e-4030-bf1f-f3261eadb984'), sesion_del_director=UUID('856a0067-8326-414e-b7c3-113498d53d4a'))
+rol = 'COMPRAS', ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/11fab90c-d71b-460d-b2dd-4c0a93b68eb0/descarga","correlacion_id":"917b3df0-b650-4b70-9a72-4d2e76623d28"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_____________ test_tkt059_ca09_sin_rol[RESIDENTE-obtener_archivo] _____________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D5C2F10>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('ccd2004e-b7a9-4dd2-81a5-520bdd6d86ee'), sesion_del_director=UUID('c1b3acf3-25ad-4b15-ae2d-928e92e7248c'))
+rol = 'RESIDENTE', ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/8aed3e5d-4b6e-4b53-a97d-e84417091d12","correlacion_id":"3f04f004-96af-449e-b4b2-eb91e0714792"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+______ test_tkt059_ca09_sin_rol[RESIDENTE-obtener_url_descarga_archivo] _______
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D8747C0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('71daba47-ebf6-4e6b-8257-ad28e7fa1c11'), sesion_del_director=UUID('acd29d3c-b683-44a8-90c9-e33b7b2dc1af'))
+rol = 'RESIDENTE', ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/d7221d1f-6dac-4f93-97b5-1216fc006d8e/descarga","correlacion_id":"fefe6e21-c3a8-4005-8b1a-a08e9aad8e62"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+______________ test_tkt059_ca09_sin_rol[ALMACEN-obtener_archivo] ______________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DA0CC00>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('4a80313f-f209-4935-bd2c-6903009f9175'), sesion_del_director=UUID('a5b2bc75-1c48-4ac4-b656-e1aa9d4fc2e8'))
+rol = 'ALMACEN', ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/0df3f744-c12f-43c5-bf96-99c4996ac6d8","correlacion_id":"a97ed890-f09f-4369-ac6d-51ba51564f8e"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_______ test_tkt059_ca09_sin_rol[ALMACEN-obtener_url_descarga_archivo] ________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DA4CD10>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('9ebae7c9-dc39-42bc-9a99-b51aa50489f7'), sesion_del_director=UUID('63c5268f-85ca-4b03-86f3-8e010b59594e'))
+rol = 'ALMACEN', ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/90db5263-444a-4735-86a5-fe324e51c3fd/descarga","correlacion_id":"8c693946-d1ec-4ab0-84d6-37eecaa39148"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+__________ test_tkt059_ca09_sin_rol[ADMINISTRACION-obtener_archivo] ___________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DD51150>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('91369a6c-3938-40ae-8352-761ff8a4da9c'), sesion_del_director=UUID('a3456bf7-a32a-4a39-8b00-310daa12e2db'))
+rol = 'ADMINISTRACION'
+ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/bef3c9eb-6ed2-4484-b5be-c78eed8972ff","correlacion_id":"f14a7287-92a4-4c3b-be49-7e9c3c0c5a39"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+____ test_tkt059_ca09_sin_rol[ADMINISTRACION-obtener_url_descarga_archivo] ____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DEED150>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('1bd01459-435f-43a8-b2a1-c14a0946128a'), sesion_del_director=UUID('7d0e6002-c893-4ea7-960c-2b9741c1294b'))
+rol = 'ADMINISTRACION'
+ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol(escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]) -> None:
+        """TC-36 · CA-9 esc. 3 · RN-04 — sin `DIRECCION_GENERAL` ni `DIRECTOR_PROYECTOS`: `403` `PERMISO` `ROL_INSUFICIENTE`, sin datos ni URL y con un `DENEGAR`.
+    
+        Los cuatro roles restantes en las dos rutas `GET`, sobre un archivo `DISPONIBLE` que sí se podría
+        descargar. Cuerpo exacto con `roles_requeridos` igual al `x-roles` del borrador, sin `detalle`, sin
+        identificadores, sin nombre ni hash y sin `url`. El asiento `DENEGAR` es de quien llamó, con
+        `ROL_INSUFICIENTE`, `GET` y la ruta; la fila, sus asientos y el resto de la bitácora no cambian, y el
+        almacén ni se consulta ni firma nada.
+        """
+        archivo = escena.disponible(PDF)
+        usuario_id, sesion = escena.lector(rol)
+        antes = escena.fotografiar(archivo)
+        ruta = ruta_de(archivo.archivo_id)
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:753: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ec0d77f3-e880-4fe1-8ef7-599f4d7b2d45/descarga","correlacion_id":"4cc1507e-b9b8-498c-afa5-9c322794b4dc"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+__________ test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[COMPRAS] __________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DF55480>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('76276c49-54ab-478f-9831-aa0d4458eefc'), sesion_del_director=UUID('7a80dd65-4ac7-4a70-a0da-9ed7ab08eaf1'))
+rol = 'COMPRAS'
+
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url(escena: Escena, rol: str) -> None:
+        """TC-36 · CA-9 esc. 3 · ADR-016 — el rol se comprueba **al emitir**: con la sesión de un rol sin permiso no se firma ninguna URL.
+    
+        El espía de `url_lectura` no registra llamadas tras el `403`. Control: con el mismo archivo, un rol
+        autorizado sí provoca exactamente una llamada, así que el espía funciona y un espía vacío significa que
+        no se firmó. Mutante `M-12`: si `exigir_rol` admitiera también a `COMPRAS`, el `403` desaparecería y el
+        espía registraría una URL.
+        """
+        archivo = escena.disponible(PDF)
+        _, sesion_sin_permiso = escena.lector(rol)
+        _, sesion_autorizada = escena.lector("DIRECCION_GENERAL")
+    
+        rechazada = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_sin_permiso)
+    
+>       assert rechazada.status_code == 403, rechazada.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/40a52b48-c223-43fc-a6cb-b7cc85b9c86b/descarga","correlacion_id":"14b2ac45-2e17-48cc-80bc-34dd0506f1a1"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:780: AssertionError
+_________ test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[RESIDENTE] _________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38E239480>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('2a5f150a-3ff1-4be3-acec-e03db2417a77'), sesion_del_director=UUID('822a60a0-8c37-482e-9d15-f6a86c4cb061'))
+rol = 'RESIDENTE'
+
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url(escena: Escena, rol: str) -> None:
+        """TC-36 · CA-9 esc. 3 · ADR-016 — el rol se comprueba **al emitir**: con la sesión de un rol sin permiso no se firma ninguna URL.
+    
+        El espía de `url_lectura` no registra llamadas tras el `403`. Control: con el mismo archivo, un rol
+        autorizado sí provoca exactamente una llamada, así que el espía funciona y un espía vacío significa que
+        no se firmó. Mutante `M-12`: si `exigir_rol` admitiera también a `COMPRAS`, el `403` desaparecería y el
+        espía registraría una URL.
+        """
+        archivo = escena.disponible(PDF)
+        _, sesion_sin_permiso = escena.lector(rol)
+        _, sesion_autorizada = escena.lector("DIRECCION_GENERAL")
+    
+        rechazada = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_sin_permiso)
+    
+>       assert rechazada.status_code == 403, rechazada.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ef2d4d1a-0c4c-4ff1-8b33-6466cd7fad11/descarga","correlacion_id":"c94664af-1875-40f0-a1c1-c6baf0c2ff8b"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:780: AssertionError
+__________ test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[ALMACEN] __________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DF55370>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('68c84804-e66f-4595-8b3e-e344f3eda4ed'), sesion_del_director=UUID('cf66388b-fb62-4ef3-9606-9ddf6d3a34c1'))
+rol = 'ALMACEN'
+
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url(escena: Escena, rol: str) -> None:
+        """TC-36 · CA-9 esc. 3 · ADR-016 — el rol se comprueba **al emitir**: con la sesión de un rol sin permiso no se firma ninguna URL.
+    
+        El espía de `url_lectura` no registra llamadas tras el `403`. Control: con el mismo archivo, un rol
+        autorizado sí provoca exactamente una llamada, así que el espía funciona y un espía vacío significa que
+        no se firmó. Mutante `M-12`: si `exigir_rol` admitiera también a `COMPRAS`, el `403` desaparecería y el
+        espía registraría una URL.
+        """
+        archivo = escena.disponible(PDF)
+        _, sesion_sin_permiso = escena.lector(rol)
+        _, sesion_autorizada = escena.lector("DIRECCION_GENERAL")
+    
+        rechazada = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_sin_permiso)
+    
+>       assert rechazada.status_code == 403, rechazada.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/95c8257b-29de-4656-b1cd-6677947c2a42/descarga","correlacion_id":"ca44eaae-9adb-4420-b700-54c23439d661"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:780: AssertionError
+______ test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[ADMINISTRACION] _______
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D21CE20>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('a3e31142-d600-4bb0-a756-21ca4f82b11f'), sesion_del_director=UUID('adcda737-5a34-460a-8ada-37cb9dc8378a'))
+rol = 'ADMINISTRACION'
+
+    @pytest.mark.parametrize("rol", ROLES_SIN_PERMISO)
+    def test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url(escena: Escena, rol: str) -> None:
+        """TC-36 · CA-9 esc. 3 · ADR-016 — el rol se comprueba **al emitir**: con la sesión de un rol sin permiso no se firma ninguna URL.
+    
+        El espía de `url_lectura` no registra llamadas tras el `403`. Control: con el mismo archivo, un rol
+        autorizado sí provoca exactamente una llamada, así que el espía funciona y un espía vacío significa que
+        no se firmó. Mutante `M-12`: si `exigir_rol` admitiera también a `COMPRAS`, el `403` desaparecería y el
+        espía registraría una URL.
+        """
+        archivo = escena.disponible(PDF)
+        _, sesion_sin_permiso = escena.lector(rol)
+        _, sesion_autorizada = escena.lector("DIRECCION_GENERAL")
+    
+        rechazada = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_sin_permiso)
+    
+>       assert rechazada.status_code == 403, rechazada.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/7ba94078-dcb8-413b-8eae-07d46d01206a/descarga","correlacion_id":"92ead797-2995-4635-816e-2cdb4ecf9085"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:780: AssertionError
+_ test_tkt059_ca09_el_rol_se_comprueba_antes_que_la_existencia[obtener_archivo] _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38E471040>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('8231cfdf-343d-4846-b57f-b99650e37f32'), sesion_del_director=UUID('728a45fb-4415-4b84-9cb6-d463652e09fa'))
+ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    def test_tkt059_ca09_el_rol_se_comprueba_antes_que_la_existencia(
+        escena: Escena, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 · conv-seguridad — quien no tiene rol recibe `403` aunque el archivo no exista: no se averigua qué existe."""
+        usuario_id, sesion = escena.lector("RESIDENTE")
+        inexistente = uuid.uuid4()
+        ruta = ruta_de(inexistente)
+        denegaciones_antes = escena.denegaciones()
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:801: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/1ed67feb-f04a-4496-bd7a-c4f2a51f33ff","correlacion_id":"bf865549-a338-4054-ba66-05285795bf77"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_ test_tkt059_ca09_el_rol_se_comprueba_antes_que_la_existencia[obtener_url_descarga_archivo] _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38E471150>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('858af4bd-3426-44ed-819c-fd930672f6d4'), sesion_del_director=UUID('9b9182e8-e5f5-41a6-8536-f651d4de1629'))
+ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    def test_tkt059_ca09_el_rol_se_comprueba_antes_que_la_existencia(
+        escena: Escena, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 · conv-seguridad — quien no tiene rol recibe `403` aunque el archivo no exista: no se averigua qué existe."""
+        usuario_id, sesion = escena.lector("RESIDENTE")
+        inexistente = uuid.uuid4()
+        ruta = ruta_de(inexistente)
+        denegaciones_antes = escena.denegaciones()
+    
+        respuesta = escena.consultar(ruta, sesion)
+    
+>       _exigir_permiso(respuesta)
+
+tests\test_tkt059_consulta.py:801: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:432: in _exigir_permiso
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 403
+esperado = {'tipo': 'PERMISO', 'motivo': 'ROL_INSUFICIENTE', 'mensaje': 'Tu rol no permite esta operación.', 'roles_requeridos': ['DIRECCION_GENERAL', 'DIRECTOR_PROYECTOS']}
+esquema = 'ErrorPermiso'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/4847aafd-1b9f-48fb-94aa-ef483fdbb740/descarga","correlacion_id":"74c9159f-8257-432f-8f04-1cae8aa0c180"}
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+___ test_tkt059_ca09_archivo_inexistente[DIRECCION_GENERAL-obtener_archivo] ___
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38E864D10>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('129fa2ac-57bb-401c-9643-021c13100f86'), sesion_del_director=UUID('a6366a06-4479-4336-96d0-3c262e6265cd'))
+rol = 'DIRECCION_GENERAL'
+ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca09_archivo_inexistente(
+        escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 — un identificador que no existe: `404` `NO_ENCONTRADO` con `recurso` `archivo`.
+    
+        Cuerpo exacto con el mensaje del diseño, en las dos rutas y para los dos roles. No se asienta nada, el
+        almacén no se consulta y no se firma ninguna URL.
+        """
+        _, sesion = escena.lector(rol)
+        antes = escena.total_de_la_bitacora()
+    
+        respuesta = escena.consultar(ruta_de(uuid.uuid4()), sesion)
+    
+>       _exigir_no_encontrado(respuesta)
+
+tests\test_tkt059_consulta.py:825: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:446: in _exigir_no_encontrado
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 404
+esperado = {'tipo': 'NO_ENCONTRADO', 'mensaje': 'El archivo no existe.', 'recurso': 'archivo'}
+esquema = 'ErrorNoEncontrado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+        assert respuesta.status_code == estado, respuesta.text
+        cuerpo = {
+            clave: valor for clave, valor in respuesta.json().items() if clave != "correlacion_id"
+        }
+>       assert cuerpo == esperado
+E       AssertionError: assert {'tipo': 'NO_...9f24331a86f1'} == {'tipo': 'NO_...o': 'archivo'}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'mensaje': 'La ruta pedida no existe.'} != {'mensaje': 'El archivo no existe.'}
+E         {'recurso': '/api/v1/archivos/99f2cdf1-eda6-4940-a0d0-9f24331a86f1'} != {'recurso': 'archivo'}
+E         Use -v to get more diff
+
+tests\test_tkt059_consulta.py:408: AssertionError
+_ test_tkt059_ca09_archivo_inexistente[DIRECCION_GENERAL-obtener_url_descarga_archivo] _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38E865BF0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('00c2b31f-8d09-4dc5-9ae2-a383730b256b'), sesion_del_director=UUID('7203c65e-6035-4ccb-b7f8-65029fd123f2'))
+rol = 'DIRECCION_GENERAL'
+ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca09_archivo_inexistente(
+        escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 — un identificador que no existe: `404` `NO_ENCONTRADO` con `recurso` `archivo`.
+    
+        Cuerpo exacto con el mensaje del diseño, en las dos rutas y para los dos roles. No se asienta nada, el
+        almacén no se consulta y no se firma ninguna URL.
+        """
+        _, sesion = escena.lector(rol)
+        antes = escena.total_de_la_bitacora()
+    
+        respuesta = escena.consultar(ruta_de(uuid.uuid4()), sesion)
+    
+>       _exigir_no_encontrado(respuesta)
+
+tests\test_tkt059_consulta.py:825: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:446: in _exigir_no_encontrado
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 404
+esperado = {'tipo': 'NO_ENCONTRADO', 'mensaje': 'El archivo no existe.', 'recurso': 'archivo'}
+esquema = 'ErrorNoEncontrado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+        assert respuesta.status_code == estado, respuesta.text
+        cuerpo = {
+            clave: valor for clave, valor in respuesta.json().items() if clave != "correlacion_id"
+        }
+>       assert cuerpo == esperado
+E       AssertionError: assert {'tipo': 'NO_...403/descarga'} == {'tipo': 'NO_...o': 'archivo'}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'mensaje': 'La ruta pedida no existe.'} != {'mensaje': 'El archivo no existe.'}
+E         {'recurso': '/api/v1/archivos/8f7e4d5d-f06d-496b-b3c7-c05c772bd403/descarga'} != {'recurso': 'archivo'}
+E         Use -v to get more diff
+
+tests\test_tkt059_consulta.py:408: AssertionError
+__ test_tkt059_ca09_archivo_inexistente[DIRECTOR_PROYECTOS-obtener_archivo] ___
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38E97D9D0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('3efe9b90-755a-4dc9-aaa2-246e97026f5e'), sesion_del_director=UUID('fd516c2f-dcbd-497a-ae95-5d7db46d829f'))
+rol = 'DIRECTOR_PROYECTOS'
+ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca09_archivo_inexistente(
+        escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 — un identificador que no existe: `404` `NO_ENCONTRADO` con `recurso` `archivo`.
+    
+        Cuerpo exacto con el mensaje del diseño, en las dos rutas y para los dos roles. No se asienta nada, el
+        almacén no se consulta y no se firma ninguna URL.
+        """
+        _, sesion = escena.lector(rol)
+        antes = escena.total_de_la_bitacora()
+    
+        respuesta = escena.consultar(ruta_de(uuid.uuid4()), sesion)
+    
+>       _exigir_no_encontrado(respuesta)
+
+tests\test_tkt059_consulta.py:825: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:446: in _exigir_no_encontrado
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 404
+esperado = {'tipo': 'NO_ENCONTRADO', 'mensaje': 'El archivo no existe.', 'recurso': 'archivo'}
+esquema = 'ErrorNoEncontrado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+        assert respuesta.status_code == estado, respuesta.text
+        cuerpo = {
+            clave: valor for clave, valor in respuesta.json().items() if clave != "correlacion_id"
+        }
+>       assert cuerpo == esperado
+E       AssertionError: assert {'tipo': 'NO_...1c6e3479a544'} == {'tipo': 'NO_...o': 'archivo'}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'mensaje': 'La ruta pedida no existe.'} != {'mensaje': 'El archivo no existe.'}
+E         {'recurso': '/api/v1/archivos/84a1fd82-480e-47b0-9bd9-1c6e3479a544'} != {'recurso': 'archivo'}
+E         Use -v to get more diff
+
+tests\test_tkt059_consulta.py:408: AssertionError
+_ test_tkt059_ca09_archivo_inexistente[DIRECTOR_PROYECTOS-obtener_url_descarga_archivo] _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38EAA57B0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('6446c0ab-4a2d-4ca8-93d6-77d5c42c7cb1'), sesion_del_director=UUID('f4f87ccd-594a-4c08-9ca7-9a2af8a1368a'))
+rol = 'DIRECTOR_PROYECTOS'
+ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca09_archivo_inexistente(
+        escena: Escena, rol: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 — un identificador que no existe: `404` `NO_ENCONTRADO` con `recurso` `archivo`.
+    
+        Cuerpo exacto con el mensaje del diseño, en las dos rutas y para los dos roles. No se asienta nada, el
+        almacén no se consulta y no se firma ninguna URL.
+        """
+        _, sesion = escena.lector(rol)
+        antes = escena.total_de_la_bitacora()
+    
+        respuesta = escena.consultar(ruta_de(uuid.uuid4()), sesion)
+    
+>       _exigir_no_encontrado(respuesta)
+
+tests\test_tkt059_consulta.py:825: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt059_consulta.py:446: in _exigir_no_encontrado
+    _exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 404
+esperado = {'tipo': 'NO_ENCONTRADO', 'mensaje': 'El archivo no existe.', 'recurso': 'archivo'}
+esquema = 'ErrorNoEncontrado'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+        assert respuesta.status_code == estado, respuesta.text
+        cuerpo = {
+            clave: valor for clave, valor in respuesta.json().items() if clave != "correlacion_id"
+        }
+>       assert cuerpo == esperado
+E       AssertionError: assert {'tipo': 'NO_...f94/descarga'} == {'tipo': 'NO_...o': 'archivo'}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'mensaje': 'La ruta pedida no existe.'} != {'mensaje': 'El archivo no existe.'}
+E         {'recurso': '/api/v1/archivos/d52c18c3-4392-490a-9d96-e35e450cdf94/descarga'} != {'recurso': 'archivo'}
+E         Use -v to get more diff
+
+tests\test_tkt059_consulta.py:408: AssertionError
+___________ test_tkt059_ca09_sin_sesion[sin_cookie-obtener_archivo] ___________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38CB5C160>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('f7f42745-e755-4750-b6f7-bfcba4f44f1f'), sesion_del_director=UUID('90bdb718-333f-4e21-a548-569912a76d75'))
+sesion = 'sin_cookie'
+ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("sesion", ["sin_cookie", "sesion_inexistente"])
+    def test_tkt059_ca09_sin_sesion(
+        escena: Escena, sesion: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 · RNF-13 — sin sesión (o con una que no existe): `401` `SESION` `SIN_SESION`.
+    
+        El cuerpo no revela nada del archivo, que existe y está `DISPONIBLE`; no se firma ninguna URL y la fila
+        y la bitácora quedan como estaban (un rechazo anónimo no se asienta).
+        """
+        archivo = escena.disponible(PDF)
+        antes = escena.fotografiar(archivo)
+    
+        respuesta = escena.consultar(
+            ruta_de(archivo.archivo_id), uuid.uuid4() if sesion == "sesion_inexistente" else None
+        )
+    
+>       _exigir_error(
+            respuesta,
+            estado=401,
+            esperado={"tipo": "SESION", "motivo": "SIN_SESION", "mensaje": MENSAJE_SIN_SESION},
+            esquema="ErrorSesion",
+        )
+
+tests\test_tkt059_consulta.py:848: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 401
+esperado = {'tipo': 'SESION', 'motivo': 'SIN_SESION', 'mensaje': 'No hay una sesión iniciada.'}
+esquema = 'ErrorSesion'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ea56766b-8bb1-47bb-9028-2bd8e75c2ac0","correlacion_id":"544c47e0-7bd0-47dd-a7ff-e8231181c2dd"}
+E       assert 404 == 401
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+____ test_tkt059_ca09_sin_sesion[sin_cookie-obtener_url_descarga_archivo] _____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38CEAE250>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('a1b74e79-df65-4fb1-98a3-ab4642e9111d'), sesion_del_director=UUID('4e53cda9-60b1-4774-a209-f867b2492e05'))
+sesion = 'sin_cookie'
+ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("sesion", ["sin_cookie", "sesion_inexistente"])
+    def test_tkt059_ca09_sin_sesion(
+        escena: Escena, sesion: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 · RNF-13 — sin sesión (o con una que no existe): `401` `SESION` `SIN_SESION`.
+    
+        El cuerpo no revela nada del archivo, que existe y está `DISPONIBLE`; no se firma ninguna URL y la fila
+        y la bitácora quedan como estaban (un rechazo anónimo no se asienta).
+        """
+        archivo = escena.disponible(PDF)
+        antes = escena.fotografiar(archivo)
+    
+        respuesta = escena.consultar(
+            ruta_de(archivo.archivo_id), uuid.uuid4() if sesion == "sesion_inexistente" else None
+        )
+    
+>       _exigir_error(
+            respuesta,
+            estado=401,
+            esperado={"tipo": "SESION", "motivo": "SIN_SESION", "mensaje": MENSAJE_SIN_SESION},
+            esquema="ErrorSesion",
+        )
+
+tests\test_tkt059_consulta.py:848: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 401
+esperado = {'tipo': 'SESION', 'motivo': 'SIN_SESION', 'mensaje': 'No hay una sesión iniciada.'}
+esquema = 'ErrorSesion'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/cee0b3e5-f02f-4d88-b0cd-06b43c7ebbc7/descarga","correlacion_id":"9be44b90-ecfb-497c-a072-a6d66a6a90e1"}
+E       assert 404 == 401
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_______ test_tkt059_ca09_sin_sesion[sesion_inexistente-obtener_archivo] _______
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38CAB6360>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('36449e4a-6e79-4100-9071-856028d5ad56'), sesion_del_director=UUID('4ec732ea-7d4f-4c24-a44b-716a13f10674'))
+sesion = 'sesion_inexistente'
+ruta_de = <function ruta_de_metadatos at 0x000001B388B2A770>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("sesion", ["sin_cookie", "sesion_inexistente"])
+    def test_tkt059_ca09_sin_sesion(
+        escena: Escena, sesion: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 · RNF-13 — sin sesión (o con una que no existe): `401` `SESION` `SIN_SESION`.
+    
+        El cuerpo no revela nada del archivo, que existe y está `DISPONIBLE`; no se firma ninguna URL y la fila
+        y la bitácora quedan como estaban (un rechazo anónimo no se asienta).
+        """
+        archivo = escena.disponible(PDF)
+        antes = escena.fotografiar(archivo)
+    
+        respuesta = escena.consultar(
+            ruta_de(archivo.archivo_id), uuid.uuid4() if sesion == "sesion_inexistente" else None
+        )
+    
+>       _exigir_error(
+            respuesta,
+            estado=401,
+            esperado={"tipo": "SESION", "motivo": "SIN_SESION", "mensaje": MENSAJE_SIN_SESION},
+            esquema="ErrorSesion",
+        )
+
+tests\test_tkt059_consulta.py:848: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 401
+esperado = {'tipo': 'SESION', 'motivo': 'SIN_SESION', 'mensaje': 'No hay una sesión iniciada.'}
+esquema = 'ErrorSesion'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/8ddad19b-c078-422e-bd9a-15f46f83e831","correlacion_id":"cbb87641-865b-4c84-b250-f3dc09c63c34"}
+E       assert 404 == 401
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+_ test_tkt059_ca09_sin_sesion[sesion_inexistente-obtener_url_descarga_archivo] _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38CAB6690>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('e547bff4-93fd-4fb7-8b24-970fc41c8ddc'), sesion_del_director=UUID('6c4f4849-9ad6-4c85-bfc9-e5e36ee5907f'))
+sesion = 'sesion_inexistente'
+ruta_de = <function ruta_de_descarga at 0x000001B38998D850>
+
+    @pytest.mark.parametrize("ruta_de", AMBAS_RUTAS)
+    @pytest.mark.parametrize("sesion", ["sin_cookie", "sesion_inexistente"])
+    def test_tkt059_ca09_sin_sesion(
+        escena: Escena, sesion: str, ruta_de: Callable[[uuid.UUID], str]
+    ) -> None:
+        """TC-36 · CA-9 esc. 3 · RNF-13 — sin sesión (o con una que no existe): `401` `SESION` `SIN_SESION`.
+    
+        El cuerpo no revela nada del archivo, que existe y está `DISPONIBLE`; no se firma ninguna URL y la fila
+        y la bitácora quedan como estaban (un rechazo anónimo no se asienta).
+        """
+        archivo = escena.disponible(PDF)
+        antes = escena.fotografiar(archivo)
+    
+        respuesta = escena.consultar(
+            ruta_de(archivo.archivo_id), uuid.uuid4() if sesion == "sesion_inexistente" else None
+        )
+    
+>       _exigir_error(
+            respuesta,
+            estado=401,
+            esperado={"tipo": "SESION", "motivo": "SIN_SESION", "mensaje": MENSAJE_SIN_SESION},
+            esquema="ErrorSesion",
+        )
+
+tests\test_tkt059_consulta.py:848: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [404 Not Found]>, estado = 401
+esperado = {'tipo': 'SESION', 'motivo': 'SIN_SESION', 'mensaje': 'No hay una sesión iniciada.'}
+esquema = 'ErrorSesion'
+
+    def _exigir_error(
+        respuesta: Respuesta, *, estado: int, esperado: dict[str, Any], esquema: str
+    ) -> None:
+        """El contrato de error completo, con la diferencia a la vista cuando falla.
+    
+        `exigir_error` vive en un módulo que pytest no reescribe y su `assert` falla sin mensaje; aquí se
+        compara antes el código y el cuerpo (sin la correlación) para que un rojo diga qué difiere, y después
+        se delega en `exigir_error` para la correlación, el esquema del borrador y la ausencia de trazas.
+        """
+>       assert respuesta.status_code == estado, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ca9e3e8a-bbca-4a94-94c7-803779d4e357/descarga","correlacion_id":"240ccbd0-e334-466d-a0d9-da47c54485fe"}
+E       assert 404 == 401
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:404: AssertionError
+____ test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[pdf] _____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C643460>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('65bfbd5e-907d-4775-9c53-07511519425d'), sesion_del_director=UUID('cc2702f7-7948-4dc3-a24b-1daeffc50ce7'))
+documento = Documento(nombre='Contrato de obra.pdf', tipo='application/pdf', disposicion='attachment', contenido=b'%PDF-1.7\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — la URL fija `response-content-type` y `response-content-disposition`, y ambos van firmados.
+    
+        Los parámetros de la consulta valen el tipo de la fila y la disposición de la lista blanca (con el
+        nombre). Como forman parte de la firma, nadie puede cambiarlos para servir el archivo `inline` ni con
+        otro tipo: cambiar el tipo, cambiar la disposición o quitar cualquiera de los dos responde `403` del
+        almacén. Control: la misma URL, reconstruida sin cambios, sirve el archivo con `200`.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+>       url = _emitir(escena, archivo, sesion)["url"]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:875: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C643460>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('65bfbd5e-907d-4775-9c53-07511519425d'), sesion_del_director=UUID('cc2702f7-7948-4dc3-a24b-1daeffc50ce7'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('e558276b-dab8-4c37-b8d9-746f039d157a'), metodo='PUT', cabeceras={'x-am...b'%PDF-1.7\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n', nombre_original='Contrato de obra.pdf')
+sesion_id = UUID('41e6e4a7-372b-4133-aafc-1769d4971cc8')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/e558276b-dab8-4c37-b8d9-746f039d157a/descarga","correlacion_id":"d65e2a55-b6dd-425c-8397-0c892cc3b39c"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+____ test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[jpeg] ____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C5E7020>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('2611c3e1-4b67-48fd-bf9a-10dca82f1ddf'), sesion_del_director=UUID('77c0c63f-3d24-462c-af3a-b6e61e894f8a'))
+documento = Documento(nombre='Avance del muro.jpg', tipo='image/jpeg', disposicion='inline', contenido=b'\xff\xd8\xff\xe0\x00\x10J...0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — la URL fija `response-content-type` y `response-content-disposition`, y ambos van firmados.
+    
+        Los parámetros de la consulta valen el tipo de la fila y la disposición de la lista blanca (con el
+        nombre). Como forman parte de la firma, nadie puede cambiarlos para servir el archivo `inline` ni con
+        otro tipo: cambiar el tipo, cambiar la disposición o quitar cualquiera de los dos responde `403` del
+        almacén. Control: la misma URL, reconstruida sin cambios, sirve el archivo con `200`.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+>       url = _emitir(escena, archivo, sesion)["url"]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:875: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C5E7020>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('2611c3e1-4b67-48fd-bf9a-10dca82f1ddf'), sesion_del_director=UUID('77c0c63f-3d24-462c-af3a-b6e61e894f8a'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('9a735ef3-25bf-4f79-a585-082678cd7414'), metodo='PUT', cabeceras={'x-am...00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', nombre_original='Avance del muro.jpg')
+sesion_id = UUID('d7efa415-cad6-4f2e-8bd9-c1fbe001c0c4')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/9a735ef3-25bf-4f79-a585-082678cd7414/descarga","correlacion_id":"89b8aa67-2304-4dae-a28c-ca87d99da322"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+____ test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[xml] _____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B4CC5A0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('1930f2ff-5513-4ec3-af72-4b7378387928'), sesion_del_director=UUID('bbbd17ad-88da-4a4c-9042-4acc45ec4175'))
+documento = Documento(nombre='Comprobante.xml', tipo='application/xml', disposicion='attachment', contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — la URL fija `response-content-type` y `response-content-disposition`, y ambos van firmados.
+    
+        Los parámetros de la consulta valen el tipo de la fila y la disposición de la lista blanca (con el
+        nombre). Como forman parte de la firma, nadie puede cambiarlos para servir el archivo `inline` ni con
+        otro tipo: cambiar el tipo, cambiar la disposición o quitar cualquiera de los dos responde `403` del
+        almacén. Control: la misma URL, reconstruida sin cambios, sirve el archivo con `200`.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+>       url = _emitir(escena, archivo, sesion)["url"]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:875: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B4CC5A0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('1930f2ff-5513-4ec3-af72-4b7378387928'), sesion_del_director=UUID('bbbd17ad-88da-4a4c-9042-4acc45ec4175'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('7848d8bf-cc13-4c3d-b1da-69f91714f388'), metodo='PUT', cabeceras={'x-am...contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n', nombre_original='Comprobante.xml')
+sesion_id = UUID('c8131f90-cc4f-49e3-800a-db1b9eb325ce')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/7848d8bf-cc13-4c3d-b1da-69f91714f388/descarga","correlacion_id":"ae68f1f1-29d6-446b-afef-7d3f3b793990"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+____ test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[xlsx] ____
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B476250>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('9b81b450-a0e6-4ca1-aea8-29e041a1d4c5'), sesion_del_director=UUID('f7912010-f72b-4247-b1ba-4f264e1eb0dd'))
+documento = Documento(nombre='Presupuesto torre 5.xlsx', tipo='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',...0\x00\x80\x01$\x01\x00\x00xl/workbook.xmlPK\x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — la URL fija `response-content-type` y `response-content-disposition`, y ambos van firmados.
+    
+        Los parámetros de la consulta valen el tipo de la fila y la disposición de la lista blanca (con el
+        nombre). Como forman parte de la firma, nadie puede cambiarlos para servir el archivo `inline` ni con
+        otro tipo: cambiar el tipo, cambiar la disposición o quitar cualquiera de los dos responde `403` del
+        almacén. Control: la misma URL, reconstruida sin cambios, sirve el archivo con `200`.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+>       url = _emitir(escena, archivo, sesion)["url"]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:875: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B476250>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('9b81b450-a0e6-4ca1-aea8-29e041a1d4c5'), sesion_del_director=UUID('f7912010-f72b-4247-b1ba-4f264e1eb0dd'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('ba7a3ea3-85d3-4578-ba8e-0d7dbebbc247'), metodo='PUT', cabeceras={'x-am...x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00', nombre_original='Presupuesto torre 5.xlsx')
+sesion_id = UUID('b36c6653-eafd-4487-ad71-f2ebdde942ff')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ba7a3ea3-85d3-4578-ba8e-0d7dbebbc247/descarga","correlacion_id":"27b862d6-a4ab-4a1c-9223-b136251853c2"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+___ test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECCION_GENERAL-xml] ___
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B1F67A0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('ec84219b-d378-424c-906f-4021f7a2ded9'), sesion_del_director=UUID('d0fc271c-ccd6-4224-879b-09fdc23cc6df'))
+rol = 'DIRECCION_GENERAL'
+documento = Documento(nombre='Comprobante.xml', tipo='application/xml', disposicion='attachment', contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n')
+
+    @pytest.mark.parametrize("documento", [XML, XLSX], ids=["xml", "xlsx"])
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan(
+        escena: Escena, rol: str, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — un XML y un `.xlsx` se sirven siempre como `attachment`, nunca `inline`.
+    
+        Un XML mostrado en la página ejecuta lo que lleve; ninguno de los dos se previsualiza. La `UrlDescarga`
+        dice `attachment` y el `GET` real a la URL devuelve `Content-Disposition` con `attachment;` y ninguna
+        señal de `inline`, con el tipo de la fila y los mismos bytes. Para los dos roles de lectura.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector(rol)
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:912: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B1F67A0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('ec84219b-d378-424c-906f-4021f7a2ded9'), sesion_del_director=UUID('d0fc271c-ccd6-4224-879b-09fdc23cc6df'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('4fe0c912-64cf-4522-93b9-8185391e5723'), metodo='PUT', cabeceras={'x-am...contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n', nombre_original='Comprobante.xml')
+sesion_id = UUID('47c23d67-5bbc-4342-82d8-08e6035a0e0f')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/4fe0c912-64cf-4522-93b9-8185391e5723/descarga","correlacion_id":"a21a274b-0777-4536-8526-b2a4d8938b5b"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+__ test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECCION_GENERAL-xlsx] ___
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B0BA580>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('58627565-370d-4a42-a27a-4338c76e9672'), sesion_del_director=UUID('22d584d9-e7ee-4106-8715-5dd21150d2ee'))
+rol = 'DIRECCION_GENERAL'
+documento = Documento(nombre='Presupuesto torre 5.xlsx', tipo='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',...0\x00\x80\x01$\x01\x00\x00xl/workbook.xmlPK\x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00')
+
+    @pytest.mark.parametrize("documento", [XML, XLSX], ids=["xml", "xlsx"])
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan(
+        escena: Escena, rol: str, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — un XML y un `.xlsx` se sirven siempre como `attachment`, nunca `inline`.
+    
+        Un XML mostrado en la página ejecuta lo que lleve; ninguno de los dos se previsualiza. La `UrlDescarga`
+        dice `attachment` y el `GET` real a la URL devuelve `Content-Disposition` con `attachment;` y ninguna
+        señal de `inline`, con el tipo de la fila y los mismos bytes. Para los dos roles de lectura.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector(rol)
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:912: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38B0BA580>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('58627565-370d-4a42-a27a-4338c76e9672'), sesion_del_director=UUID('22d584d9-e7ee-4106-8715-5dd21150d2ee'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('f61caba6-2bf7-45e1-b468-b7dc9d9e841f'), metodo='PUT', cabeceras={'x-am...x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00', nombre_original='Presupuesto torre 5.xlsx')
+sesion_id = UUID('292adcc9-cf85-4f4b-85be-4b9f940ed58c')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/f61caba6-2bf7-45e1-b468-b7dc9d9e841f/descarga","correlacion_id":"0ecd372d-a957-4e0f-a3c3-3818c197ddaa"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+__ test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECTOR_PROYECTOS-xml] ___
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C956580>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('bcfb8474-8cb8-4f3f-8c46-539f983b77f0'), sesion_del_director=UUID('38ee4d4b-2a53-44e7-b04e-28406361a7d0'))
+rol = 'DIRECTOR_PROYECTOS'
+documento = Documento(nombre='Comprobante.xml', tipo='application/xml', disposicion='attachment', contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n')
+
+    @pytest.mark.parametrize("documento", [XML, XLSX], ids=["xml", "xlsx"])
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan(
+        escena: Escena, rol: str, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — un XML y un `.xlsx` se sirven siempre como `attachment`, nunca `inline`.
+    
+        Un XML mostrado en la página ejecuta lo que lleve; ninguno de los dos se previsualiza. La `UrlDescarga`
+        dice `attachment` y el `GET` real a la URL devuelve `Content-Disposition` con `attachment;` y ninguna
+        señal de `inline`, con el tipo de la fila y los mismos bytes. Para los dos roles de lectura.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector(rol)
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:912: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38C956580>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('bcfb8474-8cb8-4f3f-8c46-539f983b77f0'), sesion_del_director=UUID('38ee4d4b-2a53-44e7-b04e-28406361a7d0'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('d7d5c0c0-72c7-40e4-b2a1-b19ecc3ab0bb'), metodo='PUT', cabeceras={'x-am...contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n', nombre_original='Comprobante.xml')
+sesion_id = UUID('e66b0c31-1c1f-4800-90a0-a6beb18d3901')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/d7d5c0c0-72c7-40e4-b2a1-b19ecc3ab0bb/descarga","correlacion_id":"b193a1ec-317c-40c4-b71c-05c8a169167d"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+__ test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECTOR_PROYECTOS-xlsx] __
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38EBD5D00>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('12932c6b-cf09-4fd6-b6da-a49abc2986cb'), sesion_del_director=UUID('7c220513-5392-457c-8519-591745837a76'))
+rol = 'DIRECTOR_PROYECTOS'
+documento = Documento(nombre='Presupuesto torre 5.xlsx', tipo='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',...0\x00\x80\x01$\x01\x00\x00xl/workbook.xmlPK\x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00')
+
+    @pytest.mark.parametrize("documento", [XML, XLSX], ids=["xml", "xlsx"])
+    @pytest.mark.parametrize("rol", AMBOS_ROLES)
+    def test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan(
+        escena: Escena, rol: str, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — un XML y un `.xlsx` se sirven siempre como `attachment`, nunca `inline`.
+    
+        Un XML mostrado en la página ejecuta lo que lleve; ninguno de los dos se previsualiza. La `UrlDescarga`
+        dice `attachment` y el `GET` real a la URL devuelve `Content-Disposition` con `attachment;` y ninguna
+        señal de `inline`, con el tipo de la fila y los mismos bytes. Para los dos roles de lectura.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector(rol)
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:912: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38EBD5D00>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('12932c6b-cf09-4fd6-b6da-a49abc2986cb'), sesion_del_director=UUID('7c220513-5392-457c-8519-591745837a76'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('33dd4050-36fc-4f16-808e-e44e02ea6663'), metodo='PUT', cabeceras={'x-am...x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00', nombre_original='Presupuesto torre 5.xlsx')
+sesion_id = UUID('9a90697b-e356-45f3-bf8f-5979e467d05e')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/33dd4050-36fc-4f16-808e-e44e02ea6663/descarga","correlacion_id":"49c658d7-bec0-49d8-8fd2-09ad042937cd"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+_______ test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[pdf] ________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FA29590>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('73a0dea2-4b32-409d-996e-c5c8fa9e5a93'), sesion_del_director=UUID('c00d4408-2d21-478e-acca-4790a1d20d09'))
+documento = Documento(nombre='Contrato de obra.pdf', tipo='application/pdf', disposicion='attachment', contenido=b'%PDF-1.7\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — el `Content-Type` que entrega el almacén es el de la fila, aunque el objeto diga otro.
+    
+        Tras confirmar, otro `PUT` con un cliente directo sobrescribe el objeto con `Content-Type: text/html`
+        (el tipo que un navegador ejecutaría). Se comprueba primero que el objeto quedó con ese tipo y después
+        que el `GET` por la URL emitida responde con el tipo de la fila: `response-content-type` manda, y el
+        nombre y la disposición siguen siendo los de la fila.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECCION_GENERAL")
+        escena.s3.put_object(
+            Bucket=escena.bucket, Key=archivo.clave, Body=documento.contenido, ContentType="text/html"
+        )
+        assert escena.s3.head_object(Bucket=escena.bucket, Key=archivo.clave)["ContentType"] == (
+            "text/html"
+        )
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:946: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FA29590>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('73a0dea2-4b32-409d-996e-c5c8fa9e5a93'), sesion_del_director=UUID('c00d4408-2d21-478e-acca-4790a1d20d09'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('ead93718-80f4-4cbf-9cc0-0930bd43b343'), metodo='PUT', cabeceras={'x-am...b'%PDF-1.7\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n', nombre_original='Contrato de obra.pdf')
+sesion_id = UUID('f0d70ed6-ef45-43d0-a0c4-add671ea37d1')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/ead93718-80f4-4cbf-9cc0-0930bd43b343/descarga","correlacion_id":"9adacd03-234b-4f2e-9411-7c9abed8ab3b"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+_______ test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[jpeg] _______
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38F84D480>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('0395974d-4597-41a3-831f-1736c874c353'), sesion_del_director=UUID('15d7e1fc-016d-44a4-b6a8-a3aaf9b75373'))
+documento = Documento(nombre='Avance del muro.jpg', tipo='image/jpeg', disposicion='inline', contenido=b'\xff\xd8\xff\xe0\x00\x10J...0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — el `Content-Type` que entrega el almacén es el de la fila, aunque el objeto diga otro.
+    
+        Tras confirmar, otro `PUT` con un cliente directo sobrescribe el objeto con `Content-Type: text/html`
+        (el tipo que un navegador ejecutaría). Se comprueba primero que el objeto quedó con ese tipo y después
+        que el `GET` por la URL emitida responde con el tipo de la fila: `response-content-type` manda, y el
+        nombre y la disposición siguen siendo los de la fila.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECCION_GENERAL")
+        escena.s3.put_object(
+            Bucket=escena.bucket, Key=archivo.clave, Body=documento.contenido, ContentType="text/html"
+        )
+        assert escena.s3.head_object(Bucket=escena.bucket, Key=archivo.clave)["ContentType"] == (
+            "text/html"
+        )
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:946: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38F84D480>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('0395974d-4597-41a3-831f-1736c874c353'), sesion_del_director=UUID('15d7e1fc-016d-44a4-b6a8-a3aaf9b75373'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('d40debab-f913-4822-81a1-c2ac29b11f13'), metodo='PUT', cabeceras={'x-am...00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', nombre_original='Avance del muro.jpg')
+sesion_id = UUID('8e1e38f2-2db7-4acd-8682-d16b98b848d3')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/d40debab-f913-4822-81a1-c2ac29b11f13/descarga","correlacion_id":"b9d1df6b-2dbc-4262-a521-4ca27bc09e03"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+_______ test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[xml] ________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D334270>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('15734bd9-c31f-4dc2-9941-df9438783faf'), sesion_del_director=UUID('3fa76c1f-8c6b-47ef-a46f-2ff7485c6252'))
+documento = Documento(nombre='Comprobante.xml', tipo='application/xml', disposicion='attachment', contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — el `Content-Type` que entrega el almacén es el de la fila, aunque el objeto diga otro.
+    
+        Tras confirmar, otro `PUT` con un cliente directo sobrescribe el objeto con `Content-Type: text/html`
+        (el tipo que un navegador ejecutaría). Se comprueba primero que el objeto quedó con ese tipo y después
+        que el `GET` por la URL emitida responde con el tipo de la fila: `response-content-type` manda, y el
+        nombre y la disposición siguen siendo los de la fila.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECCION_GENERAL")
+        escena.s3.put_object(
+            Bucket=escena.bucket, Key=archivo.clave, Body=documento.contenido, ContentType="text/html"
+        )
+        assert escena.s3.head_object(Bucket=escena.bucket, Key=archivo.clave)["ContentType"] == (
+            "text/html"
+        )
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:946: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38D334270>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('15734bd9-c31f-4dc2-9941-df9438783faf'), sesion_del_director=UUID('3fa76c1f-8c6b-47ef-a46f-2ff7485c6252'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('56ba33d1-cf71-4e90-8049-c4104513fee6'), metodo='PUT', cabeceras={'x-am...contenido=b'<?xml version="1.0" encoding="UTF-8"?>\n<comprobante version="4.0"/>\n', nombre_original='Comprobante.xml')
+sesion_id = UUID('0650b0ee-462c-4c45-91f2-f2e260de658d')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/56ba33d1-cf71-4e90-8049-c4104513fee6/descarga","correlacion_id":"270b7317-2015-4653-ad81-1723d36d39ba"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+_______ test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[xlsx] _______
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FC21480>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('60af381b-93d5-48a6-94d3-082ecaf1a768'), sesion_del_director=UUID('06d8cf42-2994-4030-9c7b-ed28437a97e7'))
+documento = Documento(nombre='Presupuesto torre 5.xlsx', tipo='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',...0\x00\x80\x01$\x01\x00\x00xl/workbook.xmlPK\x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00')
+
+    @pytest.mark.parametrize("documento", DOCUMENTOS)
+    def test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila(
+        escena: Escena, documento: Documento
+    ) -> None:
+        """O-4 · ADR-016 regla 3 — el `Content-Type` que entrega el almacén es el de la fila, aunque el objeto diga otro.
+    
+        Tras confirmar, otro `PUT` con un cliente directo sobrescribe el objeto con `Content-Type: text/html`
+        (el tipo que un navegador ejecutaría). Se comprueba primero que el objeto quedó con ese tipo y después
+        que el `GET` por la URL emitida responde con el tipo de la fila: `response-content-type` manda, y el
+        nombre y la disposición siguen siendo los de la fila.
+        """
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECCION_GENERAL")
+        escena.s3.put_object(
+            Bucket=escena.bucket, Key=archivo.clave, Body=documento.contenido, ContentType="text/html"
+        )
+        assert escena.s3.head_object(Bucket=escena.bucket, Key=archivo.clave)["ContentType"] == (
+            "text/html"
+        )
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:946: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FC21480>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('60af381b-93d5-48a6-94d3-082ecaf1a768'), sesion_del_director=UUID('06d8cf42-2994-4030-9c7b-ed28437a97e7'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('76ad8651-8c9f-43f3-a535-9f76625508b7'), metodo='PUT', cabeceras={'x-am...x05\x06\x00\x00\x00\x00\x02\x00\x02\x00~\x00\x00\x00^\x01\x00\x00\x00\x00', nombre_original='Presupuesto torre 5.xlsx')
+sesion_id = UUID('d88987ca-e1ec-4194-bf9d-05fccfc19a81')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/76ad8651-8c9f-43f3-a535-9f76625508b7/descarga","correlacion_id":"3c048396-1e6c-426b-932c-0f407fc86a1e"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+__________ test_tkt059_ca08_el_nombre_no_rompe_la_cabecera[no_ascii] __________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FDF9370>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('4f882028-df18-46b3-9d2d-b31f2a9e66f1'), sesion_del_director=UUID('2eb02538-0b1e-4c94-b6e1-06cb7bac38c1'))
+nombre = 'Cotización ñandú.pdf', ascii_esperado = 'Cotizaci_n _and_.pdf'
+
+    @pytest.mark.parametrize(
+        ("nombre", "ascii_esperado"),
+        [
+            pytest.param("Cotización ñandú.pdf", "Cotizaci_n _and_.pdf", id="no_ascii"),
+            pytest.param('Plano "final".pdf', "Plano _final_.pdf", id="comillas"),
+            pytest.param("informe\r\nSet-Cookie: x=1.pdf", "informe__Set-Cookie: x=1.pdf", id="crlf"),
+        ],
+    )
+    def test_tkt059_ca08_el_nombre_no_rompe_la_cabecera(
+        escena: Escena, nombre: str, ascii_esperado: str
+    ) -> None:
+        """O-4 · ADR-016 regla 3 · RFC 6266 — el nombre del archivo no puede romper ni inyectar la cabecera `Content-Disposition`.
+    
+        El alta admite nombres con acentos, comillas y saltos de línea. La parte `filename=` queda en ASCII
+        visible con `_` en lugar de cada carácter peligroso, y `filename*=UTF-8''` lleva el nombre completo
+        codificado. La respuesta del almacén no trae una cabecera inyectada (`Set-Cookie`) y la `UrlDescarga`
+        conserva el nombre original tal cual.
+        """
+        documento = replace(PDF, nombre=nombre)
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:977: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FDF9370>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('4f882028-df18-46b3-9d2d-b31f2a9e66f1'), sesion_del_director=UUID('2eb02538-0b1e-4c94-b6e1-06cb7bac38c1'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('d9724f52-3129-402c-a5d2-a3ea37cd1a38'), metodo='PUT', cabeceras={'x-am...b'%PDF-1.7\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n', nombre_original='Cotización ñandú.pdf')
+sesion_id = UUID('f264c590-0588-49dd-9d13-dac224c37f21')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/d9724f52-3129-402c-a5d2-a3ea37cd1a38/descarga","correlacion_id":"c5a63bf5-2f27-4581-8f17-cb897c42abd8"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+__________ test_tkt059_ca08_el_nombre_no_rompe_la_cabecera[comillas] __________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DF56AD0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('e420a501-63e1-44de-a30d-5d65b302359c'), sesion_del_director=UUID('13eb8928-c6c0-4103-a5f2-fb24189e0886'))
+nombre = 'Plano "final".pdf', ascii_esperado = 'Plano _final_.pdf'
+
+    @pytest.mark.parametrize(
+        ("nombre", "ascii_esperado"),
+        [
+            pytest.param("Cotización ñandú.pdf", "Cotizaci_n _and_.pdf", id="no_ascii"),
+            pytest.param('Plano "final".pdf', "Plano _final_.pdf", id="comillas"),
+            pytest.param("informe\r\nSet-Cookie: x=1.pdf", "informe__Set-Cookie: x=1.pdf", id="crlf"),
+        ],
+    )
+    def test_tkt059_ca08_el_nombre_no_rompe_la_cabecera(
+        escena: Escena, nombre: str, ascii_esperado: str
+    ) -> None:
+        """O-4 · ADR-016 regla 3 · RFC 6266 — el nombre del archivo no puede romper ni inyectar la cabecera `Content-Disposition`.
+    
+        El alta admite nombres con acentos, comillas y saltos de línea. La parte `filename=` queda en ASCII
+        visible con `_` en lugar de cada carácter peligroso, y `filename*=UTF-8''` lleva el nombre completo
+        codificado. La respuesta del almacén no trae una cabecera inyectada (`Set-Cookie`) y la `UrlDescarga`
+        conserva el nombre original tal cual.
+        """
+        documento = replace(PDF, nombre=nombre)
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:977: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38DF56AD0>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('e420a501-63e1-44de-a30d-5d65b302359c'), sesion_del_director=UUID('13eb8928-c6c0-4103-a5f2-fb24189e0886'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('472cd9f7-ea82-4366-9d22-b06f204b6251'), metodo='PUT', cabeceras={'x-am...do=b'%PDF-1.7\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n', nombre_original='Plano "final".pdf')
+sesion_id = UUID('44785a9a-1d08-4a00-aeaa-2f3ce3bb8599')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/472cd9f7-ea82-4366-9d22-b06f204b6251/descarga","correlacion_id":"e233e2b1-25b0-4407-b637-afc5d596794d"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+____________ test_tkt059_ca08_el_nombre_no_rompe_la_cabecera[crlf] ____________
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FE89590>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('179df0e5-c191-446f-9cc7-01522e1d40ba'), sesion_del_director=UUID('9ab6de60-23c4-4d3e-aaeb-1ff23aa6c84a'))
+nombre = 'informe\r\nSet-Cookie: x=1.pdf'
+ascii_esperado = 'informe__Set-Cookie: x=1.pdf'
+
+    @pytest.mark.parametrize(
+        ("nombre", "ascii_esperado"),
+        [
+            pytest.param("Cotización ñandú.pdf", "Cotizaci_n _and_.pdf", id="no_ascii"),
+            pytest.param('Plano "final".pdf', "Plano _final_.pdf", id="comillas"),
+            pytest.param("informe\r\nSet-Cookie: x=1.pdf", "informe__Set-Cookie: x=1.pdf", id="crlf"),
+        ],
+    )
+    def test_tkt059_ca08_el_nombre_no_rompe_la_cabecera(
+        escena: Escena, nombre: str, ascii_esperado: str
+    ) -> None:
+        """O-4 · ADR-016 regla 3 · RFC 6266 — el nombre del archivo no puede romper ni inyectar la cabecera `Content-Disposition`.
+    
+        El alta admite nombres con acentos, comillas y saltos de línea. La parte `filename=` queda en ASCII
+        visible con `_` en lugar de cada carácter peligroso, y `filename*=UTF-8''` lleva el nombre completo
+        codificado. La respuesta del almacén no trae una cabecera inyectada (`Set-Cookie`) y la `UrlDescarga`
+        conserva el nombre original tal cual.
+        """
+        documento = replace(PDF, nombre=nombre)
+        archivo = escena.disponible(documento)
+        _, sesion = escena.lector("DIRECTOR_PROYECTOS")
+    
+>       cuerpo = _emitir(escena, archivo, sesion)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_consulta.py:977: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+escena = Escena(cliente=<starlette.testclient.TestClient object at 0x000001B38FE89590>, aplicacion=<fastapi.applications.FastAP...ctor_id=UUID('179df0e5-c191-446f-9cc7-01522e1d40ba'), sesion_del_director=UUID('9ab6de60-23c4-4d3e-aaeb-1ff23aa6c84a'))
+archivo = ArchivoSubido(alta=AltaArchivo(archivo_id=UUID('4f2f033a-b4a1-4782-85af-1c8b60900821'), metodo='PUT', cabeceras={'x-am...\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n', nombre_original='informe\r\nSet-Cookie: x=1.pdf')
+sesion_id = UUID('9e269269-8b68-4b5a-952b-e9f5c3e1c04c')
+
+    def _emitir(escena: Escena, archivo: ArchivoSubido, sesion_id: uuid.UUID) -> dict[str, Any]:
+        """`GET …/descarga` con un lector autorizado: el cuerpo de la `UrlDescarga`, ya comprobado `200`."""
+        respuesta = escena.consultar(ruta_de_descarga(archivo.archivo_id), sesion_id)
+>       assert respuesta.status_code == 200, respuesta.text
+E       AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/4f2f033a-b4a1-4782-85af-1c8b60900821/descarga","correlacion_id":"6add0c73-25ad-45c3-924b-87cac9972f7a"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests\test_tkt059_consulta.py:509: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_descargar_un_pdf[DIRECCION_GENERAL]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_descargar_un_pdf[DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_una_imagen_en_linea - ...
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_metadatos[DIRECCION_GENERAL]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_metadatos[DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_metadatos_de_un_caducado[DIRECCION_GENERAL]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_metadatos_de_un_caducado[DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_metadatos_de_un_pendiente_o_anulado[PENDIENTE]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_metadatos_de_un_pendiente_o_anulado[ANULADO]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_descarga_no_disponible[pendiente-DIRECCION_GENERAL]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_descarga_no_disponible[pendiente-DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_descarga_no_disponible[anulado-DIRECCION_GENERAL]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_descarga_no_disponible[anulado-DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_descarga_no_disponible[caducado-DIRECCION_GENERAL]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_descarga_no_disponible[caducado-DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[COMPRAS-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[COMPRAS-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[RESIDENTE-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[RESIDENTE-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[ALMACEN-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[ALMACEN-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[ADMINISTRACION-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol[ADMINISTRACION-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[COMPRAS]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[RESIDENTE]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[ALMACEN]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_rol_no_se_firma_ninguna_url[ADMINISTRACION]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_el_rol_se_comprueba_antes_que_la_existencia[obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_el_rol_se_comprueba_antes_que_la_existencia[obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_archivo_inexistente[DIRECCION_GENERAL-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_archivo_inexistente[DIRECCION_GENERAL-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_archivo_inexistente[DIRECTOR_PROYECTOS-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_archivo_inexistente[DIRECTOR_PROYECTOS-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_sesion[sin_cookie-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_sesion[sin_cookie-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_sesion[sesion_inexistente-obtener_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca09_sin_sesion[sesion_inexistente-obtener_url_descarga_archivo]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[pdf]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[jpeg]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[xml]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_la_url_lleva_el_tipo_y_la_disposicion_firmados[xlsx]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECCION_GENERAL-xml]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECCION_GENERAL-xlsx]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECTOR_PROYECTOS-xml]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_xml_y_xlsx_siempre_se_descargan[DIRECTOR_PROYECTOS-xlsx]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[pdf]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[jpeg]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[xml]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_el_tipo_de_la_respuesta_es_el_de_la_fila[xlsx]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_el_nombre_no_rompe_la_cabecera[no_ascii]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_el_nombre_no_rompe_la_cabecera[comillas]
+FAILED tests/test_tkt059_consulta.py::test_tkt059_ca08_el_nombre_no_rompe_la_cabecera[crlf]
+52 failed in 24.61s

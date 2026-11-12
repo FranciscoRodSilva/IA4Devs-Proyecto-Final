@@ -2,17 +2,19 @@
 
 Monta los enrutadores de `cimenta.<modulo>.api` y ningún módulo importa este paquete. Desde TKT-006
 monta `cimenta.identidad.api.montaje`; desde TKT-017b también `cimenta.presupuesto.api.montaje`.
-Desde TKT-015b también compone, por
-`cimenta.presupuesto.interfaz` y `trabajos.barrido`, el barrido de las importaciones interrumpidas
-y el ejecutor del análisis, en el `lifespan`: nada de `aplicacion/` ni de `infraestructura/` de
-ningún módulo. Los manejadores de error se registran con `registrar_manejadores` (TKT-005, fila 6).
-El motor del rol de aplicación es perezoso: construir la aplicación no exige variables de base ni
-abre conexión. Sin variables de base el `lifespan` no barre ni crea el ejecutor (P16), de modo que
-el servidor sigue arrancando sin base; con ellas, un barrido fallido impide arrancar (P11).
+Desde TKT-015b también compone, por `cimenta.presupuesto.interfaz` y `trabajos.barrido`, el barrido
+de las importaciones interrumpidas y el ejecutor del análisis, en el `lifespan`: nada de
+`aplicacion/` ni de `infraestructura/` de ningún módulo. Los manejadores de error se registran con
+`registrar_manejadores` (TKT-005, fila 6). El motor del rol de aplicación es perezoso: construir la
+aplicación no exige variables de base ni abre conexión. Sin variables de base el `lifespan` no barre
+ni crea el ejecutor (P16), de modo que el servidor sigue arrancando sin base; con ellas, un barrido
+fallido impide arrancar (P11).
 
-Desde TKT-059 fila 8 compone también el contexto de `cimenta.archivos.interfaz` y, desde la fila 12a,
-`cimenta.archivos.api.montaje` lo deja en `aplicacion.state.archivos` y monta su enrutador. El almacén de objetos es perezoso: construir la aplicación no crea el
-cliente, y sin sus variables `almacen()` lanza `AlmacenNoConfigurado` (CA-2).
+Desde TKT-059 fila 8 compone también el contexto de `cimenta.archivos.interfaz` y, desde la fila
+12a, `cimenta.archivos.api.montaje` lo deja en `aplicacion.state.archivos` y monta su enrutador. Desde
+la fila 15, el `lifespan` barre también los archivos `PENDIENTE` vencidos (CA-10) y entrega al
+ejecutor el lector de `crear_lector_contenido` (CA-11). El almacén de objetos es perezoso: construir
+la aplicación no crea el cliente, y sin sus variables `almacen()` lanza `AlmacenNoConfigurado` (CA-2).
 """
 
 import functools
@@ -38,14 +40,12 @@ from cimenta.archivos.interfaz import (
     ConfiguracionArchivos,
     LimitesArchivo,
     crear_almacen_s3,
+    crear_lector_contenido,
+    definicion_barrido_archivo,
 )
 from cimenta.identidad.api.montaje import montar_identidad
 from cimenta.presupuesto.api.montaje import montar_presupuesto
-from cimenta.presupuesto.interfaz import (
-    crear_ejecutor_analisis,
-    definicion_barrido_importacion,
-    leer_contenido_no_configurado,
-)
+from cimenta.presupuesto.interfaz import crear_ejecutor_analisis, definicion_barrido_importacion
 from herramientas.conexion import crear_motor_aplicacion, variables_de_base_presentes
 from servidor.ajustes import AjustesServidor, cargar_ajustes
 from servidor.cabeceras import MiddlewareCabecerasSeguridad, cabeceras_de_seguridad
@@ -93,18 +93,13 @@ def crear_aplicacion(
     registro ni se construye ningún motor: la excepción `ConfiguracionInvalida` sale antes.
 
     TKT-015b: `leer_contenido_archivo` es el origen de los bytes de un archivo; sin él, el
-    ejecutor usa `leer_contenido_no_configurado` hasta que TKT-059 conecte el almacén.
+    ejecutor lee con el lector de `archivos` (TKT-059, fila 15).
 
     TKT-059 fila 8: `almacen` inyecta el almacén (pruebas); sin él, el adaptador S3 se crea con los
     ajustes en la primera llamada, y solo si están sus cuatro variables.
     """
     ajustes = cargar_ajustes(entorno)
     entorno_efectivo = os.environ if entorno is None else entorno
-    leer_contenido = (
-        leer_contenido_archivo
-        if leer_contenido_archivo is not None
-        else leer_contenido_no_configurado
-    )
     proveedor_motor: Callable[[], Engine] = (
         (lambda: motor)
         if motor is not None
@@ -148,10 +143,16 @@ def crear_aplicacion(
             [
                 definicion_barrido_importacion(
                     timedelta(seconds=ajustes.trabajos_umbral_vencimiento)
-                )
+                ),
+                definicion_barrido_archivo(timedelta(seconds=ajustes.archivos_umbral_pendiente)),
             ],
         )
         structlog.get_logger("cimenta.servidor").info("barrido", cuentas=cuentas)
+        leer_contenido = (
+            leer_contenido_archivo
+            if leer_contenido_archivo is not None
+            else crear_lector_contenido(aplicacion.state.archivos)
+        )
         ejecutor = crear_ejecutor_analisis(
             fabrica_sesiones,
             leer_contenido,

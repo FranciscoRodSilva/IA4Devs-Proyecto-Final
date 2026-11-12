@@ -43,7 +43,7 @@ from contrato_error.excepciones import (
 )
 
 # `auditoria` se exporta a propósito: TC-16 sustituye `auditoria.asentar` y mypy exige que el módulo lo publique.
-__all__ = ["ROL_DE_CONFIRMACION", "ArchivoLeido", "auditoria", "confirmar_archivo"]
+__all__ = ["ROL_DE_CONFIRMACION", "ArchivoLeido", "auditoria", "confirmar_archivo", "leido_de"]
 
 _registro = structlog.get_logger("cimenta.archivos")
 
@@ -106,7 +106,7 @@ def _declaracion(fila: repositorio.FilaArchivo) -> tuple[int, str]:
     return fila.tamano_bytes, fila.hash_sha256
 
 
-def _leido(sesion_bd: Session, fila: repositorio.FilaArchivo) -> ArchivoLeido:
+def leido_de(sesion_bd: Session, fila: repositorio.FilaArchivo) -> ArchivoLeido:
     tamano, suma = _declaracion(fila)
     nombres = nombres_de_usuarios(sesion_bd, [fila.subido_por_id])
     return ArchivoLeido(
@@ -196,7 +196,7 @@ def _confirmar_en_transaccion(
     if paso is PasoPrevio.NO_ES_SOLICITANTE:
         return _Resultado(denegado=True)
     if paso is PasoPrevio.YA_DISPONIBLE:
-        return _Resultado(leido=_leido(sesion_bd, fila))
+        return _Resultado(leido=leido_de(sesion_bd, fila))
     if paso is PasoPrevio.CADUCADO:
         raise _caducado(archivo_id)
     if paso is PasoPrevio.NO_CONFIRMABLE:
@@ -232,7 +232,7 @@ def _confirmar_en_transaccion(
         datos_despues=datos_despues,
     )
     confirmada = replace(fila, estado=EstadoArchivo.DISPONIBLE, tipo_mime=tipo, confirmado_en=ahora)
-    return _Resultado(leido=_leido(sesion_bd, confirmada))
+    return _Resultado(leido=leido_de(sesion_bd, confirmada))
 
 
 def _ruta_de_confirmacion(archivo_id: uuid.UUID) -> str:

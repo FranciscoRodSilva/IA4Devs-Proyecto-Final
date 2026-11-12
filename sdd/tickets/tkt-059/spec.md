@@ -134,7 +134,7 @@ Escenario: Las URL llevan el origen público y el servidor usa el endpoint inter
 
 Las dos variables son una decisión de la persona dueña del 2026-11-06: en la VPS el servidor alcanzará MinIO por la red interna de Docker y el navegador por un nombre público.
 
-### CA-3 `[M]` · Alta del archivo `PENDIENTE` · `RNF-06` · `HDU-001 esc. 24`
+### CA-3 `[M]` · Alta del archivo `PENDIENTE` · `RNF-06` · `HDU-001 esc. 24` (parcial; el escenario completo es de TKT-018)
 
 ```gherkin
 Escenario: El módulo dueño registra el adjunto en su transacción
@@ -160,7 +160,7 @@ Escenario: Rechazo · tipo declarado fuera de la lista blanca
 
 El tipo declarado solo elige el límite y se valida; no se guarda y no decide el tipo real, que sale de los bytes al confirmar. La lista blanca es la de ADR-016 sin `.xls`: JPEG, PNG, HEIC y WebP (imagen); MP4 (video); PDF, XML y `.xlsx` (documento).
 
-### CA-4 `[M]` · Confirmación del archivo · `RNF-06` · `RNF-19` · `HDU-001 esc. 24`
+### CA-4 `[M]` · Confirmación del archivo · `RNF-06` · `RNF-19` · `HDU-001 esc. 24` (parcial; el escenario completo es de TKT-018)
 
 ```gherkin
 Escenario: El objeto coincide con lo declarado
@@ -257,7 +257,7 @@ Escenario: Confirmar sin el rol o sin prueba de origen
   Y cuando el archivo no existe, responde 404 NO_ENCONTRADO
 ```
 
-### CA-8 `[M]` · Metadatos y URL de descarga · `RNF-06` · `HDU-001 esc. 24`
+### CA-8 `[M]` · Metadatos y URL de descarga · `RNF-06` · `HDU-001 esc. 24` (parcial; el escenario completo es de TKT-018)
 
 ```gherkin
 Escenario: Descargar un PDF
@@ -421,6 +421,7 @@ La de fundación de `sdd/metodologia.md` §8, más:
 | `PA-T59.12` | TKT-017 reservó en su diseño la migración `0011`. El número de la migración de este ticket lo fija quien ejecute primero, y el otro renumera | Choque de cabezas de Alembic si los dos usan el mismo número | Aviso para los dos diseños |
 | `PA-T59.13` | Un `PENDIENTE` que pasó el umbral sin barrer se trata como caducado al confirmar: pasa a `CADUCADO` y responde `ARCHIVO_CADUCADO` | — | Resuelta por la persona dueña el 2026-11-05, en la pasada adversarial |
 | `PA-T59.14` | La comprobación estructural de un `.xlsx` se puede hacer con lecturas por rango del almacén, sin descargar el objeto entero **(sin verificar)** | Si no, la confirmación de una hoja grande retendría el hilo; habría que moverla a un trabajo | Abierta; experimento en el diseño, junto con `PA-T59.6` |
+| `PA-T59.15` | Los metadatos de un archivo `PENDIENTE` o `ANULADO` se sirven con su estado (`200`), como los de un `CADUCADO`, en lugar de negarse **(asumido)** | Si se negaran, `obtener_archivo` respondería `409` y un test de 059e cambiaría | Resuelta el 2026-11-12 por la persona dueña: se sirven con su estado. Los ven solo `DIRECCION_GENERAL` y `DIRECTOR_PROYECTOS`; lo fija `test_tkt059_ca08_metadatos_de_un_pendiente_o_anulado` |
 
 ## Pasada adversarial
 

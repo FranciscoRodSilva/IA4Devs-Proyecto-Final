@@ -67,6 +67,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/archivos/{archivo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener
+         * @description Metadatos del archivo, sin la clave del objeto.
+         */
+        get: operations["obtener_archivo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/archivos/{archivo_id}/descarga": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener Url Descarga
+         * @description ADR-016: una URL prefirmada de lectura de vida corta; los bytes no pasan por la API.
+         */
+        get: operations["obtener_url_descarga_archivo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/archivos/{archivo_id}/confirmacion": {
         parameters: {
             query?: never;
@@ -646,6 +686,25 @@ export interface components {
          * @enum {string}
          */
         Unidad: "M2" | "ML" | "PZA" | "KG" | "CAJA" | "SACO" | "ROLLO" | "JORNAL";
+        /** UrlDescarga */
+        UrlDescarga: {
+            /** Url */
+            url: string;
+            /**
+             * Expira En
+             * Format: date-time
+             */
+            expira_en: string;
+            /** Tipo Mime */
+            tipo_mime: string;
+            /** Nombre Original */
+            nombre_original: string;
+            /**
+             * Disposicion
+             * @enum {string}
+             */
+            disposicion: "inline" | "attachment";
+        };
         /** UsuarioActual */
         UsuarioActual: {
             /**
@@ -799,6 +858,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    obtener_archivo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                archivo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Archivo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_url_descarga_archivo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                archivo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UrlDescarga"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

@@ -1,6 +1,6 @@
 # Impl · TKT-059 · Módulo `archivos` mínimo: subida prefirmada, confirmación por hash y barrido
 
-> [← index](_index.md) | [← design](design.md) | Siguiente: `delta.md` (se enlaza en `/sdd-completar`)
+> [← index](_index.md) | [← design](design.md) | Siguiente: [delta →](delta.md)
 
 Este archivo es uno solo para las cinco entregas del paraguas y lleva una sección por entrega. Las entregas posteriores añaden la suya sin reescribir las anteriores.
 
@@ -451,7 +451,7 @@ Hallazgos de las auditorías de código, seguridad y documentación, y su resolu
 | `auditor-codigo` | `F003` · `leer_rango` no validaba el rango | Menor | Ahora lanza `ValueError` ante un rango inválido |
 | `auditor-codigo` | `F004` · literales duplicados | Menor | Corregido |
 | `auditor-seguridad` | `F001` · el mismo defecto que `F001` de código | Mayor | Corregido junto con aquel |
-| `auditor-seguridad` | `F002` · `MAXIMO_PARTE` de 1 MiB permitía una bomba de profundidad en el XML (97 MiB de pico con 1 MiB de etiquetas anidadas) | Media | `MAXIMO_PARTE` baja a 262 144 bytes |
+| `auditor-seguridad` | `F002` · `MAXIMO_PARTE` de 1 MiB permitía una bomba de profundidad en el XML (consumo de memoria sin acotar) | Media | `MAXIMO_PARTE` baja a 262 144 bytes |
 | `auditor-seguridad` | `F003` · los contenedores RIFF (AVI, WAV) salían como `image/webp` y se tomaba la primera candidata de `puremagic` | Media | RIFF sin `WEBP` pasa a `application/octet-stream` y solo se consideran las candidatas de máxima confianza. La regla `ftyp` → `video/mp4` se deja por decisión de la persona dueña |
 | `auditor-seguridad` | `O1` · entradas `[Content_Types].xml` duplicadas | Observación | El detector responde `application/zip` |
 | `auditor-docs` | `F001` a `F008` y `O-1` a `O-3` · fecha del ADR en el diseño, cifras de lectura del ADR, fechas de 059b, citas de ADR-016 y marcas de `ftyp` | Mayor y menor | Corregidos en el diseño, el ADR, el stack, el ticket 05, `_index.md` e `impl.md` |
@@ -493,7 +493,7 @@ Cobertura de ramas de los dos módulos de la entrega, medida por `auditor-codigo
 | `auditor-seguridad` | `APROBADO` | 1 |
 | `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `N001` a `N006`, `O-N1` y `O-N2`, todos de redacción, resueltos por el orquestador con el texto literal del auditor tras el segundo ciclo | 2 |
 
-Observaciones de `auditor-seguridad` que quedan abiertas, ambas de prioridad baja: `O4` (algunas firmas defectuosas de `puremagic`, como `\x89PNG` escrito como texto o `%PDF` sin guion, producen un tipo de la lista blanca; el segundo ciclo cerró el caso de una candidata débil en el respaldo, pero las candidatas de máxima confianza con firma defectuosa siguen igual, y el objeto se sirve con ese tipo sin que el navegador lo interprete como HTML) y `O5` (un ZIP con `nlen` mayor que lo que queda del directorio coincide con `[Content_Types].xml` aunque `zipfile` lo rechace; el consumidor del `.xlsx` debe seguir validando con su propio analizador). Ambas pasan a 059d o 059e (ver «Entrega TKT-059c»). Observaciones de `auditor-codigo`: `O-9` a `O-11` (estéticas).
+Observaciones de `auditor-seguridad` que quedan abiertas, ambas de prioridad baja: `O4` y `O5`, que pasan al ticket de seguimiento (ver «Pendientes de 059b, con destino»). Ambas pasan a 059d o 059e (ver «Entrega TKT-059c»). Observaciones de `auditor-codigo`: `O-9` a `O-11` (estéticas).
 
 Resultado por criterio de 059b: todos los `[M]` de su alcance cumplidos con evidencia (ver la tabla de criterios de esta sección). Los criterios `CA-2`, `CA-4`, `CA-5` y `CA-6` se completan en 059c a 059e con los casos de uso y las rutas. Desviaciones: las de «Ajustes respecto al design (059b)» y el ciclo 1 de `/sdd-revisar`.
 
@@ -520,7 +520,7 @@ Fecha de ejecución: 2026-11-12. Misma rama del ticket, `tkt-059-archivos-minimo
 | 2026-11-12 | `repositorio.insertar` recibe una `FilaArchivo` y no una lista de argumentos por palabra clave. | Desviación menor de la firma del diseño (observación `O-5`); el comportamiento y las columnas son los mismos |
 | 2026-11-12 | Los desarrolladores de las filas 8 y 9 escribieron todos sus pasos de una vez y corrieron la suite después, en lugar de ponerlos en verde de uno en uno. | Todos los tests de cada fila ya estaban en rojo por la misma ausencia de la funcionalidad. El verde final de cada fila es completo |
 
-Pendientes de 059b que 059c no cierra, con su destino: `O4` y `O5` de `auditor-seguridad` (firmas defectuosas de `puremagic` y `nlen` mayor que el directorio central) y pedir `Body.read(fin - inicio + 1)` en `leer_rango` siguen abiertas porque ninguna de las filas 8 a 10 las asigna. Son de prioridad baja y se atienden en 059d o 059e, o se descartan con motivo en la revisión de esa entrega. La comprobación de que XML y `.xlsx` nunca se sirven en línea (`O3`) es de la fila 14 (059e).
+Pendientes de 059b que 059c no cierra, con su destino: `O4` y `O5` de `auditor-seguridad` (dos entradas malformadas de contenedores que hoy no se rechazan) y pedir `Body.read(fin - inicio + 1)` en `leer_rango` siguen abiertas porque ninguna de las filas 8 a 10 las asigna. Son de prioridad baja y se atienden en 059d o 059e, o se descartan con motivo en la revisión de esa entrega. La comprobación de que XML y `.xlsx` nunca se sirven en línea (`O3`) es de la fila 14 (059e).
 
 ### Archivos tocados (059c)
 
@@ -856,3 +856,210 @@ python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos d
 | `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F003`, de redacción, resueltos por el orquestador con el texto literal del auditor | 1 |
 
 Resultado por criterio de 059d: todos los `[M]` de su alcance cumplidos con evidencia (`CA-4` a `CA-7`, ver la tabla de criterios de la sección «Entrega TKT-059d»). Los criterios `CA-8` a `CA-12` se completan en 059e. Desviaciones: las de «Ajustes respecto al design (059d)» y las de este ciclo.
+
+
+## Entrega TKT-059e · Consulta, barrido, lector y prueba de rutas (filas 14 a 17)
+
+Fecha de ejecución: 2026-11-12. Misma rama del ticket, `tkt-059-archivos-minimo`, partiendo del commit de cierre de 059d (`4153d2c`). Es la última entrega del paraguas.
+
+### Qué se implementó
+
+- `GET /api/v1/archivos/{archivo_id}` (metadatos, sin la clave del objeto) y `GET /api/v1/archivos/{archivo_id}/descarga` (URL prefirmada de lectura de vida corta), ambas `def`, restringidas a `DIRECCION_GENERAL` y `DIRECTOR_PROYECTOS`. El rol se comprueba antes de abrir el archivo y antes de firmar; un `PENDIENTE` o `ANULADO` responde `409` `ARCHIVO_NO_DISPONIBLE` y un `CADUCADO`, `ARCHIVO_CADUCADO`.
+- `definicion_barrido_archivo`: el arranque pasa a `CADUCADO` los `PENDIENTE` vencidos de `archivo`, después del barrido de importaciones. No toca el almacén ni la bitácora, y un almacén caído no impide arrancar.
+- `crear_lector_contenido` y `ArchivoNoLegible`: el origen de los bytes que lee el ejecutor del análisis de TKT-015. Solo lee un archivo `DISPONIBLE`. `servidor/fabrica.py` lo conecta en el `lifespan` y deja de usar `leer_contenido_no_configurado`.
+- La prueba «ninguna ruta binaria» sobre la aplicación real (`test_tkt059_rutas.py`), con un control que debe señalar una ruta que transmita bytes.
+- El cambio del borrador OpenAPI de 059e (el `409` de la descarga nombra sus dos códigos con ejemplos) y los tipos del cliente regenerados.
+- Documentación: ficha de TKT-059 en `docs/05-tickets-trabajo.md` y filas de `RNF-06` y `RNF-19` del stack §6.6, que ahora enlazan los tests que las cumplen.
+
+### Ajustes respecto al design (059e)
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-12 | `confirmacion._leido` pasa a llamarse `leido_de` y entra en `__all__`. | `consulta.py` reutiliza el constructor de `ArchivoLeido` en lugar de duplicarlo. Nada más usaba `_leido`, y el comportamiento no cambia |
+| 2026-11-12 | En el `lifespan`, `leer_contenido` se calcula después del retorno temprano sin variables de base. | Sin base no hay ejecutor, y `aplicacion.state.archivos` solo se necesita en el camino con base. El parámetro `leer_contenido_archivo` sigue teniendo prioridad |
+| 2026-11-12 | El docstring de módulo de `servidor/fabrica.py` se reflujó. | Cerraba la observación `O6` de la revisión de 059d (una línea de unos 170 caracteres) |
+| 2026-11-12 | Los metadatos de un `PENDIENTE` o de un `ANULADO` responden `200` con su estado **(asumido)**. | El diseño solo restringe por estado la descarga. La persona dueña lo confirmó el 2026-11-12 y quedó como `PA-T59.15` de la spec (resuelta) |
+| 2026-11-12 | Cuatro casos del test del lector (`PENDIENTE`, `CADUCADO`, `ANULADO` e inexistente), uno más que el plan. | `ANULADO` cae bajo la misma regla del diseño y mata a un lector que solo excluya los dos primeros |
+
+**Decisión que queda abierta.** El diseño manda leer el objeto con `leer_todo` **dentro** del `with begin()` del lector, así que la conexión del pool queda tomada, y la sesión `idle in transaction`, durante toda la descarga. `auditor-arquitectura` (`O001`) y el desarrollador coinciden en que sacarla del bloque son tres líneas y no pierde consistencia (un archivo `DISPONIBLE` no cambia ni se borra), pero el diseño lo fija literalmente. **No se cambió.** Queda anotado como deuda junto a `O-1` de 059d, y el motor sin `pool_timeout` ni `idle_in_transaction_session_timeout` (`herramientas/conexion.py`) es de un ticket de operación.
+
+### Archivos tocados (059e)
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/archivos/aplicacion/consulta.py`, `barrido.py`, `lectura.py` | nuevos | aplicación |
+| `backend/cimenta/archivos/aplicacion/confirmacion.py` | modificado (`leido_de`) | aplicación |
+| `backend/cimenta/archivos/api/rutas.py`, `esquemas.py` | modificados (dos rutas `GET`, `UrlDescarga`) | api |
+| `backend/cimenta/archivos/interfaz.py` | modificado (tres símbolos nuevos) | interfaz |
+| `backend/servidor/fabrica.py` | modificado (barrido de archivos y lector) | servidor |
+| `backend/tests/test_tkt059_consulta.py`, `test_tkt059_arranque.py`, `test_tkt059_rutas.py` | nuevos | pruebas |
+| `docs/api/openapi.yaml` | modificado (cambio del borrador en 059e) | contrato |
+| `docs/05-tickets-trabajo.md`, `docs/06-stack-tecnologico.md` | modificados | documentación |
+| `frontend/src/api/generado/servidor.ts` | regenerado | cliente |
+| `sdd/tickets/tkt-059/design.md`, `impl.md`, `_index.md`, `rojo/fila-14.txt`, `fila-15.txt`, `fila-16.txt` | modificados o nuevos | documentación |
+
+### Pruebas y ciclo TDD por fila (059e)
+
+| Fila | Rojo (`sdd/tickets/tkt-059/rojo/`) | Ejecutó | Verde | Mutantes |
+|---|---|---|---|---|
+| 14 | `fila-14.txt`: `52 failed`, cero errores. Todos por la ruta ausente (`404` donde se espera `200`, `403`, `409` o `401`) | `tester-api` (`sonnet`) → `desarrollador-api` (`sonnet`) | `81 passed` en `test_tkt059_consulta.py` y `test_tkt006_enrutador.py`; `1013 passed` en `-k "tkt006 or tkt057 or tkt059"` | `M-11`, `M-12` |
+| 15 | `fila-15.txt`: `9 failed`, cero errores. Dos por rechazos que no ocurrían (el arranque no barría `archivo`) y el resto por símbolos ausentes | `tester-backend` (`sonnet`) → `desarrollador-aplicacion` (`haiku`) | `9 passed`; `130 passed` en las siete suites de la fila; `533 passed` en `-k "tkt006 or tkt057"` | `M-13`, `M-14` |
+| 16 | `fila-16.txt`: sin código de producción, el test principal nace en verde (regresión). Se demostró con cinco mutantes de producción y `M-17` | `tester-api` (`sonnet`) | `8 passed` en `test_tkt059_rutas.py` | `P-1` a `P-5`, `M-17` |
+| 17 | — | `tester-backend` (`sonnet`) | Suite completa, abajo | Tabla completa de abajo |
+
+Las filas 14 y 15 son de ejecución con subagentes: el tester escribió el rojo y un agente distinto lo puso en verde.
+
+### Mutación (tabla completa del diseño, contra la suite acumulada)
+
+Protocolo de `tester-backend`: copia previa de los 323 `.py` de `backend/` fuera del repositorio y un mutante a la vez. La huella SHA-256 de todos los `.py` fue idéntica antes y después de cada uno de los 33 mutantes y al terminar: `0bb6a8f5df039771fbf2cc8ecabe02af0a14cebcbdef623efd8015f67e5c46f1`. Al reanudar tras un corte por límite de uso, el tester confirmó que el árbol no tenía restos de mutantes (`497 passed` en los `test_tkt059_*.py` antes de empezar).
+
+| Mutante | Cambio | Test que cae | Resumen de pytest |
+|---|---|---|---|
+| `M-01` | `not ahora < vence_en` | `evaluar_previa[PENDIENTE-PROPIO-100-CONFIRMABLE]` y `…_con_datetime` | 2 failed |
+| `M-02` | solicitante después del estado | `evaluar_previa[DISPONIBLE-AJENO-50-NO_ES_SOLICITANTE]` | 1 failed |
+| `M-02b` | solicitante después de los pasos 3 a 6 | `otro_director_no_confirma[CADUCADO]`, `[ANULADO]`, `[DISPONIBLE]` | 3 failed |
+| `M-03` | no comparar el hash | `comparar_objeto[objeto5-HASH_DISTINTO]` y `[objeto6-…]` | 2 failed |
+| `M-04` | suma `None` coincide | `comparar_objeto[objeto6-HASH_DISTINTO]` | 1 failed |
+| `M-05` (`>=`) | `>` por `>=` en el límite | `evaluar_declaracion_limite_por_categoria`, 8 casos | 8 failed |
+| `M-05` (documentos) | `DOCUMENTO` devuelve el límite de imagen | `evaluar_declaracion[…documentos]` y otros cinco | 6 failed |
+| `M-05b` | firmar la URL antes de evaluar la declaración | `ca03_tamano_declarado_excede_limite`, `tipo_declarado_fuera_de_lista`, `forma_de_la_declaracion` | 8 failed |
+| `M-06` | no mirar si la raíz es `svg` | `rechaza_lo_no_admitido[svg-*]`, `esc26_tipo_no_permitido[svg]`, `svg_renombrado_a_jpg` | 5 failed |
+| `M-07` | cualquier ZIP con `[Content_Types].xml` es `.xlsx` | `rechaza_lo_no_admitido[zip-sin-parte-de-libro]`, `[xlsm-con-macros]` y tres más | 5 failed |
+| `M-08` (dos sitios) | `forbid_dtd=False` | `rechaza_lo_no_admitido[xml-con-doctype]` y `[zip-con-doctype-en-content-types]` | 1 failed cada uno |
+| `M-09` | asiento `CONFIRMAR` en otra transacción | `ca04_la_bitacora_va_en_la_misma_transaccion` | 1 failed |
+| `M-10` | `ARCHIVO_CADUCADO` lanzado dentro del bloque | `ca07_pendiente_vencido_sin_barrer` | 1 failed |
+| `M-11` | `inline` para `application/pdf` | `tipos_y_disposicion_por_tipo[application/pdf-…]`, `ca08_descargar_un_pdf` y seis más | 8 failed |
+| `M-12` | la descarga admite también `COMPRAS` | `ca09_sin_rol[COMPRAS-…]` y cinco más | 6 failed |
+| `M-13` | el lector no comprueba el estado | `ca11_el_lector_rechaza_lo_no_disponible[PENDIENTE/CADUCADO/ANULADO]`, `ca11_la_fabrica_conecta_el_lector` | 4 failed |
+| `M-14` | barrido con `columna_marca="confirmado_en"` | `ca10_el_arranque_caduca_los_pendientes_vencidos` y `ca10_definicion_del_barrido` | 2 failed |
+| `M-15` | `bloquear` sin `with_for_update()` | `ca04_dos_confirmaciones_simultaneas` | 1 failed |
+| `M-16` | leer el objeto entero con un solo rango | `ca04_el_detector_lee_rangos_acotados[…]` y `ca04_confirmar_lee_una_fraccion_acotada` | 5 failed |
+| `M-17` | el comprobador de `TC-43` solo mira lo declarado | `ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_sin_declarar]`, `[flujo_anotado]`, `[flujo_fuera_del_esquema]` | 3 failed |
+| `M-18` | migración sin `REVOKE DELETE` | `ca01_el_rol_de_aplicacion_no_borra_archivos[delete]` y `ca01_la_migracion_sube_y_baja` | 2 failed |
+| `M-19` | sin la traducción de `55P03` | `ca04_confirmacion_con_bloqueo_vencido` | 1 failed |
+| `M-20` | CORS abierto (`MINIO_API_CORS_ALLOW_ORIGIN=*`, caso c2) | `ca14_cors_solo_desde_la_spa` y `…_en_el_put_firmado` | 2 failed |
+| `M-21` | `url_subida` firma con `self._cliente` | `ca02_las_url_llevan_el_origen_publico` | 1 failed |
+
+Mutantes extra de la fila 17: `M-12b` (lo mismo en la ruta de metadatos: 5 failed) y `M-17a`, `M-17b` y `M-17c` (quitar cada chequeo del comprobador por separado: 2, 1 y 2 failed). Los de la fila 16 sobre `rutas.py`: `P-1` (`response_class=Response`), `P-2` (`async def`), `P-3` (`exigir_rol` antes que `verificar_origen`), `P-4` (sin `exigir_rol`) y `P-5` (ruta que devuelve un `StreamingResponse`); en los cinco cae el test principal y los seis casos de control. Ningún mutante sobrevivió.
+
+`M-20` solo se mutó en el caso (c2) de `E-5`: el CORS lo aplica `MINIO_API_CORS_ALLOW_ORIGIN` y en `cimenta/` no existe `AllowedOrigins`.
+
+### Modelo por paso (059e)
+
+| Paso | Agente | Modelo | Motivo |
+|---|---|---|---|
+| Fila 14, rojo | `tester-api` | `sonnet` | Valor por omisión |
+| Fila 14, verde | `desarrollador-api` | `sonnet` | Disparador del diseño: los permisos de un rol |
+| Fila 15, rojo | `tester-backend` | `sonnet` | Valor por omisión |
+| Fila 15, verde | `desarrollador-aplicacion` | `haiku` | Valor del diseño; cerró a la primera |
+| Fila 16 | `tester-api` | `sonnet` | Valor por omisión |
+| Fila 17, mutación y suite | `tester-backend` | `sonnet` | Valor por omisión; el agente se cortó una vez por el límite de uso de la cuenta y se reanudó con `SendMessage`, sin cambiar de modelo |
+| Auditoría de cierre | `auditor-arquitectura` | `sonnet` | Valor del comando |
+
+### Resultado contra los criterios de aceptación (alcance de 059e)
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| `CA-8` esc. 1 a 4 (descargar un PDF, imagen en línea, la URL caduca, metadatos) | Cumplido | `TC-31`, `TC-32`, `TC-33` (en `test_tkt059_almacen.py`), `TC-34` |
+| `CA-9` esc. 1 a 3 (descarga no disponible o caducada, sin rol) | Cumplido | `TC-35`, `TC-36` |
+| `CA-10` (barrido de arranque) | Cumplido | `TC-37`, `TC-38`, `TC-39` |
+| `CA-11` (lector del ejecutor) | Cumplido | `TC-40`, `TC-41`, `TC-42` |
+| `CA-12` (ninguna ruta binaria) | Cumplido | `TC-43` con su control `M-17` |
+
+Los criterios `CA-1` a `CA-7`, `CA-13` y `CA-14` se cumplieron en las entregas anteriores. Quedan por comprobar en `/sdd-completar`, con un PR real, los que dependen del pipeline: los nueve trabajos de `ci.yml` en verde.
+
+### Auditorías de cierre de fase (059e)
+
+| Auditor | Veredicto | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 1 |
+| `auditor-sql` | No aplica: la entrega no tiene esquema | — |
+
+Observaciones de `auditor-arquitectura`, sin bloqueo: `O001` (la conexión del pool durante la descarga del lector, abierta arriba), `O002` (las dos lecturas filtran solo por rol, sin control de obra **(asumido: decisión por rol de `PA-T59.8`; no existe un eje de asignación por obra en el proyecto)**, de modo que hoy cualquiera de los dos roles que conozca un UUID descarga un archivo de cualquier obra; hay que apuntarlo como supuesto vigente en el diseño de TKT-018), `O003` (`expira_en` es informativo; la caducidad real la fija `boto3`) y `O004` (`obtener_archivo` mantiene `x-escenarios: ['HDU-001 esc. 24']` en el borrador, escenario de TKT-018).
+
+**Señal para quien apruebe el PR:** esta entrega vuelve a modificar `docs/api/openapi.yaml` (el `409` de `obtener_url_descarga_archivo` nombra `ARCHIVO_NO_DISPONIBLE` y `ARCHIVO_CADUCADO` con un ejemplo cada uno). Junto con el cambio de 059d, el PR del ticket toca el borrador en dos entregas.
+
+**Advertencia sobre `tools/verificar_escenarios.py`.** HDU-001 sigue `PENDIENTE` en `tools/historias_activas.txt` hasta TKT-017c, así que su verde (`Escenarios: 164 · exigidos 0 · cubiertos 0 · pendientes 164`) no prueba aquí los escenarios 25 y 26. Los prueban `test_hdu001_esc25_tamano_distinto`, `test_hdu001_esc25_hash_distinto` y `test_hdu001_esc26_tipo_no_permitido`, que pasan en la suite.
+
+### Verificación de la entrega 059e
+
+Cifras copiadas de la última corrida, con Docker respondiendo (servidor 29.9.3):
+
+```text
+uv run pytest -q -ra          →  3275 passed, 26 skipped in 647.63s (0:10:47)
+uv run ruff format --check .  →  323 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 323 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+pip-audit (como el pipeline)  →  No known vulnerabilities found
+python tools/verificar_escenarios.py → Escenarios: 164 · exigidos 0 · cubiertos 0 · faltan 0 · pendientes 164
+npm run tipos:verificar       →  Tipos al día.
+npm run lint, npm run typecheck →  sin hallazgos
+python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos de TKT-018b
+```
+
+La concurrencia (`test_tkt059_confirmacion_concurrencia.py`) pasó tres veces seguidas sin intermitencia (`4 passed` cada vez). Los 26 saltos son las pruebas contra los archivos reales del catálogo (`CIMENTA_CATALOGO_ENITI` y `CIMENTA_CATALOGO_UNION`, `PA-T3` de TKT-013), ajenas a este ticket.
+
+
+### Revisión de la entrega 059e (`/sdd-revisar`, 2026-11-12)
+
+Docker respondió (servidor 29.9.3). La suite completa se ejecutó tres veces durante la ejecución y la revisión (`3275`, `3275` y `3279` pruebas pasadas) porque el ciclo de corrección añadió tests; la que cuenta es la última.
+
+#### Ciclo de corrección
+
+| Auditor | Hallazgo | Gravedad | Decisión |
+|---|---|---|---|
+| `auditor-codigo` | `F001` · las dos ramas `RuntimeError` de `emitir_url_descarga` (un `DISPONIBLE` sin `tipo_mime`, o con un tipo fuera de la lista blanca) no tenían test y son alcanzables, porque `ck_archivo_disponible_verificado` no exige `tipo_mime` | Menor | Se conserva el `RuntimeError` como invariante defensivo y se fija su efecto: cuatro tests (dos tipos por dos roles) comprueban el `500` con el contrato del `500`, ninguna URL firmada y fila y bitácora intactas. Cuatro mutantes de `consulta.py`: tres caen; el cuarto (`A2`, quitar la rama `tipo_mime is None`) es equivalente, porque `disposicion_de(None)` devuelve `None` y el caso cae en la rama siguiente con el mismo `500` |
+| `auditor-codigo` | `F002` · `NOMBRE_DEL_LIBRO` y `TIPO_XLSX` duplicados en `test_tkt059_arranque.py` | Menor | Se importan de `herramientas/soporte_tkt059.py` |
+| `auditor-codigo` | `F003` · `!=` frente a `is not` al comparar `EstadoArchivo` en `lectura.py` | Menor | `fila.estado is not EstadoArchivo.DISPONIBLE`, por `corrector-revision` |
+| `auditor-codigo` | `F004` · `leer_contenido_no_configurado` ya no tiene llamadores en producción | Menor | Se conserva a propósito como superficie pública de `presupuesto`: el diseño dice que «sigue publicada» y no toca ese módulo. Si un ticket de `presupuesto` la retira, hay que quitar también la mención de un docstring de `test_tkt059_arranque.py` |
+| `auditor-codigo` | `F005` · imports diferidos sin motivo y `registro_tecnico: Any` en `test_tkt059_arranque.py` | Menor | Imports en la cabecera y `io.StringIO` |
+| `auditor-seguridad` | `O-D` · contraseña literal de prueba en `test_tkt059_arranque.py` | Baja | `CONTRASENA_DE_PRUEBA` |
+| `auditor-docs` | `F001` · `verificar_docs.py` en rojo por cuatro enlaces rotos de `sdd/tickets/tkt-018b` | Mayor | **Decisión de la persona dueña, 2026-11-12:** corregirlos en esta rama. `spec.md` y `_index.md` de TKT-018b pasan a texto plano las referencias a `design.md` e `impl.md` pendientes, y el ancla de `08-wireframes.md` apunta a `#3-importación-de-la-línea-base`. Ninguna regla ni criterio de TKT-018b cambia. `verificar_docs.py` sale ahora sin problemas |
+| `auditor-docs` | `F002` · los metadatos de un `PENDIENTE` o `ANULADO` con `200` eran una suposición sin marca | Mayor | **Decisión de la persona dueña, 2026-11-12:** se sirven con su estado. Queda como `PA-T59.15` de la spec, resuelta, y como `(asumido)` en `impl.md` |
+| `auditor-docs` | `F003` · la prosa de `docs/07-especificacion-api.md` §2.8 no describía la descarga | Observación | Párrafo añadido con el texto literal del auditor |
+| `auditor-docs` | `F004` · «sin control de obra en las lecturas» sin marca de supuesto | Observación | Marcado `(asumido: decisión por rol de PA-T59.8; no existe eje de asignación por obra)` en `impl.md` y `_index.md` |
+| `auditor-docs` | `F006` · `design.md` citaba `test_tkt059_ca07_sin_rol_sin_origen_o_inexistente`, que no existe | Observación | Sustituido por los tres nombres reales |
+
+Los hallazgos de `auditor-docs` y de `auditor-codigo` son de redacción, de cifras y de código de pruebas; el orquestador los resolvió en el primer ciclo con el texto literal de cada auditor y se los comunica a la persona dueña. La producción solo cambió en una línea de `lectura.py`.
+
+Observaciones que quedan abiertas, sin bloqueo:
+
+- `auditor-seguridad` · `O-A` (el lector carga el objeto entero sin mirar el tipo ni el tamaño; en TKT-018, exigir al crear la importación que el archivo sea `DISPONIBLE`, de la misma obra, `IMPORTACION` y `.xlsx`), `O-B` (la conexión del pool durante la descarga del lector; la deuda ya anotada) y `O-C` (que TKT-073 añada `X-Content-Type-Options: nosniff` en el proxy delante de MinIO).
+- `auditor-seguridad` · **supuesto a registrar para TKT-018:** las lecturas de archivos solo filtran por rol; cualquier listado que exponga un `archivo_id` debe filtrar por obra, y cuando exista una asignación usuario-obra, estas rutas deben añadirla.
+- `auditor-arquitectura` · `O001` a `O004` (ver «Auditorías de cierre de fase (059e)»).
+- `auditor-codigo` · `O001` a `O008` (sin bloqueo).
+- `auditor-docs` · `F005` (los archivos de la copia de trabajo tienen CRLF, y Git los normaliza a LF al commitear).
+
+**Pendientes de 059b, con destino.** Por decisión de la persona dueña (2026-11-12) se descartan en TKT-059 con este motivo: son de prioridad baja y 059c a 059e no los han empeorado. `O4` y `O5` (dos entradas malformadas de contenedores que hoy no se rechazan) y pedir `Body.read(fin - inicio + 1)` en `leer_rango` pasan a un ticket de seguimiento sugerido, anotado en `_index.md`.
+
+#### Verificación final de la entrega 059e
+
+Cifras copiadas de la última corrida, desde `backend/`:
+
+```text
+uv run pytest -q -ra          →  3279 passed, 26 skipped in 651.77s (0:10:51)
+uv run ruff format --check .  →  323 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 323 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+npm run tipos:verificar       →  Tipos al día.
+python tools/verificar_docs.py →  ✓ Sin problemas.
+python tools/verificar_escenarios.py → Escenarios: 164 · exigidos 0 · cubiertos 0 · faltan 0 · pendientes 164
+```
+
+| Auditor | Veredicto final | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 1 |
+| `auditor-sql` | No aplica: la entrega no tiene esquema | — |
+| `auditor-codigo` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F005`, de código de pruebas, de una comparación de enum y de una decisión sobre superficie pública, resueltos por el orquestador con el texto literal del auditor | 1 |
+| `auditor-seguridad` | `APROBADO` | 1 |
+| `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F004` y `F006`, de verificador, de supuestos y de redacción, resueltos por el orquestador con el texto literal del auditor y las decisiones de la persona dueña | 1 |
+
+Resultado por criterio de 059e: todos los `[M]` de su alcance cumplidos con evidencia (`CA-8` a `CA-12`). Con las entregas anteriores, los catorce criterios de la spec y `CA-R1` tienen cobertura. Los que solo se comprueban con un PR real (los nueve trabajos de `ci.yml` en verde) se verifican en `/sdd-completar`, que no fusiona sin esa evidencia. La salvedad de `tools/verificar_escenarios.py` sigue vigente: HDU-001 está `PENDIENTE` en `tools/historias_activas.txt` hasta TKT-017c, así que su verde no prueba los escenarios 25 y 26; los prueban los tests por nombre. Desviaciones: las de «Ajustes respecto al design (059e)» y las de este ciclo.
+
+**Señal para quien apruebe el PR:** el PR de TKT-059 modifica `docs/api/openapi.yaml` (cambios del borrador de 059d y de 059e) y, por la decisión de la persona dueña, corrige cuatro enlaces de `sdd/tickets/tkt-018b/`.

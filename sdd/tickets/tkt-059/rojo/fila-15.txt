@@ -1,0 +1,304 @@
+FFFFFFFFF                                                                [100%]
+================================== FAILURES ===================================
+_________ test_tkt059_ca10_el_arranque_caduca_los_pendientes_vencidos _________
+
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_b9909ef8759f), usuario_id=UUID('ef6479a1-f38a-45fc-8f5e-851148a9dcfd'))
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000197AE5E4830>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_b9909ef8759f)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000197AE5E4980>
+registro_tecnico = <_io.StringIO object at 0x00000197AD2EAC20>
+
+    def test_tkt059_ca10_el_arranque_caduca_los_pendientes_vencidos(
+        sembrador: Sembrador,
+        datos_presupuesto: DatosPresupuesto,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        registro_tecnico: Any,
+    ) -> None:
+        """TC-37 · CA-10 esc. 1, CA-R1 · RNF-19 — el arranque caduca solo el `PENDIENTE` vencido.
+    
+        La fila de hace 25 h pasa a `CADUCADO`; la de hace una hora (aún vigente), la `DISPONIBLE` vieja y el
+        resto no cambian, ninguna fila se crea ni se borra, la bitácora no recibe asientos y el almacén no se
+        toca. La fila de una hora es la que distingue la columna de la marca: con `confirmado_en`, nula en todo
+        `PENDIENTE`, el barrido las caducaría todas.
+        """
+        vencido = sembrador.archivo("PENDIENTE", horas=HORAS_VENCIDAS)
+        vigente = sembrador.archivo("PENDIENTE", horas=HORAS_VIGENTES)
+        disponible_viejo = sembrador.archivo("DISPONIBLE", horas=HORAS_VENCIDAS)
+        importacion_id = datos_presupuesto.importacion(
+            estado="ANALIZANDO", latido=datetime.now(tz=UTC) - timedelta(minutes=5)
+        )
+        filas_antes = sembrador.total_de_archivos()
+        bitacora_antes = sembrador.total_de_la_bitacora()
+        almacen = AlmacenQueFalla(lambda operacion: AssertionError(f"el arranque llamó a {operacion}"))
+        aplicacion = crear_aplicacion_de_archivos(
+            almacen=almacen.como_almacen(),
+            motor=motor_aplicacion,
+            reloj=reloj_de_prueba,
+            destino_registro=registro_tecnico,
+        )
+    
+        with TestClient(aplicacion):
+            pass
+    
+>       assert sembrador.estado_de(vencido.archivo_id) == "CADUCADO"
+E       AssertionError: assert 'PENDIENTE' == 'CADUCADO'
+E         
+E         - CADUCADO
+E         + PENDIENTE
+
+tests\test_tkt059_arranque.py:226: AssertionError
+____________ test_tkt059_ca10_el_almacen_caido_no_impide_arrancar _____________
+
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_9d94a9e40bf9), usuario_id=UUID('0c1ea983-b452-4fb4-b409-a55c400a5afb'))
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_9d94a9e40bf9)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000197AEA30B90>
+registro_tecnico = <_io.StringIO object at 0x00000197AEABD120>
+
+    def test_tkt059_ca10_el_almacen_caido_no_impide_arrancar(
+        sembrador: Sembrador,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        registro_tecnico: Any,
+    ) -> None:
+        """TC-38 · CA-10 esc. 2 — con el almacén caído la aplicación arranca y el barrido cuenta el archivo.
+    
+        El registro `barrido` trae una cuenta por definición, en el orden del `lifespan`: ninguna importación
+        y un archivo. Que el barrido de archivos no dependa del almacén es lo que permite arrancar cuando el
+        almacén no responde.
+        """
+        vencido = sembrador.archivo("PENDIENTE", horas=HORAS_VENCIDAS)
+        almacen = AlmacenQueFalla(lambda operacion: ConnectionError(f"almacén caído en {operacion}"))
+        aplicacion = crear_aplicacion_de_archivos(
+            almacen=almacen.como_almacen(),
+            motor=motor_aplicacion,
+            reloj=reloj_de_prueba,
+            destino_registro=registro_tecnico,
+        )
+    
+        with capture_logs() as registros, TestClient(aplicacion):
+            pass
+    
+        barridos = [registro for registro in registros if registro.get("event") == "barrido"]
+        assert len(barridos) == 1
+>       assert barridos[0]["cuentas"] == {"importacion": 0, "archivo": 1}
+E       AssertionError: assert {'importacion': 0} == {'importacion... 'archivo': 1}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Right contains 1 more item:
+E         {'archivo': 1}
+E         Use -v to get more diff
+
+tests\test_tkt059_arranque.py:261: AssertionError
+___________________ test_tkt059_ca10_definicion_del_barrido ___________________
+
+    def test_tkt059_ca10_definicion_del_barrido() -> None:
+        """TC-39 · CA-10 — la definición barre `PENDIENTE` a `CADUCADO` por `creado_en` y no hace nada al vencer."""
+>       from cimenta.archivos.interfaz import definicion_barrido_archivo
+E       ImportError: cannot import name 'definicion_barrido_archivo' from 'cimenta.archivos.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\interfaz.py)
+
+tests\test_tkt059_arranque.py:268: ImportError
+________________ test_tkt059_ca11_el_lector_devuelve_los_bytes ________________
+
+escena_del_lector = EscenaDelLector(contexto=ContextoArchivos(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000197AF68A8D0>...eba object at 0x00000197AE1B9F90>), almacen=<herramientas.soporte_tkt059.AlmacenContador object at 0x00000197AF61DBE0>)
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_89307a644540), usuario_id=UUID('d6d3aba7-ede4-497d-be0f-8c39efc44eb4'))
+poner_objeto = <function poner_objeto.<locals>._poner at 0x00000197AF68B060>
+
+    def test_tkt059_ca11_el_lector_devuelve_los_bytes(
+        escena_del_lector: EscenaDelLector,
+        sembrador: Sembrador,
+        poner_objeto: Callable[[ArchivoSembrado], None],
+    ) -> None:
+        """TC-40 · CA-11 esc. 1 · RNF-06 — un archivo `DISPONIBLE` con objeto devuelve exactamente sus bytes."""
+        archivo = sembrador.archivo("DISPONIBLE")
+        poner_objeto(archivo)
+    
+>       leer = escena_del_lector.crear_lector()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_arranque.py:341: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = EscenaDelLector(contexto=ContextoArchivos(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000197AF68A8D0>...eba object at 0x00000197AE1B9F90>), almacen=<herramientas.soporte_tkt059.AlmacenContador object at 0x00000197AF61DBE0>)
+
+    def crear_lector(self) -> Callable[[uuid.UUID], bytes]:
+>       from cimenta.archivos.interfaz import crear_lector_contenido
+E       ImportError: cannot import name 'crear_lector_contenido' from 'cimenta.archivos.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\interfaz.py)
+
+tests\test_tkt059_arranque.py:304: ImportError
+_______ test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[PENDIENTE] ________
+
+estado = 'PENDIENTE'
+escena_del_lector = EscenaDelLector(contexto=ContextoArchivos(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000197AF742140>...eba object at 0x00000197AF623100>), almacen=<herramientas.soporte_tkt059.AlmacenContador object at 0x00000197AF6CC690>)
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_33faa29e2112), usuario_id=UUID('7677b226-a927-461a-9990-56c5c6afa9e1'))
+poner_objeto = <function poner_objeto.<locals>._poner at 0x00000197AF7428D0>
+
+    @pytest.mark.parametrize("estado", ["PENDIENTE", "CADUCADO", "ANULADO", "INEXISTENTE"])
+    def test_tkt059_ca11_el_lector_rechaza_lo_no_disponible(
+        estado: str,
+        escena_del_lector: EscenaDelLector,
+        sembrador: Sembrador,
+        poner_objeto: Callable[[ArchivoSembrado], None],
+    ) -> None:
+        """TC-41 · CA-11 esc. 2 · RNF-06 — lo que no está `DISPONIBLE` no se lee, aunque el objeto exista.
+    
+        Las filas `PENDIENTE`, `CADUCADO` y `ANULADO` tienen su objeto en el almacén: un lector que no
+        comprobara el estado devolvería esos bytes. Para el identificador inexistente no hay fila ni objeto. En
+        los cuatro casos el almacén no recibe ninguna lectura.
+        """
+>       from cimenta.archivos.interfaz import ArchivoNoLegible
+E       ImportError: cannot import name 'ArchivoNoLegible' from 'cimenta.archivos.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\interfaz.py)
+
+tests\test_tkt059_arranque.py:362: ImportError
+________ test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[CADUCADO] ________
+
+estado = 'CADUCADO'
+escena_del_lector = EscenaDelLector(contexto=ContextoArchivos(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000197AF7FD4E0>...eba object at 0x00000197AF78CFC0>), almacen=<herramientas.soporte_tkt059.AlmacenContador object at 0x00000197AF6CD310>)
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_8cd0e871bc52), usuario_id=UUID('878b950a-3fce-40a9-ad94-6e586890fc0e'))
+poner_objeto = <function poner_objeto.<locals>._poner at 0x00000197AF7FDC70>
+
+    @pytest.mark.parametrize("estado", ["PENDIENTE", "CADUCADO", "ANULADO", "INEXISTENTE"])
+    def test_tkt059_ca11_el_lector_rechaza_lo_no_disponible(
+        estado: str,
+        escena_del_lector: EscenaDelLector,
+        sembrador: Sembrador,
+        poner_objeto: Callable[[ArchivoSembrado], None],
+    ) -> None:
+        """TC-41 · CA-11 esc. 2 · RNF-06 — lo que no está `DISPONIBLE` no se lee, aunque el objeto exista.
+    
+        Las filas `PENDIENTE`, `CADUCADO` y `ANULADO` tienen su objeto en el almacén: un lector que no
+        comprobara el estado devolvería esos bytes. Para el identificador inexistente no hay fila ni objeto. En
+        los cuatro casos el almacén no recibe ninguna lectura.
+        """
+>       from cimenta.archivos.interfaz import ArchivoNoLegible
+E       ImportError: cannot import name 'ArchivoNoLegible' from 'cimenta.archivos.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\interfaz.py)
+
+tests\test_tkt059_arranque.py:362: ImportError
+________ test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[ANULADO] _________
+
+estado = 'ANULADO'
+escena_del_lector = EscenaDelLector(contexto=ContextoArchivos(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000197AF8AD2D0>...eba object at 0x00000197AF7AC950>), almacen=<herramientas.soporte_tkt059.AlmacenContador object at 0x00000197AF78D810>)
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_c06b5a72ecfe), usuario_id=UUID('e4629a90-3ba4-4435-ae40-8bc04c6e00db'))
+poner_objeto = <function poner_objeto.<locals>._poner at 0x00000197AF8AD900>
+
+    @pytest.mark.parametrize("estado", ["PENDIENTE", "CADUCADO", "ANULADO", "INEXISTENTE"])
+    def test_tkt059_ca11_el_lector_rechaza_lo_no_disponible(
+        estado: str,
+        escena_del_lector: EscenaDelLector,
+        sembrador: Sembrador,
+        poner_objeto: Callable[[ArchivoSembrado], None],
+    ) -> None:
+        """TC-41 · CA-11 esc. 2 · RNF-06 — lo que no está `DISPONIBLE` no se lee, aunque el objeto exista.
+    
+        Las filas `PENDIENTE`, `CADUCADO` y `ANULADO` tienen su objeto en el almacén: un lector que no
+        comprobara el estado devolvería esos bytes. Para el identificador inexistente no hay fila ni objeto. En
+        los cuatro casos el almacén no recibe ninguna lectura.
+        """
+>       from cimenta.archivos.interfaz import ArchivoNoLegible
+E       ImportError: cannot import name 'ArchivoNoLegible' from 'cimenta.archivos.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\interfaz.py)
+
+tests\test_tkt059_arranque.py:362: ImportError
+______ test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[INEXISTENTE] _______
+
+estado = 'INEXISTENTE'
+escena_del_lector = EscenaDelLector(contexto=ContextoArchivos(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000197AF94D220>...eba object at 0x00000197AF891F20>), almacen=<herramientas.soporte_tkt059.AlmacenContador object at 0x00000197AF78E2C0>)
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_4d74af017549), usuario_id=UUID('4753318c-dd8e-407d-b297-13810f0f9ad3'))
+poner_objeto = <function poner_objeto.<locals>._poner at 0x00000197AF94D850>
+
+    @pytest.mark.parametrize("estado", ["PENDIENTE", "CADUCADO", "ANULADO", "INEXISTENTE"])
+    def test_tkt059_ca11_el_lector_rechaza_lo_no_disponible(
+        estado: str,
+        escena_del_lector: EscenaDelLector,
+        sembrador: Sembrador,
+        poner_objeto: Callable[[ArchivoSembrado], None],
+    ) -> None:
+        """TC-41 · CA-11 esc. 2 · RNF-06 — lo que no está `DISPONIBLE` no se lee, aunque el objeto exista.
+    
+        Las filas `PENDIENTE`, `CADUCADO` y `ANULADO` tienen su objeto en el almacén: un lector que no
+        comprobara el estado devolvería esos bytes. Para el identificador inexistente no hay fila ni objeto. En
+        los cuatro casos el almacén no recibe ninguna lectura.
+        """
+>       from cimenta.archivos.interfaz import ArchivoNoLegible
+E       ImportError: cannot import name 'ArchivoNoLegible' from 'cimenta.archivos.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\interfaz.py)
+
+tests\test_tkt059_arranque.py:362: ImportError
+________________ test_tkt059_ca11_la_fabrica_conecta_el_lector ________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000197AF78CE90>
+sembrador = Sembrador(motor=Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_f5feaf1cb33c), usuario_id=UUID('36578995-6b88-4ea9-9b0e-f93700765f4c'))
+poner_objeto = <function poner_objeto.<locals>._poner at 0x00000197AF94EC40>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:56091/prueba_f5feaf1cb33c)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000197AF8929C0>
+almacen = <cimenta.archivos.infraestructura.almacen_s3.AlmacenS3 object at 0x00000197AF7AD7F0>
+registro_tecnico = <_io.StringIO object at 0x00000197AF9B9E10>
+
+    def test_tkt059_ca11_la_fabrica_conecta_el_lector(
+        monkeypatch: pytest.MonkeyPatch,
+        sembrador: Sembrador,
+        poner_objeto: Callable[[ArchivoSembrado], None],
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        almacen: AlmacenS3,
+        registro_tecnico: Any,
+    ) -> None:
+        """TC-42 · CA-11 esc. 1 y 2 — el lector que recibe el ejecutor del `lifespan` es el de `archivos`.
+    
+        Un espía sustituye a `crear_ejecutor_analisis` en la fábrica, guarda el `leer_contenido` que recibe y
+        delega en el real. Con ese lector, un `DISPONIBLE` devuelve sus bytes y un `PENDIENTE` lanza
+        `ArchivoNoLegible`; el lector por omisión (`leer_contenido_no_configurado`) no hace ni una cosa ni la otra.
+        """
+        from cimenta.presupuesto.interfaz import crear_ejecutor_analisis as real
+        from servidor import fabrica
+    
+        recibidos: list[Callable[[uuid.UUID], bytes]] = []
+    
+        def espia(
+            fabrica_sesiones: Any, leer_contenido: Callable[[uuid.UUID], bytes], intervalo: Any
+        ) -> Any:
+            recibidos.append(leer_contenido)
+            return real(fabrica_sesiones, leer_contenido, intervalo)
+    
+        monkeypatch.setattr(fabrica, "crear_ejecutor_analisis", espia)
+        aplicacion = crear_aplicacion_de_archivos(
+            almacen=AlmacenContador(almacen).como_almacen(),
+            motor=motor_aplicacion,
+            reloj=reloj_de_prueba,
+            destino_registro=registro_tecnico,
+        )
+    
+        with TestClient(aplicacion):
+            assert len(recibidos) == 1
+            leer = recibidos[0]
+            disponible = sembrador.archivo("DISPONIBLE")
+            poner_objeto(disponible)
+            pendiente = sembrador.archivo("PENDIENTE")
+            poner_objeto(pendiente)
+    
+>           assert leer(disponible.archivo_id) == disponible.contenido
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt059_arranque.py:422: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+archivo_id = UUID('83ed24d9-0f12-4315-b59a-ceb79ac223d6')
+
+    def leer_contenido_no_configurado(archivo_id: UUID) -> bytes:
+        """Origen de bytes por omisión: el almacén de archivos no existe hasta TKT-059.
+    
+        El ejecutor lo trata como un archivo ilegible y lleva la importación a `ARCHIVO_ILEGIBLE`.
+        """
+>       raise RuntimeError("el almacén de archivos no está configurado")
+E       RuntimeError: el almacén de archivos no está configurado
+
+cimenta\presupuesto\interfaz.py:52: RuntimeError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca10_el_arranque_caduca_los_pendientes_vencidos
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca10_el_almacen_caido_no_impide_arrancar
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca10_definicion_del_barrido
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca11_el_lector_devuelve_los_bytes
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[PENDIENTE]
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[CADUCADO]
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[ANULADO]
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca11_el_lector_rechaza_lo_no_disponible[INEXISTENTE]
+FAILED tests/test_tkt059_arranque.py::test_tkt059_ca11_la_fabrica_conecta_el_lector
+9 failed in 5.80s

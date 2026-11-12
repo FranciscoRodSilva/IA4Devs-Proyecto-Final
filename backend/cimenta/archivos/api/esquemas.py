@@ -17,6 +17,7 @@ from typing import Literal, Self
 from pydantic import BaseModel
 
 from cimenta.archivos.aplicacion.confirmacion import ArchivoLeido
+from cimenta.archivos.aplicacion.consulta import UrlDescargaEmitida
 from cimenta.archivos.dominio.confirmacion import EstadoArchivo
 from cimenta.identidad.interfaz import UsuarioResumen
 
@@ -53,5 +54,25 @@ class Archivo(BaseModel):
                 "subido_por": {"id": leido.subido_por_id, "nombre": leido.subido_por_nombre},
                 "creado_en": leido.creado_en,
                 "confirmado_en": leido.confirmado_en,
+            }
+        )
+
+
+class UrlDescarga(BaseModel):
+    url: str
+    expira_en: datetime
+    tipo_mime: str
+    nombre_original: str
+    disposicion: Literal["inline", "attachment"]
+
+    @classmethod
+    def desde(cls, emitida: UrlDescargaEmitida) -> Self:
+        return cls.model_validate(
+            {
+                "url": emitida.url,
+                "expira_en": emitida.expira_en,
+                "tipo_mime": emitida.tipo_mime,
+                "nombre_original": emitida.nombre_original,
+                "disposicion": emitida.disposicion,
             }
         )

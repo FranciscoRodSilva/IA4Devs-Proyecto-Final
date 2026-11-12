@@ -801,7 +801,40 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          $ref: '#/components/responses/Conflicto'
+          description: >-
+            El archivo no se puede descargar. `ARCHIVO_NO_DISPONIBLE` si la fila
+            está `PENDIENTE` o `ANULADO`; `ARCHIVO_CADUCADO` si su subida caducó.
+            No se emite ninguna URL.
+          headers:
+            X-Correlacion-Id:
+              $ref: '#/components/headers/XCorrelacionId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorConflictoEstado'
+              examples:
+                no_disponible:
+                  summary: El archivo todavía no está disponible
+                  value:
+                    tipo: CONFLICTO
+                    codigo: ARCHIVO_NO_DISPONIBLE
+                    mensaje: El archivo todavía no está disponible.
+                    detalle:
+                      archivo_id: 5b1d6c0e-3f2a-4c8e-9a47-0d2e6f8b1a30
+                      estado_archivo: PENDIENTE
+                    acciones: []
+                    correlacion_id: c3d4e5f6-a7b8-4901-8cde-f01234567890
+                caducado:
+                  summary: La subida caducó
+                  value:
+                    tipo: CONFLICTO
+                    codigo: ARCHIVO_CADUCADO
+                    mensaje: La subida del archivo caducó y no se puede descargar.
+                    detalle:
+                      archivo_id: 5b1d6c0e-3f2a-4c8e-9a47-0d2e6f8b1a30
+                      estado_archivo: CADUCADO
+                    acciones: []
+                    correlacion_id: c3d4e5f6-a7b8-4901-8cde-f01234567890
 
   # ---------------------------------------------------- presupuesto · importación
   /obras/{obra_id}/importaciones:
