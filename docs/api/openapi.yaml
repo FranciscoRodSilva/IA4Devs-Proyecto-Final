@@ -645,11 +645,25 @@ paths:
         `ARCHIVO_TIPO_NO_PERMITIDO` (esc. 26). TKT-066 reutiliza el mismo código en
         la fase 2.
 
+        - Objeto ausente en el almacén → `409` `ARCHIVO_NO_SUBIDO`.
+
+        - Fila `CADUCADO`, o `PENDIENTE` cuya subida venció sin que el barrido la
+        alcanzara, que pasa a `CADUCADO` en la misma operación → `409`
+        `ARCHIVO_CADUCADO`.
+
+        - Fila `ANULADO` → `409` `ESTADO_NO_PERMITE_OPERACION`.
+
+        - Otra confirmación del mismo archivo retiene la fila más tiempo del que
+        espera esta → `409` `CONCURRENCIA` (`BLOQUEO_VENCIDO` o
+        `TIEMPO_EJECUCION_VENCIDO`), con `Retry-After`.
+
 
         Un tamaño que excede el límite ya se rechaza con `422` **al dar de alta**
         la fila, sobre lo declarado; aquí solo se compara lo almacenado con lo
         declarado. Solo puede confirmar quien subió el archivo. Confirmar dos veces
         un archivo ya `DISPONIBLE` devuelve `200` con la misma fila (idempotente).
+        Quien no subió el archivo recibe `403` con motivo `NO_ES_SOLICITANTE`,
+        asentado como `DENEGAR`, sin ningún dato del archivo.
       security:
         - sesion: []
           csrf: []
@@ -672,19 +686,53 @@ paths:
           $ref: '#/components/responses/NoEncontrado'
         '409':
           description: >-
-            El objeto no coincide con lo declarado o su tipo no está permitido. El
-            archivo **no** pasa a `DISPONIBLE` y la importación no arranca.
+            El objeto no coincide con lo declarado, su tipo no está permitido, la
+            subida caducó o otra confirmación retiene la fila. El archivo **no**
+            pasa a `DISPONIBLE` y la importación no arranca.
+          headers:
+            X-Correlacion-Id:
+              $ref: '#/components/headers/XCorrelacionId'
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorConflictoEstado'
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorConflictoEstado'
+                  - $ref: '#/components/schemas/ErrorConcurrencia'
+                discriminator:
+                  propertyName: tipo
+                  mapping:
+                    CONFLICTO: '#/components/schemas/ErrorConflictoEstado'
+                    CONCURRENCIA: '#/components/schemas/ErrorConcurrencia'
               examples:
+                no_subido:
+                  summary: El objeto nunca llegó al almacén
+                  value:
+                    tipo: CONFLICTO
+                    codigo: ARCHIVO_NO_SUBIDO
+                    mensaje: El archivo no llegó al almacén. Vuelve a cargarlo antes de confirmar.
+                    detalle:
+                      archivo_id: 5b1d6c0e-3f2a-4c8e-9a47-0d2e6f8b1a30
+                    acciones: []
+                    correlacion_id: c3d4e5f6-a7b8-4901-8cde-f01234567890
+                caducado:
+                  summary: La subida caducó
+                  value:
+                    tipo: CONFLICTO
+                    codigo: ARCHIVO_CADUCADO
+                    mensaje: La subida del archivo caducó. Vuelve a cargar el archivo.
+                    detalle:
+                      archivo_id: 5b1d6c0e-3f2a-4c8e-9a47-0d2e6f8b1a30
+                      estado_archivo: CADUCADO
+                    acciones: []
+                    correlacion_id: c3d4e5f6-a7b8-4901-8cde-f01234567890
                 tamano_distinto:
                   summary: Tamaño almacenado distinto del declarado
                   value:
                     tipo: CONFLICTO
                     codigo: ARCHIVO_TAMANO_DISTINTO
-                    mensaje: El archivo almacenado no tiene el tamaño que se declaró al iniciar la subida.
+                    mensaje: El archivo almacenado no tiene el tamaño que se declaró al iniciar la subida. Vuelve a cargar el archivo.
                     detalle:
                       tamano_declarado: 8388608
                       tamano_almacenado: 8126464
@@ -695,7 +743,7 @@ paths:
                   value:
                     tipo: CONFLICTO
                     codigo: ARCHIVO_HASH_DISTINTO
-                    mensaje: El archivo almacenado no coincide con el que se declaró al iniciar la subida.
+                    mensaje: El archivo almacenado no coincide con el que se declaró al iniciar la subida. Vuelve a cargar el archivo.
                     detalle:
                       hash_declarado: 9f2c4a7e1b3d5f60a8c2e4f6b1d3a5c7e9f0b2d4a6c8e0f1a3b5c7d9e1f2a4b6
                       hash_almacenado: 0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9
@@ -708,10 +756,18 @@ paths:
                   value:
                     tipo: CONFLICTO
                     codigo: ARCHIVO_TIPO_NO_PERMITIDO
-                    mensaje: El archivo se declaró como hoja de cálculo, pero sus bytes corresponden a un ejecutable.
+                    mensaje: El tipo del archivo, leído de su contenido, no está permitido.
                     detalle:
-                      tipo_declarado: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
                       tipo_detectado: application/x-msdownload
+                      tipos_admitidos:
+                        - image/jpeg
+                        - image/png
+                        - image/heic
+                        - image/webp
+                        - video/mp4
+                        - application/pdf
+                        - application/xml
+                        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
                     acciones: []
                     correlacion_id: c3d4e5f6-a7b8-4901-8cde-f01234567890
 
@@ -4607,7 +4663,7 @@ components:
             el tipo real se lee de los bytes al confirmar.
     EstadoArchivo:
       type: string
-      enum: [PENDIENTE, DISPONIBLE, ANULADO]
+      enum: [PENDIENTE, DISPONIBLE, CADUCADO, ANULADO]
     Archivo:
       type: object
       required: [id, obra_id, referencia_tipo, referencia_id, estado, nombre_original, tamano_bytes, hash_sha256, subido_por, creado_en]

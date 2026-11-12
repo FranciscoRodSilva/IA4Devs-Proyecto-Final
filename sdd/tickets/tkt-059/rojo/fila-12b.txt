@@ -1,0 +1,1431 @@
+TKT-059 · fila 12b · rojo con mutantes temporales (tester-api)
+
+Los rechazos de la confirmacion ya estaban escritos en la fila 12a, asi que las pruebas de
+backend/tests/test_tkt059_confirmacion_rechazos.py (33 casos) nacen en VERDE contra la produccion sin mutar:
+
+    $ uv run pytest tests/test_tkt059_confirmacion_rechazos.py -q -p no:cacheprovider
+    .................................                                        [100%]
+    33 passed in 24.37s
+
+El rojo se demuestra aplicando un mutante temporal por vez sobre el codigo de produccion, corriendo el
+archivo completo y revirtiendo desde una copia previa fuera del repositorio. Por mutante se comprobo:
+  - huella SHA-256 de todos los .py de backend/ (sin .venv) antes == despues (huella_igual=True);
+  - durante el mutante, cambio exactamente un archivo;
+  - `git status --short` identico al inicial (git_status_igual=True).
+Huella total de backend/ (SHA-256 del mapa ruta->SHA-256), antes y despues de todos los mutantes:
+  c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+
+Cada rojo cae por su razon: el cuerpo del rechazo difiere (codigo, mensaje o detalle), la respuesta es 200
+o 500 donde se espera el 409/403/404, o el estado de la fila / el asiento no es el esperado. Ningun rojo es
+un error de importacion ni de entorno.
+
+Tabla mutante -> tests que caen
+  A01  cimenta/archivos/aplicacion/confirmacion.py
+       TC-19 · paso 8: se salta la rama ARCHIVO_TAMANO_DISTINTO
+       cae: test_hdu001_esc25_tamano_distinto
+  A02  cimenta/archivos/dominio/confirmacion.py
+       TC-19 · comparar_objeto: el hash se compara antes que el tamaño
+       cae: test_hdu001_esc25_tamano_distinto
+  A03  cimenta/archivos/aplicacion/confirmacion.py
+       TC-19 · detalle del tamaño: tamano_almacenado = tamano_declarado
+       cae: test_hdu001_esc25_tamano_distinto
+  B01  cimenta/archivos/aplicacion/confirmacion.py
+       TC-20 · paso 9: se salta la rama ARCHIVO_HASH_DISTINTO
+       cae: test_hdu001_esc25_hash_distinto[con_suma_almacenada], test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+  B02  cimenta/archivos/dominio/confirmacion.py
+       TC-20 · M-04: una suma None cuenta como coincidente
+       cae: test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+  B03  cimenta/archivos/aplicacion/confirmacion.py
+       TC-20 · detalle: hash_almacenado se incluye siempre, también si es None
+       cae: test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+  B04  cimenta/archivos/dominio/confirmacion.py
+       TC-20 · M-03: comparar_objeto no compara el hash
+       cae: test_hdu001_esc25_hash_distinto[con_suma_almacenada], test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+  C01  cimenta/archivos/aplicacion/confirmacion.py
+       TC-22 · paso 10: tipo_admitido siempre verdadero (no se rechaza el tipo)
+       cae: test_hdu001_esc26_tipo_no_permitido[ejecutable_mz], test_hdu001_esc26_tipo_no_permitido[svg], test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro], test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types], test_hdu001_esc26_tipo_no_permitido[xlsm], test_tkt059_ca06_svg_renombrado_a_jpg, test_tkt059_ca06_xml_con_entidades
+  C02  cimenta/archivos/aplicacion/confirmacion.py
+       TC-22 · reescribir_tipo se ejecuta antes de comprobar el tipo
+       cae: test_hdu001_esc26_tipo_no_permitido[ejecutable_mz], test_hdu001_esc26_tipo_no_permitido[svg], test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro], test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types], test_hdu001_esc26_tipo_no_permitido[xlsm], test_tkt059_ca06_svg_renombrado_a_jpg, test_tkt059_ca06_xml_con_entidades
+  C03  cimenta/archivos/aplicacion/confirmacion.py
+       TC-22 · tipos_admitidos del detalle sin el último tipo
+       cae: test_hdu001_esc26_tipo_no_permitido[ejecutable_mz], test_hdu001_esc26_tipo_no_permitido[svg], test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro], test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types], test_hdu001_esc26_tipo_no_permitido[xlsm], test_tkt059_ca06_svg_renombrado_a_jpg, test_tkt059_ca06_xml_con_entidades
+  C04  cimenta/archivos/infraestructura/detector_tipo.py
+       TC-23 · M-06: el detector no mira si la raíz es svg
+       cae: test_hdu001_esc26_tipo_no_permitido[svg], test_tkt059_ca06_svg_renombrado_a_jpg
+  C05  cimenta/archivos/infraestructura/detector_tipo.py
+       TC-24 · el XML con DTD/entidades ya no se clasifica como application/xml-dtd
+       cae: test_tkt059_ca06_xml_con_entidades
+  D01  cimenta/archivos/aplicacion/confirmacion.py
+       TC-26 · paso 7: se salta la rama ARCHIVO_NO_SUBIDO
+       cae: test_tkt059_ca07_objeto_nunca_subido
+  D02  cimenta/archivos/aplicacion/confirmacion.py
+       TC-27 · paso 4: se salta la rama ARCHIVO_CADUCADO del CADUCADO
+       cae: test_tkt059_ca07_confirmar_un_caducado
+  D03  cimenta/archivos/aplicacion/confirmacion.py
+       TC-28 · M-10: el ARCHIVO_CADUCADO del vencido se lanza dentro del bloque
+       cae: test_tkt059_ca07_pendiente_vencido_sin_barrer
+  D04  cimenta/archivos/dominio/confirmacion.py
+       TC-28 (borde) · M-01: vencido también en el instante exacto
+       cae: test_tkt059_ca07_pendiente_en_el_borde_exacto_se_confirma
+  D05  cimenta/archivos/aplicacion/confirmacion.py
+       TC-28 · paso 6: se salta la rama del PENDIENTE vencido
+       cae: test_tkt059_ca07_pendiente_vencido_sin_barrer
+  D06  cimenta/archivos/aplicacion/confirmacion.py
+       TC-28 · el vencido no se marca CADUCADO antes de rechazar
+       cae: test_tkt059_ca07_pendiente_vencido_sin_barrer
+  E01  cimenta/archivos/aplicacion/confirmacion.py
+       TC-29 · se salta la comprobación del solicitante
+       cae: test_tkt059_ca07_otro_director_no_confirma[PENDIENTE], test_tkt059_ca07_otro_director_no_confirma[CADUCADO], test_tkt059_ca07_otro_director_no_confirma[ANULADO], test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+  E02  cimenta/archivos/dominio/confirmacion.py
+       TC-29 · M-02/M-02b: el solicitante se comprueba después de los pasos 3 a 5
+       cae: test_tkt059_ca07_otro_director_no_confirma[CADUCADO], test_tkt059_ca07_otro_director_no_confirma[ANULADO], test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+  E03  cimenta/archivos/aplicacion/confirmacion.py
+       TC-29 · la denegación NO_ES_SOLICITANTE no se asienta
+       cae: test_tkt059_ca07_otro_director_no_confirma[PENDIENTE], test_tkt059_ca07_otro_director_no_confirma[CADUCADO], test_tkt059_ca07_otro_director_no_confirma[ANULADO], test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+  E04  cimenta/archivos/aplicacion/confirmacion.py
+       TC-29 · el DENEGAR asienta roles_requeridos vacío
+       cae: test_tkt059_ca07_otro_director_no_confirma[PENDIENTE], test_tkt059_ca07_otro_director_no_confirma[CADUCADO], test_tkt059_ca07_otro_director_no_confirma[ANULADO], test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+  E05  cimenta/archivos/aplicacion/confirmacion.py
+       TC-29 · el 403 NO_ES_SOLICITANTE devuelve roles_requeridos con el rol
+       cae: test_tkt059_ca07_otro_director_no_confirma[PENDIENTE], test_tkt059_ca07_otro_director_no_confirma[CADUCADO], test_tkt059_ca07_otro_director_no_confirma[ANULADO], test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+  F01  cimenta/archivos/api/rutas.py
+       TC-30 · exigir_rol admite también COMPRAS
+       cae: test_tkt059_ca07_sin_rol[DIRECCION_GENERAL], test_tkt059_ca07_sin_rol[COMPRAS], test_tkt059_ca07_sin_rol[RESIDENTE], test_tkt059_ca07_sin_rol[ALMACEN], test_tkt059_ca07_sin_rol[ADMINISTRACION], test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia
+  F02  cimenta/archivos/api/rutas.py
+       TC-30 · la ruta sin verificar_origen
+       cae: test_tkt059_ca07_sin_origen[ambos_ausentes], test_tkt059_ca07_sin_origen[solo_cookie], test_tkt059_ca07_sin_origen[solo_cabecera], test_tkt059_ca07_sin_origen[distintos], test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol
+  F03  cimenta/archivos/api/rutas.py
+       TC-30 · exigir_rol antes que verificar_origen
+       cae: test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol
+  F04  cimenta/archivos/aplicacion/confirmacion.py
+       TC-30 · 404 con recurso equivocado
+       cae: test_tkt059_ca07_archivo_inexistente
+  F05  cimenta/archivos/api/rutas.py
+       TC-30 · la ruta sin exigir_rol
+       cae: test_tkt059_ca07_sin_rol[DIRECCION_GENERAL], test_tkt059_ca07_sin_rol[COMPRAS], test_tkt059_ca07_sin_rol[RESIDENTE], test_tkt059_ca07_sin_rol[ALMACEN], test_tkt059_ca07_sin_rol[ADMINISTRACION], test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia
+  G01  cimenta/archivos/aplicacion/confirmacion.py
+       P-10 · paso 5: se salta la rama ESTADO_NO_PERMITE_OPERACION
+       cae: test_tkt059_ca07_confirmar_un_anulado
+  G02  cimenta/archivos/aplicacion/confirmacion.py
+       P-10 · el detalle de ANULADO lleva estado_archivo fijo CADUCADO
+       cae: test_tkt059_ca07_confirmar_un_anulado
+
+==================== salida literal de cada mutante ====================
+
+##### A01 | cimenta/archivos/aplicacion/confirmacion.py | TC-19 · paso 8: se salta la rama ARCHIVO_TAMANO_DISTINTO
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+F................................                                        [100%]
+================================== FAILURES ===================================
+______________________ test_hdu001_esc25_tamano_distinto ______________________
+tests\test_tkt059_confirmacion_rechazos.py:501: in test_hdu001_esc25_tamano_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...8126464}, ...}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'codigo': 'ARCHIVO_TIPO_NO_PERMITIDO'} != {'codigo': 'ARCHIVO_TAMANO_DISTINTO'}
+E     {'mensaje': 'El tipo del archivo, leído de su contenido, no está permitido.'} != {'mensaje': 'El archivo almacenado no tiene el tamaño que se declaró al iniciar la subida. Vuelve a cargar el archivo.'}
+E     {'detalle': {'tipo_detectado': 'application/octet-stream', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tamano_declarado': 8388608, 'tamano_almacenado': 8126464}}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_tamano_distinto
+1 failed, 32 passed in 23.65s
+
+##### A02 | cimenta/archivos/dominio/confirmacion.py | TC-19 · comparar_objeto: el hash se compara antes que el tamaño
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+F................................                                        [100%]
+================================== FAILURES ===================================
+______________________ test_hdu001_esc25_tamano_distinto ______________________
+tests\test_tkt059_confirmacion_rechazos.py:501: in test_hdu001_esc25_tamano_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...8126464}, ...} == {'tipo': 'CON...8126464}, ...}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'hash_declarado': 'ad97f87076920684e2ca66fc44e5d322797dc9d64706b174e51b5d0828937043', 'tamano_declarado': 8388608, 'tamano_almacenado': 8126464}} != {'detalle': {'tamano_declarado': 8388608, 'tamano_almacenado': 8126464}}
+E     {'mensaje': 'El archivo almacenado no coincide con el que se declaró al iniciar la subida. Vuelve a cargar el archivo.'} != {'mensaje': 'El archivo almacenado no tiene el tamaño que se declaró al iniciar la subida. Vuelve a cargar el archivo.'}
+E     {'codigo': 'ARCHIVO_HASH_DISTINTO'} != {'codigo': 'ARCHIVO_TAMANO_DISTINTO'}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_tamano_distinto
+1 failed, 32 passed in 20.11s
+
+##### A03 | cimenta/archivos/aplicacion/confirmacion.py | TC-19 · detalle del tamaño: tamano_almacenado = tamano_declarado
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+F................................                                        [100%]
+================================== FAILURES ===================================
+______________________ test_hdu001_esc25_tamano_distinto ______________________
+tests\test_tkt059_confirmacion_rechazos.py:501: in test_hdu001_esc25_tamano_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...8388608}, ...} == {'tipo': 'CON...8126464}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tamano_declarado': 8388608, 'tamano_almacenado': 8388608}} != {'detalle': {'tamano_declarado': 8388608, 'tamano_almacenado': 8126464}}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_tamano_distinto
+1 failed, 32 passed in 17.50s
+
+##### B01 | cimenta/archivos/aplicacion/confirmacion.py | TC-20 · paso 9: se salta la rama ARCHIVO_HASH_DISTINTO
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+.FF..............................                                        [100%]
+================================== FAILURES ===================================
+____________ test_hdu001_esc25_hash_distinto[con_suma_almacenada] _____________
+tests\test_tkt059_confirmacion_rechazos.py:552: in test_hdu001_esc25_hash_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...ce1902'}, ...}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'El tipo del archivo, leído de su contenido, no está permitido.'} != {'mensaje': 'El archivo almacenado no coincide con el que se declaró al iniciar la subida. Vuelve a cargar el archivo.'}
+E     {'codigo': 'ARCHIVO_TIPO_NO_PERMITIDO'} != {'codigo': 'ARCHIVO_HASH_DISTINTO'}
+E     {'detalle': {'tipo_detectado': 'application/octet-stream', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'hash_declarado': '6896d9ea3f73a4434f5832bc65714e...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+____________ test_hdu001_esc25_hash_distinto[sin_suma_almacenada] _____________
+tests\test_tkt059_confirmacion_rechazos.py:552: in test_hdu001_esc25_hash_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...': 4096}, ...}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'El tipo del archivo, leído de su contenido, no está permitido.'} != {'mensaje': 'El archivo almacenado no coincide con el que se declaró al iniciar la subida. Vuelve a cargar el archivo.'}
+E     {'codigo': 'ARCHIVO_TIPO_NO_PERMITIDO'} != {'codigo': 'ARCHIVO_HASH_DISTINTO'}
+E     {'detalle': {'tipo_detectado': 'application/octet-stream', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'hash_declarado': '6896d9ea3f73a4434f5832bc65714e...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_hash_distinto[con_suma_almacenada]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+2 failed, 31 passed in 17.60s
+
+##### B02 | cimenta/archivos/dominio/confirmacion.py | TC-20 · M-04: una suma None cuenta como coincidente
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..F..............................                                        [100%]
+================================== FAILURES ===================================
+____________ test_hdu001_esc25_hash_distinto[sin_suma_almacenada] _____________
+tests\test_tkt059_confirmacion_rechazos.py:552: in test_hdu001_esc25_hash_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...': 4096}, ...}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'codigo': 'ARCHIVO_TIPO_NO_PERMITIDO'} != {'codigo': 'ARCHIVO_HASH_DISTINTO'}
+E     {'mensaje': 'El tipo del archivo, leído de su contenido, no está permitido.'} != {'mensaje': 'El archivo almacenado no coincide con el que se declaró al iniciar la subida. Vuelve a cargar el archivo.'}
+E     {'detalle': {'tipo_detectado': 'application/octet-stream', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'hash_declarado': '6896d9ea3f73a4434f5832bc65714e...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+1 failed, 32 passed in 17.68s
+
+##### B03 | cimenta/archivos/aplicacion/confirmacion.py | TC-20 · detalle: hash_almacenado se incluye siempre, también si es None
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..F..............................                                        [100%]
+================================== FAILURES ===================================
+____________ test_hdu001_esc25_hash_distinto[sin_suma_almacenada] _____________
+tests\test_tkt059_confirmacion_rechazos.py:552: in test_hdu001_esc25_hash_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...': 4096}, ...} == {'tipo': 'CON...': 4096}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'hash_declarado': '6896d9ea3f73a4434f5832bc65714e7d066f177373f36f34dc8a6f735daa41b1', 'hash_almacenado': None, 'tamano_declarado': 4096, 'tamano_almacenado': 4096}} != {'detalle': {'hash_declarado': '6896d9ea3f73a4434f5832bc65714e7d066f177373f36f34dc8a6f735daa41b1', 'tamano_declarado': 4096, 'tamano_almacenado': 4096}}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+1 failed, 32 passed in 17.51s
+
+##### B04 | cimenta/archivos/dominio/confirmacion.py | TC-20 · M-03: comparar_objeto no compara el hash
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+.FF..............................                                        [100%]
+================================== FAILURES ===================================
+____________ test_hdu001_esc25_hash_distinto[con_suma_almacenada] _____________
+tests\test_tkt059_confirmacion_rechazos.py:552: in test_hdu001_esc25_hash_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...ce1902'}, ...}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'El tipo del archivo, leído de su contenido, no está permitido.'} != {'mensaje': 'El archivo almacenado no coincide con el que se declaró al iniciar la subida. Vuelve a cargar el archivo.'}
+E     {'codigo': 'ARCHIVO_TIPO_NO_PERMITIDO'} != {'codigo': 'ARCHIVO_HASH_DISTINTO'}
+E     {'detalle': {'tipo_detectado': 'application/octet-stream', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'hash_declarado': '6896d9ea3f73a4434f5832bc65714e...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+____________ test_hdu001_esc25_hash_distinto[sin_suma_almacenada] _____________
+tests\test_tkt059_confirmacion_rechazos.py:552: in test_hdu001_esc25_hash_distinto
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...': 4096}, ...}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'El tipo del archivo, leído de su contenido, no está permitido.'} != {'mensaje': 'El archivo almacenado no coincide con el que se declaró al iniciar la subida. Vuelve a cargar el archivo.'}
+E     {'codigo': 'ARCHIVO_TIPO_NO_PERMITIDO'} != {'codigo': 'ARCHIVO_HASH_DISTINTO'}
+E     {'detalle': {'tipo_detectado': 'application/octet-stream', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'hash_declarado': '6896d9ea3f73a4434f5832bc65714e...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_hash_distinto[con_suma_almacenada]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc25_hash_distinto[sin_suma_almacenada]
+2 failed, 31 passed in 17.59s
+
+##### C01 | cimenta/archivos/aplicacion/confirmacion.py | TC-22 · paso 10: tipo_admitido siempre verdadero (no se rechaza el tipo)
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+...FFFFFFF.......................                                        [100%]
+================================== FAILURES ===================================
+_____________ test_hdu001_esc26_tipo_no_permitido[ejecutable_mz] ______________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"bd0cd839-f620-4b58-811b-d07ffc1bf6d5","obra_id":"3860949a-2fb3-45c5-bd4c-a6d1040e61e5","referencia_tipo":"IMPORTACION","referencia_id":"f3aff338-85b6-46cc-aea9-8e6af7a51b81","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.microsoft.portable-executable","tamano_bytes":84,"hash_sha256":"c17005bfffacd1d59b696ee519286d884b52236c232b509ef85850b96403bdb2","subido_por":{"id":"0b963061-892f-4682-b4f0-6011dd7fb638","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+__________________ test_hdu001_esc26_tipo_no_permitido[svg] ___________________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"09aed1b5-3046-485f-9a3c-98dde9b6a7c4","obra_id":"cecae1bd-60e7-4961-9d34-af6b3cd4078d","referencia_tipo":"IMPORTACION","referencia_id":"8681fef8-c01b-4641-8d31-16face38d8b1","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"image/svg+xml","tamano_bytes":122,"hash_sha256":"af41e0627251c558438c41a5a1b529ff0160b338408a3dc35e09e1788509ed93","subido_por":{"id":"3b264ea0-8afe-49e3-8dbc-c965a11da1a9","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+_________ test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro] _________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"89f85fb4-15b4-4217-ba6e-5ea7453c1f59","obra_id":"7d5c228d-3026-4d64-a14e-5844c1b20240","referencia_tipo":"IMPORTACION","referencia_id":"a428a292-8ecb-4d20-a245-a4596b68c245","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/zip","tamano_bytes":647,"hash_sha256":"efe6e5f33b4db002de2881d4481c0762b48e14970cbe539ac90f93b39f21ccd3","subido_por":{"id":"d1bc8d3b-4dba-48e2-8888-52f24ad9d662","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+_________ test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types] __________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"5e4921dd-9d20-40fa-b268-cfcd48bdf9e6","obra_id":"f5324755-39a1-46e3-b90f-a901c88dc4f1","referencia_tipo":"IMPORTACION","referencia_id":"206d96d8-4c95-46c2-8600-29f1a6c5228c","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/zip","tamano_bytes":264,"hash_sha256":"d2d12c822bd3e4abf074109c5f87f573b849b8cc518727ee38ccd33c28735b53","subido_por":{"id":"2b8b0c77-efad-4eb7-b610-63e22d3e7dce","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+__________________ test_hdu001_esc26_tipo_no_permitido[xlsm] __________________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"72049a0b-169b-4c0e-8529-31c9fee2245c","obra_id":"ca6d6824-44c4-41f5-802d-ca377dc3d57e","referencia_tipo":"IMPORTACION","referencia_id":"f821263d-2d73-49c9-9ea5-62e973a5ab9d","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/zip","tamano_bytes":631,"hash_sha256":"2563dbaff738edb9f4e89f5d02a640f28a314edc48c84bd19faf4e670139d74d","subido_por":{"id":"1e7d3bf1-e198-4a2b-81d1-a5954496936d","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+____________________ test_tkt059_ca06_svg_renombrado_a_jpg ____________________
+tests\test_tkt059_confirmacion_rechazos.py:623: in test_tkt059_ca06_svg_renombrado_a_jpg
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"fa406f47-c3a5-4749-8a58-016453cf6741","obra_id":"000a5d8c-a090-4acd-b092-2c4abf2c84b7","referencia_tipo":"IMPORTACION","referencia_id":"543fbaf9-2b84-4fc7-be22-bab0434bcf40","estado":"DISPONIBLE","nombre_original":"foto.jpg","tipo_mime":"image/svg+xml","tamano_bytes":122,"hash_sha256":"af41e0627251c558438c41a5a1b529ff0160b338408a3dc35e09e1788509ed93","subido_por":{"id":"b6f21508-7bb5-4062-bccb-b401ef44ec53","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+_____________________ test_tkt059_ca06_xml_con_entidades ______________________
+tests\test_tkt059_confirmacion_rechazos.py:656: in test_tkt059_ca06_xml_con_entidades
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"e33d2861-5c31-4868-ba2f-3d66b2681499","obra_id":"c1dd0c9d-7db7-4c98-be97-110b2fcf7696","referencia_tipo":"IMPORTACION","referencia_id":"fb22d496-8921-4b00-aeea-e53f977d266d","estado":"DISPONIBLE","nombre_original":"comprobante.xml","tipo_mime":"application/xml-dtd","tamano_bytes":784,"hash_sha256":"3b9ddca9ff32305a72e3986dba27f46f0065c437981d94e96a40b44955a432de","subido_por":{"id":"93076efa-dd4a-4936-b06e-7fef54244e19","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[ejecutable_mz]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[svg]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[xlsm]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_svg_renombrado_a_jpg
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_xml_con_entidades
+7 failed, 26 passed in 17.61s
+
+##### C02 | cimenta/archivos/aplicacion/confirmacion.py | TC-22 · reescribir_tipo se ejecuta antes de comprobar el tipo
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+...FFFFFFF.......................                                        [100%]
+================================== FAILURES ===================================
+_____________ test_hdu001_esc26_tipo_no_permitido[ejecutable_mz] ______________
+tests\test_tkt059_confirmacion_rechazos.py:602: in test_hdu001_esc26_tipo_no_permitido
+    assert escena.fotografiar(archivo) == antes
+E   AssertionError: assert Fotografia(fi...e-executable') == Fotografia(fi...octet-stream')
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing attributes:
+E     ['tipo_del_objeto']
+E     
+E     Drill down into differing attribute tipo_del_objeto:
+E       tipo_del_objeto: 'application/vnd.microsoft.portable-executable' != 'application/octet-stream'
+E       - application/octet-stream
+E       + application/vnd.microsoft.portable-executable
+__________________ test_hdu001_esc26_tipo_no_permitido[svg] ___________________
+tests\test_tkt059_confirmacion_rechazos.py:602: in test_hdu001_esc26_tipo_no_permitido
+    assert escena.fotografiar(archivo) == antes
+E   AssertionError: assert Fotografia(fi...mage/svg+xml') == Fotografia(fi...octet-stream')
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing attributes:
+E     ['tipo_del_objeto']
+E     
+E     Drill down into differing attribute tipo_del_objeto:
+E       tipo_del_objeto: 'image/svg+xml' != 'application/octet-stream'
+E       - application/octet-stream
+E       + image/svg+xml
+_________ test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro] _________
+tests\test_tkt059_confirmacion_rechazos.py:602: in test_hdu001_esc26_tipo_no_permitido
+    assert escena.fotografiar(archivo) == antes
+E   AssertionError: assert Fotografia(fi...lication/zip') == Fotografia(fi...octet-stream')
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing attributes:
+E     ['tipo_del_objeto']
+E     
+E     Drill down into differing attribute tipo_del_objeto:
+E       tipo_del_objeto: 'application/zip' != 'application/octet-stream'
+E       - application/octet-stream
+E       + application/zip
+_________ test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types] __________
+tests\test_tkt059_confirmacion_rechazos.py:602: in test_hdu001_esc26_tipo_no_permitido
+    assert escena.fotografiar(archivo) == antes
+E   AssertionError: assert Fotografia(fi...lication/zip') == Fotografia(fi...octet-stream')
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing attributes:
+E     ['tipo_del_objeto']
+E     
+E     Drill down into differing attribute tipo_del_objeto:
+E       tipo_del_objeto: 'application/zip' != 'application/octet-stream'
+E       - application/octet-stream
+E       + application/zip
+__________________ test_hdu001_esc26_tipo_no_permitido[xlsm] __________________
+tests\test_tkt059_confirmacion_rechazos.py:602: in test_hdu001_esc26_tipo_no_permitido
+    assert escena.fotografiar(archivo) == antes
+E   AssertionError: assert Fotografia(fi...lication/zip') == Fotografia(fi...octet-stream')
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing attributes:
+E     ['tipo_del_objeto']
+E     
+E     Drill down into differing attribute tipo_del_objeto:
+E       tipo_del_objeto: 'application/zip' != 'application/octet-stream'
+E       - application/octet-stream
+E       + application/zip
+____________________ test_tkt059_ca06_svg_renombrado_a_jpg ____________________
+tests\test_tkt059_confirmacion_rechazos.py:630: in test_tkt059_ca06_svg_renombrado_a_jpg
+    assert escena.fotografiar(archivo) == antes
+E   AssertionError: assert Fotografia(fi...mage/svg+xml') == Fotografia(fi...octet-stream')
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing attributes:
+E     ['tipo_del_objeto']
+E     
+E     Drill down into differing attribute tipo_del_objeto:
+E       tipo_del_objeto: 'image/svg+xml' != 'application/octet-stream'
+E       - application/octet-stream
+E       + image/svg+xml
+_____________________ test_tkt059_ca06_xml_con_entidades ______________________
+tests\test_tkt059_confirmacion_rechazos.py:663: in test_tkt059_ca06_xml_con_entidades
+    assert escena.fotografiar(archivo) == antes
+E   AssertionError: assert Fotografia(fi...tion/xml-dtd') == Fotografia(fi...octet-stream')
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing attributes:
+E     ['tipo_del_objeto']
+E     
+E     Drill down into differing attribute tipo_del_objeto:
+E       tipo_del_objeto: 'application/xml-dtd' != 'application/octet-stream'
+E       - application/octet-stream
+E       + application/xml-dtd
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[ejecutable_mz]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[svg]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[xlsm]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_svg_renombrado_a_jpg
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_xml_con_entidades
+7 failed, 26 passed in 17.58s
+
+##### C03 | cimenta/archivos/aplicacion/confirmacion.py | TC-22 · tipos_admitidos del detalle sin el último tipo
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+...FFFFFFF.......................                                        [100%]
+================================== FAILURES ===================================
+_____________ test_hdu001_esc26_tipo_no_permitido[ejecutable_mz] ______________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...', ...]}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tipo_detectado': 'application/vnd.microsoft.portable-executable', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tipo_detectado': 'application/vnd.microsoft.portable-executable', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}}
+E     Use -v to get more diff
+__________________ test_hdu001_esc26_tipo_no_permitido[svg] ___________________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...', ...]}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tipo_detectado': 'image/svg+xml', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tipo_detectado': 'image/svg+xml', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}}
+E     Use -v to get more diff
+_________ test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro] _________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...', ...]}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tipo_detectado': 'application/zip', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tipo_detectado': 'application/zip', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}}
+E     Use -v to get more diff
+_________ test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types] __________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...', ...]}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tipo_detectado': 'application/zip', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tipo_detectado': 'application/zip', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}}
+E     Use -v to get more diff
+__________________ test_hdu001_esc26_tipo_no_permitido[xlsm] __________________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...', ...]}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tipo_detectado': 'application/zip', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tipo_detectado': 'application/zip', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}}
+E     Use -v to get more diff
+____________________ test_tkt059_ca06_svg_renombrado_a_jpg ____________________
+tests\test_tkt059_confirmacion_rechazos.py:623: in test_tkt059_ca06_svg_renombrado_a_jpg
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...', ...]}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tipo_detectado': 'image/svg+xml', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tipo_detectado': 'image/svg+xml', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}}
+E     Use -v to get more diff
+_____________________ test_tkt059_ca06_xml_con_entidades ______________________
+tests\test_tkt059_confirmacion_rechazos.py:656: in test_tkt059_ca06_xml_con_entidades
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...', ...]}, ...} == {'tipo': 'CON...', ...]}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'tipo_detectado': 'application/xml-dtd', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}} != {'detalle': {'tipo_detectado': 'application/xml-dtd', 'tipos_admitidos': ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'video/mp4', 'application/pdf', ...]}}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[ejecutable_mz]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[svg]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[zip_sin_parte_de_libro]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[zip_sin_content_types]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[xlsm]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_svg_renombrado_a_jpg
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_xml_con_entidades
+7 failed, 26 passed in 17.69s
+
+##### C04 | cimenta/archivos/infraestructura/detector_tipo.py | TC-23 · M-06: el detector no mira si la raíz es svg
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+....F...F........................                                        [100%]
+================================== FAILURES ===================================
+__________________ test_hdu001_esc26_tipo_no_permitido[svg] ___________________
+tests\test_tkt059_confirmacion_rechazos.py:595: in test_hdu001_esc26_tipo_no_permitido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"99d2181f-04b9-4347-ac25-d206bb59ea9a","obra_id":"87bb8b91-9b21-4d55-8882-f987af30878e","referencia_tipo":"IMPORTACION","referencia_id":"a7511a38-49e8-4349-acb0-a500bcd414a0","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/xml","tamano_bytes":122,"hash_sha256":"af41e0627251c558438c41a5a1b529ff0160b338408a3dc35e09e1788509ed93","subido_por":{"id":"f66635c5-9e9c-43be-87f3-162f2ceb6655","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+____________________ test_tkt059_ca06_svg_renombrado_a_jpg ____________________
+tests\test_tkt059_confirmacion_rechazos.py:623: in test_tkt059_ca06_svg_renombrado_a_jpg
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"a87f89f5-3294-4974-a8c4-83a1cfa21575","obra_id":"938ac3dc-afc0-4f26-ac4a-1921bd4ab3a6","referencia_tipo":"IMPORTACION","referencia_id":"06febf61-a36c-429e-ba7a-c6526c2951ea","estado":"DISPONIBLE","nombre_original":"foto.jpg","tipo_mime":"application/xml","tamano_bytes":122,"hash_sha256":"af41e0627251c558438c41a5a1b529ff0160b338408a3dc35e09e1788509ed93","subido_por":{"id":"ce3ce24c-3936-449e-adc4-91eabbbc07c4","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_hdu001_esc26_tipo_no_permitido[svg]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_svg_renombrado_a_jpg
+2 failed, 31 passed in 17.63s
+
+##### C05 | cimenta/archivos/infraestructura/detector_tipo.py | TC-24 · el XML con DTD/entidades ya no se clasifica como application/xml-dtd
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+.........F.......................                                        [100%]
+================================== FAILURES ===================================
+_____________________ test_tkt059_ca06_xml_con_entidades ______________________
+tests\test_tkt059_confirmacion_rechazos.py:656: in test_tkt059_ca06_xml_con_entidades
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"76ba0412-b9e8-4881-b2a6-e16b633c6f03","obra_id":"02c1d0fb-5645-4217-8c21-4d70e9a24d06","referencia_tipo":"IMPORTACION","referencia_id":"57764c7f-4d53-4d5d-a59d-960e22dd7343","estado":"DISPONIBLE","nombre_original":"comprobante.xml","tipo_mime":"application/xml","tamano_bytes":784,"hash_sha256":"3b9ddca9ff32305a72e3986dba27f46f0065c437981d94e96a40b44955a432de","subido_por":{"id":"f68ef832-13eb-4779-a4cc-706b43e48047","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca06_xml_con_entidades
+1 failed, 32 passed in 17.67s
+
+##### D01 | cimenta/archivos/aplicacion/confirmacion.py | TC-26 · paso 7: se salta la rama ARCHIVO_NO_SUBIDO
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..........F......................                                        [100%]
+================================== FAILURES ===================================
+____________________ test_tkt059_ca07_objeto_nunca_subido _____________________
+tests\test_tkt059_confirmacion_rechazos.py:682: in test_tkt059_ca07_objeto_nunca_subido
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación si pides ayuda.","correlacion_id":"94448e26-81d8-440e-816b-61800cf0e154"}
+E   assert 500 == 409
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_objeto_nunca_subido
+1 failed, 32 passed in 17.53s
+
+##### D02 | cimenta/archivos/aplicacion/confirmacion.py | TC-27 · paso 4: se salta la rama ARCHIVO_CADUCADO del CADUCADO
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+...........F.....................                                        [100%]
+================================== FAILURES ===================================
+___________________ test_tkt059_ca07_confirmar_un_caducado ____________________
+tests\test_tkt059_confirmacion_rechazos.py:712: in test_tkt059_ca07_confirmar_un_caducado
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"8347edc7-867a-4a13-ab18-d0da584af302","obra_id":"cdbaaf04-2ee0-4115-9033-ff680c77bb8f","referencia_tipo":"IMPORTACION","referencia_id":"a04cd08f-f6c0-4e7a-9775-dbdd9e5312e9","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"48159226022b500771dac91708f2ccd64f1a26d2b93e9ab3b3a43e76c19ca309","subido_por":{"id":"d72ca102-2e22-4116-8728-b3c1fbe3e637","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_confirmar_un_caducado
+1 failed, 32 passed in 17.59s
+
+##### D03 | cimenta/archivos/aplicacion/confirmacion.py | TC-28 · M-10: el ARCHIVO_CADUCADO del vencido se lanza dentro del bloque
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+............F....................                                        [100%]
+================================== FAILURES ===================================
+________________ test_tkt059_ca07_pendiente_vencido_sin_barrer ________________
+tests\test_tkt059_confirmacion_rechazos.py:762: in test_tkt059_ca07_pendiente_vencido_sin_barrer
+    assert despues.fila["estado"] == "CADUCADO", "El UPDATE a CADUCADO debe haberse confirmado"
+E   AssertionError: El UPDATE a CADUCADO debe haberse confirmado
+E   assert 'PENDIENTE' == 'CADUCADO'
+E     
+E     - CADUCADO
+E     + PENDIENTE
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_pendiente_vencido_sin_barrer
+1 failed, 32 passed in 17.66s
+
+##### D04 | cimenta/archivos/dominio/confirmacion.py | TC-28 (borde) · M-01: vencido también en el instante exacto
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+.............F...................                                        [100%]
+================================== FAILURES ===================================
+__________ test_tkt059_ca07_pendiente_en_el_borde_exacto_se_confirma __________
+tests\test_tkt059_confirmacion_rechazos.py:783: in test_tkt059_ca07_pendiente_en_el_borde_exacto_se_confirma
+    assert respuesta.status_code == 200, respuesta.text
+E   AssertionError: {"tipo":"CONFLICTO","mensaje":"La subida del archivo caducó. Vuelve a cargar el archivo.","codigo":"ARCHIVO_CADUCADO","detalle":{"archivo_id":"d169e721-fee2-4dca-b511-6c14fa25c000","estado_archivo":"CADUCADO"},"acciones":[],"correlacion_id":"7133699a-678b-48b3-976e-0896f1189f2f"}
+E   assert 409 == 200
+E    +  where 409 = <Response [409 Conflict]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_pendiente_en_el_borde_exacto_se_confirma
+1 failed, 32 passed in 28.25s
+
+##### D05 | cimenta/archivos/aplicacion/confirmacion.py | TC-28 · paso 6: se salta la rama del PENDIENTE vencido
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+............F....................                                        [100%]
+================================== FAILURES ===================================
+________________ test_tkt059_ca07_pendiente_vencido_sin_barrer ________________
+tests\test_tkt059_confirmacion_rechazos.py:755: in test_tkt059_ca07_pendiente_vencido_sin_barrer
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"2ee0e311-5dcf-47eb-90b1-1c0c92dc36ba","obra_id":"70003e66-90d8-470e-aa70-c3ceca94c1bf","referencia_tipo":"IMPORTACION","referencia_id":"29303ee6-0c4c-4439-9321-f1f6d51be12c","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"44b4a08258709283e678c5c1b25cbcacaf15f948f537a82d68f208767c156c51","subido_por":{"id":"e68c47b5-daf8-433e-a907-383b89ebb221","nombre":"Diana Directora"},"creado_en":"2026-10-20T08:59:59Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_pendiente_vencido_sin_barrer
+1 failed, 32 passed in 20.77s
+
+##### D06 | cimenta/archivos/aplicacion/confirmacion.py | TC-28 · el vencido no se marca CADUCADO antes de rechazar
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+............F....................                                        [100%]
+================================== FAILURES ===================================
+________________ test_tkt059_ca07_pendiente_vencido_sin_barrer ________________
+tests\test_tkt059_confirmacion_rechazos.py:762: in test_tkt059_ca07_pendiente_vencido_sin_barrer
+    assert despues.fila["estado"] == "CADUCADO", "El UPDATE a CADUCADO debe haberse confirmado"
+E   AssertionError: El UPDATE a CADUCADO debe haberse confirmado
+E   assert 'PENDIENTE' == 'CADUCADO'
+E     
+E     - CADUCADO
+E     + PENDIENTE
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_pendiente_vencido_sin_barrer
+1 failed, 32 passed in 17.85s
+
+##### E01 | cimenta/archivos/aplicacion/confirmacion.py | TC-29 · se salta la comprobación del solicitante
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..............FFFF...............                                        [100%]
+================================== FAILURES ===================================
+____________ test_tkt059_ca07_otro_director_no_confirma[PENDIENTE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"4607b655-36b8-4dea-844b-66d8da8678cb","obra_id":"bfcb1f00-e6aa-4865-a9a1-bc2e99eacb1e","referencia_tipo":"IMPORTACION","referencia_id":"d9a57355-ebfc-48aa-99d2-69d86d3dd259","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"6a12125056b0e019a36030d0bf1b9b0ea2dc6443c3cac7292c44949ecec1ac24","subido_por":{"id":"0f3ef034-d6a5-44c4-a0db-3d41c5a58179","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+____________ test_tkt059_ca07_otro_director_no_confirma[CADUCADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"tipo":"CONFLICTO","mensaje":"La subida del archivo caducó. Vuelve a cargar el archivo.","codigo":"ARCHIVO_CADUCADO","detalle":{"archivo_id":"38ddae5a-46a7-4186-93bd-b2664bfc0bc6","estado_archivo":"CADUCADO"},"acciones":[],"correlacion_id":"b905fafe-fe75-4232-b2e1-30bc1f8668f0"}
+E   assert 409 == 403
+E    +  where 409 = <Response [409 Conflict]>.status_code
+_____________ test_tkt059_ca07_otro_director_no_confirma[ANULADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"tipo":"CONFLICTO","mensaje":"El archivo está anulado y no se confirma.","codigo":"ESTADO_NO_PERMITE_OPERACION","detalle":{"archivo_id":"d59804c5-9034-48df-a7f4-4ccdb032d71a","estado_archivo":"ANULADO"},"acciones":[],"correlacion_id":"d04a27ec-df56-4620-93db-ac6a16ca3f31"}
+E   assert 409 == 403
+E    +  where 409 = <Response [409 Conflict]>.status_code
+___________ test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"273ef64c-0930-4106-956d-b9998fae8a41","obra_id":"f54f0a91-4072-45a3-9289-87974cc66354","referencia_tipo":"IMPORTACION","referencia_id":"3c2bf533-cc7d-44e9-b6f8-b06dd2bd72c1","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"2d76f6503d579837eb5e9a8e7f33cc30e2332a0c9b02bb3d993117ab22ca23fe","subido_por":{"id":"154bc088-a279-4f15-ad94-58b1b19d8873","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[PENDIENTE]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[CADUCADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[ANULADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+4 failed, 29 passed in 17.68s
+
+##### E02 | cimenta/archivos/dominio/confirmacion.py | TC-29 · M-02/M-02b: el solicitante se comprueba después de los pasos 3 a 5
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+...............FFF...............                                        [100%]
+================================== FAILURES ===================================
+____________ test_tkt059_ca07_otro_director_no_confirma[CADUCADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"tipo":"CONFLICTO","mensaje":"La subida del archivo caducó. Vuelve a cargar el archivo.","codigo":"ARCHIVO_CADUCADO","detalle":{"archivo_id":"405fc849-110a-44fc-a674-1701207db525","estado_archivo":"CADUCADO"},"acciones":[],"correlacion_id":"e86cb84a-a083-4352-a1e5-869bf8cbf7f3"}
+E   assert 409 == 403
+E    +  where 409 = <Response [409 Conflict]>.status_code
+_____________ test_tkt059_ca07_otro_director_no_confirma[ANULADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"tipo":"CONFLICTO","mensaje":"El archivo está anulado y no se confirma.","codigo":"ESTADO_NO_PERMITE_OPERACION","detalle":{"archivo_id":"0e37560f-7f2e-477f-8d67-1e75599e0688","estado_archivo":"ANULADO"},"acciones":[],"correlacion_id":"b1b683e7-ceb8-431f-862f-4c052d5b8d51"}
+E   assert 409 == 403
+E    +  where 409 = <Response [409 Conflict]>.status_code
+___________ test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"4ce8ea73-b60b-43bf-897a-688879806a6c","obra_id":"c2fe71fb-ceeb-4000-8eac-dffbc7bc886f","referencia_tipo":"IMPORTACION","referencia_id":"734dad89-2457-4125-9b45-7b57acc7a334","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"361214f9c6ec3b6bc55d45327ce61c328af3f49f612ddac592cd430e3bc889d6","subido_por":{"id":"f03c185a-7903-421b-92f0-f74e04ac69e2","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[CADUCADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[ANULADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+3 failed, 30 passed in 17.62s
+
+##### E03 | cimenta/archivos/aplicacion/confirmacion.py | TC-29 · la denegación NO_ES_SOLICITANTE no se asienta
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..............FFFF...............                                        [100%]
+================================== FAILURES ===================================
+____________ test_tkt059_ca07_otro_director_no_confirma[PENDIENTE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [] == [{'usuario_id...': None, ...}]
+E     
+E     Right contains one more item: {'usuario_id': UUID('f4476981-7d99-47a8-975e-37b68ea563ef'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, ...}
+E     Use -v to get more diff
+____________ test_tkt059_ca07_otro_director_no_confirma[CADUCADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [] == [{'usuario_id...': None, ...}]
+E     
+E     Right contains one more item: {'usuario_id': UUID('03a3dbc3-5c4f-4fe1-8286-4b4cca096318'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, ...}
+E     Use -v to get more diff
+_____________ test_tkt059_ca07_otro_director_no_confirma[ANULADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [] == [{'usuario_id...': None, ...}]
+E     
+E     Right contains one more item: {'usuario_id': UUID('b4168f22-56f0-4a10-b546-8937b33492a0'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, ...}
+E     Use -v to get more diff
+___________ test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [] == [{'usuario_id...': None, ...}]
+E     
+E     Right contains one more item: {'usuario_id': UUID('44e56582-c4f8-4c42-9e2c-409013bd97d2'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, ...}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[PENDIENTE]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[CADUCADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[ANULADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+4 failed, 29 passed in 17.69s
+
+##### E04 | cimenta/archivos/aplicacion/confirmacion.py | TC-29 · el DENEGAR asienta roles_requeridos vacío
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..............FFFF...............                                        [100%]
+================================== FAILURES ===================================
+____________ test_tkt059_ca07_otro_director_no_confirma[PENDIENTE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [{'usuario_id...': None, ...}] == [{'usuario_id...': None, ...}]
+E     
+E     At index 0 diff: {'usuario_id': UUID('887a1703-c2e2-4735-a5c1-8c1d08a0c387'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, 'entidad_tipo': 'usuario', 'entidad_id': UUID('887a1703-c2e2-4735-a5c1-8c1d08a0c387'), 'obra_id': None, 'datos_antes_es_nulo': True, 'datos_despues': {'ruta': '/api/v1/archivos/6fcc9e6c-fca1-407d-a570-d0c9f1abcfe8/confirmacion', 'metodo': 'POST', 'roles_requeridos': []}} != {'usuario_id': UUID('887a1703-c2e2-4735-a5c1-8c1d08a0c387'), 'ocurrido_en'...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+____________ test_tkt059_ca07_otro_director_no_confirma[CADUCADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [{'usuario_id...': None, ...}] == [{'usuario_id...': None, ...}]
+E     
+E     At index 0 diff: {'usuario_id': UUID('8bcc4c63-e41e-48b3-8155-16c875270457'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, 'entidad_tipo': 'usuario', 'entidad_id': UUID('8bcc4c63-e41e-48b3-8155-16c875270457'), 'obra_id': None, 'datos_antes_es_nulo': True, 'datos_despues': {'ruta': '/api/v1/archivos/439829ee-0de5-47d6-880f-de868229baef/confirmacion', 'metodo': 'POST', 'roles_requeridos': []}} != {'usuario_id': UUID('8bcc4c63-e41e-48b3-8155-16c875270457'), 'ocurrido_en'...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_____________ test_tkt059_ca07_otro_director_no_confirma[ANULADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [{'usuario_id...': None, ...}] == [{'usuario_id...': None, ...}]
+E     
+E     At index 0 diff: {'usuario_id': UUID('3830dd96-db28-4d3f-842d-38862bb719ff'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, 'entidad_tipo': 'usuario', 'entidad_id': UUID('3830dd96-db28-4d3f-842d-38862bb719ff'), 'obra_id': None, 'datos_antes_es_nulo': True, 'datos_despues': {'ruta': '/api/v1/archivos/30c2862f-02ec-438d-a44b-5ae878600a81/confirmacion', 'metodo': 'POST', 'roles_requeridos': []}} != {'usuario_id': UUID('3830dd96-db28-4d3f-842d-38862bb719ff'), 'ocurrido_en'...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+___________ test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:827: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_denegacion_nueva(
+tests\test_tkt059_confirmacion_rechazos.py:473: in _exigir_denegacion_nueva
+    assert despues.denegaciones == [*antes.denegaciones, esperada]
+E   AssertionError: assert [{'usuario_id...': None, ...}] == [{'usuario_id...': None, ...}]
+E     
+E     At index 0 diff: {'usuario_id': UUID('3e84fcac-9827-4a88-8f35-db2c34bad2f9'), 'ocurrido_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'motivo': 'NO_ES_SOLICITANTE', 'regla_negocio': None, 'entidad_tipo': 'usuario', 'entidad_id': UUID('3e84fcac-9827-4a88-8f35-db2c34bad2f9'), 'obra_id': None, 'datos_antes_es_nulo': True, 'datos_despues': {'ruta': '/api/v1/archivos/1d48b069-7d97-4021-8bca-eebbd24bbdbb/confirmacion', 'metodo': 'POST', 'roles_requeridos': []}} != {'usuario_id': UUID('3e84fcac-9827-4a88-8f35-db2c34bad2f9'), 'ocurrido_en'...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[PENDIENTE]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[CADUCADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[ANULADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+4 failed, 29 passed in 17.91s
+
+##### E05 | cimenta/archivos/aplicacion/confirmacion.py | TC-29 · el 403 NO_ES_SOLICITANTE devuelve roles_requeridos con el rol
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..............FFFF...............                                        [100%]
+================================== FAILURES ===================================
+____________ test_tkt059_ca07_otro_director_no_confirma[PENDIENTE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...R_PROYECTOS']} == {'tipo': 'PER...queridos': []}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS']} != {'roles_requeridos': []}
+E     Use -v to get more diff
+____________ test_tkt059_ca07_otro_director_no_confirma[CADUCADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...R_PROYECTOS']} == {'tipo': 'PER...queridos': []}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS']} != {'roles_requeridos': []}
+E     Use -v to get more diff
+_____________ test_tkt059_ca07_otro_director_no_confirma[ANULADO] _____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...R_PROYECTOS']} == {'tipo': 'PER...queridos': []}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS']} != {'roles_requeridos': []}
+E     Use -v to get more diff
+___________ test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE] ____________
+tests\test_tkt059_confirmacion_rechazos.py:822: in test_tkt059_ca07_otro_director_no_confirma
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...R_PROYECTOS']} == {'tipo': 'PER...queridos': []}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS']} != {'roles_requeridos': []}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[PENDIENTE]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[CADUCADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[ANULADO]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_otro_director_no_confirma[DISPONIBLE]
+4 failed, 29 passed in 18.09s
+
+##### F01 | cimenta/archivos/api/rutas.py | TC-30 · exigir_rol admite también COMPRAS
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..................FFFFFF.........                                        [100%]
+================================== FAILURES ===================================
+_________________ test_tkt059_ca07_sin_rol[DIRECCION_GENERAL] _________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...', 'COMPRAS']} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS', 'COMPRAS']} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+______________________ test_tkt059_ca07_sin_rol[COMPRAS] ______________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...queridos': []} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'motivo': 'NO_ES_SOLICITANTE'} != {'motivo': 'ROL_INSUFICIENTE'}
+E     {'roles_requeridos': []} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     {'mensaje': 'Solo quien subió el archivo puede confirmarlo.'} != {'mensaje': 'Tu rol no permite esta operación.'}
+E     Use -v to get more diff
+_____________________ test_tkt059_ca07_sin_rol[RESIDENTE] _____________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...', 'COMPRAS']} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS', 'COMPRAS']} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+______________________ test_tkt059_ca07_sin_rol[ALMACEN] ______________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...', 'COMPRAS']} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS', 'COMPRAS']} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+__________________ test_tkt059_ca07_sin_rol[ADMINISTRACION] ___________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...', 'COMPRAS']} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS', 'COMPRAS']} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+________ test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia _________
+tests\test_tkt059_confirmacion_rechazos.py:894: in test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...', 'COMPRAS']} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS', 'COMPRAS']} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[DIRECCION_GENERAL]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[COMPRAS]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[RESIDENTE]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[ALMACEN]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[ADMINISTRACION]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia
+6 failed, 27 passed in 19.36s
+
+##### F02 | cimenta/archivos/api/rutas.py | TC-30 · la ruta sin verificar_origen
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+........................FFFFF....                                        [100%]
+================================== FAILURES ===================================
+_________________ test_tkt059_ca07_sin_origen[ambos_ausentes] _________________
+tests\test_tkt059_confirmacion_rechazos.py:931: in test_tkt059_ca07_sin_origen
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"5a79757d-3b34-421a-96ca-e9fa39397555","obra_id":"ef4630ec-058e-499e-aeb4-a14631fc0f06","referencia_tipo":"IMPORTACION","referencia_id":"45c74b74-a87c-43bd-ac97-e8862467d033","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"f48fcd5abb3123d719f469e9f25b52a6866e3373cd4db0ae46b1e6faee86d2da","subido_por":{"id":"4fefd6ab-8c88-478e-a138-42cc03793f35","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+__________________ test_tkt059_ca07_sin_origen[solo_cookie] ___________________
+tests\test_tkt059_confirmacion_rechazos.py:931: in test_tkt059_ca07_sin_origen
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"c055ac2f-ae12-4738-9b68-84ef8dd8e40d","obra_id":"d7b3743c-23c0-4583-bacf-90dffeb5f4ae","referencia_tipo":"IMPORTACION","referencia_id":"74df1eac-8cbe-4f02-ba3e-e7019e96d3d7","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"f48fcd5abb3123d719f469e9f25b52a6866e3373cd4db0ae46b1e6faee86d2da","subido_por":{"id":"11247795-719d-43de-8728-70177693a24f","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+_________________ test_tkt059_ca07_sin_origen[solo_cabecera] __________________
+tests\test_tkt059_confirmacion_rechazos.py:931: in test_tkt059_ca07_sin_origen
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"9e3c2977-1eca-4f2b-8308-e1376b5a60ef","obra_id":"9e920fab-e7f8-48e2-9d06-35554985eb3e","referencia_tipo":"IMPORTACION","referencia_id":"eedd3255-bab7-4ead-b7b0-5c6493f4b15a","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"f48fcd5abb3123d719f469e9f25b52a6866e3373cd4db0ae46b1e6faee86d2da","subido_por":{"id":"91e736b4-6427-43a2-957c-94076671a94f","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+___________________ test_tkt059_ca07_sin_origen[distintos] ____________________
+tests\test_tkt059_confirmacion_rechazos.py:931: in test_tkt059_ca07_sin_origen
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"1eeb2d9e-a672-49f2-98e1-95c710d64b04","obra_id":"67b38394-5922-47cc-95af-e023bd5a17ed","referencia_tipo":"IMPORTACION","referencia_id":"76c21c56-026b-4005-90cd-49f6ab1a3374","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"f48fcd5abb3123d719f469e9f25b52a6866e3373cd4db0ae46b1e6faee86d2da","subido_por":{"id":"0ac51cce-d5ee-49c0-abb3-3e42a7c42d22","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+__________ test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol ___________
+tests\test_tkt059_confirmacion_rechazos.py:966: in test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...R_PROYECTOS']} == {'tipo': 'PER...queridos': []}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS']} != {'roles_requeridos': []}
+E     {'motivo': 'ROL_INSUFICIENTE'} != {'motivo': 'ORIGEN_NO_VERIFICADO'}
+E     {'mensaje': 'Tu rol no permite esta operación.'} != {'mensaje': 'No se pudo comprobar que la petición venga de CIMENTA. Recarga la página e inténtalo de nuevo.'}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_origen[ambos_ausentes]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_origen[solo_cookie]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_origen[solo_cabecera]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_origen[distintos]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol
+5 failed, 28 passed in 26.08s
+
+##### F03 | cimenta/archivos/api/rutas.py | TC-30 · exigir_rol antes que verificar_origen
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+............................F....                                        [100%]
+================================== FAILURES ===================================
+__________ test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol ___________
+tests\test_tkt059_confirmacion_rechazos.py:966: in test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...R_PROYECTOS']} == {'tipo': 'PER...queridos': []}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'motivo': 'ROL_INSUFICIENTE'} != {'motivo': 'ORIGEN_NO_VERIFICADO'}
+E     {'roles_requeridos': ['DIRECTOR_PROYECTOS']} != {'roles_requeridos': []}
+E     {'mensaje': 'Tu rol no permite esta operación.'} != {'mensaje': 'No se pudo comprobar que la petición venga de CIMENTA. Recarga la página e inténtalo de nuevo.'}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_el_origen_se_comprueba_antes_que_el_rol
+1 failed, 32 passed in 17.70s
+
+##### F04 | cimenta/archivos/aplicacion/confirmacion.py | TC-30 · 404 con recurso equivocado
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+.............................F...                                        [100%]
+================================== FAILURES ===================================
+____________________ test_tkt059_ca07_archivo_inexistente _____________________
+tests\test_tkt059_confirmacion_rechazos.py:995: in test_tkt059_ca07_archivo_inexistente
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'NO_...': 'archivos'} == {'tipo': 'NO_...o': 'archivo'}
+E     
+E     Omitting 2 identical items, use -vv to show
+E     Differing items:
+E     {'recurso': 'archivos'} != {'recurso': 'archivo'}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_archivo_inexistente
+1 failed, 32 passed in 17.69s
+
+##### F05 | cimenta/archivos/api/rutas.py | TC-30 · la ruta sin exigir_rol
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+..................FFFFFF.........                                        [100%]
+================================== FAILURES ===================================
+_________________ test_tkt059_ca07_sin_rol[DIRECCION_GENERAL] _________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...queridos': []} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'Solo quien subió el archivo puede confirmarlo.'} != {'mensaje': 'Tu rol no permite esta operación.'}
+E     {'motivo': 'NO_ES_SOLICITANTE'} != {'motivo': 'ROL_INSUFICIENTE'}
+E     {'roles_requeridos': []} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+______________________ test_tkt059_ca07_sin_rol[COMPRAS] ______________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...queridos': []} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'Solo quien subió el archivo puede confirmarlo.'} != {'mensaje': 'Tu rol no permite esta operación.'}
+E     {'motivo': 'NO_ES_SOLICITANTE'} != {'motivo': 'ROL_INSUFICIENTE'}
+E     {'roles_requeridos': []} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+_____________________ test_tkt059_ca07_sin_rol[RESIDENTE] _____________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...queridos': []} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'Solo quien subió el archivo puede confirmarlo.'} != {'mensaje': 'Tu rol no permite esta operación.'}
+E     {'motivo': 'NO_ES_SOLICITANTE'} != {'motivo': 'ROL_INSUFICIENTE'}
+E     {'roles_requeridos': []} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+______________________ test_tkt059_ca07_sin_rol[ALMACEN] ______________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...queridos': []} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'Solo quien subió el archivo puede confirmarlo.'} != {'mensaje': 'Tu rol no permite esta operación.'}
+E     {'motivo': 'NO_ES_SOLICITANTE'} != {'motivo': 'ROL_INSUFICIENTE'}
+E     {'roles_requeridos': []} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+__________________ test_tkt059_ca07_sin_rol[ADMINISTRACION] ___________________
+tests\test_tkt059_confirmacion_rechazos.py:862: in test_tkt059_ca07_sin_rol
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'PER...queridos': []} == {'tipo': 'PER...R_PROYECTOS']}
+E     
+E     Omitting 1 identical items, use -vv to show
+E     Differing items:
+E     {'mensaje': 'Solo quien subió el archivo puede confirmarlo.'} != {'mensaje': 'Tu rol no permite esta operación.'}
+E     {'motivo': 'NO_ES_SOLICITANTE'} != {'motivo': 'ROL_INSUFICIENTE'}
+E     {'roles_requeridos': []} != {'roles_requeridos': ['DIRECTOR_PROYECTOS']}
+E     Use -v to get more diff
+________ test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia _________
+tests\test_tkt059_confirmacion_rechazos.py:894: in test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia
+    _exigir_permiso(
+tests\test_tkt059_confirmacion_rechazos.py:418: in _exigir_permiso
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"El archivo no existe.","recurso":"archivo","correlacion_id":"df7998e0-b96b-4e87-83f6-822a7cd050ab"}
+E   assert 404 == 403
+E    +  where 404 = <Response [404 Not Found]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[DIRECCION_GENERAL]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[COMPRAS]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[RESIDENTE]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[ALMACEN]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_sin_rol[ADMINISTRACION]
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_el_rol_se_comprueba_antes_que_la_existencia
+6 failed, 27 passed in 17.85s
+
+##### G01 | cimenta/archivos/aplicacion/confirmacion.py | P-10 · paso 5: se salta la rama ESTADO_NO_PERMITE_OPERACION
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+................................F                                        [100%]
+================================== FAILURES ===================================
+____________________ test_tkt059_ca07_confirmar_un_anulado ____________________
+tests\test_tkt059_confirmacion_rechazos.py:1052: in test_tkt059_ca07_confirmar_un_anulado
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:388: in _exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+E   AssertionError: {"id":"95984024-293f-4068-97df-1a3f8c9b607c","obra_id":"173e170b-3b8f-4bfa-b606-7435ef32b06d","referencia_tipo":"IMPORTACION","referencia_id":"e6b0506e-6452-47b5-9834-1ea2b922f7ed","estado":"DISPONIBLE","nombre_original":"Presupuesto torre 5.xlsx","tipo_mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","tamano_bytes":498,"hash_sha256":"7c7d31d6a30381d8629e3462cce2559c017ce22eb01c4bbca428db7a3fbc3941","subido_por":{"id":"7c47b028-c8d9-41ee-92f9-00c375591712","nombre":"Diana Directora"},"creado_en":"2026-10-21T09:00:00Z","confirmado_en":"2026-10-21T09:00:00Z"}
+E   assert 200 == 409
+E    +  where 200 = <Response [200 OK]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_confirmar_un_anulado
+1 failed, 32 passed in 17.76s
+
+##### G02 | cimenta/archivos/aplicacion/confirmacion.py | P-10 · el detalle de ANULADO lleva estado_archivo fijo CADUCADO
+huella_antes=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_despues=c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0
+huella_igual=True git_status_igual=True
+codigo_de_salida_de_pytest=1
+................................F                                        [100%]
+================================== FAILURES ===================================
+____________________ test_tkt059_ca07_confirmar_un_anulado ____________________
+tests\test_tkt059_confirmacion_rechazos.py:1052: in test_tkt059_ca07_confirmar_un_anulado
+    _exigir_conflicto(
+tests\test_tkt059_confirmacion_rechazos.py:400: in _exigir_conflicto
+    _exigir_error(
+tests\test_tkt059_confirmacion_rechazos.py:392: in _exigir_error
+    assert cuerpo == esperado
+E   AssertionError: assert {'tipo': 'CON...DUCADO'}, ...} == {'tipo': 'CON...NULADO'}, ...}
+E     
+E     Omitting 4 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'archivo_id': '4406d234-9655-4799-9ece-01d697df4c7d', 'estado_archivo': 'CADUCADO'}} != {'detalle': {'archivo_id': '4406d234-9655-4799-9ece-01d697df4c7d', 'estado_archivo': 'ANULADO'}}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion_rechazos.py::test_tkt059_ca07_confirmar_un_anulado
+1 failed, 32 passed in 17.60s
+

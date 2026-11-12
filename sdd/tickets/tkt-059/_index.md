@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · entrega TKT-059d
+LISTO PARA EJECUTAR · entrega TKT-059e
 
 Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, TKT-059c, TKT-059d y TKT-059e. `ARCHIVADO` solo al cerrar TKT-059e.
 
@@ -30,7 +30,7 @@ Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, T
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-05 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-05 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Secciones de las entregas 059a, 059b y 059c escritas; las demás entregas añaden la suya |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Secciones de las entregas 059a, 059b, 059c y 059d escritas; las demás entregas añaden la suya |
 | Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -51,6 +51,10 @@ Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, T
 | 2026-11-12 | `LISTO PARA EJECUTAR` (entrega 059c) | `EN REVISIÓN` (entrega 059c) | `/sdd-ejecutar TKT-059c` | Filas 8 a 10 ejecutadas con TDD (se pidió también 059a y 059b, ya revisadas y acumuladas: no se reejecutaron). Diez campos de ajustes y almacén obligatorio con base, `ContextoArchivos` y composición perezosa en la fábrica, repositorio de `archivo` y `registrar_archivo`. Decisión de la persona dueña: `NUL` y sustitutos Unicode en `nombre_original` se rechazan con `FORMATO` en `evaluar_declaracion` (hallazgo F001). Suite `3162 passed, 26 skipped`; `M-05b`, `X1` y `X2` caen; `pip-audit` limpio. `auditor-arquitectura` `APROBADO` tras un ciclo. Pendientes para 059d o 059e: `O4`, `O5` y `Body.read(fin - inicio + 1)`. Siguiente: `/sdd-revisar TKT-059` |
 
 | 2026-11-12 | `EN REVISIÓN` (entrega 059c) | `LISTO PARA EJECUTAR · TKT-059d` | `/sdd-revisar TKT-059` | Entrega 059c revisada y acumulada en la rama `tkt-059-archivos-minimo`, sin PR. Un ciclo de corrección: `auditor-arquitectura`, `auditor-codigo` y `auditor-seguridad` `APROBADO`; `auditor-docs` `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` (`F001` a `F006`, solo redacción y cifras; comunicados a la persona dueña). Decisión de la persona dueña: `registrar_archivo` rechaza con `ValueError` un `referencia_tipo` fuera de los seis valores o distinto de `OBRA` sin `referencia_id`. Suite `3162 passed, 26 skipped`. Pendientes: `O4`, `O5` y `Body.read(fin - inicio + 1)` de 059b sin decisión de aplazamiento registrada; para TKT-018, el DTO con `Literal` de `referencia_tipo` y la verificación de rol y obra. Siguiente: `/sdd-ejecutar TKT-059d` (filas 11 a 13) |
+
+| 2026-11-12 | `LISTO PARA EJECUTAR` (entrega 059d) | `EN REVISIÓN` (entrega 059d) | `/sdd-ejecutar TKT-059d` | Filas 11 a 13 ejecutadas con TDD. La fila 11 no necesitó código: `nombres_de_usuarios` y `UsuarioResumen` ya los había publicado TKT-017b1. `confirmar_archivo` con sus once pasos, la ruta `POST /api/v1/archivos/{archivo_id}/confirmacion`, el orden A de `E-1` (g1) y el cambio del borrador OpenAPI de 059d (**señalar a quien apruebe el PR: toca `docs/api/openapi.yaml`**). Suite `3201 passed, 26 skipped`; los cinco mutantes de la fila 13 y treinta de la fila 12b caen; `pip-audit` limpio. `auditor-arquitectura` `APROBADO` en un ciclo. Siguiente: `/sdd-revisar TKT-059` |
+
+| 2026-11-12 | `EN REVISIÓN` (entrega 059d) | `LISTO PARA EJECUTAR · TKT-059e` | `/sdd-revisar TKT-059` | Entrega 059d revisada y acumulada en la rama `tkt-059-archivos-minimo`, sin PR. Dos ciclos de corrección: `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` y `auditor-docs` `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` (`F005`, `F007` y `F001` a `F003` de docs, de redacción y de código de pruebas; comunicados a la persona dueña). Se cerraron dos huecos de cobertura Mayores (la rama `57014` y `referencia_id` nulo), la ruta de fallo de la denegación y la deriva del `Literal` de `referencia_tipo`. Suite `3206 passed, 26 skipped`. **Señal para quien apruebe el PR: esta entrega modifica `docs/api/openapi.yaml`.** Pendientes para 059e: en `url_lectura`, fijar siempre `ResponseContentType` y la disposición (`O-4` de seguridad); `O4`, `O5` y `Body.read(fin - inicio + 1)` de 059b siguen sin decisión de aplazamiento registrada. Siguiente: `/sdd-ejecutar TKT-059e` (filas 14 a 17) |
 
 ## Decisiones registradas
 

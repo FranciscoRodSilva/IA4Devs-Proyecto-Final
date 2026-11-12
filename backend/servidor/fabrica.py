@@ -10,8 +10,8 @@ El motor del rol de aplicación es perezoso: construir la aplicación no exige v
 abre conexión. Sin variables de base el `lifespan` no barre ni crea el ejecutor (P16), de modo que
 el servidor sigue arrancando sin base; con ellas, un barrido fallido impide arrancar (P11).
 
-Desde TKT-059 fila 8 compone también el contexto de `cimenta.archivos.interfaz` en
-`aplicacion.state.archivos`. El almacén de objetos es perezoso: construir la aplicación no crea el
+Desde TKT-059 fila 8 compone también el contexto de `cimenta.archivos.interfaz` y, desde la fila 12a,
+`cimenta.archivos.api.montaje` lo deja en `aplicacion.state.archivos` y monta su enrutador. El almacén de objetos es perezoso: construir la aplicación no crea el
 cliente, y sin sus variables `almacen()` lanza `AlmacenNoConfigurado` (CA-2).
 """
 
@@ -31,12 +31,12 @@ from pydantic import SecretStr
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
+from cimenta.archivos.api.montaje import montar_archivos
 from cimenta.archivos.interfaz import (
     AlmacenNoConfigurado,
     AlmacenObjetos,
     ConfiguracionArchivos,
     LimitesArchivo,
-    construir_contexto,
     crear_almacen_s3,
 )
 from cimenta.identidad.api.montaje import montar_identidad
@@ -178,7 +178,8 @@ def crear_aplicacion(
         reloj=reloj,
         entorno=entorno_efectivo,
     )
-    aplicacion.state.archivos = construir_contexto(
+    montar_archivos(
+        aplicacion,
         proveedor_motor=proveedor_motor,
         proveedor_almacen=proveedor_almacen,
         configuracion=configuracion_archivos,

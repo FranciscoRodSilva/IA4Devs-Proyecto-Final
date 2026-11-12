@@ -687,3 +687,172 @@ python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos d
 | `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F006` de redacción y cifras, resueltos por el orquestador con el texto literal del auditor | 1 |
 
 Resultado por criterio de 059c: todos los `[M]` de su alcance cumplidos con evidencia (`CA-2`, `CA-3` y `CA-R1`, ver la tabla de criterios de esta sección). Los criterios `CA-4` a `CA-14` se completan en 059d y 059e. Desviaciones: las de «Ajustes respecto al design (059c)» y las de este ciclo.
+
+
+## Entrega TKT-059d · Confirmación del archivo y su ruta (filas 11 a 13)
+
+Fecha de ejecución: 2026-11-12. Misma rama del ticket, `tkt-059-archivos-minimo`, partiendo del commit de cierre de 059c (`b72eb0d`).
+
+### Qué se implementó
+
+- **Fila 11, sin código.** `nombres_de_usuarios` y `UsuarioResumen` ya estaban publicadas en `cimenta.identidad.interfaz` desde TKT-017b1, y la aserción de `test_tkt006_enrutador.py` que fija el `__all__` de `identidad` ya las incluye. Por eso no hubo nada que crear ni que ajustar, y `TC-53` (que el diseño condicionaba a que la fila corriera) no se escribió: `tests/test_tkt017_identidad_nombres.py` ya prueba la función.
+- `confirmar_archivo`, con los once pasos del diseño: bloqueo `FOR UPDATE` de la fila, el solicitante antes que el estado, la idempotencia, el vencimiento de un `PENDIENTE` que el barrido no alcanzó (se marca `CADUCADO` y el `409` se lanza después de confirmar la escritura), la comparación con los metadatos del objeto, la lectura del tipo por los bytes con lecturas acotadas, la reescritura del tipo dentro del almacén, el cambio a `DISPONIBLE` y el asiento `CONFIRMAR` en la misma transacción. La denegación `NO_ES_SOLICITANTE` se asienta como `DENEGAR` en una transacción propia. El vencimiento del bloqueo (`55P03`) y del tiempo de ejecución (`57014`) responden `409` `CONCURRENCIA`.
+- `POST /api/v1/archivos/{archivo_id}/confirmacion` con `verificar_origen` antes que `exigir_rol("DIRECTOR_PROYECTOS")`, los esquemas `EstadoArchivo` y `Archivo` (sin `clave_objeto`) y `montar_archivos`, que sustituye en la fábrica a la línea de la fila 8.
+- El cambio del borrador OpenAPI de 059d, `docs/07-especificacion-api.md` §2.8 y los tipos del cliente regenerados (`frontend/src/api/generado/servidor.ts`).
+
+### Ajustes respecto al design (059d)
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-12 | **Caso de `E-1 (g)` aplicado: (g1), orden A.** `reescribir_tipo`, luego `marcar_disponible`, luego el asiento, y el bloque confirma. | `copy_object` con `REPLACE` conserva la suma (resultado de `E-1` en 059a); `almacen_s3.reescribir_tipo` no pasa `ChecksumAlgorithm` |
+| 2026-11-12 | `esperar_hasta` ya estaba en `herramientas/tiempo_de_prueba.py` y `fabrica_espera_corta` equivale a la fixture `motor_espera_corta` de TKT-017; no se movió ni se creó nada. | Las dos las había creado TKT-017; el diseño dice «si TKT-017 no las creó ya» |
+| 2026-11-12 | Las ayudas de las pruebas de la confirmación (`AlmacenContador`, el alta y el `PUT` por HTTP, el libro de 26 MB y las lecturas SQL) viven en `backend/herramientas/soporte_tkt059.py`. | Mismo patrón que los `soporte_tkt017_*`; el diseño no lo preveía |
+| 2026-11-12 | `ArchivoLeido` lleva `subido_por_id` además de `subido_por_nombre`. | El esquema de la API arma `UsuarioResumen` con el identificador y el nombre |
+| 2026-11-12 | `TKT-057/TC-48` no queda en rojo solo con la entrada nueva de `CUERPOS_VALIDOS`. | Recorre las rutas que existen y no comprueba que cada entrada tenga ruta; la entrada cobra sentido ahora que la ruta existe. No se amplió su aserción para no ir más allá de lo pedido |
+| 2026-11-12 | `__all__` de `aplicacion/confirmacion.py` publica `auditoria`. | La caché incremental de `mypy` daba un falso error sobre `confirmacion.auditoria` en `TC-16`; con `__all__` el módulo lo declara de forma explícita |
+| 2026-11-12 | No hay test del `TIEMPO_EJECUCION_VENCIDO` (`57014`). | El plan de pruebas no le asigna un caso propio; el código lo traduce igual que el de `55P03` |
+
+### Archivos tocados (059d)
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/archivos/aplicacion/confirmacion.py` | nuevo | aplicación |
+| `backend/cimenta/archivos/api/esquemas.py`, `rutas.py`, `montaje.py` | nuevos | api |
+| `backend/servidor/fabrica.py` | modificado (`montar_archivos`) | servidor |
+| `backend/herramientas/soporte_tkt059.py` | nuevo (ayudas de prueba) | pruebas |
+| `backend/tests/test_tkt059_confirmacion.py`, `test_tkt059_confirmacion_concurrencia.py`, `test_tkt059_confirmacion_rechazos.py` | nuevos | pruebas |
+| `backend/tests/conftest.py` (fixture `aplicacion_archivos`), `test_tkt057_csrf.py` (`CUERPOS_VALIDOS`) | modificados | pruebas |
+| `docs/api/openapi.yaml` | modificado (cambio del borrador en 059d) | contrato |
+| `docs/07-especificacion-api.md` | modificado (§2.8 fila 3) | documentación |
+| `frontend/src/api/generado/servidor.ts` | regenerado | cliente |
+| `sdd/tickets/tkt-059/design.md`, `impl.md`, `_index.md`, `rojo/fila-12a.txt`, `rojo/fila-12b.txt` | modificados o nuevos | documentación |
+
+### Pruebas y ciclo TDD por fila (059d)
+
+| Fila | Rojo (`sdd/tickets/tkt-059/rojo/`) | Ejecutó | Verde | Mutantes |
+|---|---|---|---|---|
+| 11 | No aplica: sin código | — | — | — |
+| 12a | `fila-12a.txt`: `6 failed, 73 passed`, cero errores. Cinco por la ruta ausente (`404`) y uno por el módulo `confirmacion` ausente | `tester-api` (`sonnet`) → `desarrollador-api` (`sonnet`) | `6 passed` en las dos suites de la fila; concurrencia tres veces seguidas; `567 passed` en `-k "tkt006 or tkt057 or tkt072"`; `12 passed` en `test_tkt015_arranque.py` | `M-15`, `M-19` |
+| 12b | `fila-12b.txt`: los rechazos ya existían desde 12a, así que el rojo se demostró con treinta mutantes temporales, cada uno con su salida | `tester-api` (`sonnet`) | `33 passed` en `test_tkt059_confirmacion_rechazos.py` | `A01` a `G02` (tabla abajo) |
+| 13 | — | `tester-backend` (`sonnet`) | Suite completa, abajo | `M-02b`, `M-09`, `M-10`, `M-15`, `M-19` |
+
+El rojo de la fila 12a es de ejecución con subagentes: el tester lo escribió y un agente distinto lo puso en verde. En la fila 12b el tester demostró cada rechazo mutando la producción y revirtiendo desde una copia previa, con la huella SHA-256 de los `.py` de `backend/` idéntica antes y después: `c6294d73cf3182f17898947a4935aba6b931714f8857b9057fcef712afabc5b0`.
+
+### Mutación (059d)
+
+Mutantes de la fila 13, uno a uno sobre `confirmacion.py` y `repositorio.py`, con copia previa fuera del repositorio. Huella inicial y final de los 317 `.py` de `backend/`: `aca3259431953f6aa0504f12c256601315b5c96e64889653762ddd4765491b9c`.
+
+| Mutante | Cambio | Test que cae | Resumen de pytest |
+|---|---|---|---|
+| `M-02b` | El solicitante se comprueba después de los pasos 3 a 6 | `otro_director_no_confirma[CADUCADO]`, `[ANULADO]` y `[DISPONIBLE]` (`[PENDIENTE]` sigue pasando, como se esperaba) | `3 failed, 1 passed` |
+| `M-09` | El asiento `CONFIRMAR` se escribe en una transacción aparte, después de confirmar | `test_tkt059_ca04_la_bitacora_va_en_la_misma_transaccion` (`TC-16`) | `1 failed` |
+| `M-10` | El `ARCHIVO_CADUCADO` del vencido se lanza dentro del bloque | `test_tkt059_ca07_pendiente_vencido_sin_barrer` (`TC-28`) | `1 failed` |
+| `M-15` | `repositorio.bloquear` sin `with_for_update()` | `test_tkt059_ca04_dos_confirmaciones_simultaneas` (`TC-18`) | `1 failed, 1 passed` |
+| `M-19` | Sin la traducción de `55P03` | `test_tkt059_ca04_confirmacion_con_bloqueo_vencido` (`TC-18b`) | `1 failed, 1 passed` |
+
+Mutantes de la fila 12b (`fila-12b.txt` trae la salida de cada uno): `A01` a `A03` (tamaño), `B01` a `B04` (hash, con `M-03` y `M-04`), `C01` a `C05` (tipo, con `M-06`), `D01` a `D06` (existencia y vencimiento, con `M-01`, `M-10`), `E01` a `E05` (solicitante y denegación, con `M-02`), `F01` a `F05`, `G01` y `G02` (`ANULADO`). Los treinta cayeron por su razón y ninguno sobrevivió.
+
+### Modelo por paso (059d)
+
+| Paso | Agente | Modelo | Motivo |
+|---|---|---|---|
+| Fila 12a, rojo | `tester-api` | `sonnet` | Valor por omisión |
+| Fila 12a, verde | `desarrollador-api` | `sonnet` | Disparador del diseño: bloqueo pesimista y concurrencia |
+| Fila 12b | `tester-api` | `sonnet` | Disparador del diseño: los permisos de un rol |
+| Fila 13, mutación y suite | `tester-backend` | `sonnet` | Valor por omisión |
+| Auditoría de cierre | `auditor-arquitectura` | `sonnet` | Valor del comando |
+
+### Resultado contra los criterios de aceptación (alcance de 059d)
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| `CA-4` esc. 1 y 2 (confirmar, idempotencia, bitácora, bloqueo) | Cumplido | `TC-14`, `TC-15`, `TC-16`, `TC-17`, `TC-18`, `TC-18b` |
+| `CA-5` (tamaño y hash distintos) | Cumplido | `TC-19`, `TC-20` (`HDU-001` esc. 25); `TC-21` es de 059b |
+| `CA-6` (tipo leído de los bytes) | Cumplido | `TC-22`, `TC-23`, `TC-24` (`HDU-001` esc. 26) |
+| `CA-7` (no subido, caducado, vencido, otro director, rol, origen, inexistente) | Cumplido | `TC-26` a `TC-30` y el caso de `ANULADO` |
+
+El escenario 24 de HDU-001 es de TKT-018; ningún test de esta entrega lleva ese nombre. Los criterios `CA-8`, `CA-9`, `CA-10`, `CA-11` y `CA-12` son de 059e.
+
+### Auditorías de cierre de fase (059d)
+
+| Auditor | Veredicto | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 1 |
+| `auditor-sql` | No aplica: la entrega no tiene esquema | — |
+
+Observaciones de `auditor-arquitectura`, sin bloqueo: `O001` (la sección de `impl.md` faltaba; es esta), `O002` (el borrador no declara `422` para un `archivo_id` que no es UUID; patrón que ya tienen otras operaciones) y `O003` (un Director que no subió el archivo distingue «no existe» de «existe pero es de otro»; es la secuencia que fija el diseño, `PA-T59.8`).
+
+**Señal para quien apruebe el PR:** esta entrega modifica `docs/api/openapi.yaml` (cambio del borrador en 059d: `CADUCADO` en `EstadoArchivo`, los códigos y ejemplos de la confirmación, el `409` como `oneOf` de `CONFLICTO` y `CONCURRENCIA`).
+
+### Verificación de la entrega 059d
+
+Cifras copiadas de la última corrida, desde `backend/` con Docker respondiendo (servidor 29.9.3):
+
+```text
+uv run pytest -q -ra          →  3201 passed, 26 skipped in 572.53s (0:09:32)
+uv run ruff format --check .  →  317 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 317 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+pip-audit (como el pipeline)  →  No known vulnerabilities found
+npm run tipos:verificar       →  Tipos al día.
+npm run lint, npm run typecheck →  sin hallazgos
+python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos de TKT-018b
+```
+
+Los 26 saltos son las pruebas contra los archivos reales del catálogo (`CIMENTA_CATALOGO_*`, `PA-T3` de TKT-013), ajenas a este ticket.
+
+
+### Revisión de la entrega 059d (`/sdd-revisar`, 2026-11-12)
+
+Docker respondió (servidor 29.9.3). La suite completa se ejecutó tres veces durante la ejecución y la revisión (`3201`, `3205` y `3206` pruebas pasadas) porque los ciclos de corrección añadieron tests; la que cuenta es la última.
+
+#### Ciclo de corrección
+
+| Auditor | Hallazgo | Gravedad | Decisión |
+|---|---|---|---|
+| `auditor-codigo` | `F001` · la rama `57014` (`TIEMPO_EJECUCION_VENCIDO`) y la que relanza un `DBAPIError` ajeno de `_traducir_concurrencia` no las ejercitaba ningún test | Mayor | Dos tests nuevos: `TC-18c` obtiene un `57014` real del motor y comprueba el contrato completo; `TC-18d` provoca un `22012` real y exige un `500` sin traducir. Cada uno cae con su mutante (`15000` por `14000`, la rama `57015`, traducir todo error de base) |
+| `auditor-codigo` | `F002` · la rama `referencia_id` nulo no tenía test y con `None` se habría guardado `"None"` en la bitácora | Mayor | `test_tkt059_ca04_confirmar_sin_referencia`: el cuerpo trae `referencia_id: null` y `datos_despues` tiene exactamente cuatro claves |
+| `auditor-codigo` | `F003` · la ruta de fallo de `_asentar_denegacion` no tenía test | Menor | `test_tkt059_ca07_si_la_bitacora_falla_el_403_sigue`: el `403` sigue, el evento `denegacion_no_asentada` lleva el tipo del error y no su texto |
+| `auditor-codigo` | `F004` · docstrings de test con un «Rojo de la fila 12a» ya falso | Menor | Párrafos quitados |
+| `auditor-codigo` | `F005` · `EstadoArchivo` duplicado en `dominio` y `api/esquemas.py`; los seis `referencia_tipo` repetidos | Menor | `esquemas.py` importa `EstadoArchivo` del dominio. El `Literal` se mantiene porque el OpenAPI publica sus valores, y un test (`test_tkt059_ca04_el_literal_de_referencia_tipo_coincide_con_el_conjunto_de_alta`) compara ambos; cae al quitar `"OBRA"` del `Literal` |
+| `auditor-codigo` | `F006` · dos constructores de la misma aplicación y un libro de prueba copiado | Menor | `libro_de_presupuesto` única en `soporte_tkt059.py`; la fixture `aplicacion_archivos` delega en `crear_aplicacion_de_archivos` |
+| `auditor-codigo` | `F007` (reauditoría) · el docstring de `esquemas.py` afirmaba que `api/` no importa `aplicacion/` | Menor | Sustituido por el texto literal del auditor, resuelto por el orquestador sin reauditar |
+| `auditor-docs` | `F001`, `F002`, `F003` · comando y nombre de test de la fila 11 y `TC-53` que no existen, y descripción incompleta del cambio del borrador | Menor | `design.md` corregido con el texto literal del auditor |
+
+Los hallazgos `F005` (guarda), `F007` y los de `auditor-docs` son de redacción o de código de pruebas; el orquestador los resolvió tras el segundo ciclo con el texto literal del auditor, sin tercera reauditoría (paso 4 de `/sdd-revisar`), y se los comunica a la persona dueña. La producción solo cambió en `api/esquemas.py` durante la revisión.
+
+Observaciones que quedan abiertas, sin bloqueo:
+
+- `auditor-seguridad` · `O-1` (la confirmación mantiene una conexión del pool y el `FOR UPDATE` mientras habla con el almacén; sin `idle_in_transaction_session_timeout` y con el pool por omisión, muchas confirmaciones con un almacén lento podrían saturarlo), `O-2` (un Director ajeno distingue «no existe» de «es de otro»; es la decisión `PA-T59.8`), `O-3` (cada intento ajeno añade un asiento `DENEGAR`) y `O-4` (la URL de `PUT` sigue vigente tras confirmar y el `Content-Type` no va firmado: en 059e, `url_lectura` debe fijar siempre `ResponseContentType` y la disposición).
+- `auditor-arquitectura` · `O002` (el borrador no declara `422` para un `archivo_id` que no es UUID) y `O003`.
+- `auditor-codigo` · `O1` a `O5` y `O6` (línea larga en el docstring de `servidor/fabrica.py`).
+- `auditor-docs` · `O001` (la spec cita `HDU-001` esc. 24 en `CA-3`, `CA-4` y `CA-8`, pero `PA-T59.11` lo asigna a TKT-018), `O002` y `O003` (`docs/02-arquitectura.md` §7.7 no recoge la regla «solo confirma quien subió»).
+
+#### Verificación final de la entrega 059d
+
+Cifras copiadas de la última corrida, desde `backend/`:
+
+```text
+uv run pytest -q -ra          →  3206 passed, 26 skipped in 561.87s (0:09:21)
+uv run ruff format --check .  →  317 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 317 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+npm run tipos:verificar       →  Tipos al día.
+python tools/verificar_docs.py →  falla solo por los cuatro problemas ajenos de TKT-018b
+```
+
+| Auditor | Veredicto final | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 1 |
+| `auditor-sql` | No aplica: la entrega no tiene esquema | — |
+| `auditor-codigo` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F005` (guarda) y `F007`, de test y de docstring, resueltos por el orquestador con el texto literal del auditor | 2 |
+| `auditor-seguridad` | `APROBADO` | 1 |
+| `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `F001` a `F003`, de redacción, resueltos por el orquestador con el texto literal del auditor | 1 |
+
+Resultado por criterio de 059d: todos los `[M]` de su alcance cumplidos con evidencia (`CA-4` a `CA-7`, ver la tabla de criterios de la sección «Entrega TKT-059d»). Los criterios `CA-8` a `CA-12` se completan en 059e. Desviaciones: las de «Ajustes respecto al design (059d)» y las de este ciclo.

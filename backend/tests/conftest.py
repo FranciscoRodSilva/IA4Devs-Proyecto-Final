@@ -40,8 +40,9 @@ from testcontainers.community.minio import MinioContainer
 from testcontainers.community.postgres import PostgresContainer
 
 if TYPE_CHECKING:
-    from cimenta.archivos.infraestructura.almacen_s3 import AlmacenS3
     from mypy_boto3_s3 import S3Client
+
+    from cimenta.archivos.infraestructura.almacen_s3 import AlmacenS3
 
 RAIZ = Path(__file__).resolve().parents[2]
 BACKEND = RAIZ / "backend"
@@ -1592,4 +1593,32 @@ def almacen(contenedor_minio: MinioContainer, bucket_de_pruebas: str) -> "Almace
         bucket=bucket_de_pruebas,
         clave_acceso=contenedor_minio.access_key,
         clave_secreta=contenedor_minio.secret_key,
+    )
+
+
+# ----------------------------------------------------------------------------- TKT-059 · fila 12a
+
+
+@pytest.fixture
+def aplicacion_archivos(
+    registro_tecnico: io.StringIO,
+    motor_aplicacion: Engine,
+    reloj_de_prueba: RelojDePrueba,
+    almacen: "AlmacenS3",
+) -> FastAPI:
+    """La aplicación real con `archivos` montado, sobre la base, el reloj y el MinIO de la prueba.
+
+    Las pruebas de API la envuelven en `TestClient(..., base_url="https://testserver",
+    raise_server_exceptions=False)` y hacen las altas **dentro** de ese bloque: el reloj de prueba empieza
+    el 2026-10-21, así que un `PENDIENTE` sembrado antes de entrar lo caducaría el barrido de arranque
+    (fila 15). La prueba que necesita un almacén con espía construye la aplicación con
+    `herramientas.soporte_tkt059.crear_aplicacion_de_archivos`.
+    """
+    from herramientas.soporte_tkt059 import crear_aplicacion_de_archivos
+
+    return crear_aplicacion_de_archivos(
+        almacen=almacen,
+        motor=motor_aplicacion,
+        reloj=reloj_de_prueba,
+        destino_registro=registro_tecnico,
     )
