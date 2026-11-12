@@ -21,12 +21,14 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Literal, NamedTuple, Protocol
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, Protocol
 
+import boto3
 import psycopg
 import pytest
 from alembic import command
 from alembic.config import Config
+from botocore.config import Config as ConfiguracionS3
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from psycopg import sql
@@ -34,7 +36,13 @@ from psycopg.types.json import Jsonb
 from sqlalchemy import create_engine, pool, text
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session
+from testcontainers.community.minio import MinioContainer
 from testcontainers.community.postgres import PostgresContainer
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3 import S3Client
+
+    from cimenta.archivos.infraestructura.almacen_s3 import AlmacenS3
 
 RAIZ = Path(__file__).resolve().parents[2]
 BACKEND = RAIZ / "backend"
@@ -1485,3 +1493,132 @@ def estructura_esperada() -> dict[str, dict[str, tuple[Any, ...]]]:
         tabla: {tipo: tuple(sorted(valores)) for tipo, valores in por_tipo.items()}
         for tabla, por_tipo in ESTRUCTURA_ESPERADA.items()
     }
+
+
+# ----------------------------------------------------------------------------- TKT-059
+# MinIO real con testcontainers, nunca un doble del almacén: una URL prefirmada que no se firma o no
+# verifica la suma no lo prueba ningún doble. La imagen sale de compose.almacen.yaml, la única fuente,
+# con el mismo patrón que la de PostgreSQL. El CORS de las pruebas lo fija la variable
+# MINIO_API_CORS_ALLOW_ORIGIN del contenedor (E-5, caso c2), con un origen fijo de la SPA de pruebas.
+# Sin esa variable MinIO refleja cualquier origen: TC-54 falla sin ella, y así lo demuestra M-20.
+
+ORIGEN_SPA_DE_PRUEBA = "http://spa.prueba.test"
+CLAVE_ACCESO_MINIO_DE_PRUEBA = "cimenta-prueba"
+BUCKET_DE_PRUEBAS = "cimenta-pruebas"
+REGION_S3 = "us-east-1"
+
+
+def _imagen_minio() -> str:
+    """La única fuente de la imagen es compose.almacen.yaml: una sola línea `image:` con un minio."""
+    texto = (RAIZ / "compose.almacen.yaml").read_text(encoding="utf-8")
+    coincidencias = re.findall(
+        r"^\s*image:\s*((?:[\w.-]+/)*minio:\S+)\s*$", texto, flags=re.MULTILINE
+    )
+    if len(coincidencias) != 1:
+        pytest.fail(
+            f"compose.almacen.yaml debe declarar exactamente una imagen minio:<etiqueta>, "
+            f"y declara {len(coincidencias)}: {coincidencias}"
+        )
+    return coincidencias[0]
+
+
+def _endpoint_de(contenedor: MinioContainer) -> str:
+    """La dirección con la que el anfitrión llega al contenedor de MinIO."""
+    return f"http://{contenedor.get_container_host_ip()}:{contenedor.get_exposed_port(9000)}"
+
+
+@pytest.fixture(scope="session")
+def contenedor_minio() -> Iterator[MinioContainer]:
+    """MinIO con la imagen de compose.almacen.yaml y CORS solo para ORIGEN_SPA_DE_PRUEBA (E-5, c2).
+
+    La clave de acceso es fija y la secreta, aleatoria: ninguna es la de una base real. El contenedor
+    vive una sesión.
+    """
+    contenedor = MinioContainer(
+        _imagen_minio(),
+        access_key=CLAVE_ACCESO_MINIO_DE_PRUEBA,
+        secret_key=secrets.token_urlsafe(24),
+    )
+    contenedor.with_env("MINIO_API_CORS_ALLOW_ORIGIN", ORIGEN_SPA_DE_PRUEBA)
+    with contenedor:
+        yield contenedor
+
+
+@pytest.fixture(scope="session")
+def origen_spa() -> str:
+    """El único origen que el contenedor de MinIO admite en CORS (ORIGEN_SPA_DE_PRUEBA)."""
+    return ORIGEN_SPA_DE_PRUEBA
+
+
+@pytest.fixture(scope="session")
+def cliente_s3(contenedor_minio: MinioContainer) -> "S3Client":
+    """Cliente boto3 directo contra MinIO de prueba, para sembrar objetos y firmar URL de prueba.
+
+    Path style, región `us-east-1` y sin checksums automáticos: la suma viaja solo cuando la pide
+    quien llama (`ChecksumSHA256`), que es lo que `TC-54` y `E-1` necesitan.
+    """
+    return boto3.client(
+        "s3",
+        endpoint_url=_endpoint_de(contenedor_minio),
+        region_name=REGION_S3,
+        aws_access_key_id=contenedor_minio.access_key,
+        aws_secret_access_key=contenedor_minio.secret_key,
+        config=ConfiguracionS3(
+            signature_version="s3v4",
+            s3={"addressing_style": "path"},
+            request_checksum_calculation="when_required",
+        ),
+    )
+
+
+@pytest.fixture(scope="session")
+def bucket_de_pruebas(cliente_s3: "S3Client") -> str:
+    """El bucket compartido de la sesión, creado una vez. Devuelve su nombre."""
+    cliente_s3.create_bucket(Bucket=BUCKET_DE_PRUEBAS)
+    return BUCKET_DE_PRUEBAS
+
+
+@pytest.fixture
+def almacen(contenedor_minio: MinioContainer, bucket_de_pruebas: str) -> "AlmacenS3":
+    """El adaptador real sobre MinIO de prueba, con `endpoint=None`: el origen es el del contenedor.
+
+    El import va dentro de la fixture: hasta que exista el adaptador (TKT-059, fila 5), solo fallan
+    las pruebas que lo piden, no la colección de la suite.
+    """
+    from cimenta.archivos.infraestructura.almacen_s3 import crear_almacen_s3
+
+    return crear_almacen_s3(
+        endpoint=None,
+        origen=_endpoint_de(contenedor_minio),
+        bucket=bucket_de_pruebas,
+        clave_acceso=contenedor_minio.access_key,
+        clave_secreta=contenedor_minio.secret_key,
+    )
+
+
+# ----------------------------------------------------------------------------- TKT-059 · fila 12a
+
+
+@pytest.fixture
+def aplicacion_archivos(
+    registro_tecnico: io.StringIO,
+    motor_aplicacion: Engine,
+    reloj_de_prueba: RelojDePrueba,
+    almacen: "AlmacenS3",
+) -> FastAPI:
+    """La aplicación real con `archivos` montado, sobre la base, el reloj y el MinIO de la prueba.
+
+    Las pruebas de API la envuelven en `TestClient(..., base_url="https://testserver",
+    raise_server_exceptions=False)` y hacen las altas **dentro** de ese bloque: el reloj de prueba empieza
+    el 2026-10-21, así que un `PENDIENTE` sembrado antes de entrar lo caducaría el barrido de arranque
+    (fila 15). La prueba que necesita un almacén con espía construye la aplicación con
+    `herramientas.soporte_tkt059.crear_aplicacion_de_archivos`.
+    """
+    from herramientas.soporte_tkt059 import crear_aplicacion_de_archivos
+
+    return crear_aplicacion_de_archivos(
+        almacen=almacen,
+        motor=motor_aplicacion,
+        reloj=reloj_de_prueba,
+        destino_registro=registro_tecnico,
+    )

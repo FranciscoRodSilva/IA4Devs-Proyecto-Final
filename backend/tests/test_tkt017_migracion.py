@@ -119,7 +119,8 @@ def test_tkt017_caa11_la_bajada_se_niega_con_nulos(
     datos_presupuesto: DatosPresupuesto,
 ) -> None:
     """TC-A02 · CA-A11 esc. 2 — `downgrade` con un `NULL` responde `P0001` y no cambia la versión."""
-    migrar(base_de_prueba, REVISION_0011)
+    # `base_de_prueba` llega en la cabeza (0012): se baja a 0011 para ejercitar la guarda de 0011.
+    migrar(base_de_prueba, REVISION_0011, "downgrade")
     _nulo_en(tabla, columna, datos_presupuesto)
     with conectar("migracion", base_de_prueba) as administrador:
         nulo_antes = nulabilidad(administrador)
@@ -147,7 +148,8 @@ def test_tkt017_caa11_bloqueo_de_guarda_con_sesion_sin_confirmar(
     datos_presupuesto_en: Callable[[str], DatosPresupuesto],
 ) -> None:
     """TC-A02 — la guarda toma `ACCESS EXCLUSIVE` antes de comprobar (`area.tipo_unidad`)."""
-    migrar(base_de_prueba, REVISION_0011)
+    # `base_de_prueba` llega en la cabeza (0012): se baja a 0011 para ejercitar la guarda de 0011.
+    migrar(base_de_prueba, REVISION_0011, "downgrade")
     datos = datos_presupuesto_en(base_de_prueba)
     observador = conectar("migracion", base_de_prueba)
 

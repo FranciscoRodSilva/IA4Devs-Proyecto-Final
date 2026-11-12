@@ -1,0 +1,18 @@
+Installed 26 packages in 1.00s
+[libro] tamano_bytes=26004994 (relleno 26000000 bytes, ZIP_STORED)
+[subida] http://localhost:59110/cimenta-prueba/obra/libro-26mb.xlsx
+  EOCD: entradas=10 cd_tam=640 cd_pos=26004332 (ZIP64 si 0xFFFF/0xFFFFFFFF)
+
+== Llamadas get_object(Range=...)
+  bytes=0-8191 · pedidos=8192 · recibidos=8192 · HTTP 206 · Content-Range=bytes 0-8191/26004994
+  bytes=25939437-26004993 · pedidos=65557 · recibidos=65557 · HTTP 206 · Content-Range=bytes 25939437-26004993/26004994
+  bytes=26004332-26004971 · pedidos=640 · recibidos=640 · HTTP 206 · Content-Range=bytes 26004332-26004971/26004994
+  bytes=3950-3979 · pedidos=30 · recibidos=30 · HTTP 206 · Content-Range=bytes 3950-3979/26004994
+  bytes=3999-4281 · pedidos=283 · recibidos=283 · HTTP 206 · Content-Range=bytes 3999-4281/26004994
+
+== RESUMEN E-2
+tipo detectado = application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+llamadas = 5 · todas 206 = True · longitud pedida = recibida: True
+bytes leidos = 74702 · cota = 262144 · cumple cota = True
+VEREDICTO E-2 = OK
+EXIT=0

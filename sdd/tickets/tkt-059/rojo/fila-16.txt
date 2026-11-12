@@ -1,0 +1,135 @@
+FILA 16 · TC-43 · test_tkt059_ca12_ninguna_ruta_de_archivos_es_binaria (+ control M-17)
+El caso principal nace en verde por diseño (regresión): se demuestra que muerde con mutantes reales.
+
+### 1. Corrida en verde (aplicación real sin base, sin Docker)
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 8 items
+tests\test_tkt059_rutas.py ........                                      [100%]
+============================== 8 passed in 3.03s ==============================
+
+### 2. Mutantes (un mutante a la vez; copia previa fuera del repositorio; SHA-256 de todos los .py de backend/ antes y después; git status idéntico)
+M-17 muta el comprobador de la propia prueba (quita anotación, /openapi.json y respuesta real: queda solo la clase declarada).
+P-1..P-5 mutan producción (cimenta/archivos/api/rutas.py) y se revierten desde la copia.
+
+=== MUTANTE M-17 (comprobador solo mira la clase declarada)
+huella antes: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de test_tkt059_rutas.py previo: b2214c4acbd1bc6c097da416f74d00c2167b147c57e698f89de440a6fecf7a81
+E       AssertionError: [Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/control', detalle='control_flujo_anotado')]
+E       AssertionError: [Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/control', detalle='control_flujo_oculto')]
+E       AssertionError: [Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/control', detalle='control_flujo_sin_declarar')]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_anotado]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_fuera_del_esquema]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_sin_declarar]
+3 failed, 5 passed in 3.02s
+huella despues: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de test_tkt059_rutas.py restaurado: b2214c4acbd1bc6c097da416f74d00c2167b147c57e698f89de440a6fecf7a81
+HUELLA IDENTICA: True | COPIA IDENTICA: True | GIT STATUS IDENTICO: True
+=== MUTANTE P-1 (obtener_url_descarga con response_class=Response)
+huella antes: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py previo: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+E         Left contains one more item: Hallazgo(codigo='CLASE_NO_JSON', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='Response')
+E         Left contains one more item: Hallazgo(codigo='CLASE_NO_JSON', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='Response')
+E         Left contains one more item: Hallazgo(codigo='CLASE_NO_JSON', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='Response')
+E         Left contains one more item: Hallazgo(codigo='CLASE_NO_JSON', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='Response')
+E         Left contains one more item: Hallazgo(codigo='CLASE_NO_JSON', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='Response')
+E         Left contains one more item: Hallazgo(codigo='CLASE_NO_JSON', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='Response')
+E         Left contains one more item: Hallazgo(codigo='CLASE_NO_JSON', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='Response')
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_ninguna_ruta_de_archivos_es_binaria
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_fileresponse]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_response]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[corrutina]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_anotado]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_fuera_del_esquema]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_sin_declarar]
+7 failed, 1 passed in 3.20s
+huella despues: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py restaurado: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+HUELLA IDENTICA: True | COPIA IDENTICA: True | GIT STATUS IDENTICO: True
+=== MUTANTE P-2 (obtener_url_descarga declarada async def)
+huella antes: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py previo: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+E         Left contains one more item: Hallazgo(codigo='CORRUTINA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='obtener_url_descarga')
+E         Left contains one more item: Hallazgo(codigo='CORRUTINA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='obtener_url_descarga')
+E         Left contains one more item: Hallazgo(codigo='CORRUTINA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='obtener_url_descarga')
+E         Left contains one more item: Hallazgo(codigo='CORRUTINA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='obtener_url_descarga')
+E         Left contains one more item: Hallazgo(codigo='CORRUTINA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='obtener_url_descarga')
+E         Left contains one more item: Hallazgo(codigo='CORRUTINA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='obtener_url_descarga')
+E         Left contains one more item: Hallazgo(codigo='CORRUTINA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/descarga', detalle='obtener_url_descarga')
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_ninguna_ruta_de_archivos_es_binaria
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_fileresponse]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_response]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[corrutina]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_anotado]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_fuera_del_esquema]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_sin_declarar]
+7 failed, 1 passed in 3.17s
+huella despues: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py restaurado: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+HUELLA IDENTICA: True | COPIA IDENTICA: True | GIT STATUS IDENTICO: True
+=== MUTANTE P-3 (confirmar: exigir_rol antes que verificar_origen)
+huella antes: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py previo: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='ORDEN_DE_DEPENDENCIAS', metodo='POST', ruta='/api/v1/archivos/{archivo_id}/confirmacion', detalle='exigir_rol antes (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='ORDEN_DE_DEPENDENCIAS', metodo='POST', ruta='/api/v1/archivos/{archivo_id}/confirmacion', detalle='exigir_rol antes (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='ORDEN_DE_DEPENDENCIAS', metodo='POST', ruta='/api/v1/archivos/{archivo_id}/confirmacion', detalle='exigir_rol antes (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='ORDEN_DE_DEPENDENCIAS', metodo='POST', ruta='/api/v1/archivos/{archivo_id}/confirmacion', detalle='exigir_rol antes (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='ORDEN_DE_DEPENDENCIAS', metodo='POST', ruta='/api/v1/archivos/{archivo_id}/confirmacion', detalle='exigir_rol antes (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='ORDEN_DE_DEPENDENCIAS', metodo='POST', ruta='/api/v1/archivos/{archivo_id}/confirmacion', detalle='exigir_rol antes (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='ORDEN_DE_DEPENDENCIAS', metodo='POST', ruta='/api/v1/archivos/{archivo_id}/confirmacion', detalle='exigir_rol antes (declaradas)')
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_ninguna_ruta_de_archivos_es_binaria
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_fileresponse]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_response]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[corrutina]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_anotado]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_fuera_del_esquema]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_sin_declarar]
+7 failed, 1 passed in 3.19s
+huella despues: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py restaurado: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+HUELLA IDENTICA: True | COPIA IDENTICA: True | GIT STATUS IDENTICO: True
+=== MUTANTE P-4 (obtener_archivo sin exigir_rol)
+huella antes: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py previo: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='DEPENDENCIA_AUSENTE', metodo='GET', ruta='/api/v1/archivos/{archivo_id}', detalle='exigir_rol (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='DEPENDENCIA_AUSENTE', metodo='GET', ruta='/api/v1/archivos/{archivo_id}', detalle='exigir_rol (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='DEPENDENCIA_AUSENTE', metodo='GET', ruta='/api/v1/archivos/{archivo_id}', detalle='exigir_rol (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='DEPENDENCIA_AUSENTE', metodo='GET', ruta='/api/v1/archivos/{archivo_id}', detalle='exigir_rol (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='DEPENDENCIA_AUSENTE', metodo='GET', ruta='/api/v1/archivos/{archivo_id}', detalle='exigir_rol (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='DEPENDENCIA_AUSENTE', metodo='GET', ruta='/api/v1/archivos/{archivo_id}', detalle='exigir_rol (declaradas)')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='DEPENDENCIA_AUSENTE', metodo='GET', ruta='/api/v1/archivos/{archivo_id}', detalle='exigir_rol (declaradas)')
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_ninguna_ruta_de_archivos_es_binaria
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_fileresponse]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_response]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[corrutina]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_anotado]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_fuera_del_esquema]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_sin_declarar]
+7 failed, 1 passed in 3.22s
+huella despues: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py restaurado: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+HUELLA IDENTICA: True | COPIA IDENTICA: True | GIT STATUS IDENTICO: True
+=== MUTANTE P-5 (ruta extra que transmite bytes, sin declararlo)
+huella antes: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py previo: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/contenido', detalle='contenido_mutante')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/contenido', detalle='contenido_mutante')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/contenido', detalle='contenido_mutante')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/contenido', detalle='contenido_mutante')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/contenido', detalle='contenido_mutante')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/contenido', detalle='contenido_mutante')
+E         Left contains 2 more items, first extra item: Hallazgo(codigo='RUTA_NO_ESPERADA', metodo='GET', ruta='/api/v1/archivos/{archivo_id}/contenido', detalle='contenido_mutante')
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_ninguna_ruta_de_archivos_es_binaria
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_fileresponse]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[clase_response]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[corrutina]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_anotado]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_fuera_del_esquema]
+FAILED tests/test_tkt059_rutas.py::test_tkt059_ca12_el_control_senala_la_ruta_que_transmite_bytes[flujo_sin_declarar]
+7 failed, 1 passed in 3.27s
+huella despues: db7c6c7fdc04bcb73a316176b9901e88688057e5046365edf46471a233811565
+sha256 de rutas.py restaurado: 7a19fe245d335905cda2cb0f91966cf2c85d1fc2c1ced999b0f8f3bc18b68e99
+HUELLA IDENTICA: True | COPIA IDENTICA: True | GIT STATUS IDENTICO: True

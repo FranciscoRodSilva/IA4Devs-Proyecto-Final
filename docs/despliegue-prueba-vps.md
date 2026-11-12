@@ -6,7 +6,7 @@ Guía de operación para la VPS Linux de Database Mart con dos entornos PostgreS
 
 * **Es** un banco de pruebas: certificados, aislamiento de bases, esquema con tres roles por túnel SSH.
 * **No es** producción para el cliente: sin recuperación a un punto en el tiempo (`RNF-10`, `RNF-11`); respaldo del proveedor cada cuatro semanas.
-* **No despliega** backend ni frontend; no monta MinIO (TKT-059).
+* **No despliega** backend ni frontend; no monta MinIO. `compose.yaml` solo declara `db`; MinIO vive en `compose.almacen.yaml`, que la VPS no carga, así que `up -d --wait db` no cambia y el `.env` de la VPS no necesita variables del almacén mientras no corra la aplicación con base. MinIO en la VPS lo despliega TKT-073.
 * **`prod`** es el nombre del entorno en la VPS, no la rama `Produccion` de Git.
 
 ## 2 · Topología

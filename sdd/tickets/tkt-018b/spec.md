@@ -1,6 +1,6 @@
 # Spec · TKT-018b · Flujo de importación del presupuesto
 
-> [← index](_index.md) | Siguiente: [design →](design.md)
+> [← index](_index.md) | Siguiente: design (pendiente de `/sdd-disenar`)
 
 ## Contexto y problema
 
@@ -30,7 +30,7 @@ Must validado por la persona dueña el 2026-11-11.
 | Nivel | Ítem |
 |---|---|
 | **Must** | **Backend.** Las siete rutas de importación del borrador (`crear_importacion`, `listar_importaciones`, `obtener_importacion`, `iniciar_analisis_importacion`, `listar_errores_importacion`, `confirmar_importacion`, `descartar_importacion`) y la ruta `listar_tipos_partida` que el selector de tipos necesita. El caso de uso de crear registra el `archivo` `PENDIENTE` en la misma transacción. El arranque del análisis comprueba que el archivo esté `DISPONIBLE`. La previsualización (`resumen` con conteos, importe total, insumos creados y los nombres de partida leídos) la construye este ticket. Confirmar invoca `materializar_importacion`. El tope y el carácter `NUL` en `motivo_reemplazo` (deuda de TKT-017) |
-| **Must** | **Frontend.** Pantalla 3a (carga y progreso), 3b (previsualización con asignación de tipos de partida y confirmación) y 3c (errores por hoja y fila) de [`docs/08-wireframes.md`](../../../docs/08-wireframes.md#3-importación-del-presupuesto), con el diálogo de reemplazo y los rechazos que el boceto pinta. El enlace desde la pantalla de la línea base reemplaza el texto «llegará en una próxima entrega» |
+| **Must** | **Frontend.** Pantalla 3a (carga y progreso), 3b (previsualización con asignación de tipos de partida y confirmación) y 3c (errores por hoja y fila) de [`docs/08-wireframes.md`](../../../docs/08-wireframes.md#3-importación-de-la-línea-base), con el diálogo de reemplazo y los rechazos que el boceto pinta. El enlace desde la pantalla de la línea base reemplaza el texto «llegará en una próxima entrega» |
 | **Must** | Escenarios 4 a 13, 21 y 24 a 29 de HDU-001, **con los rechazos de 25 y 26 vistos desde esta pantalla**. Sus tests propios de confirmación de archivo son de TKT-059 |
 | **Should** | `S1` · «Exportar errores»: CSV generado en el cliente con lo ya filtrado y cargado, sin ruta nueva. `(asumido)` |
 | **Should** | `S2` · Medir con el archivo real del catálogo las suposiciones de TKT-017 (`PA-T3`, `PA-T17.9`) con las 26 pruebas omitidas, si los archivos privados están disponibles |

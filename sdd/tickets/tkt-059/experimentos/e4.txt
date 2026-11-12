@@ -1,0 +1,55 @@
+E-4 (P-14) · Un servicio con perfil inactivo no hace fallar `docker compose up -d db` aunque sus ${…:?} no estén definidas
+Fecha de ejecución: 2026-11-11
+Resultado: NO se cumple la afirmación con la forma `:?`. Interpolación de Compose v5.7.0 sobre el archivo entero. Variante `:-` probada: `up -d --wait db` arranca sano, pero `up -d minio` arranca MinIO con credenciales por omisión (ver hallazgo).
+
+Archivos (scratchpad, fuera del repositorio):
+  compose.e4.yaml        db (copia de compose.yaml del repositorio) + minio de design.md, perfil almacen, forma `:?`
+  compose.e4-dash.yaml   igual, con `:-` en las dos credenciales de minio (sed sobre compose.e4.yaml)
+  solo-base.env          solo variables de base: CIMENTA_DB_CONTRASENA_MIGRACION, CIMENTA_DB_NOMBRE, CIMENTA_DB_PUERTO=55432
+
+Puerto 55432 y no 5432: el contenedor cimenta-db-1 del desarrollo sigue en 127.0.0.1:5432 y no se tocó.
+
+1) docker compose version
+   Docker Compose version v5.7.0
+
+2) docker compose -p e4 -f compose.e4.yaml --env-file solo-base.env config --services
+   error while interpolating services.minio.environment.MINIO_ROOT_PASSWORD: required variable CIMENTA_ALMACEN_CLAVE_SECRETA is missing a value: define CIMENTA_ALMACEN_CLAVE_SECRETA en .env
+   error while interpolating services.minio.environment.MINIO_ROOT_USER: required variable CIMENTA_ALMACEN_CLAVE_ACCESO is missing a value: define CIMENTA_ALMACEN_CLAVE_ACCESO en .env
+   EXIT=1
+
+3) docker compose -p e4 -f compose.e4.yaml --env-file solo-base.env up -d --wait db
+   mismo error de interpolación, EXIT=1. No se creó ningún contenedor, red ni volumen (comprobado).
+
+4) docker compose -p e4 -f compose.e4.yaml --env-file solo-base.env up -d minio
+   mismo error, EXIT=1.
+
+=> Afirmación NO cumplida: el perfil inactivo no evita la interpolación de `${…:?}`. El diseño prevé esta rama («Si up -d db falla por la interpolación → la fila 1a aplica la variante :-», no escala).
+
+5) Variante :- (compose.e4-dash.yaml, diff: solo las dos líneas de minio)
+   < MINIO_ROOT_USER: ${CIMENTA_ALMACEN_CLAVE_ACCESO:?define CIMENTA_ALMACEN_CLAVE_ACCESO en .env}
+   > MINIO_ROOT_USER: ${CIMENTA_ALMACEN_CLAVE_ACCESO:-}
+   (idem MINIO_ROOT_PASSWORD con CIMENTA_ALMACEN_CLAVE_SECRETA)
+
+   docker compose -p e4d -f compose.e4-dash.yaml --env-file solo-base.env config --quiet   → EXIT=0
+   docker compose -p e4d -f compose.e4-dash.yaml --env-file solo-base.env up -d --wait db  → Container e4d-db-1 Healthy, EXIT=0; ps: db running healthy
+   docker compose -p e4d -f compose.e4-dash.yaml --env-file solo-base.env up -d minio     → Container e4d-minio-1 Started, EXIT=0
+
+   HALLAZGO DE SEGURIDAD con la variante :-: sin las variables, el contenedor minio arranca con las credenciales por omisión del servidor:
+     minio-1 | WARN: Detected default credentials 'minioadmin:minioadmin', we recommend that you change these values with 'MINIO_ROOT_USER' and 'MINIO_ROOT_PASSWORD' environment variables
+   Publicado en 127.0.0.1:9000 y 9001. La comprobación de la herramienta almacen_local.py (design.md) no evita este arranque: lo que lo evita es la orden de compose.
+
+6) Limpieza
+   docker compose -p e4d ... --profile almacen down -v --remove-orphans → EXIT=0. Sin --profile, `down` no quitaba el servicio minio (perfil inactivo); se verificó con docker ps -a, docker volume ls y docker network ls: ningún recurso e4/e4d restante. cimenta-db-1 sigue healthy.
+
+Versión de Compose: v5.7.0. Hay que fijarla en la anotación de impl.md.
+
+7) Opción B (verificada): el servicio minio va en un segundo archivo, compose.e4-almacen.yaml, con la forma `:?` intacta; compose.e4-base.yaml contiene solo db.
+   docker compose -p e4b -f compose.e4-base.yaml --env-file solo-base.env up -d --wait db   → Container e4b-db-1 Healthy, EXIT=0
+   docker compose -p e4b -f compose.e4-base.yaml -f compose.e4-almacen.yaml --env-file solo-base.env up -d minio
+     → error while interpolating ... CIMENTA_ALMACEN_CLAVE_SECRETA y CIMENTA_ALMACEN_CLAVE_ACCESO missing, EXIT=1 (la guarda sigue activa)
+   docker compose -p e4b -f compose.e4-base.yaml --env-file solo-base.env up -d minio
+     → no such service: minio, EXIT=1
+   Limpieza: down -v --remove-orphans con el archivo base → sin recursos e4b; cimenta-db-1 sigue healthy.
+   Coste: el servidor de la VPS y el CI deben cargar los dos archivos cuando hace falta el almacén (-f compose.yaml -f compose.almacen.yaml). No se ha probado una guarda dentro del servicio con `:-`.
+
+Veredicto E-4: la forma `:?` en un servicio del mismo archivo no cumple (up -d db falla). La variante `:-` cumple el arranque de db, pero deja minio arrancable con minioadmin:minioadmin: no se aplica sin decisión. La opción B cumple las dos cosas (db sin variables del almacén y sin credenciales por omisión) sin `:-`, a costa de un segundo archivo Compose. Decisión para la persona dueña antes de la fila 1a.

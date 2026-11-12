@@ -67,6 +67,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/archivos/{archivo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener
+         * @description Metadatos del archivo, sin la clave del objeto.
+         */
+        get: operations["obtener_archivo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/archivos/{archivo_id}/descarga": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener Url Descarga
+         * @description ADR-016: una URL prefirmada de lectura de vida corta; los bytes no pasan por la API.
+         */
+        get: operations["obtener_url_descarga_archivo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/archivos/{archivo_id}/confirmacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar
+         * @description RNF-19: comprueba el objeto almacenado y, si coincide, deja el archivo `DISPONIBLE`.
+         */
+        post: operations["confirmar_archivo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/lineas-base/{linea_base_id}/congelacion": {
         parameters: {
             query?: never;
@@ -255,6 +315,43 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Archivo */
+        Archivo: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Obra Id
+             * Format: uuid
+             */
+            obra_id: string;
+            /**
+             * Referencia Tipo
+             * @enum {string}
+             */
+            referencia_tipo: "AVANCE" | "ENTRADA_ALMACEN" | "MERMA" | "FACTURA_PROVEEDOR" | "IMPORTACION" | "OBRA";
+            /** Referencia Id */
+            referencia_id: string | null;
+            estado: components["schemas"]["EstadoArchivo"];
+            /** Nombre Original */
+            nombre_original: string;
+            /** Tipo Mime */
+            tipo_mime: string | null;
+            /** Tamano Bytes */
+            tamano_bytes: number;
+            /** Hash Sha256 */
+            hash_sha256: string;
+            subido_por: components["schemas"]["UsuarioResumen"];
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+            /** Confirmado En */
+            confirmado_en: string | null;
+        };
         /**
          * CapturaPresupuestoControl
          * @description Cuerpo de la captura del tope (RN-03): lo que no declara se ignora.
@@ -321,6 +418,11 @@ export interface components {
             /** Contrasena */
             contrasena: string;
         };
+        /**
+         * EstadoArchivo
+         * @enum {string}
+         */
+        EstadoArchivo: "PENDIENTE" | "DISPONIBLE" | "CADUCADO" | "ANULADO";
         /**
          * EstadoLineaBase
          * @enum {string}
@@ -584,6 +686,25 @@ export interface components {
          * @enum {string}
          */
         Unidad: "M2" | "ML" | "PZA" | "KG" | "CAJA" | "SACO" | "ROLLO" | "JORNAL";
+        /** UrlDescarga */
+        UrlDescarga: {
+            /** Url */
+            url: string;
+            /**
+             * Expira En
+             * Format: date-time
+             */
+            expira_en: string;
+            /** Tipo Mime */
+            tipo_mime: string;
+            /** Nombre Original */
+            nombre_original: string;
+            /**
+             * Disposicion
+             * @enum {string}
+             */
+            disposicion: "inline" | "attachment";
+        };
         /** UsuarioActual */
         UsuarioActual: {
             /**
@@ -737,6 +858,99 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    obtener_archivo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                archivo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Archivo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_url_descarga_archivo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                archivo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UrlDescarga"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirmar_archivo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                archivo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Archivo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

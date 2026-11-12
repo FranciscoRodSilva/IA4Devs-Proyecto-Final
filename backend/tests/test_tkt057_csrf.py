@@ -1298,6 +1298,12 @@ CUERPOS_VALIDOS: dict[str, PeticionValida] = {
             "umbral_alerta_pct": "0.150000",
         }
     ),
+    # TKT-059, fila 12a: la confirmación de un archivo, sin cuerpo. Mismo criterio que la congelación:
+    # `verificar_origen` va antes que `exigir_rol` y que cualquier consulta, así que el `403` sale sin tocar
+    # la base y el identificador puede ser cualquiera.
+    "POST /api/v1/archivos/{archivo_id}/confirmacion": PeticionValida(
+        ruta=f"/api/v1/archivos/{uuid.uuid4()}/confirmacion"
+    ),
 }
 
 

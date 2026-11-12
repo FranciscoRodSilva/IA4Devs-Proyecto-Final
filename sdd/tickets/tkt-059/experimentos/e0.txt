@@ -1,0 +1,38 @@
+E-0 · Existe una imagen de MinIO fijable
+Fecha de ejecución: 2026-11-11
+Resultado: OK con la imagen que fija la persona dueña: pgsty/minio:RELEASE.2026-08-04T00-00-00Z (sustituye a minio/minio).
+
+Nota: el intento anterior con minio/minio y quay.io/minio/minio falló (denied / 401 / no such manifest, minio/minio archivado en GitHub). Esa salida ya no aplica y no se repite.
+
+Script: comandos literales. Git Bash exige MSYS_NO_PATHCONV=1 para pasar rutas del contenedor (/usr/bin/...).
+
+1) docker info
+   29.9.3 Docker Desktop (demonio responde)
+
+2) docker pull pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+   Status: Image is up to date for pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+   Digest: sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
+
+3) docker run --rm pgsty/minio:RELEASE.2026-08-04T00-00-00Z --version
+   minio version RELEASE.2026-08-04T00-00-00Z (commit-id=d88f46ccee345a9c2fabe2d221d9a9e56bc11aec)
+   Runtime: go1.26.5 linux/amd64
+
+4) docker image inspect --format '{{index .RepoDigests 0}}'
+   pgsty/minio@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
+
+5) Entrypoint y comando de la imagen (docker image inspect)
+   Entrypoint: ["/usr/bin/docker-entrypoint.sh"]
+   Cmd:        ["minio"]
+   Healthcheck: null (la imagen no define HEALTHCHECK)
+   ExposedPorts: 9000/tcp
+   Contenido de /usr/bin/docker-entrypoint.sh: antepone «minio» si el primer argumento no es «minio», y ejecuta minio (exec); además, el cambio de usuario por MINIO_USERNAME/MINIO_GROUPNAME (obsoleto, sin efecto aquí).
+   mc: presente en /usr/bin/mc (RELEASE.2026-08-04T00-00-00Z). El healthcheck `mc ready local` de compose.yaml es ejecutable.
+
+6) Variables de entorno de la imagen que difieren de minio/minio
+   MINIO_ROOT_USER_FILE=access_key, MINIO_ROOT_PASSWORD_FILE=secret_key, MINIO_ACCESS_KEY_FILE=access_key, MINIO_SECRET_KEY_FILE=secret_key, MINIO_KMS_SECRET_KEY_FILE=kms_master_key, MINIO_CONFIG_ENV_FILE=config.env.
+   Arranque de comprobación con MINIO_ROOT_USER y MINIO_ROOT_PASSWORD en el entorno:
+     docker run -d -e MINIO_ROOT_USER=cimenta-test -e MINIO_ROOT_PASSWORD=solo-desarrollo-prueba-secreto IMG server /data --console-address :9001
+     → arranca («Formatting 1st pool», «Version: RELEASE.2026-08-04T00-00-00Z»), `docker exec ... mc ready local` → «The cluster 'local' is ready», exit 0.
+     → los _FILE no impiden el arranque cuando el valor directo está definido.
+
+Conclusión: E-0 OK. Imagen fijable: pgsty/minio:RELEASE.2026-08-04T00-00-00Z, digest sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372. Diferencias frente a minio/minio para la fila 1a: entrypoint del fork (sin efecto sobre `command: ["server", ...]`), sin HEALTHCHECK en la imagen (el de compose.yaml se define en el servicio), y las variables *_FILE (no interfieren con las credenciales directas).

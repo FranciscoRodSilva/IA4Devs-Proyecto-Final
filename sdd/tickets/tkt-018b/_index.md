@@ -29,8 +29,8 @@ La ejecución queda bloqueada hasta que TKT-059 entregue, como mínimo, el alta 
 | Artefacto | Enlace | Comando | Estado |
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-11 |
-| Design | [design.md](design.md) | `/sdd-disenar` | Pendiente |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Pendiente |
+| Design | `design.md` (se enlaza en `/sdd-disenar`) | `/sdd-disenar` | Pendiente |
+| Impl | `impl.md` (se enlaza en `/sdd-ejecutar`) | `/sdd-ejecutar` | Pendiente |
 | Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
 
 ## Log de estados

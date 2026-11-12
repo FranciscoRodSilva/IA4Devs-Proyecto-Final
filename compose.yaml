@@ -1,5 +1,7 @@
 # PostgreSQL local de CIMENTA (TKT-003). El backend y el frontend corren en el anfitrión.
 # El usuario de la imagen es el rol de migración; los otros dos los crea la migración.
+# El almacén de objetos (MinIO, TKT-059) está en compose.almacen.yaml, que se suma con
+# `docker compose -f compose.yaml -f compose.almacen.yaml up -d minio`.
 name: cimenta
 
 services:

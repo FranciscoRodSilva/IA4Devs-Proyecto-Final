@@ -129,10 +129,11 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Preparar el entorno con contraseñas de prueba generadas
         run: |
-          grep -v '^CIMENTA_DB_CONTRASENA_' .env.example > .env
+          grep -v -e '^CIMENTA_DB_CONTRASENA_' -e '^CIMENTA_ALMACEN_CLAVE_SECRETA=' .env.example > .env
           for rol in MIGRACION APLICACION LECTURA; do
             echo "CIMENTA_DB_CONTRASENA_${rol}=$(openssl rand -hex 24)" >> .env
           done
+          echo "CIMENTA_ALMACEN_CLAVE_SECRETA=$(openssl rand -hex 24)" >> .env
       - name: Levantar PostgreSQL
         run: docker compose up -d --wait db
       - name: Sincronizar dependencias del backend

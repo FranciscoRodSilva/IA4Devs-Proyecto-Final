@@ -29,13 +29,15 @@ En Windows, Docker Desktop tiene que estar iniciado y con el motor de Linux; el 
 
 ## 2 · Compose local
 
-Un servicio hasta TKT-059 (`db`) y dos a partir de ese ticket (`db` y `minio`), y nada más, cada uno con **volumen con nombre** para que los datos sobrevivan a `docker compose down`:
+Dos servicios, `db` y `minio`, y nada más, cada uno con **volumen con nombre** para que los datos sobrevivan a `docker compose down`:
 
 - **PostgreSQL.** El usuario que crea la imagen es el **propietario**, el de migración. Los roles de aplicación y de solo lectura **no** se crean en un script de arranque del contenedor: los crea la migración inicial de Alembic, con `ALTER DEFAULT PRIVILEGES` (`TKT-003`, `RNF-09`). Un script de `docker-entrypoint-initdb.d` que los creara sacaría los permisos de la migración y dejaría producción sin ellos.
-- **MinIO**, desde TKT-059. El mismo API de S3 que R2, con otro `endpoint_url`. No es un doble ni una concesión.
+- **MinIO**, desde TKT-059, en `compose.almacen.yaml` y no en `compose.yaml`. El mismo API de S3 que R2, con otro `endpoint_url`. No es un doble ni una concesión. La imagen es `pgsty/minio`, un fork comunitario, porque `minio/minio` dejó de ser descargable.
 
 ```bash
-docker compose up -d db           # PostgreSQL local; minio se añade con TKT-059
+docker compose up -d db           # PostgreSQL local
+docker compose -f compose.yaml -f compose.almacen.yaml up -d minio   # MinIO local
+uv run --env-file ../.env python -m herramientas.almacen_local       # desde backend/: crea el bucket
 uv run --env-file ../.env alembic upgrade head   # desde backend/, el esquema siempre por migración
 ```
 
@@ -43,7 +45,7 @@ uv run --env-file ../.env alembic upgrade head   # desde backend/, el esquema si
 - Credenciales por variables del `.env`, que **no** se versiona; el `.env.example` sí, pero sin contraseñas: las de los roles van vacías y cada persona las genera (`RNF-07`).
 - ‡ Puertos publicados solo a `127.0.0.1`. Un PostgreSQL de desarrollo con contraseña trivial abierto a la red local es una base expuesta.
 
-> **(asumido) · nombres de los servicios y el bucket inicial.** `CLAUDE.md` usa `db` para PostgreSQL; el nombre `minio` y la creación del bucket en el arranque local no están escritos en ningún documento. Lo razonable es un servicio de una sola ejecución con el cliente `mc` que cree el bucket, o que lo cree la aplicación al arrancar en `entorno = local`. **Quien implemente `TKT-059` decide y lo documenta**; no lo des por cerrado desde otro ticket.
+**Decidido en TKT-059.** El servicio se llama `minio`. Va en un segundo archivo, `compose.almacen.yaml`, sin perfil, y no en `compose.yaml`: Compose interpola el archivo entero antes de elegir servicios, y un servicio con perfil inactivo y `${…:?}` hace fallar `up -d db` en quien aún no define las variables del almacén (la VPS incluida). El bucket no lo crea un servicio de una sola ejecución ni la aplicación: lo crea `herramientas.almacen_local`, que se niega si falta una variable o si el host de `CIMENTA_ALMACEN_ORIGEN` no es `localhost` ni `127.0.0.1`. El CORS del navegador no se aplica por código: MinIO no implementa `put_bucket_cors`, así que se fija con `MINIO_API_CORS_ALLOW_ORIGIN`, que `compose.almacen.yaml` toma de `CIMENTA_SPA_ORIGEN`.
 
 ## 3 · testcontainers en las pruebas
 

@@ -1,0 +1,32 @@
+FFFFFF.................................................................. [ 91%]
+.......                                                                  [100%]
+================================== FAILURES ===================================
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/7a4ed4e3-d445-4f34-ba4f-d35dd3fc2981/confirmacion","correlacion_id":"88a2dc57-9d56-4c26-bf5b-bb07d93fd107"}
+    assert 404 == 200
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt059_confirmacion.py:124: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/7a4ed4e3-d445-4f34-ba4f-d35dd3fc2981/confirmacion","correlacion_id":"88a2dc57-9d56-4c26-bf5b-bb07d93fd107"}
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/466c9968-42ef-4a58-a62c-cfa7c0032ecf/confirmacion","correlacion_id":"ecf449f6-9ae6-4c57-a40e-4710c2356521"}
+    assert 404 == 200
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt059_confirmacion.py:204: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/466c9968-42ef-4a58-a62c-cfa7c0032ecf/confirmacion","correlacion_id":"ecf449f6-9ae6-4c57-a40e-4710c2356521"}
+E   ImportError: cannot import name 'confirmacion' from 'cimenta.archivos.aplicacion' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\aplicacion\__init__.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt059_confirmacion.py:250: ImportError: cannot import name 'confirmacion' from 'cimenta.archivos.aplicacion' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\archivos\aplicacion\__init__.py)
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/c31ed0d9-d438-43c9-a9ed-9420526248ca/confirmacion","correlacion_id":"e8fac04f-61ba-4b18-b1a9-5c198b46f24d"}
+    assert 404 == 200
+     +  where 404 = <Response [404 Not Found]>.status_code
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt059_confirmacion.py:313: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/c31ed0d9-d438-43c9-a9ed-9420526248ca/confirmacion","correlacion_id":"e8fac04f-61ba-4b18-b1a9-5c198b46f24d"}
+E   AssertionError: A no llegó a `metadatos` con la fila bloqueada: respondió 404 ('{"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/c09e57a3-54be-4799-ac12-c0abfd'), error None
+    assert False
+     +  where False = is_set()
+     +    where is_set = <threading.Event at 0x21b2685a210: unset>.is_set
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt059_confirmacion_concurrencia.py:140: AssertionError: A no llegó a `metadatos` con la fila bloqueada: respondió 404 ('{"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/c09e57a3-54be-4799-ac12-c0abfd'), error None
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/d991e2a8-71ae-4afb-8849-e18b0af9864d/confirmacion","correlacion_id":"c9954bb1-f9ac-4ba0-805c-d1658a1d9dfe"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:172: AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/archivos/d991e2a8-71ae-4afb-8849-e18b0af9864d/confirmacion","correlacion_id":"c9954bb1-f9ac-4ba0-805c-d1658a1d9dfe"}
+=========================== short test summary info ===========================
+FAILED tests/test_tkt059_confirmacion.py::test_tkt059_ca04_confirmar_un_xlsx
+FAILED tests/test_tkt059_confirmacion.py::test_tkt059_ca04_confirmar_dos_veces
+FAILED tests/test_tkt059_confirmacion.py::test_tkt059_ca04_la_bitacora_va_en_la_misma_transaccion
+FAILED tests/test_tkt059_confirmacion.py::test_tkt059_ca04_confirmar_lee_una_fraccion_acotada
+FAILED tests/test_tkt059_confirmacion_concurrencia.py::test_tkt059_ca04_dos_confirmaciones_simultaneas
+FAILED tests/test_tkt059_confirmacion_concurrencia.py::test_tkt059_ca04_confirmacion_con_bloqueo_vencido
+6 failed, 73 passed in 14.78s

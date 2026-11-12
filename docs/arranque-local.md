@@ -13,7 +13,7 @@ Los comandos se ejecutan desde el directorio que indica cada bloque. La lista co
 | Python | 3.13 o superior; el backend se instala con 3.14 (`--python 3.14`) | Ejecutar el backend y los verificadores de `tools/`. `uv` puede descargar el intérprete que falte. No uses uno más nuevo que el último que publica ruedas de las dependencias, como la 3.15: `pyyaml` intenta compilarse y falla sin compilador |
 | Node.js | La línea 24 | Ejecutar el frontend. El proyecto la fija en `engines` y `frontend/.npmrc` la hace obligatoria |
 | npm | El que trae esa línea de Node | Instalar y ejecutar las dependencias del frontend. No se instala aparte |
-| Docker | Docker Desktop con el motor de Linux, o Docker Engine con Compose v2 | PostgreSQL local con `docker compose` y las pruebas con testcontainers |
+| Docker | Docker Desktop con el motor de Linux, o Docker Engine con Compose v2 | PostgreSQL y MinIO locales con `docker compose` y las pruebas con testcontainers |
 | Navegador | Chromium o Firefox recientes | Desarrollo local. La cookie de sesión es `Secure` y en `http://localhost` la aceptan esos motores. Chromium está comprobado por el humo de TKT-008b; Firefox lo admite según la especificación de *Secure Contexts* `(asumido, PA-T7)`, sin que el humo lo haya comprobado; Safari no lo admite `(asumido, PA-T7)` |
 
 El repositorio no fija ninguna versión de Python con un archivo propio: el mínimo lo declara `requires-python` en `backend/pyproject.toml`. Node sí se fija con `engines`. Si la versión instalada no es de la línea 24, `npm ci` se detiene con un error `EBADENGINE` en lugar de avisar y seguir.
@@ -79,6 +79,30 @@ Alembic se ejecuta desde `backend/` porque su configuración vive en `[tool.alem
 La imagen crea el rol de migración, `cimenta_migracion`, que es el único con el que Alembic acepta migrar. La migración crea los roles `cimenta_aplicacion` y `cimenta_lectura` sin contraseña; el segundo comando se la fija desde `.env`. Bajar todas las migraciones no elimina esos dos roles, porque son del servidor y no de la base: `docker compose down -v` borra el volumen y lo deja todo como al principio.
 
 En local, el rol de migración es superusuario, porque lo crea la imagen de PostgreSQL. Hoy la migración 0001 exige superusuario o un rol que posea los atributos que ajusta con `ALTER ROLE`: un rol `NOSUPERUSER` con `CREATEROLE` falla con `permission denied to alter role`, porque PostgreSQL solo deja cambiar un atributo a quien lo posee. `NOSUPERUSER` con `CREATEROLE` es el objetivo de producción (asumido; no se ha probado con un proveedor real), aún no alcanzable con la 0001. TKT-058 decide entre quitar los atributos `NO*` del `ALTER ROLE` o crear los roles con ellos desde el entorno.
+
+## Almacén de objetos
+
+Los archivos viven en un almacén compatible con S3 ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)): MinIO en local, que habla el mismo API que R2. Su servicio está en `compose.almacen.yaml`, aparte de `compose.yaml`, porque Compose interpola el archivo entero y las variables obligatorias del almacén harían fallar `docker compose up -d db` en quien aún no las tiene. Por eso `docker compose up -d db` sigue funcionando con un `.env` anterior a TKT-059 que no trae esas variables; solo hay que añadirlas antes de arrancar MinIO.
+
+La imagen es `pgsty/minio`, un fork comunitario: `minio/minio` ya no se descarga (comprobado el 2026-11-11: Docker Hub lo rechaza). El compose la fija por etiqueta y digest (`pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe723…2372`).
+
+Antes de arrancarlo, en el `.env` deben estar la sección «Almacén de objetos» de `.env.example` y, sobre todo, `CIMENTA_ALMACEN_CLAVE_SECRETA`, que va sin valor en la plantilla. Se genera con `python -c "import secrets; print(secrets.token_urlsafe(24))"`; MinIO exige al menos 8 caracteres (asumido: no se comprobó contra la imagen `pgsty/minio` en esta entrega). Después, desde la raíz:
+
+```bash
+docker compose -f compose.yaml -f compose.almacen.yaml up -d minio
+```
+
+y desde `backend/`, se crea el bucket:
+
+```bash
+uv run --env-file ../.env python -m herramientas.almacen_local
+```
+
+`herramientas.almacen_local` crea el bucket de `CIMENTA_ALMACEN_BUCKET` si no existe y es idempotente. Termina con 2 si falta una variable y si el host de `CIMENTA_ALMACEN_ORIGEN` no es `localhost` ni `127.0.0.1`: es una herramienta de desarrollo y se niega a escribir en un almacén remoto.
+
+`CIMENTA_SPA_ORIGEN` (por omisión `http://localhost:5173`, el origen de Vite) es el origen desde el que el navegador sube y lee objetos. MinIO no implementa `put_bucket_cors` (responde 501), así que el CORS no lo aplica ningún código: `compose.almacen.yaml` lo fija con `MINIO_API_CORS_ALLOW_ORIGIN`, tomando el valor de esa variable. Si cambias el origen de la SPA, vuelve a crear el contenedor con el mismo comando. La consola de MinIO queda en `http://127.0.0.1:9001` y el API en `http://127.0.0.1:9000`; ambos puertos se publican solo a `127.0.0.1`.
+
+Desde TKT-059c, la aplicación con las variables de base configuradas (`CIMENTA_DB_HOST`, `CIMENTA_DB_PUERTO` y `CIMENTA_DB_NOMBRE`) no arranca si falta alguna de las cuatro variables del almacén: `CIMENTA_ALMACEN_ORIGEN`, `CIMENTA_ALMACEN_BUCKET`, `CIMENTA_ALMACEN_CLAVE_ACCESO` y `CIMENTA_ALMACEN_CLAVE_SECRETA`. El error nombra las que faltan y nunca sus valores. Sin variables de base el servidor sigue arrancando sin almacén. `CIMENTA_ALMACEN_ENDPOINT` es opcional: si falta, el servidor opera sobre el origen. Las vidas de las URL, el umbral del barrido y los límites por categoría tienen valores por omisión y se ajustan con las variables `CIMENTA_ARCHIVOS_*` de `.env.example`.
 
 ## Frontend
 
@@ -202,11 +226,7 @@ Requiere también `CIMENTA_CATALOGO_UNION` apuntando al libro P.U. de la misma o
 
 ## Lo que todavía no arranca
 
-Los comandos siguientes aparecen en `CLAUDE.md` marcados con la fase en la que se habilitan. Hasta entonces fallan por diseño: el código que ejecutan todavía no existe.
-
-| Comando | Lo habilita |
-|---|---|
-| `docker compose up -d minio` | TKT-059 |
+Hoy no queda ningún comando de `CLAUDE.md` marcado como pendiente: el último, el de MinIO, lo habilitó TKT-059 y está descrito en [Almacén de objetos](#almacén-de-objetos). Si un ticket futuro vuelve a marcar uno, esta sección lo listará con el ticket que lo habilita; hasta entonces falla por diseño, porque el código que ejecuta todavía no existe.
 
 Iniciar sesión en local: `uv run --env-file ../.env python -m herramientas.semilla_local` siembra, solo en una base local, un usuario por rol (`<rol en minúsculas>@cimenta.test`) con la contraseña de `CIMENTA_SEMILLA_CONTRASENA`, y 27 insumos sintéticos con su precio. Se niega si el host no es local. No hay alta de usuarios fuera de esta herramienta (`PA-T13` de TKT-006); las pruebas siembran los suyos. El humo de Playwright siembra los suyos con `frontend/e2e/sembrar_usuario_humo.py`, que lee `CIMENTA_HUMO_CORREO` y `CIMENTA_HUMO_CONTRASENA` y, desde TKT-012a, también `CIMENTA_HUMO_ROL` (la clave del rol; por omisión `COMPRAS`) y `CIMENTA_HUMO_NOMBRE` (por omisión `Humo Compras`). La preparación global (`frontend/e2e/preparacion-global.ts`) lo ejecuta tres veces y genera una contraseña aleatoria por corrida, de modo que ninguna se guarda en el repositorio: siembra `humo.compras@cimenta.test` con el rol `COMPRAS`, `humo.director@cimenta.test` con el rol `DIRECTOR_PROYECTOS` y `humo.direccion@cimenta.test` con el rol `DIRECCION_GENERAL`. Del segundo deja el correo y la contraseña en `CIMENTA_HUMO_DP_CORREO` y `CIMENTA_HUMO_DP_CONTRASENA`, que usan el recorrido E2E de las obras y de la línea base; del tercero, en `CIMENTA_HUMO_DG_CORREO` y `CIMENTA_HUMO_DG_CONTRASENA`, que usa la captura del tope.
 

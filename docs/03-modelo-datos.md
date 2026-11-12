@@ -1117,7 +1117,7 @@ Un tercero, parcial, para el barrido: `(creado_en) WHERE estado = 'PENDIENTE'`. 
 |---|---|---|
 | `PENDIENTE` | La fila existe, el objeto puede que no | El caso de uso que emite la URL prefirmada, sea el que crea el documento o uno posterior que adjunta sobre él |
 | `DISPONIBLE` | El objeto existe y su tamaño y su hash coinciden con lo que se declaró | La confirmación, tras verificar contra el almacén |
-| `CADUCADO` | La subida nunca se confirmó a tiempo: la fila queda como rastro y el objeto, si llegó, se elimina | El barrido de arranque. **No necesita autor**, y por eso no es `ANULADO` |
+| `CADUCADO` | La subida nunca se confirmó a tiempo: la fila queda como rastro y el objeto, si llegó, **no se elimina en el barrido**; su recogida depende de una regla de ciclo de vida del bucket que todavía nadie configura (`PA-T59.3`). El rol de aplicación no tiene `DELETE` sobre `archivo` | El barrido de arranque, o la confirmación de una subida cuyo plazo ya venció (`PA-T59.13`). **No necesita autor**, y por eso no es `ANULADO` |
 | `ANULADO` | El adjunto ya no cuenta, pero su rastro permanece con autor y motivo | Quien lo anula, nunca un `DELETE` |
 
 **La escritura no es transaccional y el estado es lo que lo hace visible.** El objeto vive fuera de PostgreSQL, así que no hay forma de que la fila y los bytes se escriban juntos ([ADR-016](adr/20261001-almacenamiento-de-objetos.md)). Un `PENDIENTE` cuya subida nunca llegó se barre al arrancar la aplicación y pasa a `CADUCADO`, exactamente igual que una importación con el latido vencido (`RNF-17`): es el mismo problema —un trabajo en dos pasos cuyo segundo paso puede no ocurrir— y se resuelve con el mismo patrón en vez de con uno nuevo.
@@ -1299,13 +1299,13 @@ stateDiagram-v2
 stateDiagram-v2
     [*] --> PENDIENTE: se emite la URL de subida
     PENDIENTE --> DISPONIBLE: confirmación · tamaño, hash y tipo coinciden
-    PENDIENTE --> CADUCADO: el barrido de arranque · sin autor
+    PENDIENTE --> CADUCADO: el barrido de arranque o la confirmación de un vencido · sin autor
     DISPONIBLE --> ANULADO: con autor y motivo
     CADUCADO --> [*]
     ANULADO --> [*]
 ```
 
-`CADUCADO` y `ANULADO` son finales y distintos: el primero lo pone el sistema cuando una subida no llegó a confirmarse y no tiene autor; el segundo lo pone una persona y exige motivo (invariante 24). Ninguno borra la fila.
+`CADUCADO` y `ANULADO` son finales y distintos: el primero lo pone el sistema, ya sea el barrido de arranque o la confirmación de una subida que llega después de vencido el plazo (`PA-T59.13`), cuando una subida no llegó a confirmarse a tiempo, y no tiene autor; el segundo lo pone una persona y exige motivo (invariante 24). Ninguno borra la fila.
 
 ### Línea base
 

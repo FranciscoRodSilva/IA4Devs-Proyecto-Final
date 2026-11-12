@@ -4,6 +4,8 @@
 
 Aceptado
 
+> **Destino de producción.** Por decisión de la persona dueña del 2026-11-06, el destino de producción será **MinIO autoalojado en la VPS** y no Cloudflare R2. El ADR que reemplaza la elección de destino de este documento es de TKT-073; TKT-059 no reescribe la decisión. Las siete reglas siguen vigentes, y la regla 6 es justo lo que permite el cambio sin tocar código. Dos precisiones de TKT-059: la lista blanca admite solo `.xlsx` entre las hojas de cálculo, y el barrido de caducados no borra el objeto, solo marca la fila `CADUCADO`. Cómo confirma un archivo sin descargarlo lo explica [el ADR de la confirmación](20261111-confirmacion-de-archivos-sin-descargar-el-objeto.md).
+>
 > **Alcance por fases.** En la **fase 1** ([PRD §7](../01-descripcion-producto.md#7-alcance-mvp-y-evolución)) solo se construye el camino mínimo de `archivos` que necesita el Excel de la línea base: alta `PENDIENTE`, URL prefirmada de subida, confirmación por tamaño y hash, tipo por los bytes y barrido de caducados ([TKT-059](../05-tickets-trabajo.md#tkt-059--módulo-archivos-mínimo-subida-prefirmada-confirmación-por-hash-y-barrido)). La evidencia de avance y de recepción, la galería, el expediente y la octava regla sobre la cola sin conexión son de la **fase 2**. Las siete reglas valen desde el primer archivo.
 
 ## Contexto y problema
@@ -58,7 +60,7 @@ Un `PENDIENTE` caducado se barre y pasa a `CADUCADO` —no a `ANULADO`, que exig
 
 **La URL prefirmada es la credencial durante su vida.** Quien la tenga puede leer o escribir ese objeto sin presentar sesión, que es justo lo que permite al navegador subir directo. De ahí dos consecuencias que no son opcionales: el rol se comprueba **al emitirla**, nunca después, y la vida es corta —minutos para leer, lo justo para subir—. Una URL de lectura con horas de vigencia es un enlace público a evidencia de obra.
 
-**3 · El tipo lo determina el sistema leyendo los bytes.** Nunca la extensión del nombre, nunca el `Content-Type` que declara quien sube. Lista blanca cerrada: JPEG, PNG, HEIC, WebP, MP4, PDF, XML y los dos formatos de hoja de cálculo. **SVG queda prohibido** y conviene decir por qué: no es una imagen, es un documento con capacidad de ejecutar código.
+**3 · El tipo lo determina el sistema leyendo los bytes.** Nunca la extensión del nombre, nunca el `Content-Type` que declara quien sube. Lista blanca cerrada: JPEG, PNG, HEIC, WebP, MP4, PDF, XML y `.xlsx` como única hoja de cálculo. **SVG queda prohibido** y conviene decir por qué: no es una imagen, es un documento con capacidad de ejecutar código.
 
 **Dos de la lista no se dejan identificar por sus bytes iniciales, y eso cambia cómo se implementa.** Un `.xlsx` es un ZIP, indistinguible de cualquier otro ZIP; un `.xml` es texto, sin firma ninguna. Para esos dos la comprobación es **estructural**: abrir el ZIP y exigir que contenga `[Content_Types].xml` con la parte de libro de Excel, y parsear el XML hasta la raíz. Si no abre, no entra. Dar por bueno un ZIP porque la extensión dice `.xlsx` es exactamente el agujero que esta regla cierra, y es además el camino por el que openpyxl recibiría un archivo construido a propósito.
 
