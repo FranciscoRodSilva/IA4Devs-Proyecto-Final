@@ -1,0 +1,50 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0 -- D:\Documentos\LIDR\Proyecto Final\backend\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collecting ... collected 3 items
+
+tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc03_dominio_normaliza_el_rfc FAILED [ 33%]
+tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc12_dominio_solo_activo_admite_desactivacion FAILED [ 66%]
+tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc02_dominio_dias_por_omision_rn17 FAILED [100%]
+
+================================== FAILURES ===================================
+_________________ test_hdu004_esc03_dominio_normaliza_el_rfc __________________
+
+    def test_hdu004_esc03_dominio_normaliza_el_rfc() -> None:
+        """HDU-004 esc. 3 · CA-2 · supuesto 1 (D-1) — el RFC se recorta solo de espacios y pasa a
+        mayúsculas antes de validar su forma; el salto de línea final se conserva para que el patrón
+        lo rechace con 422 (CA-4)."""
+>       from cimenta.proveedores.dominio.proveedor import normalizar_rfc
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.dominio.proveedor'
+
+tests\test_tkt029a_dominio_proveedor.py:19: ModuleNotFoundError
+_________ test_hdu004_esc12_dominio_solo_activo_admite_desactivacion __________
+
+    def test_hdu004_esc12_dominio_solo_activo_admite_desactivacion() -> None:
+        """HDU-004 esc. 12 · CA-9 · RN-17 no aplica — solo un proveedor ACTIVO admite la desactivación;
+        un DESACTIVADO o un BAJA la rechazan (el caso de uso responde 409 ESTADO_NO_PERMITE_OPERACION)."""
+>       from cimenta.proveedores.dominio.proveedor import EstadoProveedor, admite_desactivacion
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.dominio.proveedor'
+
+tests\test_tkt029a_dominio_proveedor.py:29: ModuleNotFoundError
+_______________ test_hdu004_esc02_dominio_dias_por_omision_rn17 _______________
+
+    def test_hdu004_esc02_dominio_dias_por_omision_rn17() -> None:
+        """HDU-004 esc. 2 · RN-17 · CA-1 — por omisión el corte es el día 4 (jueves) y el pago el día 6
+        (sábado, ISO 8601 con 1 = lunes); los estados son exactamente ACTIVO, DESACTIVADO y BAJA."""
+>       from cimenta.proveedores.dominio.proveedor import (
+            DIA_CORTE_POR_OMISION,
+            DIA_PAGO_POR_OMISION,
+            EstadoProveedor,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.dominio.proveedor'
+
+tests\test_tkt029a_dominio_proveedor.py:39: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc03_dominio_normaliza_el_rfc
+FAILED tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc12_dominio_solo_activo_admite_desactivacion
+FAILED tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc02_dominio_dias_por_omision_rn17
+============================== 3 failed in 0.16s ==============================

@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+EN REVISIÓN · entrega a (esquema, dominio, repositorio y casos de uso). Pendiente: entrega b (API, montaje y contrato)
 
 ## Ficha
 
@@ -28,7 +28,7 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-10 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
-| Impl | `impl.md` (se enlaza en `/sdd-ejecutar`) | `/sdd-ejecutar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entrega a escrita el 2026-11-12; la entrega b la añadirá |
 | Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -38,6 +38,7 @@ LISTO PARA EJECUTAR
 | 2026-11-10 | — | `SPEC PENDIENTE` | `/sdd-definir` | Spec creada. TKT-029 partido en TKT-029a y TKT-029b por el plazo de la tercera entrega. Must validado por la persona dueña: esquema `proveedor` y las cinco operaciones de catálogo y desactivación, solo backend, sin baja ni puerto ni pantalla. 11 criterios `[M]` más dos de regresión; rechazos de RFC duplicado (también en carrera), forma, permiso, listado, consulta, cambio y desactivación. Cuatro objeciones adversariales incorporadas. Seis preguntas abiertas con recomendación para el diseño y un hallazgo sobre el wireframe. INVEST sin fallos, con reserva en el tamaño |
 | 2026-11-10 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito por `arquitecto-tecnico` (opus): patrón de TKT-017 y TKT-012a, sin baja ni puerto ni pantalla; el índice `uq_proveedor_rfc` arbitra el duplicado y la carrera; `REVOKE DELETE` al rol de aplicación; copia local de `MetaPagina` y `Motivo` en `proveedores`, sin paquete nuevo ni ADR. Filas A1 a A4 (esquema, dominio, repositorio y casos de uso, ~480 líneas) y B1 y B2 (API, borrador y tipos, ~290 líneas) en dos entregas y un solo PR. `revisor-impacto`: sin frontera cruzada (16 contratos en verde), diseño incompleto; sus hallazgos se incorporaron, entre ellos que la premisa del paquete `contrato_api` era falsa (Pydantic fusiona clases idénticas) y que la migración `0012` afecta a las suites que bajan desde la cabeza. Nueve decisiones esperan a la persona dueña (D-1 a D-9) |
 | 2026-11-10 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones de D-1 a D-9 (ver «Decisiones registradas»). Siguiente: `/sdd-ejecutar TKT-029a` sobre la entrega a (filas A1 a A4) |
+| 2026-11-12 | `LISTO PARA EJECUTAR` | `EN REVISIÓN · entrega a` | `/sdd-ejecutar` | Entrega a (filas A1 a A4) ejecutada con TDD. La migración pasa a `0013` porque TKT-059 ocupó `0012`. Suite completa 3314 passed, 26 skipped; 8 de 8 mutantes aplicables muertos; `auditor-arquitectura` y `auditor-sql` en `APROBADO` sin hallazgos. Siguiente: `/sdd-revisar` de la entrega a y después `/sdd-ejecutar TKT-029a` para la entrega b |
 
 ## Decisiones registradas
 

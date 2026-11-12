@@ -1,0 +1,99 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 4 items
+
+tests\test_tkt029a_repositorio_proveedor.py FFFF                         [100%]
+
+================================== FAILURES ===================================
+_____________ test_tkt029a_repositorio_inserta_y_lee_el_proveedor _____________
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001996637A7B0>
+creador = UUID('40b9a129-05ca-463c-a5f9-54bc60dd6ea1')
+
+    def test_tkt029a_repositorio_inserta_y_lee_el_proveedor(
+        sesion_bd: Session, creador: uuid.UUID
+    ) -> None:
+        """TC-08 · HDU-004 esc. 2 · CA-1 — feliz: el proveedor se guarda con o sin tope y se lee por id y por RFC."""
+>       from cimenta.proveedores.infraestructura.repositorio_proveedor import (
+            leer_proveedor,
+            leer_proveedor_por_rfc,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.infraestructura.repositorio_proveedor'
+
+tests\test_tkt029a_repositorio_proveedor.py:109: ModuleNotFoundError
+_____________ test_tkt029a_repositorio_inexistente_devuelve_none ______________
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000019966460690>
+creador = UUID('85bad9cb-2b24-4c19-8e0e-0ae30f0d9519')
+
+    def test_tkt029a_repositorio_inexistente_devuelve_none(
+        sesion_bd: Session, creador: uuid.UUID
+    ) -> None:
+        """TC-09 · CA-7 — rechazo: un id o un RFC que no existen dan `None`, no una fila ni una excepción."""
+>       from cimenta.proveedores.infraestructura.repositorio_proveedor import (
+            leer_proveedor,
+            leer_proveedor_por_rfc,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.infraestructura.repositorio_proveedor'
+
+tests\test_tkt029a_repositorio_proveedor.py:163: ModuleNotFoundError
+_________ test_tkt029a_repositorio_lista_filtra_busca_ordena_y_pagina _________
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000019966461950>
+creador = UUID('82f09147-f2ef-4472-b7ce-ab2a46a9d44c')
+
+    def test_tkt029a_repositorio_lista_filtra_busca_ordena_y_pagina(
+        sesion_bd: Session, creador: uuid.UUID
+    ) -> None:
+        """TC-10 · HDU-004 esc. 2 · CA-6 — feliz y rechazo: filtro por estado, búsqueda sin distinguir
+        mayúsculas y con `%` y `_` literales, orden por nombre y luego id (D-8), y una página inalcanzable
+        que da lista vacía con el total real."""
+>       gemelo_a = _alta(sesion_bd, creador, nombre="Acero Norte", rfc="ANO010101AB1")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt029a_repositorio_proveedor.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion = <sqlalchemy.orm.session.Session object at 0x0000019966461950>
+creador_id = UUID('82f09147-f2ef-4472-b7ce-ab2a46a9d44c')
+nombre = 'Acero Norte', rfc = 'ANO010101AB1', tope = None, dia_corte = 4
+dia_pago = 6
+
+    def _alta(
+        sesion: Session,
+        creador_id: uuid.UUID,
+        *,
+        nombre: str,
+        rfc: str,
+        tope: str | None = None,
+        dia_corte: int = 4,
+        dia_pago: int = 6,
+    ) -> uuid.UUID:
+        """Inserta un proveedor con `insertar_proveedor` y confirma. Devuelve su id."""
+>       from cimenta.proveedores.infraestructura.repositorio_proveedor import insertar_proveedor
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.infraestructura.repositorio_proveedor'
+
+tests\test_tkt029a_repositorio_proveedor.py:57: ModuleNotFoundError
+_________ test_tkt029a_repositorio_actualiza_solo_las_columnas_dadas __________
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001996629F100>
+creador = UUID('6a71ded1-d7d4-49a2-baa7-d4cbb8445c50')
+
+    def test_tkt029a_repositorio_actualiza_solo_las_columnas_dadas(
+        sesion_bd: Session, creador: uuid.UUID
+    ) -> None:
+        """TC-11 · CA-8 — feliz y rechazo: `UPDATE` solo de las columnas dadas, tope a `NULL` y `Dinero`
+        como valor; una clave fuera de la lista admitida lanza `ValueError` y no toca la fila."""
+>       from cimenta.proveedores.infraestructura.repositorio_proveedor import actualizar_proveedor
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.infraestructura.repositorio_proveedor'
+
+tests\test_tkt029a_repositorio_proveedor.py:296: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029a_repositorio_proveedor.py::test_tkt029a_repositorio_inserta_y_lee_el_proveedor
+FAILED tests/test_tkt029a_repositorio_proveedor.py::test_tkt029a_repositorio_inexistente_devuelve_none
+FAILED tests/test_tkt029a_repositorio_proveedor.py::test_tkt029a_repositorio_lista_filtra_busca_ordena_y_pagina
+FAILED tests/test_tkt029a_repositorio_proveedor.py::test_tkt029a_repositorio_actualiza_solo_las_columnas_dadas
+============================== 4 failed in 2.88s ==============================

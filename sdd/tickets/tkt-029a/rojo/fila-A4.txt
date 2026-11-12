@@ -1,0 +1,298 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 12 items
+
+tests\test_tkt029a_casos_de_uso.py FFFFFFFFFFFF                          [100%]
+
+================================== FAILURES ===================================
+_________ test_hdu004_esc02_alta_guarda_el_proveedor_y_asienta_crear __________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914BB3B690>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C8B4440>
+creador = UUID('aff0d901-9129-40a3-b1fa-df9dd571e238')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000002914C8B4590>
+
+    def test_hdu004_esc02_alta_guarda_el_proveedor_y_asienta_crear(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-12 · HDU-004 esc. 2 · CA-1 · RN-17 — una fila `ACTIVO` con 4 y 6 y un asiento `CREAR` con el dato exacto.
+    
+        El reloj se adelanta para que `creado_en` y `ocurrido_en` sean los del reloj inyectado y no la hora
+        de la base. Variantes de `CA-1`: tope `"300000.0000"` con días 2 y 5 (distintos de los de omisión,
+        para que un intercambio entre corte y pago no pase), un tope sin decimales que se guarda en la escala
+        de la columna, y un tope en cero, que se guarda como `0.0000` y no como `NULL`.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import crear_proveedor
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:255: ModuleNotFoundError
+___________ test_hdu004_esc02_alta_bitacora_en_la_misma_transaccion ___________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C8E4670>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C8EBB10>
+creador = UUID('d4a4f929-9517-485e-8baf-217c9fa239e7')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002914C554E90>
+
+    def test_hdu004_esc02_alta_bitacora_en_la_misma_transaccion(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-13 · HDU-004 esc. 2 · CA-1 · regla 8 — si asentar falla, no queda el proveedor (`M-10`).
+    
+        `asentar` se sustituye por uno que, antes de lanzar, comprueba que corre en la sesión del alta y que
+        ve el proveedor todavía sin confirmar: la bitácora se escribe en la misma transacción que el cambio.
+        Al lanzar, la transacción se deshace y no queda fila en `proveedor` ni en `bitacora`. Con `asentar`
+        en una sesión nueva tras confirmar (`M-10`) el proveedor quedaría guardado y la prueba cae.
+        """
+>       from cimenta.proveedores.aplicacion import proveedores
+E       ImportError: cannot import name 'proveedores' from 'cimenta.proveedores.aplicacion' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\proveedores\aplicacion\__init__.py)
+
+tests\test_tkt029a_casos_de_uso.py:361: ImportError
+____________________ test_hdu004_esc03_alta_rfc_duplicado _____________________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C8E5F30>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C9A4F50>
+creador = UUID('603ee1b3-7390-4844-b94b-0ba3a20c0d03')
+
+    def test_hdu004_esc03_alta_rfc_duplicado(
+        contexto_proveedores: Contexto, base: Base, creador: uuid.UUID
+    ) -> None:
+        """TC-14 · HDU-004 esc. 3 · CA-2 · INV-28 — `409` `RFC_DUPLICADO` con el proveedor existente y sin acciones (`M-3`).
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`), `codigo` del catálogo, el detalle
+        con el id y el «nombre · RFC» del proveedor que ya existe (no el del intento) y `acciones` vacía
+        para cualquier rol, porque no hay acción `VER_PROVEEDOR` (D-2). La unicidad es del motor: sin la
+        rama del `23505` (`M-3`) saldría la excepción cruda del motor. Un rechazo no escribe: ni una fila en
+        `proveedor` ni un segundo `CREAR`, y la fila existente no cambia. La variante en minúsculas la
+        resuelve el DTO (D-1), así que aquí el caso de uso ya recibe el RFC normalizado.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import (
+            ROLES_LECTURA,
+            crear_proveedor,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:405: ModuleNotFoundError
+_____________ test_hdu004_esc03_dos_altas_concurrentes_mismo_rfc ______________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C8E7950>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C556EA0>
+creador = UUID('c7a3bdc5-c306-48f3-9146-db53dc1d54e8')
+segundo_usuario = UUID('c8aa53c9-b2a6-44aa-9db4-b8d17cef1304')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002914C557360>
+
+    def test_hdu004_esc03_dos_altas_concurrentes_mismo_rfc(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        segundo_usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-15 · HDU-004 esc. 3 · CA-3 · `uq_proveedor_rfc` — dos altas con el mismo RFC: pasa una sola (`M-3`).
+    
+        Determinista y sin `sleep`. El hilo A se pausa dentro de `repositorio_proveedor.insertar_proveedor`,
+        con la fila ya insertada y sin confirmar; el hilo B arranca y su `INSERT` queda detenido en el índice
+        único (la prueba lo espera con `esperar_hasta` sobre `pg_stat_activity` y `pg_blocking_pids`);
+        entonces se libera a A, que confirma. B recibe la violación `23505` y responde `RFC_DUPLICADO` con el
+        proveedor de A, no un `500` ni otro código. El hilo pausado se libera siempre en `finally`.
+    
+        Requiere que el caso de uso llame a `repositorio_proveedor.insertar_proveedor` por el módulo, no por
+        un nombre importado: es lo que permite la envoltura (mismo patrón que `repositorio_obra` en TKT-012a).
+        """
+>       from cimenta.proveedores.aplicacion import proveedores
+E       ImportError: cannot import name 'proveedores' from 'cimenta.proveedores.aplicacion' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\proveedores\aplicacion\__init__.py)
+
+tests\test_tkt029a_casos_de_uso.py:475: ImportError
+__________ test_tkt029a_actualizar_cambia_solo_lo_enviado_y_asienta ___________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C99D430>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C557E10>
+creador = UUID('24493b84-3ee2-4d04-ac5e-06c63d572b83')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000002914C557CE0>
+
+    def test_tkt029a_actualizar_cambia_solo_lo_enviado_y_asienta(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-16 · CA-8 — solo los campos presentes cambian; `ACTUALIZAR` lleva el antes y el después de esos campos.
+    
+        `dia_corte` 2 y tope `"250000.0000"` sobre un proveedor sin tope: el asiento trae exactamente esos
+        dos campos con su valor anterior y el nuevo; RFC, estado, nombre, `dia_pago` y `creado_en` quedan
+        intactos. Variantes: un campo con valor pero fuera de `presentes` no se aplica; el tope presente y
+        `None` deja la columna en `NULL`; un proveedor `DESACTIVADO` admite el cambio y sigue
+        `DESACTIVADO` (D-3).
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import actualizar_proveedor
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:558: ModuleNotFoundError
+_____________________ test_tkt029a_actualizar_inexistente _____________________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C99E770>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C971010>
+creador = UUID('5839cae5-aee0-4d62-b269-97b08a1a72a1')
+
+    def test_tkt029a_actualizar_inexistente(
+        contexto_proveedores: Contexto, base: Base, creador: uuid.UUID
+    ) -> None:
+        """TC-17 · CA-8 — `404` `NO_ENCONTRADO` con `recurso="proveedor"` y ningún asiento.
+    
+        Hay un proveedor real, para que el rechazo sea por el id y no por tabla vacía; no cambia.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import (
+            MENSAJE_PROVEEDOR_NO_EXISTE as mensaje_del_modulo,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:683: ModuleNotFoundError
+____________ test_hdu004_esc12_desactivar_conserva_todo_y_asienta _____________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C990250>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C9ACE20>
+creador = UUID('d47d59ce-8733-43f4-a636-964c028afb6a')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000002914C9ACD10>
+
+    def test_hdu004_esc12_desactivar_conserva_todo_y_asienta(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-18 · HDU-004 esc. 12 · CA-9 — pasa a `DESACTIVADO`; nada más cambia; `DESACTIVAR` lleva el motivo.
+    
+        El proveedor tiene tope y días distintos de los de omisión, para comprobar que se conservan. El
+        asiento trae el motivo recibido (sin cambios), `datos_antes` `ACTIVO` y `datos_despues`
+        `DESACTIVADO`, con el reloj inyectado.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import desactivar_proveedor
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:727: ModuleNotFoundError
+__________ test_hdu004_esc12_desactivar_un_desactivado_o_inexistente __________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C99C510>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C9AD260>
+creador = UUID('e9b921f9-64f7-4369-ab79-ffaf2811f764')
+
+    def test_hdu004_esc12_desactivar_un_desactivado_o_inexistente(
+        contexto_proveedores: Contexto, base: Base, creador: uuid.UUID
+    ) -> None:
+        """TC-19 · HDU-004 esc. 12 · CA-9 — solo un `ACTIVO` se desactiva (`M-5`); un inexistente es `404`.
+    
+        El contrato completo del `409`: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`), `codigo`
+        `ESTADO_NO_PERMITE_OPERACION`, `detalle` con el `estado_actual` real y `acciones` vacía. Se prueba
+        sobre un proveedor que acaba de desactivarse (segunda desactivación) y sobre uno en `BAJA`; en ambos
+        la fila queda como estaba y no hay asiento nuevo. Con una regla que dejara pasar a `DESACTIVADO`
+        (`M-5`) la segunda desactivación se asentaría y la prueba cae.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import desactivar_proveedor
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:785: ModuleNotFoundError
+_____________ test_hdu004_esc12_dos_desactivaciones_concurrentes ______________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C8E4B40>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C902350>
+creador = UUID('27028be3-6d2d-4307-bbf9-02f137a0fb0e')
+segundo_usuario = UUID('e4936c47-c958-4227-9e98-ca66916c4358')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002914C530A70>
+
+    def test_hdu004_esc12_dos_desactivaciones_concurrentes(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        segundo_usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-20 · HDU-004 esc. 12 · CA-9 — dos desactivaciones a la vez: B espera el `FOR UPDATE` y ve `DESACTIVADO` (`M-6`).
+    
+        Determinista y sin `sleep`. El hilo A se pausa dentro de `repositorio_proveedor.leer_proveedor`, en la
+        llamada con `para_cambio=True`, con el `SELECT ... FOR UPDATE` ya tomado; el hilo B arranca y su
+        lectura bloqueante queda detenida (la prueba lo espera sobre `pg_stat_activity` y `pg_blocking_pids`);
+        entonces se libera a A, que desactiva y confirma. B lee `DESACTIVADO` y responde
+        `ESTADO_NO_PERMITE_OPERACION`. Con la lectura sin `FOR UPDATE` (`M-6`) A nunca llega a la pausa y la
+        prueba cae al esperarla; si B leyera `ACTIVO` quedarían dos asientos `DESACTIVAR`. El hilo pausado se
+        libera siempre en `finally`.
+        """
+>       from cimenta.proveedores.aplicacion import proveedores
+E       ImportError: cannot import name 'proveedores' from 'cimenta.proveedores.aplicacion' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\proveedores\aplicacion\__init__.py)
+
+tests\test_tkt029a_casos_de_uso.py:857: ImportError
+_______________________ test_tkt029a_obtener_proveedor ________________________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C99C720>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C901250>
+creador = UUID('e1102f84-f462-41d1-ba02-30c4d5e15758')
+
+    def test_tkt029a_obtener_proveedor(
+        contexto_proveedores: Contexto, base: Base, creador: uuid.UUID
+    ) -> None:
+        """Apoyo · CA-7 — `obtener_proveedor` devuelve la fila completa, también `DESACTIVADO`, y un inexistente es `404`.
+    
+        El plan de pruebas solo prueba la lectura por la API (fila B1); aquí se fija el caso de uso. No
+        escribe: ni bitácora ni cambios.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import obtener_proveedor
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:934: ModuleNotFoundError
+__________ test_tkt029a_listar_recorta_q_y_calcula_el_desplazamiento __________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x000002914C4E6CF0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002914C975040>
+creador = UUID('ddbee084-509c-4118-82d6-f2939b9ea5fc')
+
+    def test_tkt029a_listar_recorta_q_y_calcula_el_desplazamiento(
+        contexto_proveedores: Contexto, base: Base, creador: uuid.UUID
+    ) -> None:
+        """Apoyo · CA-6 · D-8 · D-9 — `listar_proveedores` pagina por número de página, recorta `q` y trata el blanco como «sin filtro».
+    
+        Cinco proveedores: tres `ACTIVO` (de «Acero Norte» a «Pinturas Sur») y dos `DESACTIVADO`. La página 2
+        de tamaño 2 es el desplazamiento 2 del orden por nombre; `q` con espacios alrededor equivale a `q`
+        recortado, y `q` solo de espacios equivale a no filtrar. Una página inalcanzable da `elementos` vacía
+        con el total real. `ProveedoresConsultados.elementos` es una tupla.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import listar_proveedores
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:989: ModuleNotFoundError
+___________ test_tkt029a_roles_y_campos_cambiables_del_caso_de_uso ____________
+
+    def test_tkt029a_roles_y_campos_cambiables_del_caso_de_uso() -> None:
+        """Apoyo — las constantes de «Aplicación» sin otra lectura posible: roles en el orden de `x-roles` y campos cambiables.
+    
+        Sin base de datos. `ROLES_GESTION` es solo COMPRAS; `ROLES_LECTURA` son los seis roles en el orden del
+        borrador; `CAMPOS_CAMBIABLES` no contiene el RFC ni el estado, que un `PATCH` no puede tocar.
+        """
+>       from cimenta.proveedores.aplicacion.proveedores import (
+            CAMPOS_CAMBIABLES,
+            ROLES_GESTION,
+            ROLES_LECTURA,
+        )
+E       ModuleNotFoundError: No module named 'cimenta.proveedores.aplicacion.proveedores'
+
+tests\test_tkt029a_casos_de_uso.py:1044: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc02_alta_guarda_el_proveedor_y_asienta_crear
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc02_alta_bitacora_en_la_misma_transaccion
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc03_alta_rfc_duplicado
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc03_dos_altas_concurrentes_mismo_rfc
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_cambia_solo_lo_enviado_y_asienta
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_inexistente
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc12_desactivar_conserva_todo_y_asienta
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc12_desactivar_un_desactivado_o_inexistente
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc12_dos_desactivaciones_concurrentes
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_obtener_proveedor - M...
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_listar_recorta_q_y_calcula_el_desplazamiento
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_roles_y_campos_cambiables_del_caso_de_uso
+============================= 12 failed in 4.29s ==============================

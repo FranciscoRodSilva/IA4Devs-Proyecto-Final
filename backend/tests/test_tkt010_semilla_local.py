@@ -1339,18 +1339,31 @@ def test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio(
     """TC-B15 · CA-10 esc. 1 · M7 — rechazo: la siembra no toca nada fuera de su alcance.
 
     Tras sembrar (con sus 27 insumos como precondición), `obra`, `nivel`, `area`, `partida`,
-    `concepto`, `apu` y `linea_base` siguen sin filas; `empleado`, `proveedor` y `rol_oficio` no
+    `concepto`, `apu`, `linea_base` y `proveedor` siguen sin filas; `empleado` y `rol_oficio` no
     existen todavía, y ninguna tabla del esquema `public` lleva `simulad` en su nombre.
+
+    Actualización declarada de TKT-029a (fila A2, `design.md`, «Orden de implementación»): la
+    migración `0013` crea `proveedor`, así que sale de las tablas inexistentes y entra en las
+    vacías. La afirmación sigue siendo la misma: la siembra no escribe en proveedores.
     """
     sembrar_en(motor_migracion, secrets.token_urlsafe(16), contrasenas_baratas())
 
     with conectar("migracion", base_de_prueba) as administrador:
         exigir_siembra_completa(administrador)
-        tablas_vacias = ("obra", "nivel", "area", "partida", "concepto", "apu", "linea_base")
+        tablas_vacias = (
+            "obra",
+            "nivel",
+            "area",
+            "partida",
+            "concepto",
+            "apu",
+            "linea_base",
+            "proveedor",
+        )
         filas = {tabla: contar(administrador, tabla) for tabla in tablas_vacias}
         sin_tabla = {
             tabla: administrador.execute("SELECT to_regclass(%s)", (tabla,)).fetchone()
-            for tabla in ("empleado", "proveedor", "rol_oficio")
+            for tabla in ("empleado", "rol_oficio")
         }
         # Control positivo: la consulta sí encuentra una tabla con `simulad` en el nombre, así que
         # la lista vacía de abajo significa que no hay ninguna y no que la consulta no ve nada.
@@ -1366,5 +1379,5 @@ def test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio(
         simuladas = administrador.execute(consulta_simuladas).fetchall()
     assert control == [("x_simulada",)], "El control positivo no encontró la tabla creada"
     assert filas == dict.fromkeys(tablas_vacias, 0)
-    assert sin_tabla == {"empleado": (None,), "proveedor": (None,), "rol_oficio": (None,)}
+    assert sin_tabla == {"empleado": (None,), "rol_oficio": (None,)}
     assert simuladas == []
