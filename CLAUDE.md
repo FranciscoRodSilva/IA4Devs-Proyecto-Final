@@ -11,7 +11,7 @@ Lee en este orden. Saltarte el glosario produce nombres y supuestos inventados: 
 3. [`docs/02-arquitectura.md`](docs/02-arquitectura.md) — módulos, capas, contrato de error
 4. [`docs/03-modelo-datos.md`](docs/03-modelo-datos.md) — esquema y 39 invariantes
 5. [`docs/07-especificacion-api.md`](docs/07-especificacion-api.md) y [`docs/api/openapi.yaml`](docs/api/openapi.yaml) — endpoints y contrato de error. **El borrador OpenAPI es el contrato que implementas**: rutas, códigos y esquemas salen de ahí, no se improvisan
-6. [`docs/adr/`](docs/adr/) — 41 decisiones con su porqué
+6. [`docs/adr/`](docs/adr/) — 42 decisiones con su porqué
 
 El ticket que implementas está en [`docs/05-tickets-trabajo.md`](docs/05-tickets-trabajo.md), y su historia en [`docs/04-historias-usuario.md`](docs/04-historias-usuario.md). Si toca una pantalla, mira su boceto en [`docs/08-wireframes.md`](docs/08-wireframes.md).
 
@@ -94,7 +94,7 @@ Antes de abrir el PR, `/sdd-completar` lo revisa con `/code-review` ([convencion
 
 Un comando o una comprobación marcados *desde TKT-xxx* todavía no funcionan: los habilita ese ticket, y su `/sdd-completar` quita la marca. Las marcas dicen desde cuándo la herramienta hace cumplir una regla o corre un comando; las reglas obligan desde ya. Requisitos y arranque paso a paso en [`docs/arranque-local.md`](docs/arranque-local.md).
 
-Las comprobaciones de estas secciones corren en cada pull request, agrupadas por trabajo, en [`.github/workflows/ci.yml`](.github/workflows/ci.yml), salvo `python tools/extraer_mermaid.py`, `npm run tipos:generar`, `uv run --env-file ../.env fastapi dev` y `docker compose up -d minio`, que no corren en el pipeline, y `uv run ruff format .` y `uv run ruff check --fix .`, que en el pipeline corren como `uv run ruff format --check .` y `uv run ruff check .` (sin `--fix`). `revision-ia.yml` es un flujo aparte que correrá la revisión automatizada de PR (TKT-062b) cuando haya clave de API, y no es comprobación requerida: hoy está inactivo y la revisión es local, con `/code-review`. El trabajo `humo` ejecuta `npm run e2e`, y este arranca el backend (`fastapi run`) y el cliente (`npm run dev`) por su cuenta mediante `webServer` de `frontend/playwright.config.ts`.
+Las comprobaciones de estas secciones corren en cada pull request, agrupadas por trabajo, en [`.github/workflows/ci.yml`](.github/workflows/ci.yml), salvo `python tools/extraer_mermaid.py`, `npm run tipos:generar`, `uv run --env-file ../.env fastapi dev` y `docker compose -f compose.yaml -f compose.almacen.yaml up -d minio`, que no corren en el pipeline, y `uv run ruff format .` y `uv run ruff check --fix .`, que en el pipeline corren como `uv run ruff format --check .` y `uv run ruff check .` (sin `--fix`). `revision-ia.yml` es un flujo aparte que correrá la revisión automatizada de PR (TKT-062b) cuando haya clave de API, y no es comprobación requerida: hoy está inactivo y la revisión es local, con `/code-review`. El trabajo `humo` ejecuta `npm run e2e`, y este arranca el backend (`fastapi run`) y el cliente (`npm run dev`) por su cuenta mediante `webServer` de `frontend/playwright.config.ts`.
 
 ### Desde `backend/`
 
@@ -110,6 +110,7 @@ uv run pytest                    # tests · requiere Docker en marcha (testconta
 uv run --env-file ../.env alembic upgrade head   # migraciones, siempre con el rol de migración
 uv run --env-file ../.env python -m herramientas.contrasenas_roles   # contraseñas de los roles, tras migrar
 uv run --env-file ../.env python -m herramientas.semilla_local   # usuarios por rol e insumos sintéticos · solo base local
+uv run --env-file ../.env python -m herramientas.almacen_local   # crea el bucket en MinIO local · solo host local
 ```
 
 ### Desde `frontend/`
@@ -129,7 +130,7 @@ npm run e2e                      # humo de Playwright · requiere backend, base 
 
 ```bash
 docker compose up -d db          # PostgreSQL local
-docker compose up -d minio       # MinIO local · desde TKT-059
+docker compose -f compose.yaml -f compose.almacen.yaml up -d minio   # MinIO local
 python tools/verificar_docs.py   # enlaces, identificadores, conteos y codificación
 python tools/extraer_mermaid.py  # sintaxis de los diagramas
 python -m unittest discover -s tools/tests -v   # pruebas de tools/

@@ -12,7 +12,7 @@ TKT-009b · fila B4. Comprueban lo que el repositorio *declara*, no lo que GitHu
   de desarrollo de `.env.example` (segunda interpretación señalada en el gate). Por eso no existe
   `.github/secret_scanning.yml`, ningún `paths-ignore` ni otra lista de exclusión de `.github/` cita `.env.example`
   (ni `.env*`) y ningún workflow lee `secrets.`. Además, `.env.example` deja vacías sus claves de contraseña y solo
-  admite credenciales de prueba declaradas, de modo que no hay nada que excusar.
+  admite credenciales de prueba declaradas, de modo que solo lleva una excusa nominal: `CIMENTA_ALMACEN_CLAVE_ACCESO=cimenta-local` (ver «Ajustes» de impl.md).
 * TC-16 y TC-17 (el escaneo de secretos y la protección de empuje activos, y el empuje con un token revocado) son
   manuales: son ajustes del repositorio y ninguna prueba estática los ve. No están aquí.
 
@@ -375,11 +375,17 @@ FORMAS_DE_CREDENCIAL = (
 CLAVE_SENSIBLE = re.compile(r"CONTRASENA|PASSWORD|SECRET|TOKEN|CLAVE|KEY|LLAVE|CREDENCIAL")
 PREFIJO_DE_PRUEBA = "CIMENTA_PRUEBA_"
 PREFIJO_DE_DESARROLLO = "solo-desarrollo-"
+# Excepción NOMINAL, decidida por la persona dueña del proyecto (TKT-059): `CIMENTA_ALMACEN_CLAVE_ACCESO` es el
+# identificador público de desarrollo del almacén local (MinIO), no un secreto, aunque su nombre contenga «CLAVE».
+# Vale solo para este nombre exacto y este valor exacto: no es un patrón, no se extiende a otras variables del almacén
+# (CIMENTA_ALMACEN_CLAVE_SECRETA sigue siendo una clave sensible) ni libera la comprobación de forma de credencial real.
+IDENTIFICADORES_PUBLICOS_DE_DESARROLLO = {"CIMENTA_ALMACEN_CLAVE_ACCESO": "cimenta-local"}
 
 
 def comprobar_env_example(texto: str) -> list[str]:
     """RNF-07 · `CA-11` esc. 3. Toda clave sensible va vacía, con un valor `solo-desarrollo-*` o como credencial de prueba
-    declarada (`CIMENTA_PRUEBA_*`, con un comentario que diga PRUEBA); ningún valor tiene forma de credencial real."""
+    declarada (`CIMENTA_PRUEBA_*`, con un comentario que diga PRUEBA), o el identificador público `cimenta-local` de
+    `CIMENTA_ALMACEN_CLAVE_ACCESO` (excepción nominal de TKT-059, `impl.md`); ningún valor tiene forma de credencial real."""
     problemas = []
     hay_prueba = False
     for linea in texto.splitlines():
@@ -395,7 +401,12 @@ def comprobar_env_example(texto: str) -> list[str]:
                 problemas.append(f"{clave}: el valor tiene forma de credencial real ({forma})")
         if clave.startswith(PREFIJO_DE_PRUEBA):
             hay_prueba = True
-        elif CLAVE_SENSIBLE.search(clave) and valor and not valor.startswith(PREFIJO_DE_DESARROLLO):
+        elif (
+            CLAVE_SENSIBLE.search(clave)
+            and valor
+            and not valor.startswith(PREFIJO_DE_DESARROLLO)
+            and IDENTIFICADORES_PUBLICOS_DE_DESARROLLO.get(clave) != valor
+        ):
             problemas.append(
                 f"{clave}: una clave sensible solo puede llevar un valor {PREFIJO_DE_DESARROLLO}* o ser una credencial de prueba declarada"
             )
@@ -1336,7 +1347,7 @@ CIMENTA_PRUEBA_CONTRASENA=Cimenta-Prueba-2026
 
 
 class PruebasDeMutantesDeEnvExample(unittest.TestCase):
-    """`.env.example` no lleva nada que haya que excusar: cada rechazo se prueba sobre texto sintético."""
+    """`.env.example` solo lleva una excusa, nominal: `CIMENTA_ALMACEN_CLAVE_ACCESO=cimenta-local`. Cada rechazo se prueba sobre texto sintético."""
 
     def test_tc18_env_mutantes_el_texto_valido_pasa(self):
         """RNF-07 · CA-11 esc. 3 · TC-18 — control: valores `solo-desarrollo-*`, credenciales de prueba declaradas y claves sensibles comentadas pasan."""
@@ -1399,6 +1410,54 @@ class PruebasDeMutantesDeEnvExample(unittest.TestCase):
             sin_declarar,
             "ningún comentario que las declare como de PRUEBA",
         )
+
+    def test_tc18_env_mutantes_el_identificador_publico_de_desarrollo_pasa(self):
+        """RNF-07 · CA-11 esc. 3 · TC-18 — control: `CIMENTA_ALMACEN_CLAVE_ACCESO=cimenta-local`, identificador público de desarrollo
+        declarado por nombre y valor, pasa."""
+        self.assertEqual(
+            comprobar_env_example(ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_ACCESO=cimenta-local\n"), []
+        )
+
+    def test_tc18_env_mutantes_la_excepcion_es_nominal_y_no_libera_nada_mas(self):
+        """RNF-07 · CA-11 esc. 3 · TC-18 — rechazo: la excepción de `CIMENTA_ALMACEN_CLAVE_ACCESO` vale solo para ese nombre y ese valor.
+        Otra clave sensible con valor no declarado sigue en rojo, aunque lleve el mismo valor; el mismo nombre con otro valor
+        o con un valor que solo empieza igual, también; y las variantes del nombre no heredan la excepción. Un valor real
+        bajo el nombre excepcionado tampoco la hereda: falla por clave sensible y por forma de credencial."""
+        casos = {
+            "otra clave sensible con valor no declarado": (
+                ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_SECRETA=algo\n",
+                "CIMENTA_ALMACEN_CLAVE_SECRETA: una clave",
+            ),
+            "otra clave sensible con el mismo valor que la excepción": (
+                ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_SECRETA=cimenta-local\n",
+                "CIMENTA_ALMACEN_CLAVE_SECRETA: una clave",
+            ),
+            "el mismo nombre con otro valor": (
+                ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_ACCESO=otro-valor\n",
+                "CIMENTA_ALMACEN_CLAVE_ACCESO: una clave",
+            ),
+            "el mismo nombre con un valor que solo empieza igual": (
+                ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_ACCESO=cimenta-local-real\n",
+                "CIMENTA_ALMACEN_CLAVE_ACCESO: una clave",
+            ),
+            "variante con sufijo numérico": (
+                ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_ACCESO2=cimenta-local\n",
+                "CIMENTA_ALMACEN_CLAVE_ACCESO2: una clave",
+            ),
+            "variante con sufijo de palabra": (
+                ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_ACCESO_SECRETA=cimenta-local\n",
+                "CIMENTA_ALMACEN_CLAVE_ACCESO_SECRETA: una clave",
+            ),
+            "variante con otro prefijo": (
+                ENV_VALIDO + "CIMENTA_OTRO_CLAVE_ACCESO=cimenta-local\n",
+                "CIMENTA_OTRO_CLAVE_ACCESO: una clave",
+            ),
+            "el nombre excepcionado con una credencial real": (
+                ENV_VALIDO + "CIMENTA_ALMACEN_CLAVE_ACCESO=" + CLAVE_AWS_SINTETICA + "\n",
+                "CIMENTA_ALMACEN_CLAVE_ACCESO: el valor tiene forma de credencial real",
+            ),
+        }
+        exigir_rojo_en_todos(self, comprobar_env_example, casos)
 
 
 class DefinicionDeEnvExample(unittest.TestCase):

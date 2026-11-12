@@ -32,7 +32,7 @@ Conexion = psycopg.Connection[tuple[Any, ...]]
 
 REVISION_ANTERIOR = "0009"
 REVISION_0010 = "0010"
-CABEZA = "0011"
+CABEZA = "0012"
 FUNCION = "presupuesto_proteger_copia_congelada"
 
 # Las cuatro tablas que toca `0010` o que cuelgan de lo que toca.

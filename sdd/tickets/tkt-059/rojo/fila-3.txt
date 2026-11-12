@@ -1,0 +1,14 @@
+Rojo de la fila 3 (resumen de la salida de pytest; salida completa de 140 KB no versionada).
+75 failed in 0.60s
+     30 ModuleNotFoundError: No module named 'cimenta.archivos.dominio.declaracion'
+     24 ModuleNotFoundError: No module named 'cimenta.archivos.dominio.confirmacion'
+     19 ModuleNotFoundError: No module named 'cimenta.archivos.dominio.tipos'
+      2 AssertionError: Faltan archivos en cimenta/archivos/dominio/: ['confirmacion.py', 'declaracion.py', 'tipos.py']
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_pureza_dominio_archivos_solo_biblioteca_estandar_y_tipos_base
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_pureza_dominio_archivos_sin_datetime_os_ni_socket
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_dominio_tipos_y_disposicion_rechaza_lo_no_listado[video/quicktime]
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_dominio_tipos_y_disposicion_rechaza_lo_no_listado[text/xml]
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_dominio_tipos_y_disposicion_rechaza_lo_no_listado[image/svg+xml]
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_dominio_tipos_y_disposicion_rechaza_lo_no_listado[image/jpg]
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_dominio_tipos_y_disposicion_rechaza_lo_no_listado[image/heif]
+      1 FAILED tests/test_tkt059_dominio.py::test_tkt059_dominio_tipos_y_disposicion_rechaza_lo_no_listado[image/gif]

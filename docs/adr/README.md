@@ -61,6 +61,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-11-05 | [El concepto es único por obra; su cantidad y su precio viven en el concepto de partida](20261105-concepto-unico-y-concepto-de-partida.md) | Aceptado | presupuesto · TKT-072 · completa [la copia física](20260918-snapshot-linea-base.md) |
 | 2026-11-05 | [El ciclo de la línea base de una obra se serializa con el bloqueo de la fila de la obra](20261105-ciclo-de-la-linea-base-serializado-por-la-obra.md) | Aceptado | presupuesto · TKT-017 · completa [el bloqueo pesimista](20260918-bloqueo-pesimista-presupuesto.md) |
 | 2026-11-10 | [El código de obra es único por el índice `uq_obra_codigo` y el alta traduce su `23505`, sin comprobación previa](20261110-unicidad-del-codigo-de-obra.md) | Aceptado | presupuesto · TKT-012a · completa [la inmutabilidad en el motor](20261101-inmutabilidad-de-la-linea-base-en-el-motor.md) |
+| 2026-11-11 | [El almacén local vive en `compose.almacen.yaml`, con una imagen fijada por digest y el CORS por variable de entorno](20261111-almacen-local-en-compose-aparte.md) | Aceptado | archivos · TKT-059 · concreta [el almacenamiento de objetos](20261001-almacenamiento-de-objetos.md) |
 
 ## Plantilla
 

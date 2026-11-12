@@ -1,0 +1,145 @@
+== puremagic.magic_string: candidatas en orden y resolución por EXTENSIONES_DISENO
+  puremagic 2.2.0
+- JPEG: 5 candidatas
+    extension='.jfif' mime_type='image/jpeg'
+    extension='.jpeg' mime_type='image/jpeg'
+    extension='.jpe' mime_type='image/jpeg'
+    extension='.jpg' mime_type='image/jpeg'
+    extension='.jpe' mime_type='image/jpeg'
+    PRIMERA extension='.jfif' mime_type='image/jpeg'
+    resolucion con la tabla del diseno: .jpeg -> image/jpeg
+- PNG: 1 candidatas
+    extension='.png' mime_type='image/png'
+    PRIMERA extension='.png' mime_type='image/png'
+    resolucion con la tabla del diseno: .png -> image/png
+- WebP: 15 candidatas
+    extension='.webp' mime_type='image/webp'
+    extension='.webp' mime_type='image/webp'
+    extension='.webp' mime_type='image/webp'
+    extension='.4xm' mime_type=''
+    extension='.cdr' mime_type=''
+    extension='.avi' mime_type='video/avi'
+    extension='.cda' mime_type=''
+    extension='.qcp' mime_type='audio/vnd.qcelp'
+    extension='.rmi' mime_type='audio/mid'
+    extension='.wav' mime_type='audio/wav'
+    extension='.ds4' mime_type=''
+    extension='.ani' mime_type='application/x-navi-animation'
+    extension='.dat' mime_type='video/mpeg'
+    extension='.cmx' mime_type=''
+    extension='.webp' mime_type='image/webp'
+    PRIMERA extension='.webp' mime_type='image/webp'
+    resolucion con la tabla del diseno: .webp -> image/webp
+- HEIC (ftypheic): 2 candidatas
+    extension='.heif' mime_type='image/heif'
+    extension='.sndr' mime_type='audio/x-sndr'
+    PRIMERA extension='.heif' mime_type='image/heif'
+    resolucion con la tabla del diseno: .heif -> image/heic
+- MP4 (ftypisom): 3 candidatas
+    extension='.mp4' mime_type='video/mp4'
+    extension='.mp4' mime_type='video/mp4'
+    extension='.sndr' mime_type='audio/x-sndr'
+    PRIMERA extension='.mp4' mime_type='video/mp4'
+    resolucion con la tabla del diseno: .mp4 -> video/mp4
+- PDF: 2 candidatas
+    extension='.pdf' mime_type='application/pdf'
+    extension='.fdf' mime_type='application/vnd.fdf'
+    PRIMERA extension='.pdf' mime_type='application/pdf'
+    resolucion con la tabla del diseno: .pdf -> application/pdf
+- MZ (ejecutable): 26 candidatas
+    extension='.zap' mime_type=''
+    extension='.flt' mime_type=''
+    extension='.api' mime_type=''
+    extension='.ax' mime_type=''
+    extension='.exe' mime_type='application/vnd.microsoft.portable-executable'
+    extension='.dll' mime_type='application/vnd.microsoft.portable-executable'
+    extension='.drv' mime_type='application/vnd.microsoft.portable-executable'
+    extension='.sys' mime_type='application/vnd.microsoft.portable-executable'
+    extension='.exe' mime_type='application/octet-stream'
+    extension='.ocx' mime_type=''
+    extension='.scr' mime_type=''
+    extension='.acm' mime_type=''
+    extension='.olb' mime_type=''
+    extension='.fon' mime_type=''
+    extension='.vxd' mime_type=''
+    extension='.386' mime_type=''
+    extension='.cpl' mime_type=''
+    extension='.com' mime_type='application/octet-stream'
+    extension='.dll' mime_type='application/octet-stream'
+    extension='.drv' mime_type='application/octet-stream'
+    extension='.pif' mime_type='application/octet-stream'
+    extension='.qts' mime_type='application/octet-stream'
+    extension='.qtx' mime_type='application/octet-stream'
+    extension='.sys' mime_type='application/octet-stream'
+    extension='.vbx' mime_type='application/octet-stream'
+    extension='.ax' mime_type=''
+    PRIMERA extension='.zap' mime_type=''
+    resolucion con la tabla del diseno: fuera de EXTENSIONES_DISENO
+- ZIP: 32 candidatas
+    extension='.docx' mime_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    extension='.pptx' mime_type='application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    extension='.xlsx' mime_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    extension='.xlsb' mime_type='application/vnd.ms-excel.sheet.binary.macroenabled.12'
+    extension='.xltm' mime_type='application/vnd.ms-excel.template.macroenabled.12'
+    extension='.xltx' mime_type='application/vnd.openxmlformats-officedocument.spreadsheetml.template'
+    extension='.xlam' mime_type='application/vnd.ms-excel.addin.macroenabled.12'
+    extension='.docm' mime_type='application/vnd.ms-word.document.macroEnabled.12'
+    extension='.dotx' mime_type='application/vnd.openxmlformats-officedocument.wordprocessingml.template'
+    extension='.dotm' mime_type='application/vnd.ms-word.template.macroenabled.12'
+    extension='.pptm' mime_type='application/vnd.ms-powerpoint.presentation.macroEnabled.12'
+    extension='.potx' mime_type='application/vnd.openxmlformats-officedocument.presentationml.template'
+    extension='.potm' mime_type='application/vnd.ms-powerpoint.template.macroenabled.12'
+    extension='.xlsm' mime_type='application/vnd.ms-excel.sheet.macroEnabled.12'
+    extension='.zip' mime_type='application/zip'
+    extension='.xpi' mime_type=''
+    extension='.wmz' mime_type=''
+    extension='.xpt' mime_type=''
+    extension='.kwd' mime_type=''
+    extension='.xps' mime_type=''
+    extension='.jar' mime_type='application/java-archive'
+    extension='.odt' mime_type='application/vnd.oasis.opendocument.text'
+    extension='.odp' mime_type='application/vnd.oasis.opendocument.presentation'
+    extension='.ott' mime_type='application/vnd.oasis.opendocument.text-template'
+    extension='.sxd' mime_type=''
+    extension='.sxi' mime_type=''
+    extension='.sxw' mime_type=''
+    extension='.apk' mime_type=''
+    extension='.cbz' mime_type='application/vnd.comicbook+zip'
+    extension='.fb2.zip' mime_type='application/fictionbook2+zip'
+    extension='.fbz' mime_type='application/fictionbook2+zip'
+    extension='.fb3' mime_type='application/fictionbook3+zip'
+    PRIMERA extension='.docx' mime_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    resolucion con la tabla del diseno: fuera de EXTENSIONES_DISENO
+
+== Variantes de marca (comprobación adicional, no entran en el veredicto)
+  HEIC mif1: primera=.sndr/audio/x-sndr · tabla=fuera de la tabla
+  HEIC heix: primera=.heic/image/heic · tabla=.heic -> image/heic
+  HEIC msf1: primera=.sndr/audio/x-sndr · tabla=fuera de la tabla
+  MP4 mp42: primera=.mp4/video/mp4 · tabla=.mp4 -> video/mp4
+  MP4 M4V: primera=.mp4/video/mp4 · tabla=.mp4 -> video/mp4
+  JPEG EXIF (FFD8FFE1): primera=.jfif/image/jpeg · tabla=.jpeg -> image/jpeg
+  WebP VP8L: primera=.webp/image/webp · tabla=.webp -> image/webp
+
+== DefusedXMLParser: DOCTYPE con entidades
+  feed lanzo DTDForbidden: DTDForbidden(name='lolz', system_id=None, public_id=None)
+  lanza durante feed: DTDForbidden
+
+== DefusedXMLParser: SVG
+  eventos start (sin close): ['{http://www.w3.org/2000/svg}svg', '{http://www.w3.org/2000/svg}rect']
+
+== RESUMEN E-3
+  JPEG: .jpeg -> image/jpeg
+  PNG: .png -> image/png
+  WebP: .webp -> image/webp
+  HEIC (ftypheic): .heif -> image/heic
+  MP4 (ftypisom): .mp4 -> video/mp4
+  PDF: .pdf -> application/pdf
+  MZ (ejecutable): fuera de EXTENSIONES_DISENO
+  ZIP: fuera de EXTENSIONES_DISENO
+  seis tipos binarios dan extension de la tabla: True
+  binarios sin tabla (requieren firma propia): []
+  MZ fuera de la tabla: True
+  DOCTYPE lanza durante feed: True
+  SVG entrega {http://www.w3.org/2000/svg}svg a start: True
+VEREDICTO E-3 = OK
+EXIT=0

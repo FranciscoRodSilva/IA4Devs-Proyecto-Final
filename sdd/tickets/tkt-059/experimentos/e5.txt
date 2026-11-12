@@ -1,0 +1,32 @@
+
+######## FASE 1 · regla de bucket (a) y (b), sin MINIO_API_CORS_ALLOW_ORIGIN · endpoint=http://localhost:49811 · env={}
+
+== (baseline) preflight sin regla de bucket
+  Origin=http://localhost:5173 -> HTTP 204 · {'access-control-allow-credentials': 'true', 'access-control-allow-headers': 'x-amz-checksum-sha256', 'access-control-allow-methods': 'PUT', 'access-control-allow-origin': 'http://localhost:5173'}
+  Origin=http://otro.prueba.test -> HTTP 204 · {'access-control-allow-credentials': 'true', 'access-control-allow-headers': 'x-amz-checksum-sha256', 'access-control-allow-methods': 'PUT', 'access-control-allow-origin': 'http://otro.prueba.test'}
+
+== (a) put_bucket_cors con la regla de «CORS del almacén»
+  ClientError code=NotImplemented status=501
+  get_bucket_cors -> ClientError NoSuchCORSConfiguration
+
+== (b) preflight tras (a)
+  Origin=http://localhost:5173 -> HTTP 204 · {'access-control-allow-credentials': 'true', 'access-control-allow-headers': 'x-amz-checksum-sha256', 'access-control-allow-methods': 'PUT', 'access-control-allow-origin': 'http://localhost:5173'}
+  Origin=http://otro.prueba.test -> HTTP 204 · {'access-control-allow-credentials': 'true', 'access-control-allow-headers': 'x-amz-checksum-sha256', 'access-control-allow-methods': 'PUT', 'access-control-allow-origin': 'http://otro.prueba.test'}
+  PUT firmado con Origin=http://localhost:5173 -> HTTP 200 · Access-Control-Allow-Origin='http://localhost:5173'
+  PUT firmado con Origin=http://otro.prueba.test -> HTTP 200 · Access-Control-Allow-Origin='http://otro.prueba.test'
+
+== Veredicto fase 1: (a)=error NotImplemented · (b) restringe por bucket = False · (d) ACAO SPA='http://localhost:5173' · (d) ACAO otro='http://otro.prueba.test'
+
+######## FASE 2 · sin regla de bucket, con MINIO_API_CORS_ALLOW_ORIGIN=http://localhost:5173 · endpoint=http://localhost:49826 · env={'MINIO_API_CORS_ALLOW_ORIGIN': 'http://localhost:5173'}
+
+== (baseline) preflight sin regla de bucket
+  Origin=http://localhost:5173 -> HTTP 204 · {'access-control-allow-credentials': 'true', 'access-control-allow-headers': 'x-amz-checksum-sha256', 'access-control-allow-methods': 'PUT', 'access-control-allow-origin': 'http://localhost:5173'}
+  Origin=http://otro.prueba.test -> HTTP 204 · {}
+  PUT firmado con Origin=http://localhost:5173 -> HTTP 200 · Access-Control-Allow-Origin='http://localhost:5173'
+  PUT firmado con Origin=http://otro.prueba.test -> HTTP 200 · Access-Control-Allow-Origin=None
+
+== Veredicto fase 2: restringe por variable global = True · (d) ACAO SPA='http://localhost:5173' · (d) ACAO otro=None
+CASO (c2): MinIO responde NotImplemented o no aplica la regla de bucket, y respeta MINIO_API_CORS_ALLOW_ORIGIN
+
+== RESUMEN E-5 · caso = c2
+EXIT=0

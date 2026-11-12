@@ -5,11 +5,13 @@ description = "Backend de CIMENTA: control de costos de obra."
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.0",
+    "boto3>=1.44.1",
     "defusedxml>=0.7.1",
     "email-validator>=2.3.0",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.159.1",
     "openpyxl>=3.1.5",
     "psycopg[binary]>=3.3.6",
+    "puremagic>=2.2.0",
     "pwdlib[argon2]>=0.3.1",
     "pydantic>=2.14.1",
     "pydantic-settings>=2.16.1",
@@ -19,6 +21,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "boto3-stubs[s3]>=1.44.0",
     "import-linter>=2.15",
     "jsonschema>=4.26.0",
     "mypy>=2.4.0",
@@ -27,7 +30,8 @@ dev = [
     "pytest-cov>=7.1.0",
     "pyyaml>=6.0.3",
     "ruff>=0.17.1",
-    "testcontainers[postgres]>=4.15.0",
+    "testcontainers[minio,postgres]>=4.15.0",
+    "types-defusedxml>=0.7.0.20260504",
     "types-jsonschema>=4.26.0.20261006",
     "types-openpyxl>=3.1.5.20261017",
     "types-pyyaml>=6.0.12.20260906",
@@ -54,6 +58,7 @@ exclude = ['^\.venv/']
 [[tool.mypy.overrides]]
 module = [
     "cimenta.*.dominio.*",
+    "cimenta.archivos.*",
     "cimenta.auditoria.*",
     "cimenta.identidad.*",
     "tipos_base.*",

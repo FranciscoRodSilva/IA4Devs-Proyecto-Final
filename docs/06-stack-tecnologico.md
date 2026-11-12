@@ -477,7 +477,7 @@ Comprobaciones que no existen como herramienta de terceros. Viven en [`tools/`](
 
 ### Local
 
-**Docker Compose** (`compose.yaml`, en la raíz) con dos servicios: PostgreSQL, desde TKT-003, y **MinIO**, desde TKT-059, ambos con volumen persistente. PostgreSQL es la versión mayor 18, la misma que se contratará en producción `(asumido)`; las pruebas leen la etiqueta exacta de `compose.yaml`. El backend y el frontend corren en el anfitrión con uv y Vite. Meter la aplicación en un contenedor durante el desarrollo añadiría un ciclo de reconstrucción sin ganar nada a esta escala.
+**Docker Compose** con dos servicios, ambos con volumen persistente: PostgreSQL, en `compose.yaml` desde TKT-003, y **MinIO**, en `compose.almacen.yaml` desde TKT-059. MinIO va en un segundo archivo, que se carga con `-f compose.yaml -f compose.almacen.yaml`, porque Compose interpola el archivo entero y las variables obligatorias del almacén harían fallar `docker compose up -d db` en quien aún no las tiene. La imagen es `pgsty/minio`, un fork comunitario: `minio/minio` ya no se descarga (comprobado el 2026-11-11: Docker Hub lo rechaza). El compose la fija por etiqueta y digest (`pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe723…2372`) y su procedencia se revisa en TKT-073 antes de producción; el motivo está en [su ADR](adr/20261111-almacen-local-en-compose-aparte.md). PostgreSQL es la versión mayor 18, la misma que se contratará en producción `(asumido)`; las pruebas leen la etiqueta exacta de `compose.yaml`. El backend y el frontend corren en el anfitrión con uv y Vite. Meter la aplicación en un contenedor durante el desarrollo añadiría un ciclo de reconstrucción sin ganar nada a esta escala.
 
 MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el que corre producción, con otro `endpoint_url`. Desarrollar contra un disco local y desplegar contra objetos habría dejado sin probar justo lo que falla —firmas, caducidad, cabeceras de respuesta.
 
@@ -499,7 +499,7 @@ MinIO en local no es un doble ni una concesión: es el mismo API de S3 contra el
 
 Dos reglas de higiene rigen el archivo. Cada acción se fija por SHA completo, con su versión en un comentario, porque una etiqueta se mueve y un SHA no. Y el intérprete de Python es el 3.14, con el mismo `uv sync --locked --python 3.14` que documenta [`arranque-local.md`](arranque-local.md), porque sin fijarlo `uv` elige el más nuevo y puede compilar mal `pyyaml`. Ningún paso lleva `continue-on-error`: una compuerta que no falla está desactivada.
 
-**Desviación respecto a TKT-009.** El trabajo `backend` no levanta MinIO. Su servicio y sus pruebas contra un almacén real llegan con TKT-059, que los añade a ese trabajo, porque antes no existe el adaptador de almacén que los usaría.
+**Desviación respecto a TKT-009.** El trabajo `backend` no levantaba MinIO porque antes no existía el adaptador de almacén que lo usaría. Con TKT-059 las pruebas contra un almacén real entran a ese trabajo por testcontainers, igual que PostgreSQL: el flujo no declara ningún servicio de MinIO.
 
 Nivel de aviso en local, nivel de error en el pipeline. La auditoría de dependencias corre en el trabajo `dependencias`, y la calidad documental completa corre en el trabajo `documentacion`. La prueba de rendimiento del semáforo no es de TKT-009: la añade su propio ticket.
 

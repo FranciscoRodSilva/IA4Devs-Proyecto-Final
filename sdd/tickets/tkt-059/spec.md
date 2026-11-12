@@ -367,6 +367,8 @@ Escenario: Rechazo · otro origen no recibe permiso
   Entonces la respuesta no trae Access-Control-Allow-Origin y el navegador no puede subir
 ```
 
+**Alcance real (aclarado el 2026-11-11, persona dueña).** CORS es una barrera que aplica el navegador, no el almacén: lo que este criterio garantiza es que el navegador solo puede subir desde el origen de la SPA, porque el almacén solo concede `Access-Control-Allow-Origin` a ese origen. MinIO sigue aceptando un `PUT` firmado que llegue desde otro origen sin navegador (por ejemplo, desde `curl`); esa petición ya está acotada por la firma, la suma y la vida de la URL (`CA-3`, `CA-5`), no por CORS. Una barrera adicional en el almacén no es parte de este ticket. En el experimento `E-5` (caso c2) MinIO no implementó `put_bucket_cors` y el origen se fija con la variable `MINIO_API_CORS_ALLOW_ORIGIN`.
+
 Decisión de la persona dueña del 2026-11-06. Si MinIO lo admite por bucket o solo por una variable global del servidor lo decide un experimento del diseño; una prueba contra MinIO real lo comprueba. En la VPS, el CORS lo configura TKT-073.
 
 ### Regresión
