@@ -4,9 +4,9 @@
 
 ## Estado
 
-LISTO PARA PR
+ARCHIVADO
 
-Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, TKT-059c, TKT-059d y TKT-059e. Las cinco están revisadas y acumuladas en la rama; el único PR lo abre `/sdd-completar`. `ARCHIVADO` al fusionarse.
+Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, TKT-059c, TKT-059d y TKT-059e. Las cinco entregas se fusionaron juntas en el PR #68. La planificación queda archivada.
 
 ## Ficha
 
@@ -32,7 +32,7 @@ Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, T
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-05 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Secciones de las cinco entregas escritas (059a a 059e) |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-12 |
-| PR | Se abre en `/sdd-completar`; su número consta en el comentario de registro | `/sdd-completar` | Pendiente |
+| PR | [#68](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/68) | `/sdd-completar` | Fusionado el 2026-11-12 |
 
 ## Log de estados
 
@@ -54,6 +54,7 @@ Paraguas con cinco entregas que se fusionan en este orden: TKT-059a, TKT-059b, T
 | 2026-11-12 | `LISTO PARA EJECUTAR` (entrega 059e) | `EN REVISIÓN` (entrega 059e) | `/sdd-ejecutar TKT-059e` | Filas 14 a 17 ejecutadas con TDD. Las dos rutas `GET` (metadatos y URL de descarga, solo `DIRECCION_GENERAL` y `DIRECTOR_PROYECTOS`), el barrido de arranque de archivos, el lector del ejecutor conectado en la fábrica y la prueba «ninguna ruta binaria». Cambio del borrador OpenAPI de 059e (**señalar a quien apruebe el PR: toca `docs/api/openapi.yaml`**). Suite `3275 passed, 26 skipped`; tabla completa de mutantes del diseño sin supervivientes; `pip-audit` limpio. `auditor-arquitectura` `APROBADO` en un ciclo. Quedan abiertas, sin bloqueo: la conexión del pool durante la descarga del lector (el diseño la fija así; deuda junto a `O-1` de 059d) y la ausencia de control de obra en las lecturas **(asumido: decisión por rol de `PA-T59.8`; no existe eje de asignación por obra; supuesto vigente para TKT-018)**. Un corte por límite de uso interrumpió al tester de cierre; se reanudó tras comprobar que el árbol no tenía restos de mutantes. Siguiente: `/sdd-revisar TKT-059` |
 | 2026-11-12 | `EN REVISIÓN` (entrega 059e) | `LISTO PARA PR` | `/sdd-revisar TKT-059` | Entrega 059e revisada; es la última del paraguas, así que no hay commit de entrega: lo hace `/sdd-completar`. Un ciclo de corrección: `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` y `auditor-docs` `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` (de código de pruebas, de redacción y de supuestos; comunicados a la persona dueña). Decisiones de la persona dueña: los metadatos de un `PENDIENTE` o `ANULADO` se sirven con su estado (`PA-T59.15`), los cuatro enlaces rotos de TKT-018b se corrigen en esta rama y `O4`, `O5` y `Body.read(fin - inicio + 1)` de 059b se descartan aquí y pasan a un ticket de seguimiento. Suite `3279 passed, 26 skipped`; `verificar_docs.py` sin problemas. **Señal para quien apruebe el PR: toca `docs/api/openapi.yaml` (059d y 059e) y corrige enlaces de `sdd/tickets/tkt-018b/`.** Siguiente: `/sdd-completar TKT-059` |
 | 2026-11-12 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar TKT-059` | Delta escrito para el ticket entero (cinco entregas) y enlazado. Primera auditoría de documentación del cierre: dos Mayores y siete Menores, resueltos aquí (la excepción nominal de `TC-18` declarada y justificada, las debilidades abiertas del detector reducidas a nivel de deuda por ser el repositorio público, las cifras y listas de contrato del delta, la procedencia de la imagen `pgsty/minio` llevada a TKT-073 y la tabla continua de este Log). Seis observaciones de proceso añadidas a `sdd/_evolucion.md`. Siguiente: PR único por ticket |
+| 2026-11-12 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar TKT-059` | PR #68 fusionado en `Produccion` (commit `4b5cd9a`) con las diez comprobaciones requeridas en verde sobre `be0ac16`. `Produccion` no tenía protección de rama al fusionar, así que fue un merge normal sin `--admin`, con la aprobación de la persona dueña; el registro consta en el comentario del PR. La planificación queda archivada; el despliegue es un evento posterior. Deuda abierta y tickets sugeridos en [delta.md](delta.md) |
 
 ## Decisiones registradas
 
