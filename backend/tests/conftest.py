@@ -40,6 +40,7 @@ from testcontainers.community.minio import MinioContainer
 from testcontainers.community.postgres import PostgresContainer
 
 if TYPE_CHECKING:
+    from cimenta.archivos.infraestructura.almacen_s3 import AlmacenS3
     from mypy_boto3_s3 import S3Client
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -1574,3 +1575,21 @@ def bucket_de_pruebas(cliente_s3: "S3Client") -> str:
     """El bucket compartido de la sesión, creado una vez. Devuelve su nombre."""
     cliente_s3.create_bucket(Bucket=BUCKET_DE_PRUEBAS)
     return BUCKET_DE_PRUEBAS
+
+
+@pytest.fixture
+def almacen(contenedor_minio: MinioContainer, bucket_de_pruebas: str) -> "AlmacenS3":
+    """El adaptador real sobre MinIO de prueba, con `endpoint=None`: el origen es el del contenedor.
+
+    El import va dentro de la fixture: hasta que exista el adaptador (TKT-059, fila 5), solo fallan
+    las pruebas que lo piden, no la colección de la suite.
+    """
+    from cimenta.archivos.infraestructura.almacen_s3 import crear_almacen_s3
+
+    return crear_almacen_s3(
+        endpoint=None,
+        origen=_endpoint_de(contenedor_minio),
+        bucket=bucket_de_pruebas,
+        clave_acceso=contenedor_minio.access_key,
+        clave_secreta=contenedor_minio.secret_key,
+    )

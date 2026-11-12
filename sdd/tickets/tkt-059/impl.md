@@ -293,3 +293,206 @@ python tools/verificar_docs.py →  293 documentos, 42 ADR; falla solo por los c
 Se queda fuera de esta entrega, por ser de otro ticket: los cuatro problemas de `verificar_docs.py` en `sdd/tickets/tkt-018b/` (`F000` del auditor, ajeno). Deuda aceptada: `O-01` de `auditor-sql`, el rol de aplicación conserva `UPDATE` sobre toda la tabla `archivo`. Observaciones del auditor de código para las entregas siguientes: la división entera de los MiB en el mensaje de `FUERA_DE_RANGO` con límites que no sean múltiplo de 1 MiB (`O1`), el llamador de `tipo_admitido` (`O2`) y la unificación de los clientes `boto3` cuando exista `crear_almacen_s3` (fila 5). De seguridad para 059b: el rechazo de `NUL` en `nombre_original`, que la clave del objeto no se derive del nombre, forzar `response-content-disposition` y `nosniff`, y guardar el tipo normalizado.
 
 Criterios de la entrega 059a: todos los `[M]` de su alcance cumplidos con evidencia (ver la tabla de arriba); `CA-2` y `CA-3` a `CA-8` quedan completos en 059b a 059e. Desviaciones: las de «Ajustes respecto al design».
+
+## Entrega TKT-059b · Adaptadores del almacén (filas 5 a 7)
+
+Fecha de ejecución: 2026-11-11. Misma rama del ticket, `tkt-059-archivos-minimo`, partiendo del commit de cierre de 059a (`1fce498`).
+
+### Qué se implementó
+
+- El puerto `AlmacenObjetos` y el adaptador `AlmacenS3`, con dos clientes `boto3`: el firmante usa el origen público y el cliente de operaciones usa el endpoint interno (o el origen, si falta).
+- El detector del tipo por los bytes, `detectar_tipo`, con lecturas por rango acotadas: reconoce JPEG, PNG, WebP, HEIC, MP4, PDF, XML y `.xlsx`, y rechaza SVG, `.xlsm`, ZIP genérico y XML con `DOCTYPE` o entidades.
+- El ADR `20261111-confirmacion-de-archivos-sin-descargar-el-objeto.md` y los avisos del ADR-016 y del stack §4.6.
+
+### Ajustes respecto al design (059b)
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-11 | `UrlFirmada` vive en `dominio/url_firmada.py` (dataclass congelado sin lógica) y `aplicacion/puertos.py` la re-exporta; el diseño la ponía en `puertos.py`. | `infraestructura` construye `UrlFirmada` y no puede importar `aplicacion` (contrato `esqueleto-capas`, mismo precedente que `identidad/infraestructura/contrasenas.py`). Los imports de los tests no cambian |
+| 2026-11-11 | El detector quita el BOM UTF-8 y los blancos iniciales antes de decidir si la cabecera es XML. | El diseño decía «sin BOM ni blancos iniciales», pero `puremagic` no reconoce el XML con BOM ni con blancos (lista vacía) y `TC-25` exige `application/xml`. El código ya coincide con esta lectura |
+| 2026-11-11 | La cabecera local del ZIP se lee en 30 bytes; las longitudes de nombre y extra salen de ahí y los datos comprimidos se leen por su posición calculada. | Menos bytes leídos y mismo resultado. El diseño decía «30 bytes más nombre y extra» |
+| 2026-11-11 | `TC-08` busca los nombres de destino como palabra completa y lleva un control sobre texto sintético. | El test original buscaba subcadenas y «dominio» contiene «minio», palabra que el adaptador necesita en `from cimenta.archivos.dominio…`. Error del propio test, corregido por `tester-backend` |
+| 2026-11-11 | `TC-33` sincroniza la firma con el inicio de un segundo y sondea el `403` sin `sleep`. | `X-Amz-Date` tiene precisión de segundo; con una vida de 1 s una URL firmada al final de un segundo podía caducar antes del primer `GET`. `esperar_hasta` no existe todavía en `conftest.py` (lo sube la fila 12a), así que el sondeo vive en el archivo de pruebas |
+| 2026-11-11 | La mutación descubrió una laguna (`M-08c`, `forbid_dtd=False` en la parte del ZIP) y la auditoría tres huecos más: la suma firmada, el tope de descompresión y el nombre hostil de la descarga. Se añadieron cinco tests y todos los mutantes caen. | Ver «Mutación» y «Auditorías». El test del tope de descompresión añade una aserción de memoria (`tracemalloc`, tope 16 MiB), porque con `decompress(datos)` sin tope el resultado era idéntico y 64 MiB se descomprimen en milisegundos |
+
+Decidido el 2026-11-11 por la persona dueña, que deja el diseño como está: el diseño aprobado clasifica como `video/mp4` cualquier `ftyp` que no sea marca HEIC, de modo que `avif`, `qt` (QuickTime) y `3gp*` entrarían como vídeo, y un AVIF con marca mayor `mif1` sale como `image/heic`. Es benigno porque el tipo se reescribe y todo sigue dentro de la lista blanca, y se acepta ese comportamiento; si más adelante esos formatos deben tener tipo propio o quedar fuera, será un cambio de diseño aparte.
+
+### Archivos tocados (059b)
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/archivos/aplicacion/puertos.py` | nuevo | aplicación |
+| `backend/cimenta/archivos/dominio/url_firmada.py` | nuevo | dominio |
+| `backend/cimenta/archivos/infraestructura/almacen_s3.py` | nuevo | infraestructura |
+| `backend/cimenta/archivos/infraestructura/detector_tipo.py` | nuevo | infraestructura |
+| `backend/tests/test_tkt059_almacen.py`, `test_tkt059_detector.py` | nuevos | pruebas |
+| `backend/tests/conftest.py` | modificado (fixture `almacen`) | pruebas |
+| `docs/adr/20261111-confirmacion-de-archivos-sin-descargar-el-objeto.md` | nuevo | documentación |
+| `docs/adr/20261001-almacenamiento-de-objetos.md`, `docs/adr/README.md`, `docs/06-stack-tecnologico.md`, `CLAUDE.md`, `README.md`, `llms.txt` | modificados (aviso de TKT-073, lista blanca, conteo a 43 ADR) | documentación |
+
+### Pruebas y ciclo TDD por fila (059b)
+
+| Fila | Rojo | Ejecutó | Verde | Mutantes |
+|---|---|---|---|---|
+| 5 | `2 failed, 7 errors in 2.21s` (`ModuleNotFoundError` de `almacen_s3` y `puertos`, dentro de la fixture o del test) | `tester-backend` → `desarrollador-aplicacion` | `10 passed` tras corregir `TC-08` | `M-21` |
+| 6 | `31 failed in 0.50s` (`ModuleNotFoundError: …detector_tipo`) | `tester-backend` → `desarrollador-aplicacion` | `31 passed` | `M-06`, `M-07`, `M-08`, `M-16` y extras |
+| 7 | No aplica (cierre) | `tester-backend`; el orquestador para la documentación | Suite completa, abajo | Sí |
+
+Los rojos de las filas 5 y 6 son por la ausencia de un módulo nuevo, que es el rojo de una capa nueva según el diseño; el import está dentro del test o de la fixture, así que no es un error de colección.
+
+| # | Test | Criterio |
+|---|---|---|
+| TC-08 | `test_tkt059_ca02_el_destino_cambia_solo_por_endpoint` (+ control del comprobador) | `CA-2` |
+| TC-08b | `test_tkt059_ca02_las_url_llevan_el_origen_publico` y variante sin endpoint | `CA-2` |
+| TC-21 | `test_tkt059_ca05_el_almacen_rechaza_la_subida_distinta`, la de otro tamaño y `…_una_suma_distinta_de_la_firmada` | `CA-5` |
+| TC-33 | `test_tkt059_ca08_la_url_caduca` | `CA-8` |
+| TC-25 | `test_tkt059_ca06_el_detector_reconoce_la_lista_blanca` (19 casos) | `CA-6` |
+| TC-25b | `test_tkt059_ca06_el_detector_rechaza_lo_no_admitido` (19 casos, con los dos `DOCTYPE` en el ZIP) | `CA-6` |
+| TC-52 | `test_tkt059_ca04_el_detector_lee_rangos_acotados` (4) y `…_parte_deflate_que_expande_mas_del_maximo` | `CA-4`, `PA-T59.14` |
+| — | `test_tkt059_ca08_la_disposicion_neutraliza_nombres_hostiles` | `CA-8` |
+
+#### Evidencia de ejecución al cerrar (corrida del 2026-11-11, anterior a los cinco tests añadidos después)
+
+```text
+uv run pytest -q -ra          →  2959 passed, 26 skipped in 582.70s (0:09:42)
+uv run ruff format --check .  →  303 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 303 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+pip-audit (como el pipeline)  →  No known vulnerabilities found
+python -m unittest discover -s tools/tests →  Ran 518 tests … OK
+```
+
+Después de esa corrida se añadieron cinco tests por la laguna `M-08c` y la auditoría (dos en el detector, tres en el almacén); los dos archivos afectados dieron `46 passed` y `ruff`, `mypy` y `lint-imports` salieron limpios. La suite completa se volvió a correr en `/sdd-revisar`; su resultado está en la «Verificación final» de esta entrega.
+
+#### Mutación en rutas críticas (059b)
+
+Huella SHA-256 de los `.py` de `backend/` idéntica antes y después de cada mutante; un mutante a la vez, con copias fuera del repositorio.
+
+| Mutante | Test que cae |
+|---|---|
+| `M-06` · no mirar si la raíz es `svg` | `…rechaza_lo_no_admitido[svg-con-declaracion]` y `[svg-sin-declaracion]` |
+| `M-07` · cualquier ZIP con `[Content_Types].xml` es `.xlsx` | `…[zip-sin-parte-de-libro]` y `[xlsm-con-macros]` |
+| `M-08a` · `forbid_dtd=False` en el parser de XML | `…[xml-con-doctype]` |
+| `M-08b` · los tres `forbid_*=False` | `[xml-con-doctype]` y `[xml-con-entidades]` |
+| `M-08c` · `fromstring(parte, forbid_dtd=False)` | Sobrevivía; ahora cae `zip-con-doctype-en-content-types` |
+| `M-16` · leer el objeto entero en un rango | `…lee_rangos_acotados[libro-26-mb]`, `[directorio-2-mib]` y `[parte-2-mib]` |
+| `M-21` · `url_subida` firma con `self._cliente` | `test_tkt059_ca02_las_url_llevan_el_origen_publico` (contra MinIO real) |
+| Quitar `msf1` de las marcas HEIC | `…reconoce_la_lista_blanca[heic-marca-msf1]` |
+| `MAXIMO_PARTE = 10 MiB` | `…lee_rangos_acotados[parte-2-mib]` |
+| `forbid_entities=False` solo | Sobrevive: equivalente, `forbid_dtd=True` corta antes de que se declare una entidad |
+| Borrar `"ChecksumSHA256"` de `Params` (auditoría `F001`) | `…una_suma_distinta_de_la_firmada` (200 en lugar de 403) |
+| `decompress(datos)` sin tope (auditoría `F002`) | `…parte_deflate_que_expande_mas_del_maximo` (pico de 148 327 331 bytes frente al tope de 16 MiB) |
+| `_ascii_seguro(nombre_original)` por `nombre_original` (auditoría `F003`) | `…neutraliza_nombres_hostiles` (aparece un retorno de carro en la cabecera) |
+
+### Modelo por paso (059b)
+
+| Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
+|---|---|---|---|---|
+| Apertura de rama | orquestador | — | — | La rama ya existía; se verificó el estado limpio |
+| Fila 5 · rojo | `tester-backend` | `haiku` | `haiku` | — |
+| Fila 5 · verde | `desarrollador-aplicacion` | `haiku` | `haiku` | — |
+| Fila 5 · `TC-08` | `tester-backend` | `haiku` | `haiku` | — |
+| Fila 6 · rojo | `tester-backend` | `haiku` | `haiku` | — |
+| Fila 6 · verde | `desarrollador-aplicacion` | `haiku` | `haiku` | Cerró al primer intento |
+| Fila 7 · mutantes y laguna | `tester-backend` | `sonnet` | `sonnet` y `haiku` | La laguna `M-08c` es un único test; se hizo en `haiku` |
+| Fila 7 · suite y `pip-audit` | `tester-backend` | `sonnet` | `sonnet` | — |
+| Fila 7 · documentación | agente general | — | `sonnet` | — |
+| Auditoría de arquitectura | `auditor-arquitectura` | `sonnet` | `sonnet` | — |
+| Correcciones de la auditoría | `tester-backend` | `sonnet` | `sonnet` | Mutación sobre guardas de seguridad |
+
+### Resultado contra los criterios de aceptación (alcance de 059b)
+
+| Criterio | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| `CA-2` (el destino cambia solo por el endpoint; URL con el origen público) | `[M]` | Cumplido en el adaptador; las variables y el arranque son de 059c | `TC-08`, `TC-08b`, `M-21` |
+| `CA-4` (lecturas por rango acotadas, hasta 262 144 bytes en un libro de 26 MB) | `[M]` | Cumplido en el detector; la ruta de confirmación es de 059d | `TC-52`, `M-16` |
+| `CA-5` esc. 3 (el almacén rechaza la subida distinta) | `[M]` | Cumplido | `TC-21` y el test de la suma firmada |
+| `CA-6` (tipo por los bytes, lista blanca, rechazos) | `[M]` | Cumplido en el detector | `TC-25`, `TC-25b`, `M-06` a `M-08` |
+| `CA-8` esc. 3 (la URL de lectura caduca) | `[M]` | Cumplido en el adaptador | `TC-33` |
+
+### Auditorías de cierre de fase (059b)
+
+| Auditor | Veredicto | Hallazgos | Ciclos |
+|---|---|---|---|
+| `auditor-arquitectura` | `APROBADO` en la reauditoría (primer veredicto: `REQUIERE CAMBIOS`) | `F001` y `F002` (Mayores), `F003` (Menor): huecos de prueba, resueltos con tests | 1 |
+| `auditor-sql` | No aplica: la entrega no tiene esquema ni consulta | — | — |
+
+Observaciones de `auditor-arquitectura` que no bloquean: `O-1` y `O-2` (guardas defensivas equivalentes: `AUSENCIAS` de `head_object`, ZIP64 y método de compresión), `O-3` (la regla `ftyp` → `video/mp4`, ver arriba), `O-4` (`UrlFirmada` congelada con un `dict`: inmutable solo en apariencia), `O-5` (redacción del ADR, corregida) y `O-6` (la región `us-east-1` es un literal de región, no un destino).
+
+### Documentación actualizada (059b)
+
+| Documento | Qué cambió |
+|---|---|
+| ADR `20261111-confirmacion-de-archivos-sin-descargar-el-objeto.md` | Nuevo: la confirmación no descarga el objeto; la suma firmada y el tipo por rangos, con las opciones descartadas |
+| ADR-016 | Aviso al inicio: el destino de producción será MinIO autoalojado en la VPS y el ADR que reemplaza su elección de destino es de TKT-073; lista blanca con `.xlsx` como única hoja de cálculo; el barrido no borra el objeto |
+| `docs/06-stack-tecnologico.md` §4.6 | Lista blanca, firma propia de HEIC y lectura del ZIP por rangos |
+| `docs/adr/README.md`, `CLAUDE.md`, `README.md`, `llms.txt` | Fila nueva y conteo de 42 a 43 ADR |
+
+`python tools/verificar_docs.py` → falla solo por los cuatro problemas ajenos de TKT-018b (294 documentos, 43 ADR).
+
+### Hallazgos fuera de alcance (059b)
+
+| Archivo | Observación | Prioridad |
+|---|---|---|
+| `sdd/tickets/tkt-018b/` | Los cuatro problemas de `verificar_docs.py`, ajenos a este ticket | Baja |
+| `backend/cimenta/archivos/dominio/declaracion.py` | Sigue sin rechazar `NUL` en `nombre_original` (observación de seguridad de 059a): se resuelve en la capa de alta de 059c | Media, para 059c |
+
+### Ciclo 1 de /sdd-revisar (059b)
+
+Hallazgos de las auditorías de código, seguridad y documentación, y su resolución. Las cifras de la suite de este ciclo van en la «Verificación final» que añade `/sdd-revisar`.
+
+| Auditor | Hallazgo | Gravedad | Decisión |
+|---|---|---|---|
+| `auditor-codigo` | `F001` · un `encoding` desconocido en el `XML` lanzaba `LookupError` o `ValueError` | Mayor | Corregido |
+| `auditor-codigo` | `F002` · las ramas defensivas del detector no tenían test | Mayor | Tests añadidos; cobertura de ramas del detector al 100 % |
+| `auditor-codigo` | `F003` · `leer_rango` no validaba el rango | Menor | Ahora lanza `ValueError` ante un rango inválido |
+| `auditor-codigo` | `F004` · literales duplicados | Menor | Corregido |
+| `auditor-seguridad` | `F001` · el mismo defecto que `F001` de código | Mayor | Corregido junto con aquel |
+| `auditor-seguridad` | `F002` · `MAXIMO_PARTE` de 1 MiB permitía una bomba de profundidad en el XML (97 MiB de pico con 1 MiB de etiquetas anidadas) | Media | `MAXIMO_PARTE` baja a 262 144 bytes |
+| `auditor-seguridad` | `F003` · los contenedores RIFF (AVI, WAV) salían como `image/webp` y se tomaba la primera candidata de `puremagic` | Media | RIFF sin `WEBP` pasa a `application/octet-stream` y solo se consideran las candidatas de máxima confianza. La regla `ftyp` → `video/mp4` se deja por decisión de la persona dueña |
+| `auditor-seguridad` | `O1` · entradas `[Content_Types].xml` duplicadas | Observación | El detector responde `application/zip` |
+| `auditor-docs` | `F001` a `F008` y `O-1` a `O-3` · fecha del ADR en el diseño, cifras de lectura del ADR, fechas de 059b, citas de ADR-016 y marcas de `ftyp` | Mayor y menor | Corregidos en el diseño, el ADR, el stack, el ticket 05, `_index.md` e `impl.md` |
+
+**Ajuste respecto al diseño (ciclo 1).** `MAXIMO_PARTE` baja de 1 MiB a 256 KiB; el bucle de la lista blanca solo considera las candidatas de máxima confianza de `puremagic` (el respaldo por `mime_type` sigue recorriendo todas, porque las candidatas de máxima confianza de un ejecutable MZ no traen `mime_type` y devolverían `application/octet-stream` en lugar del tipo real; el respaldo por `mime_type` solo aporta el tipo de una candidata de menor confianza si ese tipo queda fuera de la lista blanca; la segunda ronda de la revisión cerró así el caso de una firma débil que colaba `image/jpeg`); RIFF sin `WEBP` es `application/octet-stream`; el detector rechaza un `[Content_Types].xml` duplicado; `leer_rango` rechaza rangos inválidos.
+
+**Observaciones fuera de alcance (seguridad).**
+
+| Observación | Dónde se atiende |
+|---|---|
+| `O2` · un `.xlsx` con hojas descomprimidas sin límite llega a `openpyxl` en `lector_catalogo.py` | TKT-013b y el consumidor del catálogo |
+| `O3` · un XML o XHTML con `script` embebido pasa como `application/xml`, pero se sirve como `attachment` | En 059c, verificar que XML y `.xlsx` nunca se sirven en línea y que `url_lectura` valida la disposición |
+
+**Notas para 059c.** Declarar `UrlFirmada.url` con `field(repr=False)`; rechazar `NUL` y sustitutos en el borde de Pydantic; y pedir `Body.read(fin - inicio + 1)` en `leer_rango`.
+
+#### Verificación final de la entrega 059b (`/sdd-revisar`, 2026-11-11)
+
+Cifras copiadas de la última corrida, con `docker info` respondiendo (servidor 29.9.3). La suite se ejecutó tres veces durante la revisión (`2962`, `3015` y `3019` pruebas pasadas) porque cada ciclo de corrección añadió tests; la que cuenta es la última.
+
+```text
+uv run pytest -q -ra          →  3019 passed, 26 skipped in 591.50s (0:09:51)
+uv run ruff format --check .  →  303 files already formatted
+uv run ruff check .           →  All checks passed!
+uv run mypy .                 →  Success: no issues found in 303 source files
+uv run lint-imports           →  Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float → archivos revisados: 38; hallazgos: 0
+uv run alembic heads          →  0012 (head)
+python -m unittest discover -s tools/tests →  Ran 518 tests … OK
+python tools/verificar_docs.py →  294 documentos, 43 ADR; falla solo por los cuatro problemas ajenos de TKT-018b
+```
+
+Cobertura de ramas de los dos módulos de la entrega, medida por `auditor-codigo`: `almacen_s3.py` 100 % (59 líneas, 4 ramas) y `detector_tipo.py` 100 % (167 líneas, 60 ramas).
+
+| Auditor | Veredicto final | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` (reauditoría tras tres huecos de prueba) | 1 |
+| `auditor-sql` | No aplica: la entrega no tiene esquema | — |
+| `auditor-codigo` | `APROBADO` | 2 (el ciclo 1 halló `F005` y `F006`, resueltos en el ciclo 2) |
+| `auditor-seguridad` | `APROBADO` | 1 |
+| `auditor-docs` | `APROBADO CON MENORES RESUELTOS SIN REAUDITAR`: `N001` a `N006`, `O-N1` y `O-N2`, todos de redacción, resueltos por el orquestador con el texto literal del auditor tras el segundo ciclo | 2 |
+
+Observaciones de `auditor-seguridad` que quedan abiertas, ambas de prioridad baja: `O4` (algunas firmas defectuosas de `puremagic`, como `\x89PNG` escrito como texto o `%PDF` sin guion, producen un tipo de la lista blanca; el segundo ciclo cerró el caso de una candidata débil en el respaldo, pero las candidatas de máxima confianza con firma defectuosa siguen igual, y el objeto se sirve con ese tipo sin que el navegador lo interprete como HTML) y `O5` (un ZIP con `nlen` mayor que lo que queda del directorio coincide con `[Content_Types].xml` aunque `zipfile` lo rechace; el consumidor del `.xlsx` debe seguir validando con su propio analizador). Ambas se atienden en 059c. Observaciones de `auditor-codigo`: `O-9` a `O-11` (estéticas).
+
+Resultado por criterio de 059b: todos los `[M]` de su alcance cumplidos con evidencia (ver la tabla de criterios de esta sección). Los criterios `CA-2`, `CA-4`, `CA-5` y `CA-6` se completan en 059c a 059e con los casos de uso y las rutas. Desviaciones: las de «Ajustes respecto al design (059b)» y el ciclo 1 de `/sdd-revisar`.
