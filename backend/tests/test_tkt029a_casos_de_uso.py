@@ -57,8 +57,9 @@ from tipos_base import Dinero
 
 if TYPE_CHECKING:
     # `conftest` no es importable en tiempo de ejecución: pytest lo carga por su cuenta.
-    from cimenta.proveedores.aplicacion.contexto import ContextoProveedores
     from conftest import Conectar, RelojDePrueba, SembrarUsuario
+
+    from cimenta.proveedores.aplicacion.contexto import ContextoProveedores
 
     Contexto = Callable[[], ContextoProveedores]
 
@@ -668,6 +669,47 @@ def test_tkt029a_actualizar_cambia_solo_lo_enviado_y_asienta(
             {"nombre": "Proveedor retirado y renombrado"},
         )
     ]
+
+
+@pytest.mark.parametrize(
+    "presentes",
+    [
+        pytest.param(set(), id="presentes_vacio"),
+        pytest.param({"rfc"}, id="solo_clave_ajena_rfc"),
+        pytest.param({"estado"}, id="solo_clave_ajena_estado"),
+        pytest.param({"dia_corte", "estado"}, id="campo_valido_mas_clave_ajena"),
+    ],
+)
+def test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno(
+    presentes: set[str],
+    contexto_proveedores: Contexto,
+    base: Base,
+    creador: uuid.UUID,
+) -> None:
+    """F003 · CA-8 — `presentes` vacío o con claves fuera de `CAMPOS_CAMBIABLES` lanza `ValueError` sin escribir.
+
+    Un `PATCH` sin campos cambiables o con el RFC o el estado no debe llegar a la base: el caso de uso lo
+    rechaza antes de abrir la transacción, así que la fila queda como estaba y no hay asiento `ACTUALIZAR`
+    (ni siquiera uno con `datos_antes` y `datos_despues` vacíos). Una clave ajena junto a un campo válido
+    también se rechaza entera: no se aplica el campo válido a medias.
+    """
+    from cimenta.proveedores.aplicacion.proveedores import actualizar_proveedor
+
+    proveedor_id = _sembrar(base, creador, nombre="CoPanel", rfc="XAXX010101000")
+    antes = _foto(base)
+    fila_antes = base.filas(COLUMNAS_DE_PROVEEDOR, proveedor_id)
+
+    with pytest.raises(ValueError):
+        actualizar_proveedor(
+            contexto_proveedores(),
+            proveedor_id=proveedor_id,
+            cambios=_cambios(presentes, dia_corte=2),
+            usuario_id=creador,
+        )
+
+    assert base.filas(COLUMNAS_DE_PROVEEDOR, proveedor_id) == fila_antes, "La fila no cambia"
+    assert _foto(base) == antes, "El rechazo no escribe"
+    assert _cuenta(base, "SELECT count(*) FROM bitacora") == 0, "Ni un asiento ACTUALIZAR"
 
 
 # --------------------------------------------------------------------------- TC-17 · CA-8

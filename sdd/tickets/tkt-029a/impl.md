@@ -4,7 +4,7 @@
 
 ## Qué se implementó
 
-Entrega **a** del ticket (filas A1 a A4): el esquema y la lógica del catálogo de proveedores, probados sin HTTP. Queda la entrega **b** (API, montaje, contrato y tipos), que acumulará sus cambios en la misma rama y el mismo pull request.
+Entrega **a** del ticket (filas A1 a A4): el esquema y la lógica del catálogo de proveedores, probados sin HTTP. La entrega **b** (API, montaje, contrato y tipos) se documenta en la última sección de este archivo y acumula sus cambios en la misma rama y el mismo pull request.
 
 - **Dominio.** `proveedores/dominio/proveedor.py`: `EstadoProveedor`, los días por omisión de `RN-17`, `normalizar_rfc` (recorta solo espacios y pasa a mayúsculas, decisión D-1) y `admite_desactivacion` (solo un proveedor `ACTIVO`).
 - **Esquema.** Migración `0013` con la tabla `proveedor`, sus seis restricciones nombradas y los permisos del rol de aplicación sin `DELETE` (decisión D-4).
@@ -209,3 +209,191 @@ El resto de la documentación listada en el diseño (`docs/api/openapi.yaml`, `s
 - [x] Documentación afectada actualizada en este cambio
 - [x] `ruff`, `mypy`, `lint-imports` limpios
 - [x] Rama correcta (`tkt-029a-catalogo-proveedores`) y sin secretos en el diff; nada confirmado ni empujado (el commit local de cierre de entrega es de `git-entrega`)
+
+---
+
+# Entrega b · API, montaje, contrato y tipos
+
+## Qué se implementó (entrega b)
+
+Filas B1 y B2 del diseño: las cinco operaciones del catálogo por HTTP, su contrato publicado y los tipos del cliente.
+
+- **API.** `proveedores/api/esquemas.py` (DTO con copias locales de `MetaPagina` y `Motivo`, RFC normalizado y validado, días `Strict`, `ProveedorCambios` con al menos una propiedad), `rutas.py` (cinco rutas `def`, con `verificar_origen` antes de `exigir_rol` en las tres mutaciones) y `montaje.py`; `servidor/fabrica.py` monta el enrutador. No existe ninguna ruta `DELETE`.
+- **Contrato.** `docs/api/openapi.yaml` gana `maxLength: 200` en `nombre` y el patrón de `q`; `frontend/src/api/generado/servidor.ts` se regeneró con `npm run tipos:generar`, sin editarlo a mano.
+- **Soporte de pruebas.** `borrador_comparable()` en `herramientas/soporte_tkt017_api.py` y tres entradas nuevas en `CUERPOS_VALIDOS` de `test_tkt057_csrf.py`.
+
+## Ajustes respecto al design (entrega b)
+
+| Fecha | Cambio | Motivo |
+|---|---|---|
+| 2026-11-14 | Tres entradas nuevas en `CUERPOS_VALIDOS` de `test_tkt057_csrf.py`. | La prueba de TKT-057 exige un cuerpo válido por cada mutación protegida y falló al montar las rutas. No cambia lo que afirma. |
+| 2026-11-14 | `borrador_comparable()` añadida al soporte de pruebas de contrato. | Prevista en la fila B1 como apoyo de TC-40. |
+| 2026-11-14 | El docstring de `Motivo` en `presupuesto/api/esquemas.py` se iguala al de la copia de `proveedores`. | Pydantic fusiona las dos clases en el OpenAPI solo si forma y docstring coinciden (D-7; lo guardan TC-42 y `M-12`). Sin cambio de comportamiento. |
+| 2026-11-14 | `docs/05-tickets-trabajo.md` indica `0013` y `0012` para la migración. | Numeración de la entrega a. |
+| 2026-11-14 | `ProveedorCambios` usa `_AUSENTE: Any = cast("Any", None)` como valor por omisión. | `mypy` rechaza `Field(default=None)` en campos que no admiten `None`. |
+| 2026-11-14 | El RFC se valida contra `[A-Za-zÑñ&0-9]+` antes de pasar a mayúsculas, y `actualizar_proveedor` rechaza con `ValueError` un conjunto de campos vacío o ajeno. | Hallazgos F001 y F003 de `auditor-codigo` (ver abajo). |
+| 2026-11-14 | El orquestador ordenó los imports de `test_tkt029a_casos_de_uso.py` con `ruff check --fix` (`I001`). | Solo estilo; el corrector no toca tests. |
+
+## Archivos tocados (entrega b)
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `backend/cimenta/proveedores/api/esquemas.py` | nuevo | api |
+| `backend/cimenta/proveedores/api/rutas.py` | nuevo | api |
+| `backend/cimenta/proveedores/api/montaje.py` | nuevo | api |
+| `backend/cimenta/proveedores/aplicacion/proveedores.py` | modificado (guarda de F003) | aplicación |
+| `backend/servidor/fabrica.py` | modificado (monta el enrutador) | api |
+| `backend/cimenta/presupuesto/api/esquemas.py` | modificado (docstring de `Motivo`) | api |
+| `backend/herramientas/soporte_tkt017_api.py` | modificado (`borrador_comparable()`) | pruebas |
+| `backend/tests/test_tkt029a_api_proveedores.py` | nuevo | pruebas |
+| `backend/tests/test_tkt029a_casos_de_uso.py` | modificado (tests de F003, orden de imports) | pruebas |
+| `backend/tests/test_tkt057_csrf.py` | modificado (tres entradas) | pruebas |
+| `docs/api/openapi.yaml` | modificado | documentación |
+| `frontend/src/api/generado/servidor.ts` | regenerado | cliente (generado) |
+| `docs/05-tickets-trabajo.md` | modificado (numeración) | documentación |
+| `sdd/tickets/tkt-029a/rojo/fila-B1.txt` y `fila-B1-correccion.txt` | nuevo | evidencia |
+
+## Pruebas (entrega b)
+
+Todas en `backend/tests/test_tkt029a_api_proveedores.py`, salvo las de F003.
+
+| # | Test | Tipo | Criterio | Antes del código | Al cerrar |
+|---|---|---|---|---|---|
+| TC-21 | `test_hdu004_esc02_api_alta_responde_201` | feliz | `CA-1` | FALLA | PASA |
+| TC-22 | `test_hdu004_esc03_api_rfc_duplicado` | **rechazo** | `CA-2` | FALLA | PASA |
+| TC-23 | `test_hdu004_esc02_api_forma_invalida` (parametrizada, con `ß`, `ı` y `ſ` tras F001) y `test_tkt029a_api_rfc_con_enie_minuscula_se_normaliza_a_mayuscula` | **rechazo** | `CA-4` | FALLA | PASA |
+| TC-24 | `test_tkt029a_api_tope_del_nombre` | **rechazo** · borde | `CA-4` | FALLA | PASA |
+| TC-25 | `test_tkt029a_api_mutaciones_sin_permiso` | **rechazo** | `CA-5` | FALLA | PASA |
+| TC-26 | `test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf` y `test_tkt029a_api_el_origen_se_verifica_antes_que_el_rol` | **rechazo** | `CA-5`, `CA-R2` | FALLA | PASA |
+| TC-27 | `test_hdu004_esc02_api_lista_por_omision_solo_activos` | feliz | `CA-6` | FALLA | PASA |
+| TC-28 | `test_hdu004_esc12_api_lista_filtro_y_busqueda` | feliz · **rechazo** | `CA-6` | FALLA | PASA |
+| TC-29 | `test_tkt029a_api_lista_parametros_invalidos` | **rechazo** | `CA-6` | FALLA | PASA |
+| TC-30 | `test_tkt029a_api_lista_pagina_inalcanzable` | borde | `CA-6` | FALLA | PASA |
+| TC-31 | `test_tkt029a_api_obtener_proveedor` | feliz · **rechazo** | `CA-7` | FALLA | PASA |
+| TC-32 | `test_tkt029a_api_actualizar_proveedor` | feliz | `CA-8` | FALLA | PASA |
+| TC-33 | `test_tkt029a_api_actualizar_cuerpo_invalido` | **rechazo** | `CA-8` | FALLA | PASA |
+| TC-34 | `test_tkt029a_api_actualizar_inexistente` | **rechazo** | `CA-8` | FALLA | PASA |
+| TC-35 | `test_hdu004_esc12_api_desactivar` | feliz | `CA-9` | FALLA | PASA |
+| TC-36 | `test_hdu004_esc12_api_desactivar_sin_motivo` | **rechazo** | `CA-9` | FALLA | PASA |
+| TC-37 | `test_hdu004_esc12_api_desactivar_un_desactivado_o_inexistente` | **rechazo** | `CA-9` | FALLA | PASA |
+| TC-38 | `test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores` y `test_tkt029a_api_las_rutas_de_proveedores_son_def_con_sesion_y_origen_primero` | **rechazo** | `CA-10` esc. 1 | FALLA | PASA |
+| TC-39 | `test_tkt029a_api_alta_ignora_campos_extra` | **rechazo** | `CA-1` | FALLA | PASA |
+| TC-40 | `test_tkt029a_api_forma_publicada_igual_al_borrador` y `test_tkt029a_api_operaciones_publicadas_igual_al_borrador` | contrato | `CA-1`, `CA-6` a `CA-9` | FALLA | PASA |
+| TC-41 | `test_tkt017_cab08` y `test_tkt017_cab09` y el resto de `test_tkt017_api_*.py`, sin cambios | regresión | `CA-R2` | PASA | PASA |
+| TC-42 | `test_tkt029a_api_las_copias_se_publican_fusionadas` | contrato | `CA-R2` | FALLA | PASA |
+| F003 | `test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno` (cuatro variantes), en `test_tkt029a_casos_de_uso.py` | **rechazo** | `CA-8` | FALLA | PASA |
+
+### Ciclo TDD por fila (entrega b)
+
+| Fila | Rojo | Ejecutó | Verde | Mutación |
+|---|---|---|---|---|
+| B1 | `rojo/fila-B1.txt` | `tester-api` (sonnet) · `desarrollador-api` (sonnet) | `test_tkt029a_api_proveedores.py`: 100 passed antes de la corrección de F001 | Sí, abajo |
+| B2 | Sin test propio: la regeneración de `servidor.ts` y el borrador se verifican con `npm run tipos:verificar` y TC-40 | `desarrollador-api` | `npm run tipos:verificar` sin diferencias | No aplica: no hay lógica |
+| Corrección F001 y F003 | `rojo/fila-B1-correccion.txt` | `tester-api` (sonnet) · `corrector-revision` (sonnet) | 120 passed en `test_tkt029a_api_proveedores.py` y `test_tkt029a_casos_de_uso.py` | La salida en rojo hace de mutación: sin la corrección, los siete tests nuevos caen |
+
+**Rojo.** La fila B1 falló por `404` `NO_ENCONTRADO` en `/api/v1/proveedores`, la ausencia esperada de las rutas. El rojo de la corrección dio `7 failed, 113 passed`: tres RFC con `ß`, `ı` y `ſ` que devolvían `201` y se guardaban como `SSAX…`, `IAX…` y `SAX…`, y cuatro variantes de `presentes` que no lanzaban `ValueError` (una con `DID NOT RAISE`, tres con `AttributeError`).
+
+**Refactor.** Ninguno.
+
+**Tests devueltos al tester:** ninguno.
+
+**Evidencia de ejecución al cerrar** (`docker info` respondía, servidor 29.9.3):
+
+```text
+uv run pytest -q   →   3422 passed, 26 skipped in 727.17s (0:12:07)
+```
+
+`ruff format`, `ruff check`, `mypy` (337 archivos), `lint-imports` (16 contratos mantenidos) y `verificar_float` (0 hallazgos) limpios. Una corrida anterior a la corrección, con la entrega b completa, dio `3414 passed, 26 skipped`.
+
+**Mutación en rutas críticas.** Un mutante a la vez, desde una copia fuera del repositorio, ejecutando los 100 tests de `test_tkt029a_api_proveedores.py`. Huella SHA-256 de los 337 `.py` de `backend/` antes y tras cada reversión: `4a0c3771e1b127a21dd4dac6a9ef9f1b431657bdfba576674b6c7e44f4e92f94`. Con cada mutante la huella era distinta; las nueve reversiones devolvieron la huella inicial, y `git status` quedó idéntico.
+
+| Mutante | Cambio | Test que cae |
+|---|---|---|
+| `M-4` | `crear_proveedor` declara `exigir_rol(*ROLES_LECTURA)` | TC-25: los cinco roles sin permiso de gestión (5 failed) |
+| `M-8a` | `ESTADOS_POR_OMISION = list(EstadoProveedor)` en la ruta | TC-27, TC-28, TC-35 y TC-40 (4 failed) |
+| `M-8b` | la ruta pide todos los estados cuando recibe el de omisión | TC-27, TC-28 y TC-35 (3 failed) |
+| `M-8c` | el caso de uso no filtra cuando recibe `{ACTIVO}` | TC-27, TC-28 y TC-35 (3 failed) |
+| `M-11` | `ProveedorCambios` sin el `model_validator` | TC-33, cuerpo vacío y solo campos desconocidos (2 failed) |
+| `M-12` | docstring de `Motivo` en `proveedores` distinta de la de `presupuesto` | TC-40 `[Motivo]` y TC-42 (2 failed) |
+| `M-1` (API) | `normalizar_rfc` sin `.upper()` | TC-22, variante en minúsculas (1 failed) |
+| `M-2` (API) | `strip()` sin argumento | TC-23 `[rfc_salto_de_linea_final]` (1 failed) |
+| `M-7` (API) | `icontains` sin `autoescape` | TC-28, `%` y `_` literales (1 failed) |
+
+No sobrevivió ningún mutante. El diseño asigna `M-12` también a TC-41, que no tiene un test propio en este archivo.
+
+## Modelo por paso (entrega b)
+
+| Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
+|---|---|---|---|---|
+| B1 · rojo | `tester-api` | `sonnet` | `sonnet` | — |
+| B1 · verde | `desarrollador-api` | `sonnet` | `sonnet` | — |
+| B2 · tipos y borrador | `desarrollador-api` | `haiku` | `sonnet` | Se hizo junto con B1, porque el borrador y las rutas se verifican entre sí |
+| Cierre · mutación | `tester-api` | `sonnet` | `sonnet` | — |
+| Auditorías | `auditor-arquitectura`, `auditor-seguridad`, `auditor-codigo` | `sonnet` | `sonnet` | — |
+| Corrección F001 y F003 · rojo | `tester-api` | `sonnet` | `sonnet` | — |
+| Corrección F001 y F003 · verde | `corrector-revision` | `sonnet` | `sonnet` | — |
+| Reauditoría | `auditor-codigo` | `sonnet` | `sonnet` | — |
+
+Ningún paso subió a `opus`. Las tres primeras auditorías de la entrega fallaron una vez por el límite de uso del servicio y se relanzaron sin cambios.
+
+## Resultado contra los criterios de aceptación (entrega b)
+
+| Criterio | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| `CA-1` | `[M]` | Cumplido | TC-21, TC-39, TC-40 |
+| `CA-2` | `[M]` | Cumplido | TC-22 |
+| `CA-3` | `[M]` | Cumplido (concurrencia en los casos de uso) | TC-15 |
+| `CA-4` | `[M]` | Cumplido | TC-23, TC-24 |
+| `CA-5` | `[M]` | Cumplido | TC-25, TC-26 |
+| `CA-6` | `[M]` | Cumplido | TC-27 a TC-30 |
+| `CA-7` | `[M]` | Cumplido | TC-31 |
+| `CA-8` | `[M]` | Cumplido | TC-32 a TC-34 y las cuatro variantes de F003 |
+| `CA-9` | `[M]` | Cumplido | TC-35 a TC-37 |
+| `CA-10` | `[M]` | Cumplido | TC-38 (esc. 1) y TC-07 (esc. 2) |
+| `CA-11` | `[M]` | Cumplido | TC-06 |
+| `CA-R1` | `[M]` | Cumplido | Suite completa, 3422 passed |
+| `CA-R2` | `[M]` | Cumplido | TC-26, TC-41, TC-42 |
+
+## Auditorías (entrega b)
+
+| Auditor | Veredicto | Hallazgos | Ciclos |
+|---|---|---|---|
+| `auditor-arquitectura` | APROBADO | 1 observación (O-1) | 1 |
+| `auditor-seguridad` | APROBADO | 4 observaciones bajas; la de la normalización Unicode del RFC es la misma que F001 y quedó resuelta | 1 |
+| `auditor-codigo` | APROBADO tras la reauditoría | F001 y F003 resueltos; 7 observaciones menores | 2 |
+| `auditor-sql` | No despachado: la entrega b no toca esquema ni migración | — | — |
+| `auditor-docs` | Se despacha en `/sdd-revisar` y `/sdd-completar` | — | — |
+
+### Hallazgos y su resolución (entrega b)
+
+| ID | Auditor | Severidad | Ubicación | Hallazgo | Estado |
+|---|---|---|---|---|---|
+| F001 | código y seguridad | Mayor | `proveedores/api/esquemas.py` (`_rfc`) | `str.upper()` convierte `ß`, `ı` y `ſ` en letras ASCII: el RFC se aceptaba y se guardaba reescrito | Resuelto: se rechaza todo carácter fuera de `[A-Za-zÑñ&0-9]` antes de normalizar; reauditado |
+| F003 | código | Menor | `proveedores/aplicacion/proveedores.py` (`actualizar_proveedor`) | Aceptaba un conjunto de campos vacío o ajeno | Resuelto: `ValueError` antes de abrir la transacción; reauditado |
+| F002 | código | Menor | `proveedores/api/esquemas.py` (`sin_nul`) | El mensaje dice «motivo» aunque también valida `nombre` | Aceptado: es copia idéntica de la de `presupuesto` por D-7 y no llega al cliente como texto propio |
+| F004 a F009 | código | Menor | tests y esquemas | Observaciones de tipado y estilo | Aceptadas como observaciones, sin cambio |
+| O-1 | arquitectura | Observación | `tests/test_tkt072_migracion.py:35` | `CABEZA = "0012"` obsoleta | Ya anotada en «Hallazgos fuera de alcance» |
+| — | código (reauditoría) | Observación | `aplicacion/proveedores.py` | El docstring de `actualizar_proveedor` no menciona el `ValueError` nuevo | Sin acción; no bloquea |
+
+La observación O-2 de la entrega a (un `estados` vacío emitiría `IN ()`) queda cubierta por `M-8c` y TC-27: la ruta siempre pasa `[ACTIVO]` por omisión.
+
+## Documentación actualizada (entrega b)
+
+| Documento | Qué cambió |
+|---|---|
+| `docs/api/openapi.yaml` | `maxLength: 200` en `nombre` y patrón de `q`, las cinco operaciones del catálogo |
+| `frontend/src/api/generado/servidor.ts` | Regenerado con `npm run tipos:generar` |
+| `docs/05-tickets-trabajo.md` | Migración `0013` sobre `0012` |
+| `sdd/tickets/tkt-029a/design.md` | Filas B1 y B2 en «Hecho» y cinco ajustes más |
+
+## Verificación final (entrega b)
+
+- [x] Criterios `[M]` cumplidos con evidencia
+- [x] Ciclo TDD completo: rojo antes de verde, ningún test editado por un desarrollador
+- [x] Suite en verde: 3422 passed, 26 skipped
+- [x] ≥1 test de rechazo por regla implicada
+- [x] Mutación en rutas críticas: 9 de 9 mutantes muertos
+- [x] Auditorías aplicables `APROBADO`
+- [x] Sin hallazgo crítico o mayor pendiente
+- [x] `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios
+- [x] Rama correcta (`tkt-029a-catalogo-proveedores`)

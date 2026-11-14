@@ -2265,6 +2265,8 @@ paths:
           description: Busca por nombre o RFC.
           schema:
             type: string
+            pattern: '^[^\x00]*$'
+            maxLength: 200
         - $ref: '#/components/parameters/Pagina'
         - $ref: '#/components/parameters/TamanoPagina'
       responses:
@@ -5567,6 +5569,7 @@ components:
         nombre:
           type: string
           minLength: 1
+          maxLength: 200
         rfc:
           type: string
           pattern: '^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$'
@@ -5591,6 +5594,7 @@ components:
         nombre:
           type: string
           minLength: 1
+          maxLength: 200
         tope_consignacion:
           oneOf:
             - $ref: '#/components/schemas/ImporteNoNegativo'

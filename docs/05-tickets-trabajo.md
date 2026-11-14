@@ -1117,7 +1117,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 
 | Ticket | Contenido | Migración | Depende de | Escenarios de HDU-004 |
 |---|---|---|---|---|
-| TKT-029a | Esquema `proveedor` y `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`, `actualizar_proveedor` y `desactivar_proveedor`, solo backend | `0012`, cuelga de `0011` | TKT-003, TKT-005, TKT-006, TKT-007 | 2, 3 y la mitad de desactivación del 12 |
+| TKT-029a | Esquema `proveedor` y `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`, `actualizar_proveedor` y `desactivar_proveedor`, solo backend | `0013`, cuelga de `0012` | TKT-003, TKT-005, TKT-006, TKT-007 | 2, 3 y la mitad de desactivación del 12 |
 | TKT-029b | `dar_baja_proveedor` con `PROVEEDOR_CON_ORDENES_ABIERTAS`, su prueba con una orden `PARCIAL` sembrada y el puerto `CatalogoProveedores`. Antes de diseñarla hay que decidir el verbo de bitácora de la baja y la máquina de estados del proveedor | Ninguna prevista | TKT-029a, TKT-019 | 12, completo |
 
 La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcilia el boceto de `docs/08-wireframes.md`, hoy en desacuerdo con el borrador sobre la baja.

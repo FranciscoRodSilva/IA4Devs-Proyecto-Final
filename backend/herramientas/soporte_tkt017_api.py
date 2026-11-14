@@ -14,6 +14,7 @@ Son ayudantes de prueba: ningún código de producción los importa.
 
 from __future__ import annotations
 
+import copy
 import functools
 import io
 import os
@@ -322,6 +323,31 @@ def rutas_de(rutas: Iterable[BaseRoute]) -> Iterator[APIRoute]:
             yield from rutas_de(original.routes)
         elif isinstance(ruta, APIRoute):
             yield ruta
+
+
+def _sin_all_of_de_un_elemento(nodo: Any) -> Any:
+    """El borrador escribe `allOf: [{$ref: ...}]` para añadir un valor por omisión o una descripción a un
+    `$ref`; el comparador de formas (`aplanar`) no lo resuelve. Se sustituye por el propio `$ref` (la
+    misma forma, sin la envoltura)."""
+    if isinstance(nodo, list):
+        return [_sin_all_of_de_un_elemento(elemento) for elemento in nodo]
+    if not isinstance(nodo, dict):
+        return nodo
+    nuevo = {clave: _sin_all_of_de_un_elemento(valor) for clave, valor in nodo.items()}
+    variantes = nuevo.get("allOf")
+    if isinstance(variantes, list) and len(variantes) == 1:
+        sin_envoltura = {clave: valor for clave, valor in nuevo.items() if clave != "allOf"}
+        return {**sin_envoltura, **variantes[0]}
+    return nuevo
+
+
+def borrador_comparable() -> dict[str, Any]:
+    """Copia del borrador sin los `allOf` de un solo elemento, lista para `forma_de_componente` y `parametros_de`.
+
+    Una copia profunda: el borrador cacheado de `borrador()` no se toca. Copia de la ayuda privada de
+    `test_tkt017_api_control.py`, que las pruebas no se importan entre sí.
+    """
+    return cast("dict[str, Any]", _sin_all_of_de_un_elemento(copy.deepcopy(borrador())))
 
 
 def llamadas(dependant: Dependant) -> Iterator[Callable[..., Any]]:

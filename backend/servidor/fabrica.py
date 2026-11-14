@@ -1,7 +1,8 @@
 """Fábrica de la aplicación FastAPI: raíz de composición (ADR-018, CA-12, CA-14).
 
 Monta los enrutadores de `cimenta.<modulo>.api` y ningún módulo importa este paquete. Desde TKT-006
-monta `cimenta.identidad.api.montaje`; desde TKT-017b también `cimenta.presupuesto.api.montaje`.
+monta `cimenta.identidad.api.montaje`; desde TKT-017b también `cimenta.presupuesto.api.montaje`;
+desde TKT-029a también `cimenta.proveedores.api.montaje`.
 Desde TKT-015b también compone, por `cimenta.presupuesto.interfaz` y `trabajos.barrido`, el barrido
 de las importaciones interrumpidas y el ejecutor del análisis, en el `lifespan`: nada de
 `aplicacion/` ni de `infraestructura/` de ningún módulo. Los manejadores de error se registran con
@@ -46,6 +47,7 @@ from cimenta.archivos.interfaz import (
 from cimenta.identidad.api.montaje import montar_identidad
 from cimenta.presupuesto.api.montaje import montar_presupuesto
 from cimenta.presupuesto.interfaz import crear_ejecutor_analisis, definicion_barrido_importacion
+from cimenta.proveedores.api.montaje import montar_proveedores
 from herramientas.conexion import crear_motor_aplicacion, variables_de_base_presentes
 from servidor.ajustes import AjustesServidor, cargar_ajustes
 from servidor.cabeceras import MiddlewareCabecerasSeguridad, cabeceras_de_seguridad
@@ -187,4 +189,5 @@ def crear_aplicacion(
         reloj=reloj,
     )
     montar_presupuesto(aplicacion, proveedor_motor=proveedor_motor, reloj=reloj)
+    montar_proveedores(aplicacion, proveedor_motor=proveedor_motor, reloj=reloj)
     return aplicacion

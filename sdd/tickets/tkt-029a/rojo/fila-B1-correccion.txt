@@ -1,0 +1,26 @@
+...............FFF...................................................... [ 60%]
+.....................................FFFF.......                         [100%]
+================================== FAILURES ===================================
+E   AssertionError: {"id":"5ad44ff2-827b-4d0c-a274-be9703a71897","nombre":"CoPanel","rfc":"SSAX010101000","tope_consignacion":null,"dia_corte":4,"dia_pago":6,"estado":"ACTIVO","creado_en":"2026-10-21T09:00:00Z"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:173: AssertionError: {"id":"5ad44ff2-827b-4d0c-a274-be9703a71897","nombre":"CoPanel","rfc":"SSAX010101000","tope_consignacion":null,"dia_corte":4,"dia_pago":6,"estado":"ACTIVO","creado_en":"2026-10-21T09:00:00Z"}
+E   AssertionError: {"id":"eb1700b9-454f-4800-87cb-2cc16408633f","nombre":"CoPanel","rfc":"IAX010101000","tope_consignacion":null,"dia_corte":4,"dia_pago":6,"estado":"ACTIVO","creado_en":"2026-10-21T09:00:00Z"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:173: AssertionError: {"id":"eb1700b9-454f-4800-87cb-2cc16408633f","nombre":"CoPanel","rfc":"IAX010101000","tope_consignacion":null,"dia_corte":4,"dia_pago":6,"estado":"ACTIVO","creado_en":"2026-10-21T09:00:00Z"}
+E   AssertionError: {"id":"c51256a6-f7e7-482d-bb2a-f79415dc51c5","nombre":"CoPanel","rfc":"SAX010101000","tope_consignacion":null,"dia_corte":4,"dia_pago":6,"estado":"ACTIVO","creado_en":"2026-10-21T09:00:00Z"}
+D:\Documentos\LIDR\Proyecto Final\backend\herramientas\soporte_tkt017_api.py:173: AssertionError: {"id":"c51256a6-f7e7-482d-bb2a-f79415dc51c5","nombre":"CoPanel","rfc":"SAX010101000","tope_consignacion":null,"dia_corte":4,"dia_pago":6,"estado":"ACTIVO","creado_en":"2026-10-21T09:00:00Z"}
+E   Failed: DID NOT RAISE ValueError
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029a_casos_de_uso.py:701: Failed: DID NOT RAISE ValueError
+E   AttributeError: 'CambiosProveedor' object has no attribute 'rfc'
+D:\Documentos\LIDR\Proyecto Final\backend\cimenta\proveedores\aplicacion\proveedores.py:167: AttributeError: 'CambiosProveedor' object has no attribute 'rfc'
+E   AttributeError: 'CambiosProveedor' object has no attribute 'estado'
+D:\Documentos\LIDR\Proyecto Final\backend\cimenta\proveedores\aplicacion\proveedores.py:167: AttributeError: 'CambiosProveedor' object has no attribute 'estado'
+E   AttributeError: 'CambiosProveedor' object has no attribute 'estado'
+D:\Documentos\LIDR\Proyecto Final\backend\cimenta\proveedores\aplicacion\proveedores.py:167: AttributeError: 'CambiosProveedor' object has no attribute 'estado'
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_eszett_se_expande]
+FAILED tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_i_sin_punto]
+FAILED tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_s_larga]
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[presentes_vacio]
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[solo_clave_ajena_rfc]
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[solo_clave_ajena_estado]
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[campo_valido_mas_clave_ajena]
+7 failed, 113 passed in 31.76s

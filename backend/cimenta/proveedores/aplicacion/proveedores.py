@@ -158,6 +158,11 @@ def actualizar_proveedor(
     usuario_id: uuid.UUID,
 ) -> None:
     """Aplica los campos presentes bajo `FOR UPDATE` y asienta `ACTUALIZAR`. No consulta el estado (D-3)."""
+    if not cambios.presentes or not cambios.presentes <= CAMPOS_CAMBIABLES:
+        raise ValueError(
+            "Los campos presentes deben ser un subconjunto no vacío de "
+            f"{sorted(CAMPOS_CAMBIABLES)}; llegó {sorted(cambios.presentes)}."
+        )
     ahora = contexto.reloj()
     with contexto.fabrica_sesiones().begin() as sesion_bd:
         fila = repositorio_proveedor.leer_proveedor(sesion_bd, proveedor_id, para_cambio=True)

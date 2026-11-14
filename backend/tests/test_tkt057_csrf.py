@@ -1304,6 +1304,18 @@ CUERPOS_VALIDOS: dict[str, PeticionValida] = {
     "POST /api/v1/archivos/{archivo_id}/confirmacion": PeticionValida(
         ruta=f"/api/v1/archivos/{uuid.uuid4()}/confirmacion"
     ),
+    # TKT-029a, entrega b: ampliación declarada del contrato de este test (ajuste registrado por el orquestador;
+    # el diseño no la previó). Mismo criterio que el alta de obra: `verificar_origen` va antes que `exigir_rol` y
+    # que cualquier consulta, así que el `403` sale sin tocar la base y los identificadores pueden ser cualesquiera.
+    "POST /api/v1/proveedores": PeticionValida({"nombre": "Acero Norte", "rfc": "ANO010101AB1"}),
+    "PATCH /api/v1/proveedores/{proveedor_id}": PeticionValida(
+        {"dia_corte": 2},
+        ruta="/api/v1/proveedores/3f8a2c1e-9b4d-4e7a-8c5f-2d6b1a0e9c3f",
+    ),
+    "POST /api/v1/proveedores/{proveedor_id}/desactivacion": PeticionValida(
+        {"motivo": "Duplicado en el catálogo 2026-11-10"},
+        ruta="/api/v1/proveedores/3f8a2c1e-9b4d-4e7a-8c5f-2d6b1a0e9c3f/desactivacion",
+    ),
 }
 
 

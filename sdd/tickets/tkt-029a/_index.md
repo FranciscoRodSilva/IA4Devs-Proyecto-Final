@@ -4,7 +4,7 @@
 
 ## Estado
 
-EN REVISIÓN · entrega a (esquema, dominio, repositorio y casos de uso). Pendiente: entrega b (API, montaje y contrato)
+EN REVISIÓN · entregas a y b ejecutadas. Siguiente: `/sdd-revisar TKT-029a`
 
 ## Ficha
 
@@ -17,7 +17,7 @@ EN REVISIÓN · entrega a (esquema, dominio, repositorio y casos de uso). Pendie
 | **Reglas implicadas** | `RN-17`; `RN-15` y `RN-16` solo como contexto (v1.1) |
 | **Invariantes en riesgo** | 28, 8 y 10; regresión de la cadena de migraciones y de las rutas protegidas |
 | **Módulos en alcance** | `proveedores`; `auditoria` e `identidad` por su interfaz |
-| **Capas en alcance** | dominio · aplicación · api · infraestructura. Con migración `0012`. Sin frontend |
+| **Capas en alcance** | dominio · aplicación · api · infraestructura. Con migración `0013`. Sin frontend |
 | **Criterios `[M]`** | `CA-1` a `CA-11`, `CA-R1` y `CA-R2` |
 | **Depende de** | TKT-003, TKT-005, TKT-006 y TKT-007 (todas ARCHIVADO) |
 | **Rama** | `tkt-029a-catalogo-proveedores` |
@@ -28,7 +28,7 @@ EN REVISIÓN · entrega a (esquema, dominio, repositorio y casos de uso). Pendie
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-10 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entrega a escrita el 2026-11-12; la entrega b la añadirá |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a (2026-11-12) y b (2026-11-14) escritas |
 | Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
 
 ## Log de estados
@@ -39,6 +39,7 @@ EN REVISIÓN · entrega a (esquema, dominio, repositorio y casos de uso). Pendie
 | 2026-11-10 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito por `arquitecto-tecnico` (opus): patrón de TKT-017 y TKT-012a, sin baja ni puerto ni pantalla; el índice `uq_proveedor_rfc` arbitra el duplicado y la carrera; `REVOKE DELETE` al rol de aplicación; copia local de `MetaPagina` y `Motivo` en `proveedores`, sin paquete nuevo ni ADR. Filas A1 a A4 (esquema, dominio, repositorio y casos de uso, ~480 líneas) y B1 y B2 (API, borrador y tipos, ~290 líneas) en dos entregas y un solo PR. `revisor-impacto`: sin frontera cruzada (16 contratos en verde), diseño incompleto; sus hallazgos se incorporaron, entre ellos que la premisa del paquete `contrato_api` era falsa (Pydantic fusiona clases idénticas) y que la migración `0012` afecta a las suites que bajan desde la cabeza. Nueve decisiones esperan a la persona dueña (D-1 a D-9) |
 | 2026-11-10 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones de D-1 a D-9 (ver «Decisiones registradas»). Siguiente: `/sdd-ejecutar TKT-029a` sobre la entrega a (filas A1 a A4) |
 | 2026-11-12 | `LISTO PARA EJECUTAR` | `EN REVISIÓN · entrega a` | `/sdd-ejecutar` | Entrega a (filas A1 a A4) ejecutada con TDD. La migración pasa a `0013` porque TKT-059 ocupó `0012`. Suite completa 3314 passed, 26 skipped; 8 de 8 mutantes aplicables muertos; `auditor-arquitectura` y `auditor-sql` en `APROBADO` sin hallazgos. Siguiente: `/sdd-revisar` de la entrega a y después `/sdd-ejecutar TKT-029a` para la entrega b |
+| 2026-11-14 | `EN REVISIÓN · entrega a` | `EN REVISIÓN` | `/sdd-ejecutar` | Entrega b (filas B1 y B2) ejecutada con TDD: cinco rutas, contrato y tipos regenerados. Suite completa 3422 passed, 26 skipped; 9 de 9 mutantes muertos. `auditor-arquitectura` y `auditor-seguridad` en `APROBADO`; `auditor-codigo` pidió cambios (F001 Mayor, F003 Menor), se corrigieron con tests primero y la reauditoría fue `APROBADO`. Siguiente: `/sdd-revisar TKT-029a` |
 
 ## Decisiones registradas
 
