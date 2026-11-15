@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · delta escrito; PR por abrir. Siguiente: aprobación de la fusión por la persona dueña
+ARCHIVADO · las dos entregas y la fila B3 de la revisión se fusionaron juntas en el PR #74. La planificación queda archivada.
 
 ## Ficha
 
@@ -30,6 +30,7 @@ PENDIENTE FUSIÓN · delta escrito; PR por abrir. Siguiente: aprobación de la f
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a (2026-11-12) y b (2026-11-14) escritas; la revisión del 2026-11-14 añade su sección |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-14 |
+| PR | [#74](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/74) | `/sdd-completar` | Fusionado el 2026-11-14 |
 
 ## Log de estados
 
@@ -42,6 +43,7 @@ PENDIENTE FUSIÓN · delta escrito; PR por abrir. Siguiente: aprobación de la f
 | 2026-11-14 | `EN REVISIÓN · entrega a` | `EN REVISIÓN` | `/sdd-ejecutar` | Entrega b (filas B1 y B2) ejecutada con TDD: cinco rutas, contrato y tipos regenerados. Suite completa 3422 passed, 26 skipped; 9 de 9 mutantes muertos. `auditor-arquitectura` y `auditor-seguridad` en `APROBADO`; `auditor-codigo` pidió cambios (F001 Mayor, F003 Menor), se corrigieron con tests primero y la reauditoría fue `APROBADO`. Siguiente: `/sdd-revisar TKT-029a` |
 | 2026-11-14 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Revisión del ticket completo (la entrega b es la última). `auditor-codigo` revisó la entrega a y encontró cuatro Menores, corregidos. `auditor-docs` encontró dos Mayores: el `lock_timeout` sin traducir, que la persona dueña decidió traducir en este ticket (fila B3, con `TC-43` y `M-13`), y el ADR de `D-7`, que la persona dueña mantuvo sin ADR; más cuatro Menores de documentación, resueltos. B3 se amplió al alta por decisión de la persona dueña. Dos mutantes sobrevivieron (`from error` en actualizar y desactivar, y la lectura de la rama de RFC duplicado fuera del gestor en el alta) y se mataron con tests. Suite completa 3437 passed, 26 skipped; las cinco auditorías en `APROBADO`. El `openapi.yaml` cambia y debe señalarse a quien apruebe el PR. Siguiente: `/sdd-completar TKT-029a` |
 | 2026-11-14 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Delta escrito y enlazado; `auditor-docs` pidió cambios (un Mayor sobre `D-7` sin ADR, resuelto con la excepción de la persona dueña, y cinco Menores) y se corrigieron; filas del registro de evolución añadidas y `meta-sdd` ejecutado, con propuestas sin aplicar. Siguiente: commit, push y PR único del ticket |
+| 2026-11-14 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar TKT-029a` | PR #74 fusionado en `Produccion` (commit `49b8af2`) con nueve de las diez comprobaciones en verde sobre `891b205`; la de dependencias estaba en rojo por `dnspython` 2.9.0 (GHSA-vvf4-9x63-8xvv), ajena al ticket, y la persona dueña aprobó fusionar con ese rojo. `Produccion` no tiene protección de rama, así que fue una fusión normal sin `--admin`; el registro consta en el comentario del PR. La planificación queda archivada; el número del PR consta en el comentario de registro |
 
 ## Decisiones registradas
 
