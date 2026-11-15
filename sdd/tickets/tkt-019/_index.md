@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN
+ARCHIVADO · las cinco filas se fusionaron juntas en el PR #76. La planificación queda archivada.
 
 ## Ficha
 
@@ -30,6 +30,7 @@ PENDIENTE FUSIÓN
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito el 2026-11-14; aprobado el 2026-11-15 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrita el 2026-11-15 |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-15 |
+| PR | [#76](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/76) | `/sdd-completar` | Fusionado el 2026-11-15 |
 
 ## Log de estados
 
@@ -41,6 +42,7 @@ PENDIENTE FUSIÓN
 | 2026-11-15 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Cinco filas ejecutadas con TDD en la rama `tkt-019-esquema-compras`: `dnspython` 2.9.2 (el filtro de `pip-audit` sale con 0; no hace falta `CA-13`), migración `0014` con las siete tablas, disparadores `IN002` y privilegios, migración `0015` con la semilla de folios, y la documentación. Suite completa `3574 passed, 26 skipped`; las cuatro suites del ticket `175 passed`; mutación 19 de 19. `auditor-arquitectura` `APROBADO`; `auditor-sql` `REQUIERE CAMBIOS` con dos Menores: `F001` corregido (`LOCK TABLE` en las guardas de bajada) y `F002` (índice de `solicitud_autorizacion.obra_id`) queda como excepción declarada por contradecir D-7. Sin commit todavía |
 | 2026-11-15 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Revisión: suite completa `3574 passed, 26 skipped`, `ruff`, `mypy` y `lint-imports` limpios; 15 criterios `[M]` cumplidos (`CA-12` se cierra en el pipeline, `CA-13` no aplica). `auditor-arquitectura`, `auditor-sql` (reauditoría) y `auditor-seguridad` `APROBADO`; `auditor-docs` `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` tras corregir dos Mayores (diagrama de `docs/02`, ADR de D-3, que la persona dueña decidió crear: conteo de ADR 43→44) y tres Menores; `F003` y `F006` los resolvió el orquestador. Sin commit todavía |
 | 2026-11-15 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Delta escrito y auditado por `auditor-docs` (dos Menores de redacción, resueltos por el orquestador con el texto literal del auditor); `_evolucion.md` actualizado con seis observaciones y `meta-sdd` propone seis mejoras sin aplicar. Siguiente: `code-review`, commit, PR y comprobaciones |
+| 2026-11-15 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar TKT-019` | PR #76 fusionado en `Produccion` (commit `b6df9b7`) con las diez comprobaciones requeridas en verde sobre `b3fe9cb`, incluida «Dependencias» con `dnspython` 2.9.2. La planificación queda archivada; el número del PR consta en el comentario de registro. El rojo de «Dependencias» que arrastraba la rama por `dnspython` queda cerrado |
 
 ## Decisiones registradas
 
