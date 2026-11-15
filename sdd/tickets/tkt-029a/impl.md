@@ -212,7 +212,7 @@ El resto de la documentación listada en el diseño (`docs/api/openapi.yaml`, `s
 
 ---
 
-# Entrega b · API, montaje, contrato y tipos
+## Entrega b · API, montaje, contrato y tipos
 
 ## Qué se implementó (entrega b)
 
@@ -400,7 +400,7 @@ La observación O-2 de la entrega a (un `estados` vacío emitiría `IN ()`) qued
 
 ---
 
-# Revisión del ticket · `/sdd-revisar` (2026-11-14)
+## Revisión del ticket · `/sdd-revisar` (2026-11-14)
 
 Revisión de las dos entregas juntas, porque la entrega b es la última. Cambia respecto de lo ya escrito arriba: `auditor-codigo` revisó también la entrega a, que no la había tenido, y la revisión añadió la fila B3 por una decisión de la persona dueña.
 
@@ -527,4 +527,3 @@ La suite completa es la última, con la ampliación del alta y el test de `M-14c
 - [ ] Los trabajos de `ci.yml` en verde: se verifica en `/sdd-completar`, con el pull request real. Este comando no abre pull request
 
 **El `openapi.yaml` cambia en este ticket** (`maxLength: 200` en `nombre` y patrón y longitud de `q`, y las cinco operaciones del catálogo), así que la persona que apruebe el pull request debe revisarlo aunque no tenga defectos.
-
