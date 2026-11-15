@@ -9,7 +9,8 @@ comprobación previa, así que cubre también la carrera entre dos altas simult�
 from __future__ import annotations
 
 import uuid
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Final
 
@@ -20,7 +21,8 @@ from cimenta.proveedores.aplicacion.contexto import ContextoProveedores
 from cimenta.proveedores.dominio.proveedor import EstadoProveedor, admite_desactivacion
 from cimenta.proveedores.infraestructura import repositorio_proveedor
 from cimenta.proveedores.infraestructura.repositorio_proveedor import FilaProveedor
-from contrato_error.excepciones import ConflictoEstado, NoEncontrado
+from contrato_error.acciones import Accion
+from contrato_error.excepciones import ConcurrenciaVencida, ConflictoEstado, NoEncontrado
 from tipos_base import Dinero
 
 ROLES_GESTION = ("COMPRAS",)
@@ -39,6 +41,13 @@ MENSAJE_PROVEEDOR_NO_EXISTE = "El proveedor no existe."
 
 _RESTRICCION_RFC = "uq_proveedor_rfc"
 _SQLSTATE_UNICIDAD = "23505"
+
+_ESPERA_BLOQUEO_MS = 5000
+_ESPERA_EJECUCION_MS = 15000
+_MENSAJE_BLOQUEO = (
+    "Otra operación está modificando este proveedor en este momento. Vuelve a intentarlo."
+)
+_MENSAJE_TIEMPO = "La operación tardó más de lo permitido y se canceló. Vuelve a intentarlo."
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,39 +88,43 @@ def crear_proveedor(
     """Da de alta un proveedor `ACTIVO` y asienta `CREAR` en la misma transacción."""
     proveedor_id = uuid.uuid4()
     ahora = contexto.reloj()
-    try:
-        with contexto.fabrica_sesiones().begin() as sesion_bd:
-            repositorio_proveedor.insertar_proveedor(
-                sesion_bd,
-                proveedor_id=proveedor_id,
-                nombre=datos.nombre,
-                rfc=datos.rfc,
-                tope_consignacion=datos.tope_consignacion,
-                dia_corte=datos.dia_corte,
-                dia_pago=datos.dia_pago,
-                creado_en=ahora,
-                creado_por_id=usuario_id,
-            )
-            asentar(
-                sesion_bd,
-                accion="CREAR",
-                entidad_tipo="proveedor",
-                entidad_id=proveedor_id,
-                usuario_id=usuario_id,
-                ocurrido_en=ahora,
-                datos_despues={
-                    "nombre": datos.nombre,
-                    "rfc": datos.rfc,
-                    "estado": EstadoProveedor.ACTIVO.value,
-                    "tope_consignacion": _valor_de_bitacora(datos.tope_consignacion),
-                    "dia_corte": datos.dia_corte,
-                    "dia_pago": datos.dia_pago,
-                },
-            )
-    except DBAPIError as error:
-        if _es_rfc_duplicado(error):
-            _conflicto_rfc(contexto, datos.rfc, error)
-        raise
+    with _traducir_concurrencia("POST", "/api/v1/proveedores"):
+        try:
+            with contexto.fabrica_sesiones().begin() as sesion_bd:
+                repositorio_proveedor.insertar_proveedor(
+                    sesion_bd,
+                    proveedor_id=proveedor_id,
+                    nombre=datos.nombre,
+                    rfc=datos.rfc,
+                    tope_consignacion=datos.tope_consignacion,
+                    dia_corte=datos.dia_corte,
+                    dia_pago=datos.dia_pago,
+                    creado_en=ahora,
+                    creado_por_id=usuario_id,
+                )
+                asentar(
+                    sesion_bd,
+                    accion="CREAR",
+                    entidad_tipo="proveedor",
+                    entidad_id=proveedor_id,
+                    usuario_id=usuario_id,
+                    ocurrido_en=ahora,
+                    datos_despues={
+                        "nombre": datos.nombre,
+                        "rfc": datos.rfc,
+                        "estado": EstadoProveedor.ACTIVO.value,
+                        "tope_consignacion": _valor_de_bitacora(datos.tope_consignacion),
+                        "dia_corte": datos.dia_corte,
+                        "dia_pago": datos.dia_pago,
+                    },
+                )
+        except DBAPIError as error:
+            if _es_rfc_duplicado(error):
+                with contexto.fabrica_sesiones().begin() as sesion_bd:
+                    existente = repositorio_proveedor.leer_proveedor_por_rfc(sesion_bd, datos.rfc)
+                if existente is not None:
+                    raise _rechazo_rfc_duplicado(existente) from error
+            raise
     return proveedor_id
 
 
@@ -164,7 +177,10 @@ def actualizar_proveedor(
             f"{sorted(CAMPOS_CAMBIABLES)}; llegó {sorted(cambios.presentes)}."
         )
     ahora = contexto.reloj()
-    with contexto.fabrica_sesiones().begin() as sesion_bd:
+    with (
+        _traducir_concurrencia("PATCH", f"/api/v1/proveedores/{proveedor_id}"),
+        contexto.fabrica_sesiones().begin() as sesion_bd,
+    ):
         fila = repositorio_proveedor.leer_proveedor(sesion_bd, proveedor_id, para_cambio=True)
         if fila is None:
             raise NoEncontrado(recurso="proveedor", mensaje=MENSAJE_PROVEEDOR_NO_EXISTE)
@@ -192,7 +208,10 @@ def desactivar_proveedor(
 ) -> None:
     """Pasa un proveedor `ACTIVO` a `DESACTIVADO` bajo `FOR UPDATE` y asienta `DESACTIVAR` con motivo."""
     ahora = contexto.reloj()
-    with contexto.fabrica_sesiones().begin() as sesion_bd:
+    with (
+        _traducir_concurrencia("POST", f"/api/v1/proveedores/{proveedor_id}/desactivacion"),
+        contexto.fabrica_sesiones().begin() as sesion_bd,
+    ):
         fila = repositorio_proveedor.leer_proveedor(sesion_bd, proveedor_id, para_cambio=True)
         if fila is None:
             raise NoEncontrado(recurso="proveedor", mensaje=MENSAJE_PROVEEDOR_NO_EXISTE)
@@ -219,6 +238,32 @@ def desactivar_proveedor(
         )
 
 
+@contextmanager
+def _traducir_concurrencia(metodo: str, ruta: str) -> Iterator[None]:
+    """RNF-16: `55P03` (`lock_timeout`) y `57014` (`statement_timeout`) son `CONCURRENCIA`; el resto se relanza."""
+    try:
+        yield
+    except DBAPIError as error:
+        sqlstate = getattr(error.orig, "sqlstate", None)
+        if sqlstate == "55P03":
+            codigo, mensaje, espera = "BLOQUEO_VENCIDO", _MENSAJE_BLOQUEO, _ESPERA_BLOQUEO_MS
+        elif sqlstate == "57014":
+            codigo, mensaje, espera = (
+                "TIEMPO_EJECUCION_VENCIDO",
+                _MENSAJE_TIEMPO,
+                _ESPERA_EJECUCION_MS,
+            )
+        else:
+            raise
+        raise ConcurrenciaVencida(
+            codigo=codigo,
+            mensaje=mensaje,
+            espera_maxima_ms=espera,
+            reintentar_en_s=1,
+            acciones=[Accion("REINTENTAR", metodo, ruta, ROLES_GESTION)],
+        ) from error
+
+
 def _es_rfc_duplicado(error: DBAPIError) -> bool:
     diag = getattr(error.orig, "diag", None)
     return (
@@ -227,13 +272,8 @@ def _es_rfc_duplicado(error: DBAPIError) -> bool:
     )
 
 
-def _conflicto_rfc(contexto: ContextoProveedores, rfc: str, error: DBAPIError) -> None:
-    """Lee el existente en otra transacción y lanza el `409`; si no aparece, deja que el llamador relance."""
-    with contexto.fabrica_sesiones().begin() as sesion_bd:
-        existente = repositorio_proveedor.leer_proveedor_por_rfc(sesion_bd, rfc)
-    if existente is None:
-        return
-    raise ConflictoEstado(
+def _rechazo_rfc_duplicado(existente: FilaProveedor) -> ConflictoEstado:
+    return ConflictoEstado(
         codigo="RFC_DUPLICADO",
         mensaje=f"Ya existe un proveedor con el RFC {existente.rfc}.",
         detalle={
@@ -241,4 +281,4 @@ def _conflicto_rfc(contexto: ContextoProveedores, rfc: str, error: DBAPIError) -
             "proveedor_existente": f"{existente.nombre} · {existente.rfc}",
         },
         acciones=(),
-    ) from error
+    )

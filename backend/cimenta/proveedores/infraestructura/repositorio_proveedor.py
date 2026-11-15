@@ -16,6 +16,7 @@ from typing import Any, NamedTuple
 from sqlalchemy import ColumnElement, Row, func, insert, or_, select, update
 from sqlalchemy.orm import Session
 
+from cimenta.proveedores.dominio.proveedor import EstadoProveedor
 from cimenta.proveedores.infraestructura.tablas import proveedor
 from tipos_base import Dinero
 
@@ -57,6 +58,11 @@ def _dinero_o_nulo(valor: Decimal | None) -> Dinero | None:
     return None if valor is None else Dinero(valor)
 
 
+def _a_columna(valor: object) -> object:
+    """Un `Dinero` se escribe cuantizado a la escala de su columna; lo demás pasa tal cual."""
+    return valor.cuantizar().valor if isinstance(valor, Dinero) else valor
+
+
 def _fila_proveedor(fila: Row[*tuple[Any, ...]]) -> FilaProveedor:
     return FilaProveedor(
         id=fila.id,
@@ -88,10 +94,8 @@ def insertar_proveedor(
             id=proveedor_id,
             nombre=nombre,
             rfc=rfc,
-            estado="ACTIVO",
-            tope_consignacion=None
-            if tope_consignacion is None
-            else tope_consignacion.cuantizar().valor,
+            estado=EstadoProveedor.ACTIVO.value,
+            tope_consignacion=_a_columna(tope_consignacion),
             dia_corte=dia_corte,
             dia_pago=dia_pago,
             creado_en=creado_en,
@@ -164,8 +168,5 @@ def actualizar_proveedor(
         raise ValueError(f"Columnas de proveedor no actualizables: {sorted(no_admitidas)}")
     if not valores:
         return
-    escritura: dict[str, object] = {
-        clave: valor.cuantizar().valor if isinstance(valor, Dinero) else valor
-        for clave, valor in valores.items()
-    }
+    escritura: dict[str, object] = {clave: _a_columna(valor) for clave, valor in valores.items()}
     sesion_bd.execute(update(proveedor).where(proveedor.c.id == proveedor_id).values(escritura))

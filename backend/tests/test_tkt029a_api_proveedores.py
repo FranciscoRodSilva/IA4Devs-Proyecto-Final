@@ -8,7 +8,8 @@ HTTPS. Las ayudas son solo las de `herramientas.soporte_tkt017_api`, con `borrad
 Operaciones del borrador que cubre: `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`,
 `actualizar_proveedor` y `desactivar_proveedor`. `dar_baja_proveedor` es de TKT-029b y **no** se publica
 (`TC-40` lo exige). El catálogo es global, sin obra: no hay caso de «otra obra» (IDOR) en esta fila. La
-concurrencia (`CA-3`, bloqueo de la desactivación) se prueba en los casos de uso (`TC-15`, `TC-20`).
+concurrencia (`CA-3`, bloqueo de la desactivación) se prueba en los casos de uso (`TC-15`, `TC-20`); el
+vencimiento de `lock_timeout` y de `statement_timeout` (`TC-43`, fila B3) se prueba aquí, por HTTP.
 
 Cada rechazo comprueba el contrato de error completo con `exigir_error` (`tipo`, `codigo`, `mensaje` literal,
 `errores` o `detalle`, `acciones`, la correlación de la cabecera y la validez contra el esquema del
@@ -45,8 +46,13 @@ from typing import TYPE_CHECKING, Any, LiteralString
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
+from sqlalchemy.orm import Session
 
 from herramientas.soporte_tkt017_api import (
+    CABECERA_CORRELACION,
+    CONTRASENA_DE_PRUEBA,
     SIN_PAR_VALIDO,
     TOKEN_CSRF,
     Sesion,
@@ -54,12 +60,14 @@ from herramientas.soporte_tkt017_api import (
     base,  # noqa: F401
     borrador_comparable,
     cabeceras_de,
+    cliente_espera_corta,  # noqa: F401
     componentes_duplicados,
     construir_aplicacion,
     diferencias_de_forma,
     exigir_denegacion,
     exigir_error,
     forma_de_componente,
+    iniciar_sesion,
     llamadas,
     parametros_de,
     rutas_de,
@@ -70,7 +78,7 @@ from herramientas.soporte_tkt017_entorno import Base
 
 if TYPE_CHECKING:
     # `conftest` no es importable en tiempo de ejecución: pytest lo carga por su cuenta.
-    from conftest import RelojDePrueba
+    from conftest import Conectar, RelojDePrueba, SembrarUsuario
 
 RUTA = "/api/v1/proveedores"
 RFC = "XAXX010101000"
@@ -108,6 +116,10 @@ MENSAJE_ORIGEN_NO_VERIFICADO = (
 MENSAJE_SIN_SESION = "No hay una sesión iniciada."
 MENSAJE_UN_CAMPO_INVALIDO = "La petición tiene 1 campo inválido."
 MENSAJE_PROVEEDOR_NO_EXISTE = "El proveedor no existe."
+MENSAJE_BLOQUEO_VENCIDO = (
+    "Otra operación está modificando este proveedor en este momento. Vuelve a intentarlo."
+)
+MENSAJE_TIEMPO_VENCIDO = "La operación tardó más de lo permitido y se canceló. Vuelve a intentarlo."
 MENSAJES_DE_VALIDACION = {
     "OBLIGATORIO": "El campo es obligatorio.",
     "FORMATO": "El valor no tiene el formato esperado.",
@@ -1313,6 +1325,345 @@ def test_hdu004_esc12_api_desactivar_un_desactivado_o_inexistente(
         esquema="ErrorNoEncontrado",
     )
     assert _foto(base) == antes
+
+
+# --------------------------------------------------------------------------- TC-43 · CA-8 · CA-9 · RNF-16
+
+
+@pytest.fixture
+def sesion_compras_espera_corta(
+    cliente_espera_corta: TestClient, sembrar_usuario: SembrarUsuario
+) -> Sesion:
+    """Un usuario de COMPRAS con sesión abierta contra la aplicación de `lock_timeout` de 200 ms."""
+    correo = f"compras-espera-{uuid.uuid4().hex[:8]}@cimenta.test"
+    usuario_id = sembrar_usuario(
+        correo, CONTRASENA_DE_PRUEBA, roles=("COMPRAS",), nombre="Compras con espera"
+    )
+    return Sesion(usuario_id, iniciar_sesion(cliente_espera_corta, correo, CONTRASENA_DE_PRUEBA))
+
+
+def _operar(cliente: TestClient, sesion: Sesion, operacion: str, proveedor_id: uuid.UUID) -> Any:
+    """`PATCH` del día de corte, desactivación con motivo o alta de otro proveedor, según `operacion`."""
+    if operacion == "crear":
+        return _alta(cliente, sesion, _cuerpo(nombre="CoPanel Norte", rfc=_rfc(7)))
+    if operacion == "actualizar":
+        return _cambiar(cliente, sesion, proveedor_id, {"dia_corte": 2})
+    return _desactivar(cliente, sesion, proveedor_id, {"motivo": "Ya no surte tablaroca"})
+
+
+def _reintento(operacion: str, proveedor_id: uuid.UUID) -> dict[str, str]:
+    """La acción `REINTENTAR` que el borrador pide: el método y la ruta de la propia operación."""
+    if operacion == "crear":
+        return {"clave": "REINTENTAR", "metodo": "POST", "ruta": RUTA}
+    if operacion == "actualizar":
+        return {"clave": "REINTENTAR", "metodo": "PATCH", "ruta": f"{RUTA}/{proveedor_id}"}
+    return {
+        "clave": "REINTENTAR",
+        "metodo": "POST",
+        "ruta": f"{RUTA}/{proveedor_id}/desactivacion",
+    }
+
+
+def _exigir_concurrencia(
+    respuesta: Any,
+    operacion: str,
+    proveedor_id: uuid.UUID,
+    *,
+    codigo: str,
+    mensaje: str,
+    espera_maxima_ms: int,
+) -> None:
+    """El `409` `CONCURRENCIA` completo del borrador: sin `regla`, con `Retry-After: 1` y `REINTENTAR`."""
+    cuerpo = exigir_error(
+        respuesta,
+        estado=409,
+        esperado={
+            "tipo": "CONCURRENCIA",
+            "codigo": codigo,
+            "mensaje": mensaje,
+            "detalle": {"espera_maxima_ms": espera_maxima_ms},
+            "acciones": [_reintento(operacion, proveedor_id)],
+        },
+        esquema="ErrorConcurrencia",
+        cabeceras={"Retry-After": "1"},
+    )
+    assert "regla" not in cuerpo
+
+
+def _leer_que_falla(sentencias: list[str], sqlstates: list[str]) -> Callable[..., Any]:
+    """Un sustituto de `repositorio_proveedor.leer_proveedor` cuyas sentencias fallan **en el motor**.
+
+    Solo sustituye la lectura bloqueante (`para_cambio=True`) de `PATCH` y de la desactivación; ejecuta cada
+    sentencia en la sesión del caso de uso, anota el `SQLSTATE` real que responde el motor y relanza el
+    error tal cual. Cualquier otra lectura (la que relee el proveedor tras el cambio) pasa al original.
+    """
+    from cimenta.proveedores.infraestructura import repositorio_proveedor
+
+    original = repositorio_proveedor.leer_proveedor
+
+    def leer(sesion_bd: Session, proveedor_id: uuid.UUID, *, para_cambio: bool = False) -> Any:
+        if not para_cambio:
+            return original(sesion_bd, proveedor_id)
+        try:
+            for sentencia in sentencias:
+                sesion_bd.execute(text(sentencia))
+        except DBAPIError as error:
+            sqlstates.append(str(getattr(error.orig, "sqlstate", None)))
+            raise
+        raise AssertionError("La sentencia sustituta debía fallar en el motor")
+
+    return leer
+
+
+def _insertar_que_falla(sentencias: list[str], sqlstates: list[str]) -> Callable[..., Any]:
+    """Un sustituto de `repositorio_proveedor.insertar_proveedor` cuyas sentencias fallan **en el motor**.
+
+    Es el equivalente de `_leer_que_falla` para el alta (`crear_proveedor` no lee antes de escribir): ejecuta
+    cada sentencia en la sesión del caso de uso, anota el `SQLSTATE` real que responde el motor y relanza el
+    error tal cual.
+    """
+
+    def insertar(sesion_bd: Session, **_: Any) -> None:
+        try:
+            for sentencia in sentencias:
+                sesion_bd.execute(text(sentencia))
+        except DBAPIError as error:
+            sqlstates.append(str(getattr(error.orig, "sqlstate", None)))
+            raise
+        raise AssertionError("La sentencia sustituta debía fallar en el motor")
+
+    return insertar
+
+
+def _hacer_fallar_en_el_motor(
+    monkeypatch: pytest.MonkeyPatch, operacion: str, sentencias: list[str], sqlstates: list[str]
+) -> None:
+    """Sustituye la primera sentencia de `operacion` por `sentencias`, que fallan en el motor.
+
+    `crear` sustituye `insertar_proveedor`; `actualizar` y `desactivar`, la lectura `FOR UPDATE`.
+    """
+    from cimenta.proveedores.infraestructura import repositorio_proveedor
+
+    if operacion == "crear":
+        monkeypatch.setattr(
+            repositorio_proveedor, "insertar_proveedor", _insertar_que_falla(sentencias, sqlstates)
+        )
+    else:
+        monkeypatch.setattr(
+            repositorio_proveedor, "leer_proveedor", _leer_que_falla(sentencias, sqlstates)
+        )
+
+
+def test_tkt029a_api_actualizar_con_bloqueo_vencido(
+    base: Base,
+    base_de_prueba: str,
+    conectar: Conectar,
+    cliente_espera_corta: TestClient,
+    sesion_compras_espera_corta: Sesion,
+) -> None:
+    """TC-43 · CA-8 · RNF-16 — otra sesión retiene la fila: `PATCH` responde `409` `CONCURRENCIA` `BLOQUEO_VENCIDO` (`M-13`).
+
+    La aplicación corre sobre el rol de aplicación con `lock_timeout` de 200 ms y otra sesión tiene la fila
+    de `proveedor` con `FOR UPDATE`. El contrato es completo: `Retry-After: 1`, `espera_maxima_ms` 5000 (el
+    `lock_timeout` del rol, no los 200 ms de la prueba), el mensaje literal, la acción `REINTENTAR` `PATCH`
+    a la ruta de ESE proveedor y sin `regla`. No escribe nada: la fila queda como estaba y la bitácora no
+    recibe ningún asiento. Sin la traducción de `55P03` (`M-13`) la respuesta es un `500`.
+    """
+    proveedor_id = _sembrar(base, sesion_compras_espera_corta.usuario_id, nombre="CoPanel", rfc=RFC)
+    antes = _foto(base)
+
+    retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+    try:
+        retenedor.execute("SELECT id FROM proveedor WHERE id = %s FOR UPDATE", (proveedor_id,))
+        respuesta = _operar(
+            cliente_espera_corta, sesion_compras_espera_corta, "actualizar", proveedor_id
+        )
+    finally:
+        retenedor.rollback()
+
+    _exigir_concurrencia(
+        respuesta,
+        "actualizar",
+        proveedor_id,
+        codigo="BLOQUEO_VENCIDO",
+        mensaje=MENSAJE_BLOQUEO_VENCIDO,
+        espera_maxima_ms=5000,
+    )
+    assert _foto(base) == antes, "Un bloqueo vencido no cambia el proveedor ni asienta nada"
+    assert base.filas("SELECT dia_corte FROM proveedor WHERE id = %s", proveedor_id) == [(4,)]
+    assert _cuenta(base, "SELECT count(*) FROM bitacora WHERE entidad_tipo = 'proveedor'") == 0
+
+
+def test_hdu004_esc12_api_desactivar_con_bloqueo_vencido(
+    base: Base,
+    base_de_prueba: str,
+    conectar: Conectar,
+    cliente_espera_corta: TestClient,
+    sesion_compras_espera_corta: Sesion,
+) -> None:
+    """HDU-004 esc. 12 · TC-43 · CA-9 · RNF-16 — otra sesión retiene la fila: la desactivación responde `409` `CONCURRENCIA` `BLOQUEO_VENCIDO` (`M-13`).
+
+    Mismo escenario que el `PATCH`, con la acción `REINTENTAR` `POST` a `/proveedores/{id}/desactivacion`.
+    El proveedor sigue `ACTIVO` y no se asienta ningún `DESACTIVAR`: un bloqueo vencido no desactiva a
+    medias ni deja a un proveedor `DESACTIVADO` sin su motivo en la bitácora.
+    """
+    proveedor_id = _sembrar(base, sesion_compras_espera_corta.usuario_id, nombre="CoPanel", rfc=RFC)
+    antes = _foto(base)
+
+    retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+    try:
+        retenedor.execute("SELECT id FROM proveedor WHERE id = %s FOR UPDATE", (proveedor_id,))
+        respuesta = _operar(
+            cliente_espera_corta, sesion_compras_espera_corta, "desactivar", proveedor_id
+        )
+    finally:
+        retenedor.rollback()
+
+    _exigir_concurrencia(
+        respuesta,
+        "desactivar",
+        proveedor_id,
+        codigo="BLOQUEO_VENCIDO",
+        mensaje=MENSAJE_BLOQUEO_VENCIDO,
+        espera_maxima_ms=5000,
+    )
+    assert _foto(base) == antes, "Un bloqueo vencido no cambia el proveedor ni asienta nada"
+    assert base.filas("SELECT estado FROM proveedor WHERE id = %s", proveedor_id) == [("ACTIVO",)]
+    assert _cuenta(base, "SELECT count(*) FROM bitacora WHERE entidad_tipo = 'proveedor'") == 0
+
+
+def test_hdu004_esc03_api_alta_con_bloqueo_vencido(
+    base: Base,
+    base_de_prueba: str,
+    conectar: Conectar,
+    cliente_espera_corta: TestClient,
+    sesion_compras_espera_corta: Sesion,
+) -> None:
+    """HDU-004 esc. 3 · TC-43 · CA-1 · CA-2 · RNF-16 — otra sesión inserta el mismo RFC sin confirmar: el alta responde `409` `CONCURRENCIA` `BLOQUEO_VENCIDO` (`M-13`).
+
+    Una segunda conexión del rol de aplicación inserta un proveedor con el RFC y **no confirma**. El alta con
+    el mismo RFC espera en `uq_proveedor_rfc` hasta que vence el `lock_timeout` de 200 ms de la prueba. No es
+    `RFC_DUPLICADO`: el otro alta no está confirmada y todavía no hay proveedor existente que mostrar.
+    Contrato completo: `Retry-After: 1`, `espera_maxima_ms` 5000 (el `lock_timeout` del rol), el mensaje
+    literal, la acción `REINTENTAR` `POST` a `/api/v1/proveedores` (no a una ruta con id: el alta no tiene
+    id) y sin `regla`. El alta rechazada no escribe: ni fila ni asiento (el retenedor hace `rollback`).
+    Sin la traducción de `55P03` en `crear_proveedor` (`M-13`) la respuesta es un `500`.
+    """
+    _exigir_nada_creado(base)
+
+    retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+    try:
+        retenedor.execute(
+            "INSERT INTO proveedor (id, nombre, rfc, estado, tope_consignacion, dia_corte, dia_pago, "
+            "creado_en, creado_por_id) VALUES (%s, %s, %s, 'ACTIVO', NULL, 4, 6, %s, %s)",
+            (
+                uuid.uuid4(),
+                "Alta sin confirmar",
+                RFC,
+                CREADO_ANTES,
+                sesion_compras_espera_corta.usuario_id,
+            ),
+        )
+        respuesta = _alta(cliente_espera_corta, sesion_compras_espera_corta, _cuerpo())
+    finally:
+        retenedor.rollback()
+
+    _exigir_concurrencia(
+        respuesta,
+        "crear",
+        uuid.uuid4(),
+        codigo="BLOQUEO_VENCIDO",
+        mensaje=MENSAJE_BLOQUEO_VENCIDO,
+        espera_maxima_ms=5000,
+    )
+    _exigir_nada_creado(base)
+
+
+@pytest.mark.parametrize("operacion", ["actualizar", "desactivar", "crear"])
+def test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia(
+    operacion: str,
+    base: Base,
+    cliente_espera_corta: TestClient,
+    sesion_compras_espera_corta: Sesion,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-43 · CA-8 · CA-9 · RNF-16 — una sentencia agota `statement_timeout` (`57014`): `409` `CONCURRENCIA` `TIEMPO_EJECUCION_VENCIDO` (`M-13`).
+
+    La primera sentencia de la operación (la lectura `FOR UPDATE` de `PATCH` y de la desactivación, el
+    `INSERT` del alta) se sustituye por una sentencia que vence un `statement_timeout` de 10 ms: el
+    motor responde `57014` de verdad (la prueba lo comprueba). El contrato es completo: `Retry-After: 1`,
+    `espera_maxima_ms` 15000 (el `statement_timeout` del rol), el mensaje del diseño, la acción
+    `REINTENTAR` con el método y la ruta de la propia operación (`POST /api/v1/proveedores` en el alta) y
+    sin `regla`. No escribe nada. Mutantes: traducir el `57014` como `BLOQUEO_VENCIDO`, o cambiar 15000 por
+    5000, lo hacen caer; no traducirlo en `crear_proveedor`, cae la variante `crear`.
+    """
+    proveedor_id = _sembrar(base, sesion_compras_espera_corta.usuario_id, nombre="CoPanel", rfc=RFC)
+    antes = _foto(base)
+    sqlstates: list[str] = []
+    _hacer_fallar_en_el_motor(
+        monkeypatch,
+        operacion,
+        ["SET LOCAL statement_timeout = '10ms'", "SELECT pg_sleep(1)"],
+        sqlstates,
+    )
+
+    respuesta = _operar(cliente_espera_corta, sesion_compras_espera_corta, operacion, proveedor_id)
+
+    assert sqlstates == ["57014"], "La sentencia debe vencer el tiempo en el motor, no simularse"
+    _exigir_concurrencia(
+        respuesta,
+        operacion,
+        proveedor_id,
+        codigo="TIEMPO_EJECUCION_VENCIDO",
+        mensaje=MENSAJE_TIEMPO_VENCIDO,
+        espera_maxima_ms=15000,
+    )
+    assert _foto(base) == antes, "Un tiempo vencido no cambia el proveedor ni asienta nada"
+
+
+@pytest.mark.parametrize("operacion", ["actualizar", "desactivar", "crear"])
+def test_tkt029a_api_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir(
+    operacion: str,
+    base: Base,
+    cliente_espera_corta: TestClient,
+    sesion_compras_espera_corta: Sesion,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-43 · CA-8 · CA-9 · RNF-16 — un error de la base que no es `55P03` ni `57014` no se traduce: `500` del contrato (`M-13`).
+
+    La sentencia sustituta falla con una división entre cero real (`22012`). El caso de uso no la convierte
+    en `CONCURRENCIA` ni en ningún `409`: la relanza y la respuesta es el `500` genérico, solo `mensaje` y
+    `correlacion_id` (el de la cabecera), sin `Retry-After`, sin el nombre de la excepción, el `SQLSTATE`
+    ni el texto del motor. No escribe nada. Incluye el alta: nace en verde (hoy no traduce nada), y su
+    mutante es traducir todo `DBAPIError` a `CONCURRENCIA`, que lo hace caer.
+    """
+    proveedor_id = _sembrar(base, sesion_compras_espera_corta.usuario_id, nombre="CoPanel", rfc=RFC)
+    antes = _foto(base)
+    sqlstates: list[str] = []
+    _hacer_fallar_en_el_motor(monkeypatch, operacion, ["SELECT 1 / 0"], sqlstates)
+
+    respuesta = _operar(cliente_espera_corta, sesion_compras_espera_corta, operacion, proveedor_id)
+
+    assert sqlstates == ["22012"], "El motor debe responder con un SQLSTATE que no es de tiempo"
+    assert respuesta.status_code == 500, respuesta.text
+    assert "retry-after" not in respuesta.headers
+    cuerpo = respuesta.json()
+    assert set(cuerpo) == {"mensaje", "correlacion_id"}
+    assert cuerpo["correlacion_id"] == respuesta.headers[CABECERA_CORRELACION]
+    for pista in (
+        "CONCURRENCIA",
+        "DataError",
+        "DBAPIError",
+        "DivisionByZero",
+        "division by zero",
+        "22012",
+        "Traceback",
+        "psycopg",
+        "sqlalchemy",
+        "cimenta.",
+    ):
+        assert pista not in respuesta.text
+    assert _foto(base) == antes, "Un error ajeno al tiempo no cambia el proveedor ni asienta nada"
 
 
 # --------------------------------------------------------------------------- TC-38 · CA-10

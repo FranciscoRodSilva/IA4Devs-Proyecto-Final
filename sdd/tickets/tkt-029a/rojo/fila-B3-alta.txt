@@ -1,0 +1,422 @@
+...................F.................................................... [ 52%]
+.............................................F..F...............         [100%]
+================================== FAILURES ===================================
+_ test_hdu004_esc03_alta_con_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion _
+
+self = <sqlalchemy.engine.base.Connection object at 0x000001C1CB352990>
+dialect = <sqlalchemy.dialects.postgresql.psycopg.PGDialect_psycopg object at 0x000001C1CB224CD0>
+context = <sqlalchemy.dialects.postgresql.psycopg.PGExecutionContext_psycopg object at 0x000001C1CB28D480>
+statement = <sqlalchemy.dialects.postgresql.psycopg.PGCompiler_psycopg object at 0x000001C1CB48C550>
+parameters = [{'id': UUID('1e4d86d5-06f4-4f7e-b7a6-5e81b340f1d8'), 'nombre': 'CoPanel', 'rfc': 'XAXX010101000', 'estado': 'ACTIVO', ...}]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Unpack[TupleAny]]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        evt_handled: bool = False
+        try:
+            if self._has_events or self.engine._has_events:
+                for fn in self.dispatch.before_cursor_execute:
+                    str_statement, effective_parameters = fn(
+                        self,
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                        context.executemany,
+                    )
+    
+            if self._echo:
+                self._log_info(str_statement)
+    
+                stats = context._get_cache_stats()
+    
+                if not self.engine.hide_parameters:
+                    self._log_info(
+                        "[%s] %r",
+                        stats,
+                        sql_util._repr_params(
+                            effective_parameters,
+                            batches=10,
+                            ismulti=context.executemany,
+                        ),
+                    )
+                else:
+                    self._log_info(
+                        "[%s] [SQL parameters hidden due to "
+                        "hide_parameters=True]",
+                        stats,
+                    )
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1958: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <psycopg.Cursor [closed] [BAD] at 0x1c1cb24c7d0>
+query = 'INSERT INTO proveedor (id, nombre, rfc, estado, tope_consignacion, dia_corte, dia_pago, creado_en, creado_por_id) VAL...)s, %(dia_corte)s::SMALLINT, %(dia_pago)s::SMALLINT, %(creado_en)s::TIMESTAMP WITH TIME ZONE, %(creado_por_id)s::UUID)'
+params = {'id': UUID('1e4d86d5-06f4-4f7e-b7a6-5e81b340f1d8'), 'nombre': 'CoPanel', 'rfc': 'XAXX010101000', 'estado': 'ACTIVO', ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.LockNotAvailable: canceling statement due to lock timeout
+E           CONTEXT:  while inserting index tuple (0,2) in relation "uq_proveedor_rfc"
+
+.venv\Lib\site-packages\psycopg\cursor.py:117: LockNotAvailable
+
+The above exception was the direct cause of the following exception:
+
+contexto_espera_corta = <functools._lru_cache_wrapper object at 0x000001C1CB3BC0F0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001C1CB24C590>
+base_de_prueba = 'prueba_94372d3bd333'
+conectar = <function conectar.<locals>._conectar at 0x000001C1CB3BC300>
+creador = UUID('2ed5d579-75b0-4c36-bb4b-2ba26ee9125e')
+
+    def test_hdu004_esc03_alta_con_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion(
+        contexto_espera_corta: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        creador: uuid.UUID,
+    ) -> None:
+        """HDU-004 esc. 3 · TC-43 · CA-1 · CA-2 · RNF-16 — otra sesión inserta el mismo RFC sin confirmar: `ConcurrenciaVencida` `BLOQUEO_VENCIDO` con `REINTENTAR` para COMPRAS (`M-13`).
+    
+        El contexto corre sobre el rol de aplicación con `lock_timeout` de 200 ms. Una segunda conexión inserta
+        un proveedor con el mismo RFC y no confirma; el `INSERT` del alta espera en `uq_proveedor_rfc` hasta
+        que vence el tiempo. El caso de uso lanza `ConcurrenciaVencida` (no el `DBAPIError` crudo ni
+        `ConflictoEstado` `RFC_DUPLICADO`: no hay un proveedor confirmado que mostrar): `codigo`
+        `BLOQUEO_VENCIDO`, `espera_maxima_ms` 5000, `reintentar_en_s` 1 y una sola acción `REINTENTAR` `POST`
+        a `/api/v1/proveedores` con `COMPRAS` como único rol. El cuerpo no lleva `regla` y la acción llega
+        también a quien no es de gestión. La causa raíz se conserva en `__cause__` (`55P03`). No escribe:
+        ni fila ni asiento (el retenedor hace `rollback`). El `23505` de un RFC ya confirmado sigue siendo
+        `RFC_DUPLICADO` (`TC-14` y `TC-15`, que esta fila no toca).
+        """
+        from cimenta.proveedores.aplicacion import proveedores
+    
+        antes = _foto(base)
+        ctx = contexto_espera_corta()
+    
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        try:
+            retenedor.execute(
+                "INSERT INTO proveedor (id, nombre, rfc, estado, tope_consignacion, dia_corte, dia_pago, "
+                "creado_en, creado_por_id) VALUES (%s, %s, %s, 'ACTIVO', NULL, 4, 6, %s, %s)",
+                (uuid.uuid4(), "Alta sin confirmar", "XAXX010101000", CREADO_ANTES, creador),
+            )
+            with pytest.raises(ConcurrenciaVencida) as vencido:
+>               proveedores.crear_proveedor(ctx, datos=_datos(), usuario_id=creador)
+
+tests\test_tkt029a_casos_de_uso.py:1124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+cimenta\proveedores\aplicacion\proveedores.py:93: in crear_proveedor
+    repositorio_proveedor.insertar_proveedor(
+cimenta\proveedores\infraestructura\repositorio_proveedor.py:92: in insertar_proveedor
+    sesion_bd.execute(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2473: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2373: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1463: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1683: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1837: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1977: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2347: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1958: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <psycopg.Cursor [closed] [BAD] at 0x1c1cb24c7d0>
+query = 'INSERT INTO proveedor (id, nombre, rfc, estado, tope_consignacion, dia_corte, dia_pago, creado_en, creado_por_id) VAL...)s, %(dia_corte)s::SMALLINT, %(dia_pago)s::SMALLINT, %(creado_en)s::TIMESTAMP WITH TIME ZONE, %(creado_por_id)s::UUID)'
+params = {'id': UUID('1e4d86d5-06f4-4f7e-b7a6-5e81b340f1d8'), 'nombre': 'CoPanel', 'rfc': 'XAXX010101000', 'estado': 'ACTIVO', ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           sqlalchemy.exc.OperationalError: (psycopg.errors.LockNotAvailable) canceling statement due to lock timeout
+E           CONTEXT:  while inserting index tuple (0,2) in relation "uq_proveedor_rfc"
+E           [SQL: INSERT INTO proveedor (id, nombre, rfc, estado, tope_consignacion, dia_corte, dia_pago, creado_en, creado_por_id) VALUES (%(id)s::UUID, %(nombre)s::VARCHAR, %(rfc)s::VARCHAR, %(estado)s::VARCHAR, %(tope_consignacion)s, %(dia_corte)s::SMALLINT, %(dia_pago)s::SMALLINT, %(creado_en)s::TIMESTAMP WITH TIME ZONE, %(creado_por_id)s::UUID)]
+E           [parameters: {'id': UUID('1e4d86d5-06f4-4f7e-b7a6-5e81b340f1d8'), 'nombre': 'CoPanel', 'rfc': 'XAXX010101000', 'estado': 'ACTIVO', 'tope_consignacion': None, 'dia_corte': 4, 'dia_pago': 6, 'creado_en': datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), 'creado_por_id': UUID('2ed5d579-75b0-4c36-bb4b-2ba26ee9125e')}]
+E           (Background on this error at: https://sqlalche.me/e/21/e3q8)
+
+.venv\Lib\site-packages\psycopg\cursor.py:117: OperationalError
+_______________ test_hdu004_esc03_api_alta_con_bloqueo_vencido ________________
+
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001C1CE7B07D0>
+base_de_prueba = 'prueba_0625caec939a'
+conectar = <function conectar.<locals>._conectar at 0x000001C1CDEB0250>
+cliente_espera_corta = <starlette.testclient.TestClient object at 0x000001C1CBF8D040>
+sesion_compras_espera_corta = Sesion(usuario_id=UUID('7a555f91-e039-467c-85a7-53d3b4452745'), sesion_id=UUID('d9c99ddf-8acc-420e-a1e8-816c44a2260d'))
+
+    def test_hdu004_esc03_api_alta_con_bloqueo_vencido(
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        cliente_espera_corta: TestClient,
+        sesion_compras_espera_corta: Sesion,
+    ) -> None:
+        """HDU-004 esc. 3 · TC-43 · CA-1 · CA-2 · RNF-16 — otra sesión inserta el mismo RFC sin confirmar: el alta responde `409` `CONCURRENCIA` `BLOQUEO_VENCIDO` (`M-13`).
+    
+        Una segunda conexión del rol de aplicación inserta un proveedor con el RFC y **no confirma**. El alta con
+        el mismo RFC espera en `uq_proveedor_rfc` hasta que vence el `lock_timeout` de 200 ms de la prueba. No es
+        `RFC_DUPLICADO`: el otro alta no está confirmada y todavía no hay proveedor existente que mostrar.
+        Contrato completo: `Retry-After: 1`, `espera_maxima_ms` 5000 (el `lock_timeout` del rol), el mensaje
+        literal, la acción `REINTENTAR` `POST` a `/api/v1/proveedores` (no a una ruta con id: el alta no tiene
+        id) y sin `regla`. El alta rechazada no escribe: ni fila ni asiento (el retenedor hace `rollback`).
+        Sin la traducción de `55P03` en `crear_proveedor` (`M-13`) la respuesta es un `500`.
+        """
+        _exigir_nada_creado(base)
+    
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        try:
+            retenedor.execute(
+                "INSERT INTO proveedor (id, nombre, rfc, estado, tope_consignacion, dia_corte, dia_pago, "
+                "creado_en, creado_por_id) VALUES (%s, %s, %s, 'ACTIVO', NULL, 4, 6, %s, %s)",
+                (
+                    uuid.uuid4(),
+                    "Alta sin confirmar",
+                    RFC,
+                    CREADO_ANTES,
+                    sesion_compras_espera_corta.usuario_id,
+                ),
+            )
+            respuesta = _alta(cliente_espera_corta, sesion_compras_espera_corta, _cuerpo())
+        finally:
+            retenedor.rollback()
+    
+>       _exigir_concurrencia(
+            respuesta,
+            "crear",
+            uuid.uuid4(),
+            codigo="BLOQUEO_VENCIDO",
+            mensaje=MENSAJE_BLOQUEO_VENCIDO,
+            espera_maxima_ms=5000,
+        )
+
+tests\test_tkt029a_api_proveedores.py:1571: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt029a_api_proveedores.py:1377: in _exigir_concurrencia
+    cuerpo = exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [500 Internal Server Error]>, estado = 409
+esperado = {'tipo': 'CONCURRENCIA', 'codigo': 'BLOQUEO_VENCIDO', 'mensaje': 'Otra operación está modificando este proveedor en este momento. Vuelve a intentarlo.', 'detalle': {'espera_maxima_ms': 5000}, ...}
+esquema = 'ErrorConcurrencia', cabeceras = {'Retry-After': '1'}
+
+    def exigir_error(
+        respuesta: Any,
+        *,
+        estado: int,
+        esperado: dict[str, Any],
+        esquema: str,
+        cabeceras: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """El contrato de error completo: código, cuerpo exacto con la correlación de la cabecera, esquema del
+        borrador, cabeceras propias, y ninguna traza ni nombre interno."""
+>       assert respuesta.status_code == estado, respuesta.text
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación si pides ayuda.","correlacion_id":"7d698e54-2865-4816-bc3a-b08b8fa7ce5b"}
+
+herramientas\soporte_tkt017_api.py:173: AssertionError
+_____ test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[crear] _____
+
+operacion = 'crear'
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001C1CE328A00>
+cliente_espera_corta = <starlette.testclient.TestClient object at 0x000001C1CBBDA9C0>
+sesion_compras_espera_corta = Sesion(usuario_id=UUID('c059a2f8-9ef3-4d83-86b6-1026300bd327'), sesion_id=UUID('d8bd8905-34e6-4dff-bf3f-42ddb3582c25'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001C1CAFFE850>
+
+    @pytest.mark.parametrize("operacion", ["actualizar", "desactivar", "crear"])
+    def test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia(
+        operacion: str,
+        base: Base,
+        cliente_espera_corta: TestClient,
+        sesion_compras_espera_corta: Sesion,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-43 · CA-8 · CA-9 · RNF-16 — una sentencia agota `statement_timeout` (`57014`): `409` `CONCURRENCIA` `TIEMPO_EJECUCION_VENCIDO` (`M-13`).
+    
+        La primera sentencia de la operación (la lectura `FOR UPDATE` de `PATCH` y de la desactivación, el
+        `INSERT` del alta) se sustituye por una sentencia que vence un `statement_timeout` de 10 ms: el
+        motor responde `57014` de verdad (la prueba lo comprueba). El contrato es completo: `Retry-After: 1`,
+        `espera_maxima_ms` 15000 (el `statement_timeout` del rol), el mensaje del diseño, la acción
+        `REINTENTAR` con el método y la ruta de la propia operación (`POST /api/v1/proveedores` en el alta) y
+        sin `regla`. No escribe nada. Mutantes: traducir el `57014` como `BLOQUEO_VENCIDO`, o cambiar 15000 por
+        5000, lo hacen caer; no traducirlo en `crear_proveedor`, cae la variante `crear`.
+        """
+        proveedor_id = _sembrar(base, sesion_compras_espera_corta.usuario_id, nombre="CoPanel", rfc=RFC)
+        antes = _foto(base)
+        sqlstates: list[str] = []
+        _hacer_fallar_en_el_motor(
+            monkeypatch,
+            operacion,
+            ["SET LOCAL statement_timeout = '10ms'", "SELECT pg_sleep(1)"],
+            sqlstates,
+        )
+    
+        respuesta = _operar(cliente_espera_corta, sesion_compras_espera_corta, operacion, proveedor_id)
+    
+        assert sqlstates == ["57014"], "La sentencia debe vencer el tiempo en el motor, no simularse"
+>       _exigir_concurrencia(
+            respuesta,
+            operacion,
+            proveedor_id,
+            codigo="TIEMPO_EJECUCION_VENCIDO",
+            mensaje=MENSAJE_TIEMPO_VENCIDO,
+            espera_maxima_ms=15000,
+        )
+
+tests\test_tkt029a_api_proveedores.py:1613: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt029a_api_proveedores.py:1377: in _exigir_concurrencia
+    cuerpo = exigir_error(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [500 Internal Server Error]>, estado = 409
+esperado = {'tipo': 'CONCURRENCIA', 'codigo': 'TIEMPO_EJECUCION_VENCIDO', 'mensaje': 'La operación tardó más de lo permitido y se canceló. Vuelve a intentarlo.', 'detalle': {'espera_maxima_ms': 15000}, ...}
+esquema = 'ErrorConcurrencia', cabeceras = {'Retry-After': '1'}
+
+    def exigir_error(
+        respuesta: Any,
+        *,
+        estado: int,
+        esperado: dict[str, Any],
+        esquema: str,
+        cabeceras: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """El contrato de error completo: código, cuerpo exacto con la correlación de la cabecera, esquema del
+        borrador, cabeceras propias, y ninguna traza ni nombre interno."""
+>       assert respuesta.status_code == estado, respuesta.text
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación si pides ayuda.","correlacion_id":"8b284287-75f9-4a44-a155-2aa77a881d48"}
+
+herramientas\soporte_tkt017_api.py:173: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc03_alta_con_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion
+FAILED tests/test_tkt029a_api_proveedores.py::test_hdu004_esc03_api_alta_con_bloqueo_vencido
+FAILED tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[crear]
+3 failed, 133 passed in 34.50s

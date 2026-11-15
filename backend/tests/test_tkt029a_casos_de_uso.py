@@ -6,11 +6,10 @@ Prueba `cimenta/proveedores/aplicacion/contexto.py` y `cimenta/proveedores/aplic
 `MENSAJE_PROVEEDOR_NO_EXISTE`) contra PostgreSQL real, con el esquema de `alembic upgrade head` (la
 `0013` incluida) y el rol de aplicación. Nada de SQLite, nada de `sleep` para sincronizar.
 
-Rojo de la fila A4: los módulos `cimenta.proveedores.aplicacion.contexto` y
-`cimenta.proveedores.aplicacion.proveedores` no existen todavía. Cada prueba los importa dentro de su
-cuerpo, y la *fixture* `contexto_proveedores` devuelve una función que importa al primer uso, así que la
-recolección no se cae, ninguna prueba queda en error y cada caso falla solo con `ModuleNotFoundError`,
-la razón esperada. Las demás *fixtures* usan lo que ya existe (esquema, repositorio de la fila A3).
+Los módulos `cimenta.proveedores.aplicacion.contexto` y `cimenta.proveedores.aplicacion.proveedores` se
+importan dentro del cuerpo de cada prueba, y la *fixture* `contexto_proveedores` difiere la suya hasta
+el primer uso: así un fallo de importación afecta a un solo caso y no a la recolección. Las demás
+*fixtures* usan lo que ya existe (esquema, repositorio de la fila A3).
 
 Los proveedores previos se siembran con SQL directo y no con `crear_proveedor`: así un defecto del alta no
 puede tapar ni causar el fallo de la actualización o de la desactivación. Las comprobaciones de estado y
@@ -27,8 +26,14 @@ Qué cubre cada prueba:
 - `TC-18` (`CA-9`): la desactivación conserva todo y asienta `DESACTIVAR`.
 - `TC-19` (`CA-9`): desactivar un proveedor que no está `ACTIVO`, o que no existe (`M-5`).
 - `TC-20` (`CA-9`): dos desactivaciones simultáneas; la segunda espera el `FOR UPDATE` (`M-6`).
+- `TC-43` (`CA-1`, `CA-2`, `CA-8`, `CA-9`, `RNF-16`): el `lock_timeout` vencido en el caso de uso (también el del
+  alta, por el índice único del RFC) es `CONCURRENCIA` con la acción `REINTENTAR` y los roles de gestión (los roles no se serializan: solo se ven aquí; la prueba por HTTP está en
+  `test_tkt029a_api_proveedores.py`).
 - Apoyo (no están en el plan de pruebas del diseño): `obtener_proveedor` y `listar_proveedores` (`CA-6`,
   `CA-7`, que el plan solo prueba por la API en la fila B1) y las constantes de roles y de campos.
+
+Más pruebas de esta fila: `O7` de la auditoría de código (la rama `existente is None` de `crear_proveedor`) y,
+de la fila B3, la comprobación de los roles de `REINTENTAR` en `TC-43`.
 
 Mutantes de la fila: `M-3` (quitar la rama del `23505` en `crear_proveedor`) debe poner en rojo `TC-14` y
 `TC-15`; `M-6` (leer con `para_cambio=False` al desactivar), `TC-20`; `M-10` (asentar con una sesión
@@ -46,11 +51,13 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, LiteralString
 
 import pytest
+from psycopg.errors import LockNotAvailable, QueryCanceled
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import DBAPIError, OperationalError
 
 from cimenta.proveedores.infraestructura import repositorio_proveedor
-from contrato_error.excepciones import ConflictoEstado, NoEncontrado
+from contrato_error.excepciones import ConcurrenciaVencida, ConflictoEstado, NoEncontrado
 from herramientas.soporte_tkt017_entorno import LIMITE_DE_HILO, Base, Hilo
 from herramientas.tiempo_de_prueba import esperar_hasta
 from tipos_base import Dinero
@@ -70,6 +77,9 @@ CORREO_DEL_SEGUNDO = "compras.dos@cimenta.test"
 CONTRASENA = "Clave-Correcta-1"
 CREADO_ANTES = datetime(2026, 10, 1, 8, 15, tzinfo=UTC)
 MENSAJE_PROVEEDOR_NO_EXISTE = "El proveedor no existe."
+MENSAJE_BLOQUEO_VENCIDO = (
+    "Otra operación está modificando este proveedor en este momento. Vuelve a intentarlo."
+)
 ROLES_GESTION_ESPERADOS = ("COMPRAS",)
 ROLES_LECTURA_ESPERADOS = (
     "DIRECCION_GENERAL",
@@ -117,6 +127,18 @@ def contexto_proveedores(motor_aplicacion: Engine, reloj_de_prueba: RelojDePrueb
 
 
 @pytest.fixture
+def contexto_espera_corta(motor_espera_corta: Engine, reloj_de_prueba: RelojDePrueba) -> Contexto:
+    """El contexto de `proveedores` sobre el rol de aplicación con `lock_timeout` de 200 ms (`TC-43`)."""
+
+    def construir() -> ContextoProveedores:
+        from cimenta.proveedores.aplicacion.contexto import construir_contexto
+
+        return construir_contexto(proveedor_motor=lambda: motor_espera_corta, reloj=reloj_de_prueba)
+
+    return functools.cache(construir)
+
+
+@pytest.fixture
 def creador(sembrar_usuario: SembrarUsuario) -> uuid.UUID:
     """Usuario de COMPRAS: `creado_por_id` tiene clave foránea a `usuario` (nota de ejecución del diseño)."""
     return sembrar_usuario(CORREO_DEL_CREADOR, CONTRASENA, roles=("COMPRAS",))
@@ -129,7 +151,7 @@ def segundo_usuario(sembrar_usuario: SembrarUsuario) -> uuid.UUID:
 
 
 def _datos(**cambios: Any) -> Any:
-    """Un `DatosProveedorNuevo` válido; `cambios` sustituye campos. Se importa aquí para que el rojo sea de módulo."""
+    """Un `DatosProveedorNuevo` válido; `cambios` sustituye campos. Se importa dentro de la función para que un fallo de importación no rompa la recolección."""
     from cimenta.proveedores.aplicacion.proveedores import DatosProveedorNuevo
 
     valores: dict[str, Any] = {
@@ -452,6 +474,105 @@ def test_hdu004_esc03_alta_rfc_duplicado(
     ), "El proveedor existente no cambia"
 
 
+def test_hdu004_esc03_alta_rfc_duplicado_sin_fila_visible_relanza_el_error(
+    contexto_proveedores: Contexto,
+    base: Base,
+    creador: uuid.UUID,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """O7 de la auditoría · HDU-004 esc. 3 · CA-2 — un `23505` de `uq_proveedor_rfc` sin fila visible se relanza tal cual, no como `409`.
+
+    Documenta la rama `existente is None` de `crear_proveedor`: si tras el `23505` la búsqueda por RFC no
+    encuentra ninguna fila (la que chocó se borró entre las dos transacciones), el caso de uso no inventa un
+    `RFC_DUPLICADO` sin proveedor existente que enseñar: relanza el `DBAPIError` original, con su
+    `SQLSTATE` y su restricción. El alta que falla no deja ninguna fila ni asiento.
+    """
+    from cimenta.proveedores.aplicacion.proveedores import crear_proveedor
+
+    crear_proveedor(contexto_proveedores(), datos=_datos(), usuario_id=creador)
+    antes = _foto(base)
+    consultados: list[str] = []
+
+    def sin_fila_visible(_sesion_bd: object, rfc: str) -> None:
+        consultados.append(rfc)
+
+    monkeypatch.setattr(repositorio_proveedor, "leer_proveedor_por_rfc", sin_fila_visible)
+
+    with pytest.raises(DBAPIError) as rechazo:
+        crear_proveedor(
+            contexto_proveedores(),
+            datos=_datos(nombre="Otro nombre con el mismo RFC"),
+            usuario_id=creador,
+        )
+
+    original: Any = rechazo.value.orig
+    assert getattr(original, "sqlstate", None) == "23505"
+    assert getattr(getattr(original, "diag", None), "constraint_name", None) == "uq_proveedor_rfc"
+    assert consultados == ["XAXX010101000"], "Busca al existente por el RFC del intento, una vez"
+    assert _foto(base) == antes, "El rechazo no escribe"
+
+
+@pytest.mark.parametrize(
+    ("clase_de_error", "codigo"),
+    [
+        pytest.param(QueryCanceled, "TIEMPO_EJECUCION_VENCIDO", id="57014"),
+        pytest.param(LockNotAvailable, "BLOQUEO_VENCIDO", id="55P03"),
+    ],
+)
+def test_hdu004_esc03_alta_rfc_duplicado_con_lectura_vencida_es_concurrencia(
+    clase_de_error: type[Exception],
+    codigo: str,
+    contexto_proveedores: Contexto,
+    base: Base,
+    creador: uuid.UUID,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TC-43 · HDU-004 esc. 3 · RNF-16 · M-14c — si la búsqueda del RFC duplicado vence (`57014` o `55P03`), es `CONCURRENCIA`, no `RFC_DUPLICADO` ni la excepción cruda.
+
+    El `23505` de `uq_proveedor_rfc` manda al caso de uso a la rama de la búsqueda. Si esa búsqueda lanza un
+    `DBAPIError` con `57014` (`statement_timeout`) o `55P03` (`lock_timeout`), el error tiene que atravesar
+    `_traducir_concurrencia` y salir como `ConcurrenciaVencida` con el `codigo` de su `SQLSTATE`, con la causa
+    en `__cause__`. Con la búsqueda fuera del gestor (`M-14c`) el `DBAPIError` escapa crudo y esta prueba cae.
+    No escribe nada: ni fila ni asiento.
+    """
+    from cimenta.proveedores.aplicacion.proveedores import crear_proveedor
+
+    _sembrar(base, creador, nombre="CoPanel", rfc="XAXX010101000")
+    antes = _foto(base)
+    consultados: list[str] = []
+    causa = OperationalError(
+        "SELECT id FROM proveedor WHERE rfc = %s",
+        None,
+        clase_de_error("cancelado en la búsqueda del RFC"),
+    )
+
+    def busqueda_vencida(_sesion_bd: object, rfc: str) -> None:
+        consultados.append(rfc)
+        raise causa
+
+    monkeypatch.setattr(repositorio_proveedor, "leer_proveedor_por_rfc", busqueda_vencida)
+
+    with pytest.raises(ConcurrenciaVencida) as vencido:
+        crear_proveedor(
+            contexto_proveedores(),
+            datos=_datos(nombre="Otro nombre con el mismo RFC"),
+            usuario_id=creador,
+        )
+
+    error = vencido.value
+    assert error.__cause__ is causa, "La causa es la búsqueda vencida, no el 23505"
+    assert getattr(getattr(causa.__context__, "orig", None), "sqlstate", None) == "23505", (
+        "La búsqueda corre dentro de la rama del 23505 de uq_proveedor_rfc"
+    )
+    assert consultados == ["XAXX010101000"], "Busca al existente por el RFC del intento, una vez"
+    assert error.estado_http == 409
+    assert error.codigo.value == codigo
+    cuerpo = error.cuerpo(ROLES_COMPRAS, CORRELACION)
+    assert cuerpo["tipo"] == "CONCURRENCIA"
+    assert cuerpo["codigo"] == codigo
+    assert _foto(base) == antes, "Un rechazo por concurrencia no escribe"
+
+
 # --------------------------------------------------------------------------- TC-15 · CA-3
 
 
@@ -489,10 +610,6 @@ def test_hdu004_esc03_dos_altas_concurrentes_mismo_rfc(
         return resultado
 
     monkeypatch.setattr(repositorio_proveedor, "insertar_proveedor", envoltura)
-    if hasattr(
-        proveedores, "insertar_proveedor"
-    ):  # por si el caso de uso importó el nombre y no el módulo
-        monkeypatch.setattr(proveedores, "insertar_proveedor", envoltura)
 
     a = Hilo(
         "A",
@@ -912,10 +1029,6 @@ def test_hdu004_esc12_dos_desactivaciones_concurrentes(
         return resultado
 
     monkeypatch.setattr(repositorio_proveedor, "leer_proveedor", envoltura)
-    if hasattr(
-        proveedores, "leer_proveedor"
-    ):  # por si el caso de uso importó el nombre y no el módulo
-        monkeypatch.setattr(proveedores, "leer_proveedor", envoltura)
 
     a = Hilo(
         "A",
@@ -960,6 +1073,143 @@ def test_hdu004_esc12_dos_desactivaciones_concurrentes(
         "WHERE accion = 'DESACTIVAR'"
     ) == [(creador, "Motivo del hilo A", {"estado": "ACTIVO"}, {"estado": "DESACTIVADO"})]
     assert _cuenta(base, "SELECT count(*) FROM bitacora") == 1
+
+
+# --------------------------------------------------------------------------- TC-43 · CA-8 · CA-9 · RNF-16
+
+
+@pytest.mark.parametrize("operacion", ["actualizar", "desactivar"])
+def test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion(
+    operacion: str,
+    contexto_espera_corta: Contexto,
+    base: Base,
+    base_de_prueba: str,
+    conectar: Conectar,
+    creador: uuid.UUID,
+) -> None:
+    """TC-43 · CA-8 · CA-9 · RNF-16 — otra sesión retiene la fila: `ConcurrenciaVencida` `BLOQUEO_VENCIDO` con `REINTENTAR` para COMPRAS (`M-13`).
+
+    El contexto corre sobre el rol de aplicación con `lock_timeout` de 200 ms y otra sesión tiene la fila
+    de `proveedor` con `FOR UPDATE`. El caso de uso lanza `ConcurrenciaVencida` (no el `DBAPIError`
+    crudo): `codigo` `BLOQUEO_VENCIDO`, `espera_maxima_ms` 5000 (el `lock_timeout` del rol, no los 200 ms
+    de la prueba), `reintentar_en_s` 1 y una sola acción `REINTENTAR` con el método y la ruta de ESA
+    operación y `COMPRAS` como único rol que la ejecuta. El cuerpo no lleva `regla` y la acción llega
+    también a quien no es de gestión. Nada cambia: ni la fila ni la bitácora. La causa raíz se conserva
+    en `__cause__` (el `DBAPIError` del driver, `55P03`) para el diagnóstico.
+    """
+    from cimenta.proveedores.aplicacion import proveedores
+
+    proveedor_id = _sembrar(base, creador, nombre="CoPanel", rfc="XAXX010101000")
+    antes = _foto(base)
+    ctx = contexto_espera_corta()
+    metodo, ruta = (
+        ("PATCH", f"/api/v1/proveedores/{proveedor_id}")
+        if operacion == "actualizar"
+        else ("POST", f"/api/v1/proveedores/{proveedor_id}/desactivacion")
+    )
+
+    retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+    try:
+        retenedor.execute("SELECT id FROM proveedor WHERE id = %s FOR UPDATE", (proveedor_id,))
+        with pytest.raises(ConcurrenciaVencida) as vencido:
+            if operacion == "actualizar":
+                proveedores.actualizar_proveedor(
+                    ctx,
+                    proveedor_id=proveedor_id,
+                    cambios=_cambios({"dia_corte"}, dia_corte=2),
+                    usuario_id=creador,
+                )
+            else:
+                proveedores.desactivar_proveedor(
+                    ctx, proveedor_id=proveedor_id, motivo="Ya no surte", usuario_id=creador
+                )
+    finally:
+        retenedor.rollback()
+
+    error = vencido.value
+    causa = error.__cause__
+    assert isinstance(causa, DBAPIError), causa
+    assert getattr(causa.orig, "sqlstate", None) == "55P03", causa.orig
+    assert error.estado_http == 409
+    assert error.codigo.value == "BLOQUEO_VENCIDO"
+    assert error.espera_maxima_ms == 5000
+    assert error.reintentar_en_s == 1
+    assert error.cabeceras() == {"Retry-After": "1"}
+    assert [(a.clave, a.metodo.value, a.ruta, a.roles_permitidos) for a in error.acciones] == [
+        ("REINTENTAR", metodo, ruta, frozenset({"COMPRAS"}))
+    ]
+    esperado = {
+        "tipo": "CONCURRENCIA",
+        "mensaje": MENSAJE_BLOQUEO_VENCIDO,
+        "codigo": "BLOQUEO_VENCIDO",
+        "detalle": {"espera_maxima_ms": 5000},
+        "acciones": [{"clave": "REINTENTAR", "metodo": metodo, "ruta": ruta}],
+        "correlacion_id": CORRELACION,
+    }
+    assert error.cuerpo(ROLES_COMPRAS, CORRELACION) == esperado
+    assert error.cuerpo(frozenset({"RESIDENTE"}), CORRELACION) == esperado
+    assert _foto(base) == antes, "Un bloqueo vencido no escribe"
+
+
+def test_hdu004_esc03_alta_con_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion(
+    contexto_espera_corta: Contexto,
+    base: Base,
+    base_de_prueba: str,
+    conectar: Conectar,
+    creador: uuid.UUID,
+) -> None:
+    """HDU-004 esc. 3 · TC-43 · CA-1 · CA-2 · RNF-16 — otra sesión inserta el mismo RFC sin confirmar: `ConcurrenciaVencida` `BLOQUEO_VENCIDO` con `REINTENTAR` para COMPRAS (`M-13`).
+
+    El contexto corre sobre el rol de aplicación con `lock_timeout` de 200 ms. Una segunda conexión inserta
+    un proveedor con el mismo RFC y no confirma; el `INSERT` del alta espera en `uq_proveedor_rfc` hasta
+    que vence el tiempo. El caso de uso lanza `ConcurrenciaVencida` (no el `DBAPIError` crudo ni
+    `ConflictoEstado` `RFC_DUPLICADO`: no hay un proveedor confirmado que mostrar): `codigo`
+    `BLOQUEO_VENCIDO`, `espera_maxima_ms` 5000, `reintentar_en_s` 1 y una sola acción `REINTENTAR` `POST`
+    a `/api/v1/proveedores` con `COMPRAS` como único rol. El cuerpo no lleva `regla` y la acción llega
+    también a quien no es de gestión. La causa raíz se conserva en `__cause__` (`55P03`). No escribe:
+    ni fila ni asiento (el retenedor hace `rollback`). El `23505` de un RFC ya confirmado sigue siendo
+    `RFC_DUPLICADO` (`TC-14` y `TC-15`, que esta fila no toca).
+    """
+    from cimenta.proveedores.aplicacion import proveedores
+
+    antes = _foto(base)
+    ctx = contexto_espera_corta()
+
+    retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+    try:
+        retenedor.execute(
+            "INSERT INTO proveedor (id, nombre, rfc, estado, tope_consignacion, dia_corte, dia_pago, "
+            "creado_en, creado_por_id) VALUES (%s, %s, %s, 'ACTIVO', NULL, 4, 6, %s, %s)",
+            (uuid.uuid4(), "Alta sin confirmar", "XAXX010101000", CREADO_ANTES, creador),
+        )
+        with pytest.raises(ConcurrenciaVencida) as vencido:
+            proveedores.crear_proveedor(ctx, datos=_datos(), usuario_id=creador)
+    finally:
+        retenedor.rollback()
+
+    error = vencido.value
+    causa = error.__cause__
+    assert isinstance(causa, DBAPIError), causa
+    assert getattr(causa.orig, "sqlstate", None) == "55P03", causa.orig
+    assert error.estado_http == 409
+    assert error.codigo.value == "BLOQUEO_VENCIDO"
+    assert error.espera_maxima_ms == 5000
+    assert error.reintentar_en_s == 1
+    assert error.cabeceras() == {"Retry-After": "1"}
+    assert [(a.clave, a.metodo.value, a.ruta, a.roles_permitidos) for a in error.acciones] == [
+        ("REINTENTAR", "POST", "/api/v1/proveedores", frozenset({"COMPRAS"}))
+    ]
+    esperado = {
+        "tipo": "CONCURRENCIA",
+        "mensaje": MENSAJE_BLOQUEO_VENCIDO,
+        "codigo": "BLOQUEO_VENCIDO",
+        "detalle": {"espera_maxima_ms": 5000},
+        "acciones": [{"clave": "REINTENTAR", "metodo": "POST", "ruta": "/api/v1/proveedores"}],
+        "correlacion_id": CORRELACION,
+    }
+    assert error.cuerpo(ROLES_COMPRAS, CORRELACION) == esperado
+    assert error.cuerpo(frozenset({"RESIDENTE"}), CORRELACION) == esperado
+    assert _foto(base) == antes, "Un alta con bloqueo vencido no escribe"
 
 
 # --------------------------------------------------------------------------- apoyo · CA-7

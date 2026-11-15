@@ -1,0 +1,281 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0 -- D:\Documentos\LIDR\Proyecto Final\backend\.venv\Scripts\python.exe
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collecting ... collected 132 items
+
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_alta_responde_201 PASSED [  0%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc03_api_rfc_duplicado PASSED [  1%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nombre_ausente] PASSED [  2%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nombre_vacio] PASSED [  3%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nombre_en_blanco] PASSED [  3%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nul_en_nombre] PASSED [  4%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_ausente] PASSED [  5%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_corto] PASSED [  6%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_largo] PASSED [  6%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_empieza_con_digito] PASSED [  7%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_letra_O_en_la_fecha] PASSED [  8%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_numero_json] PASSED [  9%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nul_en_rfc] PASSED [  9%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_salto_de_linea_final] PASSED [ 10%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_digito_arabigo_indico] PASSED [ 11%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_eszett_se_expande] PASSED [ 12%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_i_sin_punto] PASSED [ 12%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_s_larga] PASSED [ 13%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_cero] PASSED [ 14%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_ocho] PASSED [ 15%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_cero] PASSED [ 15%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_ocho] PASSED [ 16%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_cadena] PASSED [ 17%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_cadena] PASSED [ 18%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_decimal] PASSED [ 18%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_decimal] PASSED [ 19%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_booleano] PASSED [ 20%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_booleano] PASSED [ 21%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_negativo] PASSED [ 21%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_cinco_decimales] PASSED [ 22%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_numero_json] PASSED [ 23%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_exponente] PASSED [ 24%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_digito_arabigo_indico] PASSED [ 25%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_salto_de_linea_final] PASSED [ 25%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_quince_enteros] PASSED [ 26%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tope_del_nombre PASSED [ 27%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_rfc_con_enie_minuscula_se_normaliza_a_mayuscula PASSED [ 28%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECCION_GENERAL_alta] PASSED [ 28%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECTOR_PROYECTOS_alta] PASSED [ 29%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[RESIDENTE_alta] PASSED [ 30%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[ALMACEN_alta] PASSED [ 31%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[ADMINISTRACION_alta] PASSED [ 31%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECTOR_PROYECTOS_cambio] PASSED [ 32%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECTOR_PROYECTOS_desactivacion] PASSED [ 33%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[ambos_ausentes-alta] PASSED [ 34%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[ambos_ausentes-cambio] PASSED [ 34%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[ambos_ausentes-desactivacion] PASSED [ 35%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cookie-alta] PASSED [ 36%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cookie-cambio] PASSED [ 37%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cookie-desactivacion] PASSED [ 37%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cabecera-alta] PASSED [ 38%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cabecera-cambio] PASSED [ 39%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cabecera-desactivacion] PASSED [ 40%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[distintos-alta] PASSED [ 40%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[distintos-cambio] PASSED [ 41%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[distintos-desactivacion] PASSED [ 42%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_el_origen_se_verifica_antes_que_el_rol[alta] PASSED [ 43%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_el_origen_se_verifica_antes_que_el_rol[cambio] PASSED [ 43%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_el_origen_se_verifica_antes_que_el_rol[desactivacion] PASSED [ 44%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_lista_por_omision_solo_activos PASSED [ 45%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_lista_filtro_y_busqueda PASSED [ 46%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[estado_otro] PASSED [ 46%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[pagina_cero] PASSED [ 47%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[tamano_cero] PASSED [ 48%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[tamano_sobre_200] PASSED [ 49%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[q_con_nul] PASSED [ 50%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[q_de_201] PASSED [ 50%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_pagina_inalcanzable[1000] PASSED [ 51%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_pagina_inalcanzable[1000000000000000000000000000000] PASSED [ 52%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_obtener_proveedor PASSED [ 53%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_proveedor PASSED [ 53%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[cuerpo_vacio] PASSED [ 54%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[solo_campos_desconocidos] PASSED [ 55%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_cero] PASSED [ 56%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_ocho] PASSED [ 56%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_pago_cero] PASSED [ 57%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_pago_ocho] PASSED [ 58%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_cadena] PASSED [ 59%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_nulo] PASSED [ 59%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_pago_nulo] PASSED [ 60%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[tope_negativo] PASSED [ 61%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nombre_vacio] PASSED [ 62%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nombre_nulo] PASSED [ 62%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nul_en_nombre] PASSED [ 63%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nombre_de_201] PASSED [ 64%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_inexistente PASSED [ 65%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar PASSED [ 65%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[motivo_ausente] PASSED [ 66%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[motivo_en_blanco] PASSED [ 67%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[motivo_de_2001] PASSED [ 68%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[nul_en_motivo] PASSED [ 68%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_un_desactivado_o_inexistente PASSED [ 69%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_con_bloqueo_vencido FAILED [ 70%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_con_bloqueo_vencido FAILED [ 71%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[actualizar] FAILED [ 71%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[desactivar] FAILED [ 72%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir[actualizar] PASSED [ 73%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir[desactivar] PASSED [ 74%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores PASSED [ 75%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_las_rutas_de_proveedores_son_def_con_sesion_y_origen_primero PASSED [ 75%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_alta_ignora_campos_extra PASSED [ 76%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[ProveedorNuevo] PASSED [ 77%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[ProveedorCambios] PASSED [ 78%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[Proveedor] PASSED [ 78%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[ListaProveedores] PASSED [ 79%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[EstadoProveedor] PASSED [ 80%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[Motivo] PASSED [ 81%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[MetaPagina] PASSED [ 81%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_operaciones_publicadas_igual_al_borrador PASSED [ 82%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_las_copias_se_publican_fusionadas PASSED [ 83%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc02_alta_guarda_el_proveedor_y_asienta_crear PASSED [ 84%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc02_alta_bitacora_en_la_misma_transaccion PASSED [ 84%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc03_alta_rfc_duplicado PASSED [ 85%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc03_alta_rfc_duplicado_sin_fila_visible_relanza_el_error PASSED [ 86%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc03_dos_altas_concurrentes_mismo_rfc PASSED [ 87%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_cambia_solo_lo_enviado_y_asienta PASSED [ 87%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[presentes_vacio] PASSED [ 88%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[solo_clave_ajena_rfc] PASSED [ 89%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[solo_clave_ajena_estado] PASSED [ 90%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_rechaza_presentes_vacio_o_ajeno[campo_valido_mas_clave_ajena] PASSED [ 90%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_actualizar_inexistente PASSED [ 91%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc12_desactivar_conserva_todo_y_asienta PASSED [ 92%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc12_desactivar_un_desactivado_o_inexistente PASSED [ 93%]
+tests/test_tkt029a_casos_de_uso.py::test_hdu004_esc12_dos_desactivaciones_concurrentes PASSED [ 93%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion[actualizar] FAILED [ 94%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion[desactivar] FAILED [ 95%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_obtener_proveedor PASSED [ 96%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_listar_recorta_q_y_calcula_el_desplazamiento PASSED [ 96%]
+tests/test_tkt029a_casos_de_uso.py::test_tkt029a_roles_y_campos_cambiables_del_caso_de_uso PASSED [ 97%]
+tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc03_dominio_normaliza_el_rfc PASSED [ 98%]
+tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc12_dominio_solo_activo_admite_desactivacion PASSED [ 99%]
+tests/test_tkt029a_dominio_proveedor.py::test_hdu004_esc02_dominio_dias_por_omision_rn17 PASSED [100%]
+
+================================== FAILURES ===================================
+_______________ test_tkt029a_api_actualizar_con_bloqueo_vencido _______________
+tests\test_tkt029a_api_proveedores.py:1441: in test_tkt029a_api_actualizar_con_bloqueo_vencido
+    _exigir_concurrencia(
+tests\test_tkt029a_api_proveedores.py:1373: in _exigir_concurrencia
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación si pides ayuda.","correlacion_id":"df7eeb4f-782c-4fac-aaae-659f016a9efc"}
+____________ test_hdu004_esc12_api_desactivar_con_bloqueo_vencido _____________
+tests\test_tkt029a_api_proveedores.py:1479: in test_hdu004_esc12_api_desactivar_con_bloqueo_vencido
+    _exigir_concurrencia(
+tests\test_tkt029a_api_proveedores.py:1373: in _exigir_concurrencia
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación si pides ayuda.","correlacion_id":"d758cb02-2d26-4505-994e-fc4816d53e34"}
+__ test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[actualizar] ___
+tests\test_tkt029a_api_proveedores.py:1522: in test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia
+    _exigir_concurrencia(
+tests\test_tkt029a_api_proveedores.py:1373: in _exigir_concurrencia
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación si pides ayuda.","correlacion_id":"fca0b574-8b7f-474a-ae02-b9036953d57c"}
+__ test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[desactivar] ___
+tests\test_tkt029a_api_proveedores.py:1522: in test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia
+    _exigir_concurrencia(
+tests\test_tkt029a_api_proveedores.py:1373: in _exigir_concurrencia
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación si pides ayuda.","correlacion_id":"8be25d1f-8a7a-4f2f-81e5-9bbd37d96f18"}
+_ test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion[actualizar] _
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1958: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   psycopg.errors.LockNotAvailable: canceling statement due to lock timeout
+E   CONTEXT:  while locking tuple (0,1) in relation "proveedor"
+
+The above exception was the direct cause of the following exception:
+tests\test_tkt029a_casos_de_uso.py:1053: in test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion
+    proveedores.actualizar_proveedor(
+cimenta\proveedores\aplicacion\proveedores.py:171: in actualizar_proveedor
+    fila = repositorio_proveedor.leer_proveedor(sesion_bd, proveedor_id, para_cambio=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\proveedores\infraestructura\repositorio_proveedor.py:114: in leer_proveedor
+    fila = sesion_bd.execute(sentencia).one_or_none()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2473: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2373: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1463: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1683: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1837: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1977: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2347: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1958: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   sqlalchemy.exc.OperationalError: (psycopg.errors.LockNotAvailable) canceling statement due to lock timeout
+E   CONTEXT:  while locking tuple (0,1) in relation "proveedor"
+E   [SQL: SELECT proveedor.id, proveedor.nombre, proveedor.rfc, proveedor.estado, proveedor.tope_consignacion, proveedor.dia_corte, proveedor.dia_pago, proveedor.creado_en 
+E   FROM proveedor 
+E   WHERE proveedor.id = %(id_1)s::UUID FOR UPDATE]
+E   [parameters: {'id_1': UUID('3d48451c-86b3-4d7c-b3b0-43c12a6710b5')}]
+E   (Background on this error at: https://sqlalche.me/e/21/e3q8)
+_ test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion[desactivar] _
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1958: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   psycopg.errors.LockNotAvailable: canceling statement due to lock timeout
+E   CONTEXT:  while locking tuple (0,1) in relation "proveedor"
+
+The above exception was the direct cause of the following exception:
+tests\test_tkt029a_casos_de_uso.py:1060: in test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion
+    proveedores.desactivar_proveedor(
+cimenta\proveedores\aplicacion\proveedores.py:199: in desactivar_proveedor
+    fila = repositorio_proveedor.leer_proveedor(sesion_bd, proveedor_id, para_cambio=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\proveedores\infraestructura\repositorio_proveedor.py:114: in leer_proveedor
+    fila = sesion_bd.execute(sentencia).one_or_none()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2473: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2373: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1463: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:533: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1683: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1837: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1977: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2347: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1958: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:1192: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   sqlalchemy.exc.OperationalError: (psycopg.errors.LockNotAvailable) canceling statement due to lock timeout
+E   CONTEXT:  while locking tuple (0,1) in relation "proveedor"
+E   [SQL: SELECT proveedor.id, proveedor.nombre, proveedor.rfc, proveedor.estado, proveedor.tope_consignacion, proveedor.dia_corte, proveedor.dia_pago, proveedor.creado_en 
+E   FROM proveedor 
+E   WHERE proveedor.id = %(id_1)s::UUID FOR UPDATE]
+E   [parameters: {'id_1': UUID('3859252a-e7f3-4fd2-86f3-b09f9b312bb1')}]
+E   (Background on this error at: https://sqlalche.me/e/21/e3q8)
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_con_bloqueo_vencido
+FAILED tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_con_bloqueo_vencido
+FAILED tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[actualizar]
+FAILED tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[desactivar]
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion[actualizar]
+FAILED tests/test_tkt029a_casos_de_uso.py::test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion[desactivar]
+======================= 6 failed, 126 passed in 48.94s ========================

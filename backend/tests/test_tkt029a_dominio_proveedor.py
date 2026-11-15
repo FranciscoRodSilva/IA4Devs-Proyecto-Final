@@ -4,9 +4,8 @@ Sin Docker ni base de datos. Prueba `cimenta/proveedores/dominio/proveedor.py`: 
 del RFC (supuesto 1 de la spec, `D-1` del diseño), la única regla de desactivación (CA-9) y los
 días por omisión de RN-17.
 
-Los símbolos del dominio se importan dentro de cada caso, no al principio del módulo: mientras
-`proveedor.py` no exista, cada caso falla por sí solo con el `ModuleNotFoundError` de
-`cimenta.proveedores.dominio.proveedor` (la razón esperada) y la recolección no se cae.
+Los símbolos de `cimenta.proveedores.dominio.proveedor` se importan dentro de cada caso, no al principio
+del módulo, para que un fallo de importación afecte a un solo caso y no a la recolección.
 """
 
 from __future__ import annotations

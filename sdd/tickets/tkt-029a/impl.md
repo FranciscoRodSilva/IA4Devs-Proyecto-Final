@@ -1,6 +1,6 @@
 # Impl · TKT-029a · Catálogo de proveedores, sin baja
 
-> [← index](_index.md) | [← design](design.md) | Siguiente: `delta.md` (se enlaza en `/sdd-completar`)
+> [← index](_index.md) | [← design](design.md) | Siguiente: [delta.md](delta.md)
 
 ## Qué se implementó
 
@@ -397,3 +397,134 @@ La observación O-2 de la entrega a (un `estados` vacío emitiría `IN ()`) qued
 - [x] Sin hallazgo crítico o mayor pendiente
 - [x] `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios
 - [x] Rama correcta (`tkt-029a-catalogo-proveedores`)
+
+---
+
+# Revisión del ticket · `/sdd-revisar` (2026-11-14)
+
+Revisión de las dos entregas juntas, porque la entrega b es la última. Cambia respecto de lo ya escrito arriba: `auditor-codigo` revisó también la entrega a, que no la había tenido, y la revisión añadió la fila B3 por una decisión de la persona dueña.
+
+## Resultado de la revisión
+
+| Auditor | Veredicto final | Ciclos | Qué encontró |
+|---|---|---|---|
+| `auditor-arquitectura` | APROBADO | 2 (ticket completo; después acotada a B3 y al refactor) | Sin hallazgos. Observaciones O-1 a O-5 |
+| `auditor-sql` | APROBADO en la entrega a | 1 | Sin hallazgos; la entrega b y la revisión no tocan esquema |
+| `auditor-seguridad` | APROBADO en la entrega b | 1 | Cuatro observaciones bajas; la de la normalización Unicode del RFC es F001 de la entrega b |
+| `auditor-codigo` | APROBADO | 2 (entrega a) más la reauditoría de la entrega b | Cuatro Menores (F001 a F004 de la entrega a) corregidos; sin Mayores ni Menores al cierre |
+| `auditor-docs` | APROBADO tras resolver F006 | 2 | Dos Mayores, tres Menores y uno nuevo; ver abajo |
+
+### Hallazgos de la revisión y su resolución
+
+Los identificadores se repiten entre auditores y entre entregas: se indica el auditor y la entrega.
+
+| ID | Auditor · entrega | Severidad | Hallazgo | Resolución |
+|---|---|---|---|---|
+| F001 | código · a | Menor | `_conflicto_rfc` no decía que lanza y a veces volvía sin lanzar | Resuelto: `_rechazo_rfc_duplicado(existente)` devuelve la excepción |
+| F002 | código · a | Menor | Los docstrings de módulo de dos archivos de pruebas narraban el rojo | Resuelto, incluido el residuo de `_datos` |
+| F003 | código · a | Menor | Dos `if hasattr(...)` inalcanzables en los tests de concurrencia | Resuelto: borrados |
+| F004 | código · a | Menor | La conversión de `Dinero` a columna estaba duplicada | Resuelto: `_a_columna` |
+| F001 | docs | Mayor | El diseño aceptó sin decisión de la persona dueña que el vencimiento de `lock_timeout` (`55P03`) respondiera `500`, contra `RNF-16` | **Resuelto por decisión de la persona dueña (2026-11-14): se traduce en este ticket.** Fila B3, pregunta 8 de la spec, `TC-43` y `M-13` |
+| F002 | docs | Mayor | `D-7` no tiene ADR | **Aceptado por la persona dueña (2026-11-14):** sin ADR, como aprobó el 2026-11-10; consta en `_index.md` y en `design.md` |
+| F003 | docs | Menor | La spec citaba la migración `0012` y la cabeza `0011` | Resuelto: `0013` sobre `0012` |
+| F004 | docs | Menor | La spec atribuía «mitad de desactivación» a la historia | Resuelto |
+| F005 | docs | Menor | `design.md` citaba `ADR-041` por error | Resuelto |
+| F006 | docs | Menor | `TC-43` y `M-13` citados en la fila B3 sin fila en sus tablas | Resuelto por el orquestador con el texto del auditor |
+
+## Fila B3 · traducción de `lock_timeout` y `statement_timeout`
+
+`crear_proveedor`, `actualizar_proveedor` y `desactivar_proveedor` traducen `55P03` a `409` `CONCURRENCIA` `BLOQUEO_VENCIDO` (5000 ms) y `57014` a `TIEMPO_EJECUCION_VENCIDO` (15000 ms), con `Retry-After: 1` y una acción `REINTENTAR` para `COMPRAS`, mediante el gestor de contexto `_traducir_concurrencia` de `aplicacion/proveedores.py`. El gestor envuelve a `begin()`, así que el rollback ocurre antes de traducir y no queda cambio ni asiento. La decisión se tomó primero para el cambio y la desactivación; a la pregunta de la revisión sobre el alta (observación O11 de `auditor-codigo`), la persona dueña la **amplió el mismo día a `crear_proveedor`**: el alta espera por el índice único `uq_proveedor_rfc` cuando otra transacción con el mismo RFC no ha confirmado. En el alta el gestor envuelve toda la transacción, incluida la relectura de la rama de RFC duplicado, y la acción es `POST /api/v1/proveedores`; `RFC_DUPLICADO` y la carrera `TC-14` y `TC-15` no cambian. El mensaje del `55P03` («Otra operación está modificando este proveedor en este momento. Vuelve a intentarlo.») lo eligió el tester y no estaba fijado en el diseño (asumido: texto pendiente de confirmar por la persona dueña). El borrador ya declaraba el `409` con `Conflicto` y no hizo falta cambiarlo.
+
+**Rojo** (`rojo/fila-B3.txt`; el del alta, `rojo/fila-B3-alta.txt`, dio `3 failed, 133 passed`: el alta por API con `55P03` y con `57014`, y el caso de uso): `6 failed, 126 passed` en la primera parte. Los cuatro tests de la API recibían un `500` donde esperaban `409`; los dos del caso de uso recibían el `OperationalError` sin traducir. Dos tests de «no traducir de más» nacen en verde a propósito.
+
+**Mutación.** Un mutante a la vez desde una copia fuera del repositorio; huella SHA-256 de los 337 `.py` de `backend/` antes de mutar `8dc65e2636a984625920eb8a8d156fa8be97d001d4ebdc192ddc117f0f6af02f`, idéntica tras cada reversión, y `git status` igual antes y después.
+
+| Mutante | Cambio | Tests que caen |
+|---|---|---|
+| `M-13` | el gestor nunca traduce | los seis de `TC-43` |
+| `M-13a` | `57014` con el código `BLOQUEO_VENCIDO` | `TC-43` de tiempo vencido, en actualizar y desactivar |
+| `M-13b` | `espera_maxima_ms` de `57014` en 5000 | los mismos dos |
+| `M-13c` | se traduce todo `DBAPIError` | los dos de error ajeno que sigue siendo `500` |
+| `M-13d` | sin gestor en `actualizar_proveedor` | los tres de actualizar |
+| `M-13e` | sin gestor en `desactivar_proveedor` | los tres de desactivar |
+| `M-13f` | método de la acción de desactivar `PATCH` | los tres de desactivar |
+| `M-13g1`, `M-13g2` | ruta de la acción de actualizar sin identificador o hacia la lista | los tres de actualizar |
+| `M-13h` | se traga el error ajeno | los dos de error ajeno |
+| `M-13h2` | se quita `from error` | **sobrevivió** (129 passed) |
+
+**Ampliación al alta** (huella inicial `8b9d3516806ecf61e08a791c4191f9b25d2140f2a50e9e67c18c89f72c88c355`, idéntica tras cada reversión):
+
+| Mutante | Cambio | Resultado |
+|---|---|---|
+| `M-14` | sin el gestor en `crear_proveedor` | cae: los tres tests del alta |
+| `M-14a` | método de la acción `PATCH` en vez de `POST` | cae |
+| `M-14b` | ruta de la acción sin `/proveedores` | cae |
+| `M-14c` | la relectura de la rama de RFC duplicado fuera del gestor | **sobrevivió**; lo mata `test_hdu004_esc03_alta_rfc_duplicado_con_lectura_vencida_es_concurrencia` (`57014` y `55P03`) |
+| `M-14d` | el `23505` se traduce a `ConcurrenciaVencida` en vez de `RFC_DUPLICADO` | cae: TC-14, TC-15 y el de API |
+| `M-14d2` | rama de RFC duplicado deshabilitada | cae: cuatro tests |
+| `M-14e` | sin `from error` | cae: los de `__cause__` |
+
+`auditor-codigo` mató además, en una copia propia, el relanzamiento (`raise` sustituido por `return`, cuatro tests) y `from None` (cinco tests).
+
+`M-13h2` sobrevivió porque nada comprobaba que se conserve la causa original. Se extendió `test_tkt029a_bloqueo_vencido_en_el_caso_de_uso_ofrece_reintentar_a_gestion` para exigir que `__cause__` sea el `DBAPIError` con `sqlstate` `55P03`, y con el mutante cae (`isinstance(None, DBAPIError)` falso). `auditor-codigo` repitió ocho mutantes más por su cuenta y todos murieron.
+
+## Tests devueltos y observaciones aceptadas
+
+**Tests devueltos al tester:** ninguno por defecto de fondo; los residuos F002 y F003 de código y el test de `__cause__` los escribió `tester-backend`, nunca un desarrollador.
+
+Observaciones aceptadas, sin cambio:
+
+| ID | Observación | Decisión |
+|---|---|---|
+| O-4 de arquitectura y O11 de código | `crear_proveedor` no traducía `55P03` ni `57014` | **Resuelta:** la persona dueña decidió ampliar B3 al alta; ver la sección de la fila B3 |
+| O13 a O16 de código y O-5 de arquitectura (alta) | Anidamiento de `crear_proveedor`, su docstring sin mencionar la traducción, un argumento innecesario en un helper de test, la lectura vencida solo probada en el caso de uso, una viñeta de docstring desprolija | Opcionales; no cambian el comportamiento |
+| O8 de código | El docstring de `..._sin_fila_visible_relanza_el_error` explica «se borró entre las dos transacciones», cuando `D-4` revoca `DELETE`; la rama es defensiva | Sin cambio; no afecta al comportamiento |
+| O10 de código | La pregunta 8 no tiene escenario Gherkin propio | La cubren `TC-43` y `CA-8`/`CA-9` |
+| O12 de código y O-5 de arquitectura | Tres copias de la traducción de `55P03` y `57014` (`archivos`, `presupuesto`, `proveedores`); CRLF en el árbol de trabajo | Si aparece una cuarta, valorar un ADR para llevarla a `contrato_error`; CRLF lo normaliza Git |
+| O1 y O2 de arquitectura | `409` de `PATCH` declarado en el borrador pero no emitido (`D-3`); `422` y `403` sin documentar en las lecturas | Para `TKT-029b` o `TKT-032` |
+
+## Modelo por paso (revisión)
+
+| Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
+|---|---|---|---|---|
+| Auditorías de la revisión | `auditor-arquitectura`, `auditor-codigo` | `sonnet` | `sonnet` | — |
+| Auditoría de documentación | `auditor-docs` | `haiku` | `haiku` en la primera pasada y `sonnet` en la reauditoría | Una pasada con acceso a muchos documentos |
+| Reauditoría de código de la entrega a | `auditor-codigo` | `haiku` | `haiku` | Acotada a Menores |
+| Correcciones F001 y F004 | `corrector-revision` | `haiku` | `haiku` | — |
+| Correcciones F002 y F003, residuos y test de `__cause__` | `tester-backend` | `haiku` | `haiku` | — |
+| B3 · rojo y mutación | `tester-backend` | `sonnet` | `sonnet` | Concurrencia con `lock_timeout` real |
+| B3 alta · rojo, mutación y test de `M-14c` | `tester-backend` | `sonnet` | `sonnet` y `haiku` para el test de `M-14c` | — |
+| B3 alta · verde | `desarrollador-aplicacion` | `sonnet` | `sonnet` | Disparador «bloqueo pesimista o concurrencia» |
+| Reauditorías del alta | `auditor-codigo`, `auditor-arquitectura` | `sonnet` | `sonnet` | — |
+| B3 · verde | `desarrollador-aplicacion` | `sonnet` | `sonnet` | Disparador «bloqueo pesimista o concurrencia» |
+
+## Verificación final del ticket
+
+Cifras copiadas de la última corrida de cada comando, con `docker info` respondiendo (servidor 29.9.3):
+
+```text
+uv run pytest -q                                 →   3437 passed, 26 skipped in 728.08s (0:12:08)
+uv run pytest tests/test_tkt029a_*.py -q         →   158 passed in 38 s
+uv run ruff check .                              →   All checks passed!
+uv run mypy .                                    →   Success: no issues found in 337 source files
+uv run lint-imports                              →   Contracts: 16 kept, 0 broken.
+uv run python -m herramientas.verificar_float    →   archivos revisados: 39; hallazgos: 0
+npm run tipos:verificar                          →   Tipos al día.
+python tools/verificar_docs.py                   →   ✓ Sin problemas.
+```
+
+La suite completa es la última, con la ampliación del alta y el test de `M-14c` ya incluidos. Los 26 omitidos son pruebas contra los archivos reales del catálogo (`PA-T3`) y no son de este ticket.
+
+- [x] Criterios `[M]` cumplidos con evidencia (`CA-1` a `CA-11`, `CA-R1`, `CA-R2`; ver las dos secciones de resultado)
+- [x] Ciclo TDD completo en cada fila, incluida B3: rojo antes de verde, ningún test editado por un desarrollador
+- [x] Suite en verde, con la salida pegada
+- [x] ≥1 test de rechazo por regla implicada
+- [x] Mutación en rutas críticas: 8 de 8 en la entrega a, 9 de 9 en la entrega b y 10 de 11 en B3 y 6 de 7 en su ampliación al alta, con los dos sobrevivientes muertos después con un test
+- [x] Todas las auditorías aplicables en `APROBADO`; ninguna con Mayor o Crítico vivo
+- [x] Documentación afectada actualizada en este mismo cambio
+- [x] `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios
+- [x] Rama correcta (`tkt-029a-catalogo-proveedores`) y sin secretos en el diff
+- [ ] Los trabajos de `ci.yml` en verde: se verifica en `/sdd-completar`, con el pull request real. Este comando no abre pull request
+
+**El `openapi.yaml` cambia en este ticket** (`maxLength: 200` en `nombre` y patrón y longitud de `q`, y las cinco operaciones del catálogo), así que la persona que apruebe el pull request debe revisarlo aunque no tenga defectos.
+
