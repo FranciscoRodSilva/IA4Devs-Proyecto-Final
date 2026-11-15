@@ -39,7 +39,7 @@ Cinco decisiones que atraviesan todo el esquema:
 
 **Todo movimiento de costo lleva `obra_id`.** No por conveniencia de consulta, sino como restricción `NOT NULL`: el principio 2 dice que no existe gasto sin obra, y el sitio donde eso se garantiza es el esquema.
 
-**El estado derivable se deriva.** El estado de una orden de compra (`ABIERTA` / `PARCIAL` / `CERRADA`) sale de comparar cantidades ordenadas y recibidas. No se fija a mano, porque una columna de estado que alguien puede escribir es una columna que se desincroniza.
+**El estado derivable se deriva.** El estado de una orden de compra (`ABIERTA` / `PARCIAL` / `CERRADA`) sale de comparar cantidades ordenadas y recibidas. No se fija a mano, porque una columna de estado que alguien puede escribir es una columna que se desincroniza. La única excepción es la cancelación de la orden, que se guarda en `cancelada_en` porque no sale de ninguna cantidad.
 
 ---
 
@@ -49,7 +49,7 @@ Cinco decisiones que atraviesan todo el esquema:
 |---|---|
 | **Nombres** | `snake_case`, tablas en singular, en español. El esquema habla el idioma del [glosario](glosario.md) |
 | **Clave primaria** | `id UUID` generado por la aplicación. Evita colisiones al importar y no filtra volumen de negocio |
-| **Claves foráneas** | `<entidad>_id`, con restricción declarada **dentro del módulo**. Una referencia que cruza a otro módulo cuyo dueño no es un ancestro en el grafo, o que es polimórfica, es un **identificador lógico sin clave foránea** y la valida el caso de uso por la interfaz publicada. Son exactamente estas: `archivo.referencia_id`, `movimiento_inventario.referencia_id`, `archivo.obra_id`, `bitacora.obra_id`, `orden_compra.proveedor_id`, `entrada_almacen.proveedor_id`, `importacion.archivo_id` y `entrada_renglon.solicitud_autorizacion_id` —esta última, aunque `compras` sí es ancestro de `almacen`, porque lo que la hace válida no es que la fila exista sino su estado, su renglón y su cantidad, que solo comprueba la interfaz de `compras`— ([§13](#13-invariantes-en-base-de-datos)). La excepción en sentido contrario es `bitacora.usuario_id`: lleva clave foránea a `usuario` aunque `identidad` no sea ancestro de `auditoria`, porque es una garantía del esquema —ningún asiento sin actor real— y no una dependencia de código: `auditoria` sigue sin importar `identidad` (TKT-007). Las claves foráneas de `presupuesto` no se borran en cascada: llevan `ON DELETE RESTRICT`. Borrar un padre con hijos responde `23001` (`restrict_violation`); el `23503` es el de insertar un hijo sin padre. |
+| **Claves foráneas** | `<entidad>_id`, con restricción declarada **dentro del módulo**. Una referencia que cruza a otro módulo cuyo dueño no es un ancestro en el grafo, o que es polimórfica, es un **identificador lógico sin clave foránea** y la valida el caso de uso por la interfaz publicada. Son exactamente estas: `archivo.referencia_id`, `movimiento_inventario.referencia_id`, `archivo.obra_id`, `bitacora.obra_id`, `orden_compra.proveedor_id`, `entrada_almacen.proveedor_id`, `importacion.archivo_id`, `solicitud_autorizacion.entidad_id` (polimórfica: apunta a una requisición o a una orden de compra según `entidad_tipo`, y una clave foránea solo puede apuntar a una tabla) y `entrada_renglon.solicitud_autorizacion_id` —esta última, aunque `compras` sí es ancestro de `almacen`, porque lo que la hace válida no es que la fila exista sino su estado, su renglón y su cantidad, que solo comprueba la interfaz de `compras`— ([§13](#13-invariantes-en-base-de-datos)). La excepción en sentido contrario es `bitacora.usuario_id`: lleva clave foránea a `usuario` aunque `identidad` no sea ancestro de `auditoria`, porque es una garantía del esquema —ningún asiento sin actor real— y no una dependencia de código: `auditoria` sigue sin importar `identidad` (TKT-007). Las claves foráneas de `presupuesto` no se borran en cascada: llevan `ON DELETE RESTRICT`. Borrar un padre con hijos responde `23001` (`restrict_violation`); el `23503` es el de insertar un hijo sin padre. |
 | **Permisos** | Tres roles de PostgreSQL —migración, aplicación y solo lectura—: la migración inicial crea los de aplicación y de solo lectura, el de migración lo crea el entorno, y los permisos por omisión se fijan con `ALTER DEFAULT PRIVILEGES`; cada migración de módulo **revoca** lo que su tabla no admite y lo prueba con el rol de aplicación ([arquitectura §7.6](02-arquitectura.md#76-seguridad-de-la-frontera)) |
 | **Enumeraciones** | Un conjunto cerrado se declara como `CHECK (columna IN (…))` con nombre `ck_<tabla>_<columna>`, sobre una columna `text NOT NULL`. Se elige `CHECK` y no `ENUM` porque el rechazo debe nombrar la restricción infractora y un `ENUM` responde sin ese nombre ([ADR-030](adr/20261101-catalogos-cerrados-por-check.md)). `accion_bitacora` conserva su `ENUM` como excepción histórica. Una tabla de catálogo se usa cuando el cliente puede ampliar el conjunto. En los diagramas, `enum` nombra un conjunto cerrado y no el tipo físico |
 | **Columnas de auditoría** | `creado_en`, `creado_por_id`, `actualizado_en`, `actualizado_por_id` en toda tabla transaccional, salvo donde el modelo o el borrador de la API no las usan (PA-T11 de TKT-011). En identidad las llevan `usuario` y `usuario_rol`, con `creado_por_id` y `actualizado_por_id` nulos permitidos porque la siembra y el primer usuario no tienen autor; `rol`, `sesion` e `intento_acceso` no las llevan. |
@@ -376,7 +376,7 @@ erDiagram
         uuid id PK
         uuid obra_id FK "NOT NULL · RN-02"
         uuid tipo_partida_id FK "NOT NULL · RN-02 · PA-01"
-        string folio UK
+        string folio UK "nulo solo en BORRADOR"
         uuid solicitante_id FK
         enum estado "BORRADOR|EVALUADA|BLOQUEADA|AUTORIZADA|RECHAZADA|CANCELADA|CONVERTIDA"
         string regla_bloqueo "RN-03 · null si pasó"
@@ -385,6 +385,9 @@ erDiagram
         numeric importe_excedente
         timestamptz evaluada_en
         text motivo_cancelacion "al desistir el solicitante"
+        text observaciones
+        timestamptz creado_en "NOT NULL"
+        timestamptz actualizado_en "NOT NULL"
     }
     FOLIO_CONSECUTIVO {
         string serie PK "REQUISICION|ORDEN_COMPRA"
@@ -402,18 +405,20 @@ erDiagram
     SOLICITUD_AUTORIZACION {
         uuid id PK
         enum motivo "EXCEDE_PRESUPUESTO|EXCEDE_ORDENADO|EXCEDE_CONSIGNACION|TRABAJO_EXTRA"
-        string entidad_tipo
-        uuid entidad_id
+        uuid obra_id FK "NOT NULL"
+        enum entidad_tipo "REQUISICION|ORDEN_COMPRA"
+        uuid entidad_id "lógico · sin FK · polimórfica"
         string regla_negocio "RN-03"
         uuid orden_compra_renglon_id FK "solo EXCEDE_ORDENADO · PA-16"
         numeric cantidad_excedente "solo EXCEDE_ORDENADO · recalculada por el servidor"
         uuid solicitante_id FK
-        string rol_autorizador "DIRECCION_GENERAL"
+        string rol_autorizador FK "DIRECCION_GENERAL"
         enum estado "PENDIENTE|AUTORIZADA|RECHAZADA"
         uuid resuelta_por_id FK
         timestamptz resuelta_en
         text motivo_resolucion "obligatorio"
         jsonb contexto "cifras del momento de la solicitud"
+        timestamptz creado_en "NOT NULL"
     }
     ORDEN_COMPRA {
         uuid id PK
@@ -421,9 +426,10 @@ erDiagram
         uuid obra_id FK "NOT NULL"
         uuid proveedor_id "lógico · sin FK · lo valida CatalogoProveedores"
         string folio UK
-        enum estado "ABIERTA|PARCIAL|CERRADA|CANCELADA"
         numeric importe
         text motivo_cancelacion
+        timestamptz cancelada_en "nulo si no está cancelada · lo único de estado que se guarda"
+        timestamptz creado_en "NOT NULL"
     }
     ORDEN_COMPRA_RENGLON {
         uuid id PK
@@ -432,7 +438,7 @@ erDiagram
         numeric cantidad_ordenada
         numeric cantidad_recibida "derivada · CHECK ≤ ordenada + excedente autorizado"
         numeric cantidad_excedente_autorizada "RN-07 · DEFAULT 0 · la incrementa la entrada · PA-16"
-        date fecha_compromiso "vigente · PA-07"
+        date fecha_compromiso "NOT NULL · vigente · PA-07"
         numeric costo_unitario
         numeric importe
     }
@@ -462,9 +468,19 @@ erDiagram
 
 **`orden_compra.proveedor_id` no lleva clave foránea.** `proveedor` es de `proveedores`, y `proveedores` depende de `compras` ([arquitectura §5](02-arquitectura.md#5-contextos-delimitados)): una clave de la orden hacia el proveedor invertiría la arista. La existencia y la vigencia del proveedor las comprueba la emisión por el puerto `CatalogoProveedores`, que **declara `compras`** en su capa de aplicación e **implementa `proveedores`**. Es un identificador lógico, como los demás de [§2](#2-convenciones).
 
-**Los folios no tienen huecos, y por eso no salen de una secuencia.** Una secuencia de PostgreSQL no se deshace con la transacción: una requisición que falla deja un número quemado. `folio_consecutivo` guarda el último folio de cada serie —requisición y orden de compra—, y el caso de uso lo incrementa con la fila bloqueada **dentro de la misma transacción** que crea el documento. Si la transacción se deshace, el número vuelve con ella.
+**Los folios de los documentos que salen de BORRADOR no tienen huecos, y por eso no salen de una secuencia.** Una secuencia de PostgreSQL no se deshace con la transacción: una requisición que falla deja un número quemado. `folio_consecutivo` guarda el último folio de cada serie —requisición y orden de compra—, y el caso de uso lo incrementa con la fila bloqueada **dentro de la misma transacción** que crea el documento. Si la transacción se deshace, el número vuelve con ella.
 
 **`compras` es dueño del `consumido` de `RN-03`.** `requisiciones_vivas` y `comprometido` salen de tablas suyas; el **ejercido** le llega por el puerto `FuenteEjercido`, que declara `compras` e implementan `almacen` y, en la fase 2, `avance`. La fórmula y el reparto de dueños están en [§15](#el-consumido-de-rn-03).
+
+**El estado de la orden no se guarda: se deriva, salvo la cancelación.** `ABIERTA`, `PARCIAL` y `CERRADA` salen de comparar `cantidad_ordenada`, `cantidad_recibida` y `cantidad_excedente_autorizada` en cada renglón ([§1](#1-principios-de-modelado)), así que no llevan columna. Cancelar no sale de ninguna cantidad, y por eso es lo único que se persiste: `orden_compra.cancelada_en`, con su `motivo_cancelacion`. Un `CHECK` exige que los dos vayan juntos (`ck_orden_compra_cancelacion_con_motivo`). Las órdenes vivas son las de `cancelada_en` nulo, y es el filtro que usa el `comprometido` de [§15](#el-consumido-de-rn-03).
+
+**`importe_disponible` y `cantidad_disponible` son la excepción al invariante 8.** Son la cifra del momento de evaluar y pueden ser negativas si una excepción autorizada dejó el consumido por encima del tope. Por decisión de la persona dueña del producto (2026-11-14) no llevan `CHECK` `>= 0`: se guardan tal cual se calcularon.
+
+**Un borrador se borra; nada más se borra.** Un privilegio de `DELETE` no distingue estados, así que el rol de aplicación conserva `DELETE` sobre `requisicion` y `requisicion_renglon`, y dos disparadores `BEFORE DELETE` rechazan con el `SQLSTATE` `IN002` el borrado de cualquier requisición que no esté en `BORRADOR`: `trg_requisicion_borrado_solo_borrador` y `trg_requisicion_renglon_borrado_solo_borrador`. El del renglón lee la requisición con `FOR SHARE`, como el invariante 14, para que una transacción que pasa la requisición a `EVALUADA` no deje a la vez una requisición evaluada sin renglones. Los disparadores protegen estructura y no deciden ninguna regla: el caso de uso comprueba el estado y responde `409`, y el disparador solo detiene lo que llegue por otra vía. Como un borrador puede borrarse, `folio` es nulable solo en `BORRADOR`: `ck_requisicion_folio_fuera_de_borrador` exige folio en cualquier otro estado, y el momento de numerar lo decide el caso de uso que crea el documento.
+
+**Los privilegios se conceden tabla por tabla.** `folio_consecutivo`: el rol de aplicación lee y actualiza (`SELECT` y `UPDATE`, el privilegio que exige `FOR UPDATE`), sin `INSERT` ni `DELETE`, porque las dos series las siembra `0015` y no cambian. `reprogramacion_entrega`: `SELECT` e `INSERT`, sin `UPDATE` ni `DELETE`, porque es el rastro de cada aplazamiento y no se corrige. `orden_compra`, `orden_compra_renglon` y `solicitud_autorizacion`: sin `DELETE`. Como los invariantes 10, 20, 21 y 30, son permisos que se comprueban con el rol de aplicación, no con el propietario.
+
+**Lo que se deriva no lleva columna.** `saldo_pendiente`, las reprogramaciones y la primera fecha de compromiso de un renglón, la solicitud y la orden de una requisición, el tipo de partida y la requisición de origen de una orden, `sin_efecto` de una solicitud, y su importe y su excedente, salen de otras tablas o de `contexto`. Ninguna tabla de este bloque lleva `creado_por_id` ni `actualizado_por_id`: el actor ya consta en `solicitante_id`, `registrado_por_id`, `resuelta_por_id` y en la bitácora (excepción `PA-T11` de [§2](#2-convenciones)).
 
 ---
 
@@ -1162,8 +1178,8 @@ Estos invariantes se declaran en el esquema porque **un invariante que solo vive
 | 5 | Una sola línea base congelada vigente por obra | Índice único parcial `WHERE estado = 'CONGELADA'` | RN-01 |
 | 6 | Un presupuesto de control por línea base y tipo de partida | `UNIQUE (linea_base_id, tipo_partida_id)` | RN-03 |
 | 7 | El desglose de un pago agrupado suma el total | Restricción diferida verificada al confirmar | RN-14 |
-| 8 | Importes, precios, cantidades y rendimientos no negativos | `CHECK (<columna> >= 0)` con nombre `ck_<tabla>_<columna>_no_negativo` sobre cada importe, precio, cantidad y rendimiento del esquema; en el catálogo, cantidad, precio unitario e importe viven en `partida_concepto`. Los porcentajes de rango acotado llevan su propio `CHECK` (`PA-T5` de TKT-011) | — |
-| 9 | Una resolución de autorización exige motivo | `CHECK (estado = 'PENDIENTE' OR motivo_resolucion IS NOT NULL)` | RN-04 |
+| 8 | Importes, precios, cantidades y rendimientos no negativos, salvo `importe_disponible` y `cantidad_disponible`, que son cifras del momento de evaluar y pueden ser negativas | `CHECK (<columna> >= 0)` con nombre `ck_<tabla>_<columna>_no_negativo` sobre cada importe, precio, cantidad y rendimiento del esquema; en el catálogo, cantidad, precio unitario e importe viven en `partida_concepto`. Los porcentajes de rango acotado llevan su propio `CHECK` (`PA-T5` de TKT-011). `cantidad_excedente_autorizada` lleva `ck_orden_compra_renglon_excedente_autorizado_no_negativo`: su nombre completo, `ck_orden_compra_renglon_cantidad_excedente_autorizada_no_negativo`, pasaría del límite de 63 caracteres de PostgreSQL | — |
+| 9 | Una resolución de autorización exige motivo, autor y fecha | `CHECK` con nombre `ck_solicitud_autorizacion_resolucion_completa`: `estado = 'PENDIENTE' OR (motivo_resolucion IS NOT NULL AND resuelta_por_id IS NOT NULL AND resuelta_en IS NOT NULL)` | RN-04 |
 | 10 | La bitácora no se modifica | Permisos: sin `UPDATE` ni `DELETE` para el rol de aplicación | RN-04 |
 | 11 | Un avance pagado está validado | Clave foránea compuesta que incluye el estado | RN-10 |
 | 12 | El fondo se libera solo con las dos condiciones | `CHECK (estado <> 'LIBERADO' OR (area_liberada AND area_cobrada))` | RN-12 |
@@ -1207,11 +1223,11 @@ modalidad_pago_semana
   CHECK (EXTRACT(DOW FROM semana) = 4)      -- jueves de corte · PA-19
 ```
 
-El invariante 14 merece una nota: es el único que necesita un disparador en lugar de una restricción declarativa, porque PostgreSQL no permite marcar filas como inmutables de forma nativa. Dado que el principio 1 es el más importante del producto, el disparador está justificado.
+El invariante 14 merece una nota: es el que necesita un disparador en lugar de una restricción declarativa, porque PostgreSQL no permite marcar filas como inmutables de forma nativa. Dado que el principio 1 es el más importante del producto, el disparador está justificado. Compras añade dos disparadores más, `trg_requisicion_borrado_solo_borrador` y `trg_requisicion_renglon_borrado_solo_borrador`, que protegen estructura del mismo modo —rechazan con `IN002` el borrado de una requisición que no está en `BORRADOR`— pero no se numeran como invariante, para que el recuento de los 39 invariantes no cambie.
 
 **Los invariantes 23 a 26 protegen el adjunto, y hay uno que deliberadamente no está.** Ninguno garantiza que `referencia_id` apunte a una fila que exista: la referencia es polimórfica y el motor no puede comprobarla ([§12](#12-archivos-adjuntos)). Junto con las demás referencias lógicas de [§2](#2-convenciones) —que existen para no invertir una arista del grafo de módulos—, es integridad referencial que se deja en manos del caso de uso; está declarada como coste en [ADR-016](adr/20261001-almacenamiento-de-objetos.md), y se compensa con lo que sí se puede declarar: que un archivo `DISPONIBLE` tenga hash verificado, que anularlo exija motivo y que ningún objeto se reutilice.
 
-**Las referencias lógicas son una lista cerrada, no una costumbre.** Además de la pareja `referencia_tipo` + `referencia_id` de `archivo` y de `movimiento_inventario`, no llevan clave foránea `archivo.obra_id` y `bitacora.obra_id` —`archivos` y `auditoria` son transversales y no dependen de `presupuesto`—, `orden_compra.proveedor_id` —la valida el puerto `CatalogoProveedores`—, `entrada_almacen.proveedor_id` —copiada de la orden, sostiene el invariante 29— e `importacion.archivo_id`. Todas cruzan hacia un módulo que no es ancestro en el grafo, y una clave foránea invertiría la arista. La única excepción es `entrada_renglon.solicitud_autorizacion_id` (`PA-16`): `compras` sí es ancestro de `almacen`, pero una clave foránea solo probaría que la solicitud existe, y lo que la hace válida —estar `AUTORIZADA`, ser del mismo renglón, no haberse consumido— lo comprueba la interfaz de `compras`; que no se use dos veces lo sostiene su índice único parcial (invariante 38). Cualquier referencia nueva sin clave foránea se añade a [§2](#2-convenciones) con su motivo, o no se acepta.
+**Las referencias lógicas son una lista cerrada, no una costumbre.** Además de la pareja `referencia_tipo` + `referencia_id` de `archivo` y de `movimiento_inventario`, no llevan clave foránea `archivo.obra_id` y `bitacora.obra_id` —`archivos` y `auditoria` son transversales y no dependen de `presupuesto`—, `orden_compra.proveedor_id` —la valida el puerto `CatalogoProveedores`—, `entrada_almacen.proveedor_id` —copiada de la orden, sostiene el invariante 29— e `importacion.archivo_id` y `solicitud_autorizacion.entidad_id`. Las primeras cruzan hacia un módulo que no es ancestro en el grafo, y una clave foránea invertiría la arista; `solicitud_autorizacion.entidad_id` apunta a dos tablas según `entidad_tipo`, y ninguna clave foránea puede hacerlo. La única excepción es `entrada_renglon.solicitud_autorizacion_id` (`PA-16`): `compras` sí es ancestro de `almacen`, pero una clave foránea solo probaría que la solicitud existe, y lo que la hace válida —estar `AUTORIZADA`, ser del mismo renglón, no haberse consumido— lo comprueba la interfaz de `compras`; que no se use dos veces lo sostiene su índice único parcial (invariante 38). Cualquier referencia nueva sin clave foránea se añade a [§2](#2-convenciones) con su motivo, o no se acepta.
 
 **Los invariantes 10, 20, 21 y 30 no son restricciones: son permisos**, igual que la segunda barrera del 14 sobre `linea_base_concepto`. Dicen lo mismo desde ángulos distintos —hay escrituras que el rol de aplicación simplemente no puede hacer— y ninguno se concede a mano en el servidor. La migración inicial crea los roles de aplicación y de solo lectura —el de migración lo crea el entorno— y fija los permisos por omisión con `ALTER DEFAULT PRIVILEGES`, de modo que toda tabla nueva nace con los permisos por omisión de cada rol, y **cada migración de módulo revoca** lo que su tabla no admite, con la prueba que lo demuestra en el mismo cambio. El 21 es el que cierra un hueco viejo: que `analitica` solo lea era hasta ahora una propiedad dibujada en un diagrama, porque `import-linter` comprueba quién importa a quién y no quién escribe.
 
@@ -1232,6 +1248,7 @@ stateDiagram-v2
     BORRADOR --> BLOQUEADA: excede · RN-03
     BLOQUEADA --> AUTORIZADA: Dirección General autoriza
     BLOQUEADA --> RECHAZADA: Dirección General rechaza
+    BORRADOR --> [*]: se elimina (solo en BORRADOR; lo exige el disparador con SQLSTATE IN002)
     EVALUADA --> CONVERTIDA: se emite orden de compra
     AUTORIZADA --> CONVERTIDA: se emite orden de compra
     CONVERTIDA --> EVALUADA: se cancela la orden sin recepciones
@@ -1268,6 +1285,8 @@ stateDiagram-v2
     CERRADA --> [*]
     CANCELADA --> [*]
 ```
+
+**`CANCELADA` es el único estado que se guarda**, en `orden_compra.cancelada_en` ([§5](#5-compras)). `ABIERTA`, `PARCIAL` y `CERRADA` se derivan de las cantidades de sus renglones ([§1](#1-principios-de-modelado)); el diagrama los dibuja porque describe el ciclo de vida, no porque haya una columna para cada uno.
 
 **Una orden solo llega a `CERRADA` cuando se entrega completa** (PA-07). No existe transición de cierre con saldo: si el proveedor no entrega, el faltante se reprograma y la orden permanece en `PARCIAL` indefinidamente. Cancelar solo es posible mientras no haya ninguna recepción.
 
@@ -1363,7 +1382,7 @@ comprometido AS (                 -- compras · ordenado y aún no recibido
     FROM orden_compra_renglon ocr
     JOIN orden_compra oc ON oc.id = ocr.orden_compra_id
     JOIN requisicion r   ON r.id  = oc.requisicion_id
-    WHERE oc.obra_id = :obra_id AND oc.estado IN ('ABIERTA','PARCIAL')
+    WHERE oc.obra_id = :obra_id AND oc.cancelada_en IS NULL   -- sin columna de estado: una orden CERRADA ya aporta cero por el GREATEST
     GROUP BY r.tipo_partida_id
 ),
 -- ─── ejercido: llega por el puerto FuenteEjercido, que declara compras ───
@@ -1518,7 +1537,11 @@ Se presenta como **fila propia al nivel de la obra**, marcada como no imputada a
 | `explosion_presupuesto` | `(linea_base_id, tipo_partida_id, insumo_id)` único: una sola fila por línea base, tipo de partida e insumo |
 | `requisicion` | `(obra_id, tipo_partida_id, estado)` |
 | `movimiento_inventario` | `(obra_id, tipo_partida_id, ocurrido_en)` · `(obra_id, tipo_partida_id, insumo_id, ocurrido_en)` para el control por volumen, que agrupa por tipo de partida **e** insumo |
-| `orden_compra_renglon` | `(orden_compra_id)` con `cantidad_recibida < cantidad_ordenada` parcial |
+| `requisicion_renglon` | `(requisicion_id)` |
+| `orden_compra` | `(obra_id)` |
+| `orden_compra_renglon` | `(orden_compra_id)` completo: sirve al `comprometido` y al detalle de la orden |
+| `reprogramacion_entrega` | `(orden_compra_renglon_id)` |
+| `solicitud_autorizacion` | `(entidad_tipo, entidad_id)` |
 | `entrada_almacen` | `(proveedor_id, folio_remision)` único — invariante 29 |
 | `avance` | `(obra_id, estado, semana)` · `(etapa_destajo_id, estado)` · `(id, estado)` único, para la clave foránea compuesta del invariante 11 · `(area_id, etapa_destajo_id, cuadrilla_id, semana)` único — invariante 31 |
 | `alcance_destajo` | `(area_id, etapa_destajo_id)` único — invariante 22 · `(obra_id)` |

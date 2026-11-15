@@ -1,0 +1,181 @@
+TKT-019 · mutación sobre las rutas críticas del esquema de compras (v0014 y v0015)
+
+Método: copia de backend/ (más compose.yaml, compose.almacen.yaml, .env y frontend/e2e/sembrar_usuario_humo.py) fuera del repositorio;
+un mutante a la vez sobre la copia; tras cada uno se restaura el archivo original desde su respaldo y se comprueba la huella.
+Suite por mutante: tests/test_tkt019_migracion.py, tests/test_tkt019_privilegios.py, tests/test_tkt019_restricciones.py y
+tests/test_tkt010_semilla_local.py (175 pruebas; línea base sin mutar: 175 passed, con v0014 y v0015 tal como están en el repositorio a las 10:12). PostgreSQL real con testcontainers, esquema por alembic upgrade head, rol de aplicación.
+
+Huella SHA-256 de los .py de la copia antes del primer mutante : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029
+Huella tras restaurar el último mutante                        : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029
+Huella de los .py de backend/ del repositorio, antes y después : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029 (idéntica a la de la copia; el repositorio no se tocó)
+
+RESULTADO: 19 de 19 mutantes caen; 0 sobreviven.
+
+M-1 · v0014_compras_esquema.py · se quita NOT NULL de requisicion.tipo_partida_id
+   diseño dice que cae: TC-06 y TC-04
+   resultado: 2 failed, 173 passed in 28.96s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca01_tablas_columnas_restricciones_e_indices
+   cae: test_tkt019_restricciones.py::test_tkt019_ca02_el_motor_exige_el_centro_de_costos[requisicion_sin_tipo_de_partida]
+   huella con el mutante : f024475636aa20f74ae9c17969813e5691cdc1f075d0db8d0d12883001ec3c29
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-2 · v0014_compras_esquema.py · se quita NOT NULL de orden_compra.obra_id
+   diseño dice que cae: TC-06 y TC-04
+   resultado: 2 failed, 173 passed in 28.83s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca01_tablas_columnas_restricciones_e_indices
+   cae: test_tkt019_restricciones.py::test_tkt019_ca02_el_motor_exige_el_centro_de_costos[orden_sin_obra]
+   huella con el mutante : 4e5b330687c3f2ecc70d51f6503823b9feef010170cbd45517a8a5b0adf8ed99
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-3 · v0014_compras_esquema.py · <= pasa a < en ck_orden_compra_renglon_recibida_dentro_de_lo_autorizado
+   diseño dice que cae: TC-18
+   resultado: 3 failed, 172 passed in 28.61s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca04_el_cero_se_admite_en_cada_cifra[orden_compra_renglon.cantidad_ordenada]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca08_recibir_de_mas_solo_con_excedente_autorizado[recibe_exactamente_lo_ordenado]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca08_recibir_de_mas_solo_con_excedente_autorizado[recibe_hasta_el_excedente]
+   huella con el mutante : 7d4440b315ab29458be685af9bd498c7e549241f7efac6e64388bee69000a6aa
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-4 · v0014_compras_esquema.py · se quita + cantidad_excedente_autorizada del mismo CHECK
+   diseño dice que cae: TC-18
+   resultado: 1 failed, 174 passed in 43.89s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca08_recibir_de_mas_solo_con_excedente_autorizado[recibe_hasta_el_excedente]
+   huella con el mutante : e95b819ddc7b2ea1d46a13b128da4b021574452c805d7d0e446378086763a24d
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-5 · v0014_compras_esquema.py · se quita ck_orden_compra_renglon_excedente_autorizado_no_negativo
+   diseño dice que cae: TC-18 y TC-09
+   resultado: 3 failed, 172 passed in 28.49s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca01_tablas_columnas_restricciones_e_indices
+   cae: test_tkt019_restricciones.py::test_tkt019_ca04_ninguna_cifra_es_negativa[orden_compra_renglon.cantidad_excedente_autorizada]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca08_recibir_de_mas_solo_con_excedente_autorizado[excedente_negativo]
+   huella con el mutante : 4e50f6875bfaa3e990150647cf491e61a39e3ab324ba73064a871f2de0e3a326
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-6 · v0014_compras_esquema.py · >= 0 pasa a > 0 en ck_requisicion_importe_solicitado_no_negativo
+   diseño dice que cae: TC-09
+   resultado: 1 failed, 174 passed in 28.65s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca04_el_cero_se_admite_en_cada_cifra[requisicion.importe_solicitado]
+   huella con el mutante : 9efedc9d121c1b6867eb798aab28ac684e9492e022b9f670458549ba990ce1d4
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-7 · v0014_compras_esquema.py · se quita ck_orden_compra_renglon_costo_unitario_no_negativo
+   diseño dice que cae: TC-09 y TC-04
+   resultado: 2 failed, 173 passed in 44.27s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca01_tablas_columnas_restricciones_e_indices
+   cae: test_tkt019_restricciones.py::test_tkt019_ca04_ninguna_cifra_es_negativa[orden_compra_renglon.costo_unitario]
+   huella con el mutante : 151b40344a606032e2db550cebaea4fcefbaa9731f3c367ea69bd7a5635b7ee0
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-8 · v0014_compras_esquema.py · se anade CHECK (importe_disponible >= 0) a requisicion
+   diseño dice que cae: TC-10 y TC-04
+   resultado: 2 failed, 173 passed in 28.40s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca01_tablas_columnas_restricciones_e_indices
+   cae: test_tkt019_restricciones.py::test_tkt019_ca04_el_disponible_admite_negativos
+   huella con el mutante : 7af2ff77691a94a4115c4b0909177ee12a107a7c7a34580f235b2825c090989c
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-9 · v0014_compras_esquema.py · resolucion_completa solo exige motivo_resolucion
+   diseño dice que cae: TC-15
+   resultado: 4 failed, 171 passed in 43.96s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca06_la_resolucion_exige_motivo_actor_y_momento[resuelta_en-AUTORIZADA]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca06_la_resolucion_exige_motivo_actor_y_momento[resuelta_en-RECHAZADA]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca06_la_resolucion_exige_motivo_actor_y_momento[resuelta_por_id-AUTORIZADA]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca06_la_resolucion_exige_motivo_actor_y_momento[resuelta_por_id-RECHAZADA]
+   huella con el mutante : 1d090b633b480826c9b9577c4b93633ae808fb9adb70abf5d41d290b560587b1
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-10 · v0014_compras_esquema.py · resolucion_completa: estado = 'PENDIENTE' pasa a estado <> 'RECHAZADA'
+   diseño dice que cae: TC-15
+   resultado: 3 failed, 172 passed in 28.53s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca06_la_resolucion_exige_motivo_actor_y_momento[motivo_resolucion-AUTORIZADA]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca06_la_resolucion_exige_motivo_actor_y_momento[resuelta_en-AUTORIZADA]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca06_la_resolucion_exige_motivo_actor_y_momento[resuelta_por_id-AUTORIZADA]
+   huella con el mutante : c3e63c579a411414a886e79b488b5b873d42539b85dd4b329096ec3f6d1cac22
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-11 · v0014_compras_esquema.py · se quita trg_requisicion_borrado_solo_borrador
+   diseño dice que cae: TC-25
+   resultado: 6 failed, 169 passed in 42.53s
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[AUTORIZADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[BLOQUEADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[CANCELADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[CONVERTIDA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[EVALUADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[RECHAZADA]
+   huella con el mutante : a551f38f5c7a9c6c3f56beb9506ace2f84113d87359e82ba07879cd96fcbac96
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-12 · v0014_compras_esquema.py · se quita trg_requisicion_renglon_borrado_solo_borrador
+   diseño dice que cae: TC-25
+   resultado: 7 failed, 168 passed in 32.92s
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_el_borrado_del_renglon_espera_al_cambio_de_estado
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[AUTORIZADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[BLOQUEADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[CANCELADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[CONVERTIDA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[EVALUADA]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[RECHAZADA]
+   huella con el mutante : da2c1c3a884a8e1b2b824c8e940220e363c5a50467913ffb8a469a6eba8ea9ea
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-13 · v0014_compras_esquema.py · se quita FOR SHARE de compras_proteger_borrado_de_renglon
+   diseño dice que cae: TC-26
+   resultado: 1 failed, 174 passed in 52.04s
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_el_borrado_del_renglon_espera_al_cambio_de_estado
+   huella con el mutante : 8f1b84345db90158375565f163bb3e00d05b8e9afbaf90cb7939801a97d576c5
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-14 · v0014_compras_esquema.py · excede_ordenado_con_renglon pierde la segunda rama (un solo sentido)
+   diseño dice que cae: TC-16
+   resultado: 3 failed, 172 passed in 28.42s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca07_excede_ordenado_apunta_a_su_renglon[presupuesto_con_cantidad]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca07_excede_ordenado_apunta_a_su_renglon[presupuesto_con_los_dos]
+   cae: test_tkt019_restricciones.py::test_tkt019_ca07_excede_ordenado_apunta_a_su_renglon[presupuesto_con_renglon]
+   huella con el mutante : 5dcc311e6232a841075c7496b808e2dcaad3743cde4931c9a022cece5c7a97e4
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-15 · v0014_compras_esquema.py · uq_orden_compra_requisicion_id_vigente sin WHERE
+   diseño dice que cae: TC-21 y TC-04
+   resultado: 2 failed, 173 passed in 28.64s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca01_tablas_columnas_restricciones_e_indices
+   cae: test_tkt019_restricciones.py::test_tkt019_ca09_una_orden_vigente_por_requisicion
+   huella con el mutante : ca9053f4220ba0479f7e44d5d6cd2002d6f815482505f22cf82153bffe7b01f5
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-16 · v0014_compras_esquema.py · se quita ck_requisicion_folio_fuera_de_borrador
+   diseño dice que cae: TC-08
+   resultado: 2 failed, 173 passed in 43.26s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca01_tablas_columnas_restricciones_e_indices
+   cae: test_tkt019_restricciones.py::test_tkt019_ca03_folio_motivo_y_regla_segun_estado[evaluada_sin_folio]
+   huella con el mutante : c1db1300836a346f2a6b63feae0cd79fc368715f7ffc38c633aee3931129da38
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-17 · v0014_compras_esquema.py · cancelacion_con_motivo en un solo sentido
+   diseño dice que cae: TC-20
+   resultado: 1 failed, 174 passed in 28.93s
+   cae: test_tkt019_restricciones.py::test_tkt019_ca09_cancelacion_con_motivo[motivo_sin_cancelacion]
+   huella con el mutante : 853c71cb3aabde7a70f22acafbd3582a97912c2f082fb507c42fc3c86928fbe8
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-18 · v0014_compras_esquema.py · se quita REVOKE DELETE ON solicitud_autorizacion
+   diseño dice que cae: TC-23 y TC-24
+   resultado: 2 failed, 173 passed in 38.00s
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-solicitud_autorizacion]
+   cae: test_tkt019_privilegios.py::test_tkt019_ca11_privilegios_exactos_por_rol
+   huella con el mutante : b1cc0e338f0eed34381ba97cd9c9c2c931afbc6136250bbd455e562412d77a84
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+M-19 · v0015_semilla_folios_de_compras.py · 0015 siembra solo REQUISICION
+   diseño dice que cae: TC-13, TC-27 y TC-29
+   resultado: 6 failed, 169 passed in 33.99s
+   cae: test_tkt010_semilla_local.py::test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio
+   cae: test_tkt019_migracion.py::test_tkt019_car1_0015_cuelga_de_0014_y_sube_baja_y_vuelve_a_subir
+   cae: test_tkt019_migracion.py::test_tkt019_car1_la_bajada_de_0015_se_niega_con_folios_emitidos
+   cae: test_tkt019_restricciones.py::test_tkt019_ca05_serie_desconocida_y_ultimo_negativo
+   cae: test_tkt019_restricciones.py::test_tkt019_ca05_serie_valida_y_ultimo_cero_entran
+   cae: test_tkt019_restricciones.py::test_tkt019_ca05_series_sembradas_y_bloqueables
+   huella con el mutante : 8401ce970a0cce3261d2bf58cb46dbd6625867b2ad75433d1ff3b4885ff2cd42
+   huella tras restaurar : 43e30fa889659e8a96f487748acd869c9ee6dc48b5c138954146d1939f624029  (idéntica a la inicial)
+
+Nota: una primera corrida completa, hecha sobre la versión de v0014 y v0015 anterior a las 10:12, dio el mismo resultado (19 de 19 caen). Después alguien añadió `LOCK TABLE` a las guardas de bajada de las dos migraciones; esta tabla es la repetición sobre la versión nueva. Ningún mutante toca esas guardas.

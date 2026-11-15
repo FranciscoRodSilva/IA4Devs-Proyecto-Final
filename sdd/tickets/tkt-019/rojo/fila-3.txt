@@ -1,0 +1,126 @@
+FFFFFFF.......FFFFFF.F                                                   [100%]
+================================== FAILURES ===================================
+________________ test_tkt019_ca11_privilegios_exactos_por_rol _________________
+tests\test_tkt019_privilegios.py:385: in test_tkt019_ca11_privilegios_exactos_por_rol
+    assert not problemas, "Privilegios que no son los del diseño:\n" + "\n".join(problemas)
+E   AssertionError: Privilegios que no son los del diseño:
+E     orden_compra · cimenta_aplicacion: tiene ['DELETE', 'INSERT', 'SELECT', 'UPDATE'], debía tener ['INSERT', 'SELECT', 'UPDATE'] (sobra ['DELETE'], falta [])
+E     orden_compra_renglon · cimenta_aplicacion: tiene ['DELETE', 'INSERT', 'SELECT', 'UPDATE'], debía tener ['INSERT', 'SELECT', 'UPDATE'] (sobra ['DELETE'], falta [])
+E     solicitud_autorizacion · cimenta_aplicacion: tiene ['DELETE', 'INSERT', 'SELECT', 'UPDATE'], debía tener ['INSERT', 'SELECT', 'UPDATE'] (sobra ['DELETE'], falta [])
+E     reprogramacion_entrega · cimenta_aplicacion: tiene ['DELETE', 'INSERT', 'SELECT', 'UPDATE'], debía tener ['INSERT', 'SELECT'] (sobra ['DELETE', 'UPDATE'], falta [])
+E     folio_consecutivo · cimenta_aplicacion: tiene ['DELETE', 'INSERT', 'SELECT', 'UPDATE'], debía tener ['SELECT', 'UPDATE'] (sobra ['DELETE', 'INSERT'], falta [])
+E   assert not ["orden_compra · cimenta_aplicacion: tiene ['DELETE', 'INSERT', 'SELECT', 'UPDATE'], debía tener ['INSERT', 'SELECT', ...ene ['DELETE', 'INSERT', 'SELECT', 'UPDATE'], debía tener ['SELECT', 'UPDATE'] (sobra ['DELETE', 'INSERT'], falta [])"]
+_ test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-solicitud_autorizacion] _
+tests\test_tkt019_privilegios.py:433: in test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente
+    error = rechazo_de(entorno.conexion, consulta, parametros)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: Composed([SQL('DELETE FROM '), Identifier('solicitud_autorizacion'), SQL(' WHERE '), Identifier('id'), SQL(' = %s')])
+_ test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-reprogramacion_entrega] _
+tests\test_tkt019_privilegios.py:433: in test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente
+    error = rechazo_de(entorno.conexion, consulta, parametros)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: Composed([SQL('DELETE FROM '), Identifier('reprogramacion_entrega'), SQL(' WHERE '), Identifier('id'), SQL(' = %s')])
+_ test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-orden_compra] _
+tests\test_tkt019_privilegios.py:435: in test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente
+    assert error.sqlstate == "42501", str(error)
+E   AssertionError: update or delete on table "orden_compra" violates RESTRICT setting of foreign key constraint "fk_orden_compra_renglon_orden_compra_id" on table "orden_compra_renglon"
+E     DETAIL:  Key (id)=(bcdc3911-db0d-4625-af62-53b7e99e479a) is referenced from table "orden_compra_renglon".
+E   assert '23001' == '42501'
+E     
+E     - 42501
+E     + 23001
+_ test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-orden_compra_renglon] _
+tests\test_tkt019_privilegios.py:435: in test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente
+    assert error.sqlstate == "42501", str(error)
+E   AssertionError: update or delete on table "orden_compra_renglon" violates RESTRICT setting of foreign key constraint "fk_reprogramacion_entrega_orden_compra_renglon_id" on table "reprogramacion_entrega"
+E     DETAIL:  Key (id)=(fbcd664a-3df0-4038-894e-ffc097c7e3da) is referenced from table "reprogramacion_entrega".
+E   assert '23001' == '42501'
+E     
+E     - 42501
+E     + 23001
+_ test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-folio_consecutivo] _
+tests\test_tkt019_privilegios.py:433: in test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente
+    error = rechazo_de(entorno.conexion, consulta, parametros)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: Composed([SQL('DELETE FROM '), Identifier('folio_consecutivo'), SQL(' WHERE '), Identifier('serie'), SQL(' = %s')])
+_ test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[UPDATE-reprogramacion_entrega] _
+tests\test_tkt019_privilegios.py:433: in test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente
+    error = rechazo_de(entorno.conexion, consulta, parametros)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: Composed([SQL('UPDATE '), Identifier('reprogramacion_entrega'), SQL(" SET motivo = 'Cambio indebido.' WHERE "), Identifier('id'), SQL(' = %s')])
+____________ test_tkt019_ca11_solo_se_borra_un_borrador[EVALUADA] _____________
+tests\test_tkt019_privilegios.py:487: in test_tkt019_ca11_solo_se_borra_un_borrador
+    sobre_el_renglon = rechazo_de(
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: 'DELETE FROM requisicion_renglon WHERE id = %s'
+____________ test_tkt019_ca11_solo_se_borra_un_borrador[BLOQUEADA] ____________
+tests\test_tkt019_privilegios.py:487: in test_tkt019_ca11_solo_se_borra_un_borrador
+    sobre_el_renglon = rechazo_de(
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: 'DELETE FROM requisicion_renglon WHERE id = %s'
+___________ test_tkt019_ca11_solo_se_borra_un_borrador[AUTORIZADA] ____________
+tests\test_tkt019_privilegios.py:487: in test_tkt019_ca11_solo_se_borra_un_borrador
+    sobre_el_renglon = rechazo_de(
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: 'DELETE FROM requisicion_renglon WHERE id = %s'
+____________ test_tkt019_ca11_solo_se_borra_un_borrador[RECHAZADA] ____________
+tests\test_tkt019_privilegios.py:487: in test_tkt019_ca11_solo_se_borra_un_borrador
+    sobre_el_renglon = rechazo_de(
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: 'DELETE FROM requisicion_renglon WHERE id = %s'
+____________ test_tkt019_ca11_solo_se_borra_un_borrador[CANCELADA] ____________
+tests\test_tkt019_privilegios.py:487: in test_tkt019_ca11_solo_se_borra_un_borrador
+    sobre_el_renglon = rechazo_de(
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: 'DELETE FROM requisicion_renglon WHERE id = %s'
+___________ test_tkt019_ca11_solo_se_borra_un_borrador[CONVERTIDA] ____________
+tests\test_tkt019_privilegios.py:487: in test_tkt019_ca11_solo_se_borra_un_borrador
+    sobre_el_renglon = rechazo_de(
+tests\test_tkt019_privilegios.py:137: in rechazo_de
+    raise AssertionError(f"El motor aceptó la sentencia y debía rechazarla: {consulta!r}")
+E   AssertionError: El motor aceptó la sentencia y debía rechazarla: 'DELETE FROM requisicion_renglon WHERE id = %s'
+_____ test_tkt019_ca11_el_borrado_del_renglon_espera_al_cambio_de_estado ______
+tests\test_tkt019_privilegios.py:598: in test_tkt019_ca11_el_borrado_del_renglon_espera_al_cambio_de_estado
+    assert b.is_alive() and _alguien_borra_renglones_y_espera(entorno.conexion), (
+E   AssertionError: B debía quedar esperando a que A confirme el cambio de estado (FOR SHARE del disparador): terminó sin esperar con None
+E   assert (False)
+E    +  where False = is_alive()
+E    +    where is_alive = <Hilo(B, stopped daemon 22564)>.is_alive
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[TRUNCATE-requisicion]
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[TRUNCATE-requisicion_renglon]
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[TRUNCATE-orden_compra]
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[TRUNCATE-orden_compra_renglon]
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[TRUNCATE-solicitud_autorizacion]
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[TRUNCATE-reprogramacion_entrega]
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[TRUNCATE-folio_consecutivo]
+PASSED tests/test_tkt019_privilegios.py::test_tkt019_ca11_un_borrador_se_borra_con_sus_renglones
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_privilegios_exactos_por_rol
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-solicitud_autorizacion]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-reprogramacion_entrega]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-orden_compra]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-orden_compra_renglon]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[DELETE-folio_consecutivo]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_rol_de_aplicacion_no_borra_lo_permanente[UPDATE-reprogramacion_entrega]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[EVALUADA]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[BLOQUEADA]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[AUTORIZADA]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[RECHAZADA]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[CANCELADA]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_solo_se_borra_un_borrador[CONVERTIDA]
+FAILED tests/test_tkt019_privilegios.py::test_tkt019_ca11_el_borrado_del_renglon_espera_al_cambio_de_estado
+14 failed, 8 passed in 5.73s

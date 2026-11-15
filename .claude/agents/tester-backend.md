@@ -30,7 +30,7 @@ Antes de correr nada: `docker info`. testcontainers levanta PostgreSQL —y MinI
 
 PostgreSQL real con testcontainers. Esquema con **`alembic upgrade head`**, nunca `create_all()`. Conexión con el **rol de aplicación**, nunca con el propietario — con el propietario, las pruebas de permisos quedan verdes sin verificar nada.
 
-Treinta y ocho invariantes del proyecto viven en garantías que SQLite no tiene: disparadores, `NUMERIC`, tipos con zona, bloqueo `FOR UPDATE`. Probar contra SQLite es probar otro sistema.
+Treinta y nueve invariantes del proyecto viven en garantías que SQLite no tiene: disparadores, `NUMERIC`, tipos con zona, bloqueo `FOR UPDATE`. Probar contra SQLite es probar otro sistema.
 
 ## El nombre lleva el escenario
 

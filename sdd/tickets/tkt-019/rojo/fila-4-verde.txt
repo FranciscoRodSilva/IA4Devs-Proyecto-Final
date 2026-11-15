@@ -1,0 +1,22 @@
+TKT-019 · fila F4 · fase verde · líneas finales de cada comando (desde backend/)
+
+$ uv run pytest tests/test_tkt019_migracion.py tests/test_tkt019_restricciones.py tests/test_tkt019_privilegios.py tests/test_tkt010_semilla_local.py -q
+175 passed in 29.20s
+
+$ uv run pytest
+3574 passed, 26 skipped in 769.18s (0:12:49)
+
+$ uv run ruff format --check .
+342 files already formatted
+
+$ uv run ruff check .
+All checks passed!
+
+$ uv run mypy .
+Success: no issues found in 342 source files
+
+$ uv run lint-imports
+Contracts: 16 kept, 0 broken.
+
+$ uv run python -m herramientas.verificar_float
+verificar_float: archivos revisados: 39; hallazgos: 0

@@ -850,16 +850,23 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 
 **Criterios técnicos**
 
-- [ ] Tablas `requisicion`, `requisicion_renglon`, `solicitud_autorizacion`, `orden_compra`, `orden_compra_renglon` y `folio_consecutivo`, que guarda el último folio de cada serie —`REQUISICION` y `ORDEN_COMPRA`, global por serie— para numerar sin huecos dentro de la transacción que crea el documento (TKT-021, TKT-030)
-- [ ] `requisicion.motivo_cancelacion` y `orden_compra.motivo_cancelacion`
+- [ ] Siete tablas: `requisicion`, `requisicion_renglon`, `solicitud_autorizacion`, `orden_compra`, `orden_compra_renglon`, `reprogramacion_entrega` y `folio_consecutivo`, que guarda el último folio de cada serie —`REQUISICION` y `ORDEN_COMPRA`, global por serie— para numerar sin huecos dentro de la transacción que crea el documento (TKT-021, TKT-030)
+- [ ] `requisicion.motivo_cancelacion`, con un `CHECK` que exige motivo al cancelar; y en la orden, `orden_compra.cancelada_en` y `orden_compra.motivo_cancelacion`, que van juntos. La cancelación es lo único de la orden que se guarda: el estado `ABIERTA`, `PARCIAL` o `CERRADA` se deriva de las cantidades, y no hay columna de estado
+- [ ] Columnas que el borrador de la API publica y el modelo no tenía: `requisicion.observaciones`, `requisicion.creado_en`, `requisicion.actualizado_en`, `orden_compra.creado_en`, `solicitud_autorizacion.obra_id` (con clave foránea a `obra`) y `solicitud_autorizacion.creado_en`. Lo que se deriva no lleva columna
+- [ ] `requisicion.folio` es nulable solo en `BORRADOR`: `CHECK` que exige folio en cualquier otro estado, y `UNIQUE`
+- [ ] `requisicion_renglon.costo_unitario_estimado`, como el modelo de datos y el borrador de la API, con `CHECK (costo_unitario_estimado >= 0)`
+- [ ] Migraciones `0014` (siete tablas, restricciones, índices, disparadores y privilegios) y `0015` (semilla de `folio_consecutivo`, separada del esquema): la cabeza de la cadena es `0015`
+- [ ] Índices de clave foránea y de consulta de [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo): `(obra_id, tipo_partida_id, estado)` en `requisicion`, uno por cada clave foránea que se filtra de padre a hijo, y `orden_compra_renglon (orden_compra_id)` completo
+- [ ] Privilegios por tabla: `folio_consecutivo` con `SELECT` y `UPDATE`; `reprogramacion_entrega` con `SELECT` e `INSERT`; `orden_compra`, `orden_compra_renglon` y `solicitud_autorizacion` sin `DELETE`. Las requisiciones y sus renglones conservan `DELETE`, y sus disparadores lo limitan a `BORRADOR` (ver TKT-023)
+- [ ] Subida de `dnspython` de 2.9.0 a 2.9.2 en `backend/uv.lock`, sin tocar ninguna otra dependencia. Comprobado el 2026-11-15 con `pip-audit`: con 2.9.2 el filtro sale con 0 y no hace falta la excepción de [CA-13](../sdd/tickets/tkt-019/spec.md)
 - [ ] `orden_compra.proveedor_id` **sin clave foránea**: `proveedor` es de `proveedores`, que depende de `compras`, y la clave invertiría la arista. Lo valida el puerto `CatalogoProveedores` que declara `compras` (TKT-029, TKT-030), y está en la lista cerrada de [modelo de datos §2](03-modelo-datos.md#2-convenciones)
 - [ ] `obra_id` y `tipo_partida_id` con restricción `NOT NULL` en `requisicion` — invariante 1 (**PA-01**)
 - [ ] El estado de `requisicion` distingue `RECHAZADA` —decisión de Dirección sobre una excepción— de `CANCELADA` —el solicitante desistió—: mezclarlas contaminaría la consulta de excepciones de `RN-04`
-- [ ] `CHECK (cantidad >= 0)` y `CHECK (costo_unitario >= 0)` en los renglones de requisición y de orden — invariante 8
+- [ ] `CHECK (cantidad >= 0)` y `CHECK (costo_unitario >= 0)` en los renglones de orden, y `CHECK (cantidad >= 0)` y `CHECK (costo_unitario_estimado >= 0)` en los de requisición — invariante 8
 - [ ] Tabla `reprogramacion_entrega` y columna `fecha_compromiso` en `orden_compra_renglon` (**PA-07**)
 - [ ] `orden_compra` **no** tiene columna de motivo de cierre: no existe el cierre con saldo
 - [ ] `orden_compra_renglon.cantidad_excedente_autorizada NUMERIC(14,4) NOT NULL DEFAULT 0` y `CHECK (cantidad_recibida <= cantidad_ordenada + cantidad_excedente_autorizada)` — invariante 2 —: lo recibido solo pasa de lo ordenado por el excedente que Dirección General autorizó (`RN-07`, `PA-16`, resuelta el 2026-10-17). La columna **la incrementa la entrada que consume la autorización** (TKT-035), nunca la resolución: una autorización que nadie usa no altera la orden
-- [ ] `CHECK` que exige motivo al resolver una solicitud — invariante 9
+- [ ] `CHECK` que exige motivo, autor y fecha al resolver una solicitud — invariante 9
 - [ ] `solicitud_autorizacion` modelada de forma genérica, sin acoplarse a requisiciones. Para el motivo `EXCEDE_ORDENADO` guarda además `orden_compra_renglon_id` y `cantidad_excedente` —el renglón y la cantidad excedente solicitada—, nulos en los demás motivos y exigidos juntos en ese
 
 **Non-goals** — No implementa lógica: solo esquema.
@@ -896,11 +903,11 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 **Criterios técnicos**
 
 - [ ] Una sola transacción: bloquea, lee consumido, evalúa, persiste y escribe bitácora
-- [ ] **`compras` es dueño del cálculo del `consumido` y del `disponible`** ([modelo de datos §15](03-modelo-datos.md#el-consumido-de-rn-03)): `requisiciones_vivas` —las `EVALUADA` y `AUTORIZADA` sin convertir— y `comprometido` —el saldo no recibido de las órdenes `ABIERTA` y `PARCIAL`— salen de tablas suyas, y el **ejercido** le llega por el puerto **`FuenteEjercido`**, que declara `compras/aplicacion` e implementan otros módulos. Es la misma definición que lee el semáforo, que se la pide a `compras` y no la reescribe (TKT-039)
+- [ ] **`compras` es dueño del cálculo del `consumido` y del `disponible`** ([modelo de datos §15](03-modelo-datos.md#el-consumido-de-rn-03)): `requisiciones_vivas` —las `EVALUADA` y `AUTORIZADA` sin convertir— y `comprometido` —el saldo no recibido de las órdenes vivas— salen de tablas suyas; no hay columna de estado y las órdenes vivas son las de `cancelada_en IS NULL` (TKT-019). El **ejercido** le llega por el puerto **`FuenteEjercido`**, que declara `compras/aplicacion` e implementan otros módulos. Es la misma definición que lee el semáforo, que se la pide a `compras` y no la reescribe (TKT-039)
 - [ ] `FuenteEjercido` se ejecuta **con la sesión de la transacción en curso**, dentro del bloqueo de ADR-004: un ejercido leído fuera del bloqueo podría quedar viejo entre la lectura y la escritura
 - [ ] **Hasta que `almacen` implemente el puerto (TKT-035, sprint 5), `compras` trae un adaptador *cero real***: devuelve cero porque todavía no puede existir ninguna entrada, no porque falte el dato. El destajo lo aporta `avance` en la fase 2 (TKT-069). Las aristas son `almacen → compras` y `avance → compras`; `compras` no importa a ninguno de los dos
 - [ ] El control por volumen agrupa por **`(tipo_partida_id, insumo_id)`**, nunca solo por insumo: el mismo insumo en `MUROS` y en `PLAFONES_Y_CAJILLOS` son dos bolsas distintas
-- [ ] El folio de la requisición sale de `folio_consecutivo`, con la fila bloqueada en la misma transacción: si la transacción se deshace, el número vuelve con ella
+- [ ] El folio de la requisición sale de `folio_consecutivo`, con la fila bloqueada en la misma transacción: si la transacción se deshace, el número vuelve con ella. El folio es nulable en `BORRADOR` (TKT-019): este ticket decide si la requisición se numera al crear el borrador o al evaluarla. Si se numera al crear, el borrador de la API no cambia; si se numera al enviar, el borrador tiene que publicar `folio` nulable en `BORRADOR`, cambio de contrato que este ticket debe registrar
 - [ ] Un test verifica que dos requisiciones de $8,000 contra $12,000 disponibles **no pasan las dos**: es el escenario 9 y solo funciona si las requisiciones vivas consumen
 - [ ] Un test verifica que el disponible que devuelve el endpoint de consulta y el que aplica la evaluación **coinciden al céntimo**: si divergen, Compras ve en pantalla un número que la regla no respeta
 - [ ] `SELECT … FOR UPDATE` sobre `presupuesto_control` (control por importe) y `explosion_presupuesto` (control por volumen) del tipo de partida
@@ -953,6 +960,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 - [ ] `GET` por identificador y listado con filtros por obra, partida y estado
 - [ ] Todas las respuestas de rechazo cumplen el contrato de error, con importes como cadena
 - [ ] Documentación de API generada y verificada
+- [ ] **Borrado de un borrador `(aprobada · D-3, opción B)`**: el `SQLSTATE` `IN002` de `trg_requisicion_borrado_solo_borrador` y de `trg_requisicion_renglon_borrado_solo_borrador` se traduce a `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION` en el traductor propio de `compras`, que escribe este ticket (o TKT-021, si llega antes). El traductor de `presupuesto` (`presupuesto/aplicacion/traduccion_motor.py`, que solo conoce `IN001`) no se reutiliza: `compras` no puede importar a otro módulo fuera de su interfaz publicada
 
 **Non-goals** — No implementa endpoints de autorización (HDU-003) ni de orden de compra (HDU-004).
 

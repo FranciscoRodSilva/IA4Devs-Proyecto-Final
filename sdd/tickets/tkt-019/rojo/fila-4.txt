@@ -1,0 +1,283 @@
+....FF........................................................FFF....... [ 47%]
+........................................................................ [ 94%]
+........F                                                                [100%]
+================================== FAILURES ===================================
+_______ test_tkt019_car1_la_bajada_de_0015_se_niega_con_folios_emitidos _______
+
+base_vacia = 'prueba_3d07a5407ad5'
+migrar = <function migrar.<locals>._migrar at 0x0000020BE7E1E820>
+conectar = <function conectar.<locals>._conectar at 0x0000020BE7BAA140>
+
+    def test_tkt019_car1_la_bajada_de_0015_se_niega_con_folios_emitidos(
+        base_vacia: str, migrar: Migrar, conectar: Conectar
+    ) -> None:
+        """TC-28 (b) · CA-R1 · RN-02 · D-18 — con un folio emitido, `downgrade 0014` lanza y no borra nada.
+    
+        Borrar el contador y volver a sembrarlo en cero reutilizaría folios (`RN-02`: los folios no se
+        repiten), así que la bajada de `0015` se niega con `RAISE EXCEPTION` si algún `ultimo` es mayor
+        que cero. El folio se emite con el rol de migración sobre `base_vacia`, para aislar el mecanismo
+        de la bajada del de los privilegios. La versión sigue en `0015` y los contadores, intactos. El
+        control positivo (sin folios emitidos, la bajada pasa) lo cubre `TC-29`.
+        """
+>       exigir_revision(REVISION_SEMILLA)
+
+tests\test_tkt019_migracion.py:375: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+revision = '0015'
+
+    def exigir_revision(revision: str) -> None:
+        """La cadena de Alembic debe conocer `revision` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision_.revision for revision_ in guion_de_alembic().walk_revisions()}
+        archivo, fila = {
+            REVISION_NUEVA: ("v0014_compras_esquema.py", "fila F2"),
+            REVISION_SEMILLA: ("v0015_semilla_folios_de_compras.py", "fila F4"),
+        }[revision]
+>       assert revision in conocidas, (
+            f"Falta la migración {revision} ({archivo}): Alembic no la conoce "
+            f"(TKT-019, {fila}). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0015 (v0015_semilla_folios_de_compras.py): Alembic no la conoce (TKT-019, fila F4). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014']
+E       assert '0015' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt019_migracion.py:87: AssertionError
+______ test_tkt019_car1_0015_cuelga_de_0014_y_sube_baja_y_vuelve_a_subir ______
+
+base_vacia = 'prueba_1de9d233fe5b'
+migrar = <function migrar.<locals>._migrar at 0x0000020BE7E1E820>
+conectar = <function conectar.<locals>._conectar at 0x0000020BE7BAB270>
+
+    def test_tkt019_car1_0015_cuelga_de_0014_y_sube_baja_y_vuelve_a_subir(
+        base_vacia: str, migrar: Migrar, conectar: Conectar
+    ) -> None:
+        """TC-29 · CA-R1 · D-8 — `0015` cuelga de `0014` y siembra, vacía y vuelve a sembrar las series.
+    
+        Una sola cabeza y `0015.down_revision == "0014"` (sin afirmar que `0015` sea la cabeza: el
+        siguiente ticket que migre no debe romper esta prueba). En `0014`, `folio_consecutivo` está
+        vacío; en `0015` tiene exactamente `ORDEN_COMPRA` y `REQUISICION` con `ultimo = 0`; bajar a
+        `0014` lo vacía (los contadores están en cero, así que la bajada no se niega); volver a subir lo
+        siembra igual.
+        """
+        guion = guion_de_alembic()
+        assert len(guion.get_heads()) == 1, guion.get_heads()
+>       exigir_revision(REVISION_SEMILLA)
+
+tests\test_tkt019_migracion.py:416: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+revision = '0015'
+
+    def exigir_revision(revision: str) -> None:
+        """La cadena de Alembic debe conocer `revision` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision_.revision for revision_ in guion_de_alembic().walk_revisions()}
+        archivo, fila = {
+            REVISION_NUEVA: ("v0014_compras_esquema.py", "fila F2"),
+            REVISION_SEMILLA: ("v0015_semilla_folios_de_compras.py", "fila F4"),
+        }[revision]
+>       assert revision in conocidas, (
+            f"Falta la migración {revision} ({archivo}): Alembic no la conoce "
+            f"(TKT-019, {fila}). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0015 (v0015_semilla_folios_de_compras.py): Alembic no la conoce (TKT-019, fila F4). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014']
+E       assert '0015' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt019_migracion.py:87: AssertionError
+_______________ test_tkt019_ca05_series_sembradas_y_bloqueables _______________
+
+entorno = Entorno(conexion=<psycopg.Connection [IDLE] (host=localhost port=50795 user=cimenta_aplicacion database=prueba_2b9b450...bb4d'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('7ebd03f4-da65-4de9-9f4b-74f9869e32d1'))
+
+    def test_tkt019_ca05_series_sembradas_y_bloqueables(entorno: Entorno) -> None:
+        """TC-13 · CA-5 · RN-02 — `0015` deja las dos series en cero y el rol de aplicación las bloquea y avanza.
+    
+        En una transacción, `SELECT ultimo … FOR UPDATE` devuelve `(0,)` y `UPDATE … SET ultimo = ultimo
+        + 1 … RETURNING ultimo` devuelve `(1,)`. Tras confirmar, `REQUISICION` vale 1 y `ORDEN_COMPRA`
+        sigue en 0: cada serie es independiente.
+        """
+        exigir_compras(entorno)
+>       assert series_de_folios(entorno.conexion) == SERIES_SEMBRADAS, (
+            "Falta la migración 0015: `folio_consecutivo` debía tener exactamente ORDEN_COMPRA y "
+            "REQUISICION con ultimo = 0 (TKT-019, fila F4)"
+        )
+E       AssertionError: Falta la migración 0015: `folio_consecutivo` debía tener exactamente ORDEN_COMPRA y REQUISICION con ultimo = 0 (TKT-019, fila F4)
+E       assert [] == [('ORDEN_COMP...UISICION', 0)]
+E         
+E         Right contains 2 more items, first extra item: ('ORDEN_COMPRA', 0)
+E         Use -v to get more diff
+
+tests\test_tkt019_restricciones.py:1036: AssertionError
+____________ test_tkt019_ca05_serie_desconocida_y_ultimo_negativo _____________
+
+entorno = Entorno(conexion=<psycopg.Connection [IDLE] (host=localhost port=50795 user=cimenta_aplicacion database=prueba_68bbfaa...2523'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('b08e2a69-61a7-42cc-b8e9-0345a800441f'))
+base_de_prueba = 'prueba_68bbfaa91085'
+conectar = <function conectar.<locals>._conectar at 0x0000020BE79E78A0>
+
+    def test_tkt019_ca05_serie_desconocida_y_ultimo_negativo(
+        entorno: Entorno, base_de_prueba: str, conectar: Conectar
+    ) -> None:
+        """TC-14 · CA-5 · CA-11 · D-17 — una serie ajena, un último negativo y un `INSERT` de la aplicación se rechazan.
+    
+        La serie `ENTRADA_ALMACEN` se inserta con el rol de migración (excepción declarada del diseño,
+        «Notas de ejecución»): el de aplicación ya no tiene `INSERT` sobre `folio_consecutivo`, y con él
+        el rechazo sería de privilegio y no del `CHECK`. Con el rol de migración: `23514` sobre
+        `ck_folio_consecutivo_serie`. Con el de aplicación: `UPDATE … SET ultimo = -1` →
+        `23514` sobre `ck_folio_consecutivo_ultimo_no_negativo` y `INSERT` de una serie →
+        `42501` (sin restricción: es un privilegio). Ninguno cambia la tabla.
+        """
+        exigir_compras(entorno)
+>       exigir_series_sembradas(entorno.conexion)
+
+tests\test_tkt019_restricciones.py:1068: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=50795 user=cimenta_aplicacion database=prueba_68bbfaa91085) at 0x20be7bbdd60>
+
+    def exigir_series_sembradas(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe sobre una serie: que `0015` la haya sembrado.
+    
+        Sin ella, un `UPDATE` sobre una tabla vacía no toca ninguna fila y el rojo sería un «no lanzó»
+        sin explicación; así es una aserción con el motivo escrito.
+        """
+        series = series_de_folios(conexion)
+>       assert series == SERIES_SEMBRADAS, (
+            f"Falta la migración 0015 (v0015_semilla_folios_de_compras.py): `folio_consecutivo` "
+            f"debía tener {SERIES_SEMBRADAS} y tiene {series} (TKT-019, fila F4)"
+        )
+E       AssertionError: Falta la migración 0015 (v0015_semilla_folios_de_compras.py): `folio_consecutivo` debía tener [('ORDEN_COMPRA', 0), ('REQUISICION', 0)] y tiene [] (TKT-019, fila F4)
+E       assert [] == [('ORDEN_COMP...UISICION', 0)]
+E         
+E         Right contains 2 more items, first extra item: ('ORDEN_COMPRA', 0)
+E         Use -v to get more diff
+
+tests\test_tkt019_restricciones.py:1022: AssertionError
+_____________ test_tkt019_ca05_serie_valida_y_ultimo_cero_entran ______________
+
+entorno = Entorno(conexion=<psycopg.Connection [IDLE] (host=localhost port=50795 user=cimenta_aplicacion database=prueba_0cb09c9...4d41'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('15bd98bd-b690-4885-8e58-8a726cd7ee4a'))
+base_de_prueba = 'prueba_0cb09c93b651'
+conectar = <function conectar.<locals>._conectar at 0x0000020BE79E7690>
+
+    def test_tkt019_ca05_serie_valida_y_ultimo_cero_entran(
+        entorno: Entorno, base_de_prueba: str, conectar: Conectar
+    ) -> None:
+        """TC-14 (control positivo) · CA-5 — el borde que el rechazo vigila sí entra.
+    
+        Con el rol de migración, una serie válida entra (se borra `ORDEN_COMPRA` y se vuelve a insertar:
+        la clave primaria impide duplicar una serie viva). Con el de aplicación, `ultimo = 0`, el borde
+        de `ck_folio_consecutivo_ultimo_no_negativo`, se acepta sobre una serie que ya estaba en 5.
+        """
+        exigir_compras(entorno)
+>       exigir_series_sembradas(entorno.conexion)
+
+tests\test_tkt019_restricciones.py:1106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=50795 user=cimenta_aplicacion database=prueba_0cb09c93b651) at 0x20be7bbcc80>
+
+    def exigir_series_sembradas(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe sobre una serie: que `0015` la haya sembrado.
+    
+        Sin ella, un `UPDATE` sobre una tabla vacía no toca ninguna fila y el rojo sería un «no lanzó»
+        sin explicación; así es una aserción con el motivo escrito.
+        """
+        series = series_de_folios(conexion)
+>       assert series == SERIES_SEMBRADAS, (
+            f"Falta la migración 0015 (v0015_semilla_folios_de_compras.py): `folio_consecutivo` "
+            f"debía tener {SERIES_SEMBRADAS} y tiene {series} (TKT-019, fila F4)"
+        )
+E       AssertionError: Falta la migración 0015 (v0015_semilla_folios_de_compras.py): `folio_consecutivo` debía tener [('ORDEN_COMPRA', 0), ('REQUISICION', 0)] y tiene [] (TKT-019, fila F4)
+E       assert [] == [('ORDEN_COMP...UISICION', 0)]
+E         
+E         Right contains 2 more items, first extra item: ('ORDEN_COMPRA', 0)
+E         Use -v to get more diff
+
+tests\test_tkt019_restricciones.py:1022: AssertionError
+______________ test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio ______________
+
+motor_migracion = Engine(postgresql+psycopg://cimenta_migracion:***@localhost:50795/prueba_f7b85e0a51a7)
+base_de_prueba = 'prueba_f7b85e0a51a7'
+conectar = <function conectar.<locals>._conectar at 0x0000020BE7D916F0>
+
+    def test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio(
+        motor_migracion: Engine, base_de_prueba: str, conectar: Conectar
+    ) -> None:
+        """TC-B15 · CA-10 esc. 1 · M7 — rechazo: la siembra no toca nada fuera de su alcance.
+    
+        Tras sembrar (con sus 27 insumos como precondición), `obra`, `nivel`, `area`, `partida`,
+        `concepto`, `apu`, `linea_base` y `proveedor` siguen sin filas; `empleado` y `rol_oficio` no
+        existen todavía, y ninguna tabla del esquema `public` lleva `simulad` en su nombre.
+    
+        Actualización declarada de TKT-029a (fila A2, `design.md`, «Orden de implementación»): la
+        migración `0013` crea `proveedor`, así que sale de las tablas inexistentes y entra en las
+        vacías. La afirmación sigue siendo la misma: la siembra no escribe en proveedores.
+    
+        Actualización declarada de TKT-019 (fila F4, `sdd/tickets/tkt-019/design.md`, «Orden de
+        implementación», TC-27; `CA-R2`): la migración `0014` crea `requisicion`, `requisicion_renglon`,
+        `solicitud_autorizacion`, `orden_compra`, `orden_compra_renglon` y `reprogramacion_entrega`, que
+        entran en las vacías, y `0015` siembra las dos series de `folio_consecutivo`, que la siembra
+        local no toca: sigue exactamente con `ORDEN_COMPRA` y `REQUISICION` en cero. La afirmación sigue
+        siendo la misma: la siembra no escribe fuera de su alcance.
+        """
+        sembrar_en(motor_migracion, secrets.token_urlsafe(16), contrasenas_baratas())
+    
+        with conectar("migracion", base_de_prueba) as administrador:
+            exigir_siembra_completa(administrador)
+            tablas_vacias = (
+                "obra",
+                "nivel",
+                "area",
+                "partida",
+                "concepto",
+                "apu",
+                "linea_base",
+                "proveedor",
+                "requisicion",
+                "requisicion_renglon",
+                "solicitud_autorizacion",
+                "orden_compra",
+                "orden_compra_renglon",
+                "reprogramacion_entrega",
+            )
+            filas = {tabla: contar(administrador, tabla) for tabla in tablas_vacias}
+            folios = administrador.execute(
+                "SELECT serie, ultimo FROM folio_consecutivo ORDER BY serie"
+            ).fetchall()
+            sin_tabla = {
+                tabla: administrador.execute("SELECT to_regclass(%s)", (tabla,)).fetchone()
+                for tabla in ("empleado", "rol_oficio")
+            }
+            # Control positivo: la consulta sí encuentra una tabla con `simulad` en el nombre, así que
+            # la lista vacía de abajo significa que no hay ninguna y no que la consulta no ve nada.
+            consulta_simuladas = (
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
+                "AND tablename LIKE '%simulad%'"
+            )
+            administrador.execute("CREATE TABLE x_simulada (id integer)")
+            try:
+                control = administrador.execute(consulta_simuladas).fetchall()
+            finally:
+                administrador.execute("DROP TABLE x_simulada")
+            simuladas = administrador.execute(consulta_simuladas).fetchall()
+        assert control == [("x_simulada",)], "El control positivo no encontró la tabla creada"
+        assert filas == dict.fromkeys(tablas_vacias, 0)
+>       assert folios == [("ORDEN_COMPRA", 0), ("REQUISICION", 0)]
+E       AssertionError: assert [] == [('ORDEN_COMP...UISICION', 0)]
+E         
+E         Right contains 2 more items, first extra item: ('ORDEN_COMPRA', 0)
+E         Use -v to get more diff
+
+tests\test_tkt010_semilla_local.py:1398: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt019_migracion.py::test_tkt019_car1_la_bajada_de_0015_se_niega_con_folios_emitidos
+FAILED tests/test_tkt019_migracion.py::test_tkt019_car1_0015_cuelga_de_0014_y_sube_baja_y_vuelve_a_subir
+FAILED tests/test_tkt019_restricciones.py::test_tkt019_ca05_series_sembradas_y_bloqueables
+FAILED tests/test_tkt019_restricciones.py::test_tkt019_ca05_serie_desconocida_y_ultimo_negativo
+FAILED tests/test_tkt019_restricciones.py::test_tkt019_ca05_serie_valida_y_ultimo_cero_entran
+FAILED tests/test_tkt010_semilla_local.py::test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio
+6 failed, 147 passed in 25.85s

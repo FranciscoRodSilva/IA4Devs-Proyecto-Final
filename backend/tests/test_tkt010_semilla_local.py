@@ -1345,6 +1345,13 @@ def test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio(
     Actualización declarada de TKT-029a (fila A2, `design.md`, «Orden de implementación»): la
     migración `0013` crea `proveedor`, así que sale de las tablas inexistentes y entra en las
     vacías. La afirmación sigue siendo la misma: la siembra no escribe en proveedores.
+
+    Actualización declarada de TKT-019 (fila F4, `sdd/tickets/tkt-019/design.md`, «Orden de
+    implementación», TC-27; `CA-R2`): la migración `0014` crea `requisicion`, `requisicion_renglon`,
+    `solicitud_autorizacion`, `orden_compra`, `orden_compra_renglon` y `reprogramacion_entrega`, que
+    entran en las vacías, y `0015` siembra las dos series de `folio_consecutivo`, que la siembra
+    local no toca: sigue exactamente con `ORDEN_COMPRA` y `REQUISICION` en cero. La afirmación sigue
+    siendo la misma: la siembra no escribe fuera de su alcance.
     """
     sembrar_en(motor_migracion, secrets.token_urlsafe(16), contrasenas_baratas())
 
@@ -1359,8 +1366,17 @@ def test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio(
             "apu",
             "linea_base",
             "proveedor",
+            "requisicion",
+            "requisicion_renglon",
+            "solicitud_autorizacion",
+            "orden_compra",
+            "orden_compra_renglon",
+            "reprogramacion_entrega",
         )
         filas = {tabla: contar(administrador, tabla) for tabla in tablas_vacias}
+        folios = administrador.execute(
+            "SELECT serie, ultimo FROM folio_consecutivo ORDER BY serie"
+        ).fetchall()
         sin_tabla = {
             tabla: administrador.execute("SELECT to_regclass(%s)", (tabla,)).fetchone()
             for tabla in ("empleado", "rol_oficio")
@@ -1379,5 +1395,6 @@ def test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio(
         simuladas = administrador.execute(consulta_simuladas).fetchall()
     assert control == [("x_simulada",)], "El control positivo no encontró la tabla creada"
     assert filas == dict.fromkeys(tablas_vacias, 0)
+    assert folios == [("ORDEN_COMPRA", 0), ("REQUISICION", 0)]
     assert sin_tabla == {"empleado": (None,), "rol_oficio": (None,)}
     assert simuladas == []

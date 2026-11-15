@@ -122,7 +122,7 @@ Solicitud interna de material para una obra, previa a la orden de compra. Es el 
 
 ### Orden de compra (OC)
 
-Documento en firme emitido al proveedor. Nace de una requisición autorizada.
+Documento en firme emitido al proveedor. Nace de una requisición que cupo en el presupuesto (`EVALUADA`) o cuya excepción autorizó Dirección General (`AUTORIZADA`).
 
 ### Remisión
 

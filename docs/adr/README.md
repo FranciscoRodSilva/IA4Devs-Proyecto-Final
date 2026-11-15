@@ -63,6 +63,7 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-11-10 | [El código de obra es único por el índice `uq_obra_codigo` y el alta traduce su `23505`, sin comprobación previa](20261110-unicidad-del-codigo-de-obra.md) | Aceptado | presupuesto · TKT-012a · completa [la inmutabilidad en el motor](20261101-inmutabilidad-de-la-linea-base-en-el-motor.md) |
 | 2026-11-11 | [El almacén local vive en `compose.almacen.yaml`, con una imagen fijada por digest y el CORS por variable de entorno](20261111-almacen-local-en-compose-aparte.md) | Aceptado | archivos · TKT-059 · concreta [el almacenamiento de objetos](20261001-almacenamiento-de-objetos.md) |
 | 2026-11-11 | [La confirmación de un archivo no descarga el objeto: verifica una suma firmada en la subida y lee el tipo por rangos acotados](20261111-confirmacion-de-archivos-sin-descargar-el-objeto.md) | Aceptado | archivos · TKT-059 · concreta [el almacenamiento de objetos](20261001-almacenamiento-de-objetos.md) y respeta [SQLAlchemy síncrono](20260919-sqlalchemy-sincrono.md) |
+| 2026-11-15 | [Una requisición solo se borra en borrador: dos disparadores con `IN002` y no la revocación de `DELETE`](20261115-disparadores-de-borrado-en-compras.md) | Aceptado | compras · TKT-019 |
 
 ## Plantilla
 
