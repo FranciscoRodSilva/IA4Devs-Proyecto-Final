@@ -1,0 +1,70 @@
+TKT-019 · fila F5 (documentación) · salidas del rojo y del verde
+
+=== ROJO (antes de editar) ===
+
+Grep "enum estado \"ABIERTA|solicitud_autorizacion\.entidad_id|oc\.estado IN|IN002" (repositorio, sin sdd/tickets):
+docs/03-modelo-datos.md:424:        enum estado "ABIERTA|PARCIAL|CERRADA|CANCELADA"
+docs/03-modelo-datos.md:759:        enum estado "ABIERTA|CERRADA|PAGADA"
+docs/03-modelo-datos.md:1366:    WHERE oc.obra_id = :obra_id AND oc.estado IN ('ABIERTA','PARCIAL')
+(sin resultados para solicitud_autorizacion.entidad_id ni para IN002 en docs/ ni en .claude/)
+
+Lectura del rojo: el bloque ORDEN_COMPRA del diagrama de §5 (línea 424) contiene `enum estado`;
+§2 no nombra solicitud_autorizacion.entidad_id; §15 filtra todavía por oc.estado IN.
+
+=== VERDE (después de editar) ===
+
+python tools/verificar_docs.py
+  ✓ Sin problemas.
+  · Finales de línea · 15 archivos tienen CRLF en la copia de trabajo y LF en el índice; Git los normaliza al commitear
+  (exit 0)
+
+python tools/extraer_mermaid.py
+  Escrito: D:\Documentos\LIDR\Proyecto Final\tools\mermaid-check.html
+  (exit 0. Este script solo escribe la página; la sintaxis se validó con mmdc de .github/mermaid sobre los tres
+   diagramas tocados: §5 compras, §14 requisición y §14 orden de compra. Los tres salieron con exit 0 y sin
+   error de sintaxis en el SVG)
+
+Grep "enum estado \"ABIERTA" en docs/03-modelo-datos.md:
+docs/03-modelo-datos.md:775:        enum estado "ABIERTA|CERRADA|PAGADA"
+  Desviación: no queda vacío. La línea 775 es NOMINA_SEMANA (§8), otra entidad con el mismo texto; no es de compras
+  y no se toca. El bloque ORDEN_COMPRA ya no contiene enum estado (ver la siguiente comprobación).
+
+Grep multilínea "ORDEN_COMPRA \{[^}]*enum estado" en docs/03-modelo-datos.md:
+No matches found
+
+Grep "solicitud_autorizacion\.entidad_id" en docs/03-modelo-datos.md:
+docs/03-modelo-datos.md:52: (§2, lista cerrada de referencias lógicas)
+docs/03-modelo-datos.md:1230: (§13, prosa de referencias lógicas)
+
+Grep "oc\.estado IN" en docs/03-modelo-datos.md:
+No matches found
+
+Grep "IN002" en docs/ (líneas que contienen el término):
+docs/03-modelo-datos.md:479: (§5, prosa del borrado de un borrador)
+docs/03-modelo-datos.md:1226: (§13, nota de los disparadores de compras)
+docs/03-modelo-datos.md:1251:    BORRADOR --> [*]: se elimina (solo en BORRADOR; lo exige el disparador con SQLSTATE IN002)
+docs/05-tickets-trabajo.md:963: (TKT-023, criterio de borrado de borrador)
+
+Grep "IN002" en .claude/:
+.claude/skills/conv-sql-postgres/SKILL.md:19
+.claude/agents/desarrollador-sql.md:36
+.claude/agents/desarrollador-sql.md:38
+
+python tools/agentes_cursor.py --generar
+  23 agentes de Cursor generados en .cursor/agents/
+  (.cursor/agents/desarrollador-sql.md cambia en el mismo sentido que .claude/agents/desarrollador-sql.md)
+
+python -m unittest discover -s tools/tests -v
+  ... OK
+  (exit 0)
+
+npx --no-install markdownlint-cli2 docs/03-modelo-datos.md docs/05-tickets-trabajo.md docs/glosario.md .claude/skills/conv-sql-postgres/SKILL.md .claude/agents/desarrollador-sql.md
+  Summary: 0 issues in 0 files
+  Linting: 5 files
+  (exit 0)
+
+vale docs/03-modelo-datos.md docs/05-tickets-trabajo.md docs/glosario.md .claude/skills/conv-sql-postgres/SKILL.md .claude/agents/desarrollador-sql.md
+  ✔ 0 errors, 0 warnings and 0 suggestions in 5 files.
+  (exit 0)
+
+CRLF en los archivos tocados: 0 en todos (tr -cd '\r' | wc -c).

@@ -1,0 +1,43 @@
+........................................................................ [ 54%]
+............................................................             [100%]
+132 passed in 18.49s
+---
+.....................                                                    [100%]
+21 passed in 7.49s
+---
+341 files left unchanged
+All checks passed!
+Success: no issues found in 341 source files
+=============
+Import Linter
+=============
+
+
+---------
+Contracts
+---------
+
+Analyzed 192 files, 687 dependencies.
+-------------------------------------
+
+cimenta tiene exactamente los diez módulos de arquitectura §5 KEPT
+Cada módulo tiene sus cuatro capas y una sola interfaz, y su dominio no importa
+las otras KEPT
+dominio/ solo importa la biblioteca estándar y tipos_base, ni directa ni 
+indirectamente KEPT
+tipos_base solo importa la biblioteca estándar, ni directa ni indirectamente KEPT
+trabajos solo importa la biblioteca estándar y sqlalchemy, ni directa ni 
+indirectamente KEPT
+Un módulo usa a otro solo por cimenta.<modulo>.interfaz KEPT
+Quién puede importar identidad KEPT
+Quién puede importar auditoria KEPT
+Quién puede importar archivos KEPT
+Quién puede importar presupuesto KEPT
+Quién puede importar compras KEPT
+Quién puede importar almacen KEPT
+Quién puede importar avance KEPT
+Quién puede importar personal KEPT
+Quién puede importar proveedores KEPT
+Quién puede importar analitica KEPT
+
+Contracts: 16 kept, 0 broken.

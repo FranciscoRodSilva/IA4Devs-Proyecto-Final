@@ -25,7 +25,7 @@ Recibes una fila de `design.md` y los tests que `tester-backend` ya dejó **en r
 
 ## El esquema sostiene los invariantes
 
-Treinta y ocho invariantes del [modelo de datos](../../docs/03-modelo-datos.md) viven en garantías de PostgreSQL. **Lo que la base puede sostener, lo sostiene la base**: una regla implementada solo en Python se salta con un `psql`, con un script de carga o con el siguiente servicio que alguien conecte.
+Treinta y nueve invariantes del [modelo de datos](../../docs/03-modelo-datos.md) viven en garantías de PostgreSQL. **Lo que la base puede sostener, lo sostiene la base**: una regla implementada solo en Python se salta con un `psql`, con un script de carga o con el siguiente servicio que alguien conecte.
 
 | Invariante | Mecanismo |
 |---|---|
@@ -33,8 +33,9 @@ Treinta y ocho invariantes del [modelo de datos](../../docs/03-modelo-datos.md) 
 | Bitácora sin modificación | sin `UPDATE`, `DELETE` ni `TRUNCATE` para el rol de aplicación (invariante 10, TKT-007) |
 | Inventario solo-anexado | **sin columna de existencia** — su ausencia es el diseño |
 | Rangos y dominios cerrados | `CHECK` con nombre |
+| Una requisición solo se borra en `BORRADOR` | disparadores `trg_requisicion_borrado_solo_borrador` y `trg_requisicion_renglon_borrado_solo_borrador`, `SQLSTATE` `IN002`. Protegen estructura —lo que ya consume del presupuesto no desaparece por un borrado, como la copia congelada del invariante 14— y no calculan ninguna regla: el estado lo decide el caso de uso |
 
-Los disparadores protegen **estructura**, no implementan reglas.
+Los disparadores protegen **estructura**, no implementan reglas. El de borrado de requisición rechaza un `DELETE` fuera de `BORRADOR` con `IN002`, pero no decide qué se hace con una requisición: eso lo decide el caso de uso, que responde `409` antes de llegar al motor.
 
 ## Reglas duras
 

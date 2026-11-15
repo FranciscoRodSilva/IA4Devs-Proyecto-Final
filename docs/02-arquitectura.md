@@ -489,8 +489,7 @@ sequenceDiagram
         DOM-->>API: ACEPTADA
         API->>DB: INSERT entrada + renglones
         API->>DB: INSERT movimiento_inventario (ENTRADA)
-        API->>DB: UPDATE cantidad_recibida
-        API->>DB: UPDATE estado OC → PARCIAL o CERRADA
+        API->>DB: UPDATE cantidad_recibida (el estado de la OC se deriva, no se escribe)
         API->>DB: COMMIT
         API-->>U: 201 + saldo pendiente actualizado
     else Entrante > saldo, con solicitud AUTORIZADA y excedente ≤ el autorizado
@@ -499,7 +498,7 @@ sequenceDiagram
         API->>DB: INSERT movimiento_inventario (ENTRADA) por la cantidad completa
         API->>CMP: registrar_recepcion(renglón, recibido, excedente)
         CMP->>DB: UPDATE cantidad_recibida y cantidad_excedente_autorizada
-        API->>DB: UPDATE estado OC → CERRADA si ya no queda saldo
+        Note over API,DB: el estado de la OC se deriva de las cantidades, no se escribe
         API->>DB: COMMIT
         API-->>U: 201 + renglón marcado con su excedente
     else Entrante > saldo, sin solicitud, o PENDIENTE, RECHAZADA o insuficiente

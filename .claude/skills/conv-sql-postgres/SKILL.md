@@ -7,7 +7,7 @@ description: Convenciones de esquema PostgreSQL y migraciones Alembic en CIMENTA
 
 ## 1 · El esquema sostiene los invariantes
 
-Treinta y ocho invariantes del [modelo de datos](../../../docs/03-modelo-datos.md) viven en garantías de PostgreSQL. **Lo que la base puede sostener, lo sostiene la base.** Una regla implementada solo en Python se salta con un `psql`, con un script de carga o con el siguiente servicio que alguien conecte.
+Treinta y nueve invariantes del [modelo de datos](../../../docs/03-modelo-datos.md) viven en garantías de PostgreSQL. **Lo que la base puede sostener, lo sostiene la base.** Una regla implementada solo en Python se salta con un `psql`, con un script de carga o con el siguiente servicio que alguien conecte.
 
 | Invariante | Mecanismo |
 |---|---|
@@ -16,6 +16,7 @@ Treinta y ocho invariantes del [modelo de datos](../../../docs/03-modelo-datos.m
 | El inventario es solo-anexado | sin columna de existencia; correcciones como movimiento `AJUSTE` |
 | Rangos y dominios cerrados | `CHECK` con nombre |
 | Unicidad condicional | único parcial con `WHERE` |
+| Una requisición solo se borra en `BORRADOR` | disparadores `trg_requisicion_borrado_solo_borrador` y `trg_requisicion_renglon_borrado_solo_borrador`, `SQLSTATE` `IN002`. Protegen estructura —lo que ya consume del presupuesto no desaparece por un borrado, como la copia congelada del invariante 14— y no calculan ninguna regla: el estado lo decide el caso de uso |
 
 **Los disparadores protegen estructura, nunca implementan reglas de negocio.** Nada de procedimientos almacenados con lógica: las reglas viven en `dominio/`, donde `import-linter` y los tests de dominio las alcanzan.
 
