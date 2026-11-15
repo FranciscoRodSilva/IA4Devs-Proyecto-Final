@@ -1,0 +1,1632 @@
+FFFFFFFFFFFFFFFF.....................................F                   [100%]
+================================== FAILURES ===================================
+_________ test_tkt029a_car1_0013_cuelga_de_0012_y_la_cabeza_es_unica __________
+
+    def test_tkt029a_car1_0013_cuelga_de_0012_y_la_cabeza_es_unica() -> None:
+        """TC-04 · CA-R1 — la cadena de migraciones tiene una sola cabeza y `0013` cuelga de `0012`.
+    
+        No afirma qué revisión es la cabeza: el siguiente ticket que migre debe poder hacerlo sin tocar
+        esta prueba. No usa base de datos. Mismo patrón que `test_tkt011_car4_…`.
+        """
+        guion = guion_de_alembic()
+        cabezas = guion.get_heads()
+        assert len(cabezas) == 1, cabezas
+    
+>       exigir_revision_nueva()
+
+tests\test_tkt029a_migracion.py:211: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def exigir_revision_nueva() -> None:
+        """La cadena de Alembic debe conocer la revisión `0013` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision.revision for revision in guion_de_alembic().walk_revisions()}
+>       assert REVISION_NUEVA in conocidas, (
+            "Falta la migración 0013 (v0013_proveedores_catalogo.py): Alembic no la conoce "
+            f"(TKT-029a, fila A2). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0013 (v0013_proveedores_catalogo.py): Alembic no la conoce (TKT-029a, fila A2). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012']
+E       assert '0013' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt029a_migracion.py:99: AssertionError
+________________ test_tkt029a_car1_sube_baja_y_vuelve_a_subir _________________
+
+base_vacia = 'prueba_84fb674c394c'
+migrar = <function migrar.<locals>._migrar at 0x0000018D080F2610>
+conectar = <function conectar.<locals>._conectar at 0x0000018D07CDF1C0>
+
+    def test_tkt029a_car1_sube_baja_y_vuelve_a_subir(
+        base_vacia: str, migrar: Migrar, conectar: Conectar
+    ) -> None:
+        """TC-05 · CA-R1 — `upgrade 0013`, `downgrade 0012` y `upgrade 0013` dejan lo que deben.
+    
+        En `0012` no existe `proveedor` (fotografía A). Tras subir existen sus nueve columnas con su
+        tipo, su nulabilidad y su valor por omisión (4 y 6 en los días) y las seis restricciones con
+        nombre. Tras bajar, la fotografía es idéntica a A y no queda tabla ni restricción de
+        `proveedor`; tras volver a subir, idéntica a la primera subida.
+        """
+>       exigir_revision_nueva()
+
+tests\test_tkt029a_migracion.py:275: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def exigir_revision_nueva() -> None:
+        """La cadena de Alembic debe conocer la revisión `0013` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision.revision for revision in guion_de_alembic().walk_revisions()}
+>       assert REVISION_NUEVA in conocidas, (
+            "Falta la migración 0013 (v0013_proveedores_catalogo.py): Alembic no la conoce "
+            f"(TKT-029a, fila A2). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0013 (v0013_proveedores_catalogo.py): Alembic no la conoce (TKT-029a, fila A2). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012']
+E       assert '0013' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt029a_migracion.py:99: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[rfc_repetido] _
+
+cambios = {'rfc': 'XAXX010101000'}, repite_rfc = True
+rechazo = ('23505', 'uq_proveedor_rfc'), base_de_prueba = 'prueba_092dce050bb6'
+conectar = <function conectar.<locals>._conectar at 0x0000018D081DF320>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D081E8590>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_092dce050bb6) at 0x18d07d08380>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[estado_fuera_del_conjunto] _
+
+cambios = {'rfc': 'ABC010101AB1', 'estado': 'OTRO'}, repite_rfc = False
+rechazo = ('23514', 'ck_proveedor_estado')
+base_de_prueba = 'prueba_3488fbca6bad'
+conectar = <function conectar.<locals>._conectar at 0x0000018D081DFAB0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D08200410>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_3488fbca6bad) at 0x18d08146f50>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[tope_negativo] _
+
+cambios = {'rfc': 'ABC010101AB1', 'tope_consignacion': Decimal('-0.0001')}
+repite_rfc = False
+rechazo = ('23514', 'ck_proveedor_tope_consignacion_no_negativo')
+base_de_prueba = 'prueba_6f2d78ccd6bf'
+conectar = <function conectar.<locals>._conectar at 0x0000018D0804C250>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D08200910>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_6f2d78ccd6bf) at 0x18d08204320>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_corte_0] _
+
+cambios = {'rfc': 'ABC010101AB1', 'dia_corte': 0}, repite_rfc = False
+rechazo = ('23514', 'ck_proveedor_dias_semana_rango')
+base_de_prueba = 'prueba_3f8b05034f47'
+conectar = <function conectar.<locals>._conectar at 0x0000018D0804C880>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D08169A70>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_3f8b05034f47) at 0x18d08205130>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_corte_8] _
+
+cambios = {'rfc': 'ABC010101AB1', 'dia_corte': 8}, repite_rfc = False
+rechazo = ('23514', 'ck_proveedor_dias_semana_rango')
+base_de_prueba = 'prueba_153826827116'
+conectar = <function conectar.<locals>._conectar at 0x0000018D0804D2D0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D08169E00>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_153826827116) at 0x18d08206210>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_pago_0] __
+
+cambios = {'rfc': 'ABC010101AB1', 'dia_pago': 0}, repite_rfc = False
+rechazo = ('23514', 'ck_proveedor_dias_semana_rango')
+base_de_prueba = 'prueba_4e4ec87f5cd4'
+conectar = <function conectar.<locals>._conectar at 0x0000018D0804DE80>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D081E5EB0>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_4e4ec87f5cd4) at 0x18d08207020>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_pago_8] __
+
+cambios = {'rfc': 'ABC010101AB1', 'dia_pago': 8}, repite_rfc = False
+rechazo = ('23514', 'ck_proveedor_dias_semana_rango')
+base_de_prueba = 'prueba_cd8a492a0649'
+conectar = <function conectar.<locals>._conectar at 0x0000018D0804E980>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D07D09F20>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_cd8a492a0649) at 0x18d08207e30>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[estado_baja_se_admite] _
+
+cambios = {'rfc': 'ABC010101AB1', 'estado': 'BAJA'}, repite_rfc = False
+rechazo = None, base_de_prueba = 'prueba_918d764bc7f7'
+conectar = <function conectar.<locals>._conectar at 0x0000018D081DE6C0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D07D93130>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_918d764bc7f7) at 0x18d08207020>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[tope_cero_se_admite] _
+
+cambios = {'rfc': 'ABC010101AB1', 'tope_consignacion': Decimal('0.0000')}
+repite_rfc = False, rechazo = None, base_de_prueba = 'prueba_2b78899a42d8'
+conectar = <function conectar.<locals>._conectar at 0x0000018D081DD850>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D08162050>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_2b78899a42d8) at 0x18d08206300>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[tope_positivo_se_admite] _
+
+cambios = {'rfc': 'ABC010101AB1', 'tope_consignacion': Decimal('300000.0000')}
+repite_rfc = False, rechazo = None, base_de_prueba = 'prueba_a198185e4672'
+conectar = <function conectar.<locals>._conectar at 0x0000018D081DCE00>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D08162F50>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_a198185e4672) at 0x18d082048c0>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dias_1_y_7_se_admiten] _
+
+cambios = {'rfc': 'ABC010101AB1', 'dia_corte': 1, 'dia_pago': 7}
+repite_rfc = False, rechazo = None, base_de_prueba = 'prueba_9c57d51456e8'
+conectar = <function conectar.<locals>._conectar at 0x0000018D081DC300>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D081B1D60>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_9c57d51456e8) at 0x18d081b3f20>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_ test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dias_7_y_1_se_admiten] _
+
+cambios = {'rfc': 'ABC010101AB1', 'dia_corte': 7, 'dia_pago': 1}
+repite_rfc = False, rechazo = None, base_de_prueba = 'prueba_df4ef8fd050f'
+conectar = <function conectar.<locals>._conectar at 0x0000018D07CA7E20>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D081B2990>
+
+    @pytest.mark.parametrize(
+        ("cambios", "repite_rfc", "rechazo"),
+        [
+            pytest.param(
+                {"rfc": RFC_BASE},
+                True,
+                ("23505", "uq_proveedor_rfc"),
+                id="rfc_repetido",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "OTRO"},
+                False,
+                ("23514", "ck_proveedor_estado"),
+                id="estado_fuera_del_conjunto",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("-0.0001")},
+                False,
+                ("23514", "ck_proveedor_tope_consignacion_no_negativo"),
+                id="tope_negativo",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_corte_8",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 0},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_0",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_pago": 8},
+                False,
+                ("23514", "ck_proveedor_dias_semana_rango"),
+                id="dia_pago_8",
+            ),
+            # Controles positivos: sin ellos, un `CHECK` que rechaza todo pasaría igual.
+            pytest.param(
+                {"rfc": _RFC_AJENO, "estado": "BAJA"}, False, None, id="estado_baja_se_admite"
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("0.0000")},
+                False,
+                None,
+                id="tope_cero_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "tope_consignacion": Decimal("300000.0000")},
+                False,
+                None,
+                id="tope_positivo_se_admite",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 1, "dia_pago": 7},
+                False,
+                None,
+                id="dias_1_y_7_se_admiten",
+            ),
+            pytest.param(
+                {"rfc": _RFC_AJENO, "dia_corte": 7, "dia_pago": 1},
+                False,
+                None,
+                id="dias_7_y_1_se_admiten",
+            ),
+        ],
+    )
+    def test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada(
+        cambios: dict[str, Any],
+        repite_rfc: bool,
+        rechazo: tuple[str, str] | None,
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-06 · CA-11 · invariantes 8 y 28 — el motor rechaza lo que el API dejara pasar.
+    
+        Con el rol de aplicación: un RFC repetido (`23505`, `uq_proveedor_rfc`); un estado fuera de los
+        tres valores, un tope negativo y un día fuera de 1 a 7 en `dia_corte` o en `dia_pago` (`23514`,
+        cada uno con su `CHECK`). Cada rechazo trae su `SQLSTATE` y el nombre de la restricción
+        (`diag.constraint_name`) y no deja fila. El estado `BAJA`, el tope cero y positivo y los días 1
+        y 7 se admiten: son los bordes de cada restricción.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:410: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_df4ef8fd050f) at 0x18d081b1c70>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_______________ test_tkt029a_ca11_sin_dias_el_motor_pone_4_y_6 ________________
+
+base_de_prueba = 'prueba_0f1af3c30c55'
+conectar = <function conectar.<locals>._conectar at 0x0000018D07CA7ED0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D07D234D0>
+
+    def test_tkt029a_ca11_sin_dias_el_motor_pone_4_y_6(
+        base_de_prueba: str, conectar: Conectar, datos_presupuesto: DatosPresupuesto
+    ) -> None:
+        """TC-06 (control positivo) · CA-11 · `RN-17` — un `INSERT` sin días entra con corte 4 y pago 6.
+    
+        El valor por omisión lo decide el motor: la fila no nombra `dia_corte` ni `dia_pago`. Además
+        `tope_consignacion` queda en `NULL` (anulable) y el estado y el RFC se guardan como se dieron.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:442: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_0f1af3c30c55) at 0x18d081b15e0>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+_________ test_tkt029a_ca10_el_rol_de_aplicacion_no_borra_proveedores _________
+
+base_de_prueba = 'prueba_18c74b668c4e'
+conectar = <function conectar.<locals>._conectar at 0x0000018D07CA6A30>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000018D07D23BD0>
+
+    def test_tkt029a_ca10_el_rol_de_aplicacion_no_borra_proveedores(
+        base_de_prueba: str,
+        conectar: Conectar,
+        datos_presupuesto: DatosPresupuesto,
+    ) -> None:
+        """TC-07 · CA-10 esc. 2 · `D-4` — el rol de aplicación no puede borrar filas de `proveedor`.
+    
+        Por `aclexplode(relacl)`, la aplicación tiene exactamente `SELECT, INSERT, UPDATE` (ni `DELETE`
+        ni `TRUNCATE`), la lectura exactamente `SELECT` y `PUBLIC` nada. Un `DELETE` real con el rol de
+        aplicación responde `42501` (privilegio insuficiente) y la fila sigue idéntica. Los privilegios
+        por omisión de `0001` conceden `DELETE` a toda tabla nueva: lo quita el `REVOKE` de la
+        migración.
+        """
+        aplicacion = conectar("aplicacion", base_de_prueba)
+>       exigir_tabla_proveedor(aplicacion)
+
+tests\test_tkt029a_migracion.py:483: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conexion = <psycopg.Connection [IDLE] (host=localhost port=57933 user=cimenta_aplicacion database=prueba_18c74b668c4e) at 0x18d081b06e0>
+
+    def exigir_tabla_proveedor(conexion: Conexion) -> None:
+        """La precondición de toda prueba que escribe en `proveedor`: que la migración `0013` exista."""
+        fila = conexion.execute("SELECT to_regclass('public.proveedor')").fetchone()
+>       assert fila is not None and fila[0] is not None, (
+            "Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)"
+        )
+E       AssertionError: Falta la migración 0013: la tabla `proveedor` no existe (TKT-029a, fila A2)
+E       assert ((None,) is not None and None is not None)
+
+tests\test_tkt029a_migracion.py:83: AssertionError
+______________ test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio ______________
+
+motor_migracion = Engine(postgresql+psycopg://cimenta_migracion:***@localhost:57933/prueba_0ad64368afff)
+base_de_prueba = 'prueba_0ad64368afff'
+conectar = <function conectar.<locals>._conectar at 0x0000018D080F3950>
+
+    def test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio(
+        motor_migracion: Engine, base_de_prueba: str, conectar: Conectar
+    ) -> None:
+        """TC-B15 · CA-10 esc. 1 · M7 — rechazo: la siembra no toca nada fuera de su alcance.
+    
+        Tras sembrar (con sus 27 insumos como precondición), `obra`, `nivel`, `area`, `partida`,
+        `concepto`, `apu`, `linea_base` y `proveedor` siguen sin filas; `empleado` y `rol_oficio` no
+        existen todavía, y ninguna tabla del esquema `public` lleva `simulad` en su nombre.
+    
+        Actualización declarada de TKT-029a (fila A2, `design.md`, «Orden de implementación»): la
+        migración `0013` crea `proveedor`, así que sale de las tablas inexistentes y entra en las
+        vacías. La afirmación sigue siendo la misma: la siembra no escribe en proveedores.
+        """
+        sembrar_en(motor_migracion, secrets.token_urlsafe(16), contrasenas_baratas())
+    
+        with conectar("migracion", base_de_prueba) as administrador:
+            exigir_siembra_completa(administrador)
+            tablas_vacias = (
+                "obra",
+                "nivel",
+                "area",
+                "partida",
+                "concepto",
+                "apu",
+                "linea_base",
+                "proveedor",
+            )
+>           filas = {tabla: contar(administrador, tabla) for tabla in tablas_vacias}
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt010_semilla_local.py:1363: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt010_semilla_local.py:138: in contar
+    fila = conexion.execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <psycopg.Connection [BAD] at 0x18d07ad6f30>
+query = Composed([SQL('SELECT count(*) FROM '), Identifier('proveedor')])
+params = None, prepare = None, binary = False
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            if isinstance(query, Template):
+                if params is not None:
+                    raise TypeError(
+                        "'execute()' with string template query doesn't support parameters"
+                    )
+                return cur.execute(query, prepare=prepare)
+            else:
+                return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedTable: relation "proveedor" does not exist
+E           LINE 1: SELECT count(*) FROM "proveedor"
+E                                        ^
+
+.venv\Lib\site-packages\psycopg\connection.py:304: UndefinedTable
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_car1_0013_cuelga_de_0012_y_la_cabeza_es_unica
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_car1_sube_baja_y_vuelve_a_subir
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[rfc_repetido]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[estado_fuera_del_conjunto]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[tope_negativo]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_corte_0]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_corte_8]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_pago_0]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dia_pago_8]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[estado_baja_se_admite]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[tope_cero_se_admite]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[tope_positivo_se_admite]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dias_1_y_7_se_admiten]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_el_motor_rechaza_con_la_restriccion_nombrada[dias_7_y_1_se_admiten]
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca11_sin_dias_el_motor_pone_4_y_6
+FAILED tests/test_tkt029a_migracion.py::test_tkt029a_ca10_el_rol_de_aplicacion_no_borra_proveedores
+FAILED tests/test_tkt010_semilla_local.py::test_tkt010_ca10_lo_que_no_se_siembra_queda_vacio
+17 failed, 37 passed in 13.36s

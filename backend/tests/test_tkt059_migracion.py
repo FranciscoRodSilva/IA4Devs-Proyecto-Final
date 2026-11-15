@@ -16,10 +16,13 @@ from __future__ import annotations
 import re
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import psycopg
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from psycopg import sql
 from sqlalchemy.exc import DBAPIError
 
@@ -29,6 +32,8 @@ if TYPE_CHECKING:
     from conftest import Conectar, DatosPresupuesto, Migrar
 
 Conexion = psycopg.Connection[tuple[Any, ...]]
+
+BACKEND = Path(__file__).resolve().parents[1]
 
 REVISION_ANTERIOR = "0011"
 REVISION_NUEVA = "0012"
@@ -92,6 +97,19 @@ def sqlstate_de(error: DBAPIError) -> str | None:
     origen = error.orig
     assert isinstance(origen, psycopg.Error), repr(origen)
     return origen.sqlstate
+
+
+def cabeza_de_las_migraciones() -> str:
+    """La única cabeza de la cadena, leída del guion de Alembic y no escrita a mano.
+
+    Actualización declarada de TKT-029a (fila A2): `TC-04` afirmaba que la base de pruebas estaba en
+    `0012`, pero `base_de_prueba` llega en la cabeza y la `0013` de proveedores la movió. Leerla
+    del guion mantiene la prueba en verde antes y después de cualquier migración posterior.
+    """
+    guion = ScriptDirectory.from_config(Config(toml_file=str(BACKEND / "pyproject.toml")))
+    cabezas = guion.get_heads()
+    assert len(cabezas) == 1, cabezas
+    return cabezas[0]
 
 
 def exigir_tabla_archivo(conexion: Conexion) -> None:
@@ -544,7 +562,8 @@ def test_tkt059_ca01_la_bajada_se_niega_con_archivos(
         foto_antes = fotografia(administrador)
         version_antes = version_de_alembic(administrador)
     filas_antes = filas_de_archivo(aplicacion)
-    assert version_antes == [(REVISION_NUEVA,)], "La base de pruebas debe estar en la cabeza 0012"
+    cabeza = cabeza_de_las_migraciones()
+    assert version_antes == [(cabeza,)], f"La base de pruebas debe estar en la cabeza {cabeza}"
     assert len(filas_antes) == 1
 
     with pytest.raises(DBAPIError) as rechazo:
@@ -555,6 +574,6 @@ def test_tkt059_ca01_la_bajada_se_niega_con_archivos(
     assert "La bajada de 0012 se niega" in texto, texto
     assert "archivo" in texto, texto
     with conectar("migracion", base_de_prueba) as administrador:
-        assert version_de_alembic(administrador) == [(REVISION_NUEVA,)]
+        assert version_de_alembic(administrador) == [(cabeza,)]
         assert fotografia(administrador) == foto_antes
     assert filas_de_archivo(aplicacion) == filas_antes

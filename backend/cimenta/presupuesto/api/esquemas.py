@@ -60,7 +60,7 @@ MotivoLibre = Annotated[
 
 
 class Motivo(BaseModel):
-    """Cuerpo de la congelación: el motivo es obligatorio y se guarda sin espacios en los extremos."""
+    """Cuerpo con motivo obligatorio: se guarda sin espacios en los extremos."""
 
     motivo: MotivoTexto
 

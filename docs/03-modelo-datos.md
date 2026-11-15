@@ -861,6 +861,8 @@ erDiagram
         numeric tope_consignacion "RN-15 · 300000.0000"
         int dia_corte "4 = jueves · RN-17"
         int dia_pago "6 = sábado · RN-17"
+        timestamptz creado_en
+        uuid creado_por_id FK "usuario · ON DELETE RESTRICT"
     }
     FACTURA_PROVEEDOR {
         uuid id PK
@@ -903,6 +905,8 @@ erDiagram
 **`orden_compra.proveedor_id` existe desde el MVP** aunque el módulo completo sea v1.1: la orden de compra necesita saber a quién se le pide desde el primer día. En MVP el proveedor es un catálogo mínimo (nombre y RFC); las funcionalidades de anticipos y consignación llegan después. La columna de la orden **no lleva clave foránea** ([§5](#5-compras)): la valida el puerto `CatalogoProveedores`, que `proveedores` implementa respondiendo si el proveedor existe y si está `ACTIVO`.
 
 **`UNIQUE (rfc)`** (invariante 28) detiene en el motor el proveedor duplicado de [HDU-004](04-historias-usuario.md#hdu-004--proveedores-y-emisión-de-órdenes-de-compra). **`estado` distingue dos salidas que no son la misma.** `DESACTIVADO` se admite siempre: el proveedor deja de ofrecerse en el selector y en la emisión, y sus órdenes vivas siguen recibiendo material. `BAJA` es la baja lógica definitiva y se rechaza con `409` `CONFLICTO` `PROVEEDOR_CON_ORDENES_ABIERTAS` mientras tenga órdenes `ABIERTA` o `PARCIAL`, ofreciendo desactivar. Ninguna de las dos borra la fila ni su historial.
+
+**«Nunca se borra» lo hace cumplir el motor** (TKT-029a): la migración `0013` concede al rol de aplicación `SELECT`, `INSERT` y `UPDATE` sobre `proveedor` y le revoca `DELETE`, que los privilegios por omisión de `0001` concederían a toda tabla nueva. La tabla guarda además `creado_en` y `creado_por_id` (clave foránea a `usuario`, `ON DELETE RESTRICT`), y tres restricciones de valor: estado en el conjunto cerrado, tope de consignación no negativo y días de la semana entre 1 y 7.
 
 ---
 

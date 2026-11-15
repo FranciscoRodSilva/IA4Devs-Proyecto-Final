@@ -311,6 +311,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/proveedores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Proveedores
+         * @description El catálogo por nombre, con filtro repetible por estado, búsqueda y paginación.
+         */
+        get: operations["listar_proveedores"];
+        put?: never;
+        /**
+         * Crear Proveedor
+         * @description RN-17, CA-1: da de alta un proveedor `ACTIVO` y lo devuelve ya guardado.
+         */
+        post: operations["crear_proveedor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/proveedores/{proveedor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obtener Proveedor
+         * @description Un proveedor, también si está desactivado.
+         */
+        get: operations["obtener_proveedor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Actualizar Proveedor
+         * @description CA-8: cambia solo los datos enviados y devuelve el proveedor releído.
+         */
+        patch: operations["actualizar_proveedor"];
+        trace?: never;
+    };
+    "/api/v1/proveedores/{proveedor_id}/desactivacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desactivar Proveedor
+         * @description CA-9: pasa un proveedor `ACTIVO` a `DESACTIVADO` con motivo y lo devuelve releído.
+         */
+        post: operations["desactivar_proveedor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -433,6 +501,11 @@ export interface components {
          * @enum {string}
          */
         EstadoObra: "PLANEACION" | "ACTIVA" | "SUSPENDIDA" | "CERRADA";
+        /**
+         * EstadoProveedor
+         * @enum {string}
+         */
+        EstadoProveedor: "ACTIVO" | "DESACTIVADO" | "BAJA";
         /** ExplosionInsumos */
         ExplosionInsumos: {
             /**
@@ -515,6 +588,12 @@ export interface components {
             elementos: components["schemas"]["Obra"][];
             paginacion: components["schemas"]["MetaPagina"];
         };
+        /** ListaProveedores */
+        ListaProveedores: {
+            /** Elementos */
+            elementos: components["schemas"]["Proveedor"][];
+            paginacion: components["schemas"]["MetaPagina"];
+        };
         /** MetaPagina */
         MetaPagina: {
             /** Pagina */
@@ -526,7 +605,7 @@ export interface components {
         };
         /**
          * Motivo
-         * @description Cuerpo de la congelación: el motivo es obligatorio y se guarda sin espacios en los extremos.
+         * @description Cuerpo con motivo obligatorio: se guarda sin espacios en los extremos.
          */
         Motivo: {
             /** Motivo */
@@ -633,6 +712,66 @@ export interface components {
             actualizado_en?: string | null;
             /** Motivo Ultimo Cambio */
             motivo_ultimo_cambio?: string | null;
+        };
+        /** Proveedor */
+        Proveedor: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nombre */
+            nombre: string;
+            /** Rfc */
+            rfc: string;
+            /** Tope Consignacion */
+            tope_consignacion?: string | null;
+            /** Dia Corte */
+            dia_corte: number;
+            /** Dia Pago */
+            dia_pago: number;
+            estado: components["schemas"]["EstadoProveedor"];
+            /**
+             * Creado En
+             * Format: date-time
+             */
+            creado_en: string;
+        };
+        /**
+         * ProveedorCambios
+         * @description Cambio parcial: solo lo enviado se aplica; el RFC y el estado no se cambian por aquí.
+         */
+        ProveedorCambios: {
+            /** Nombre */
+            nombre?: string;
+            /** Tope Consignacion */
+            tope_consignacion?: string | null;
+            /** Dia Corte */
+            dia_corte?: number;
+            /** Dia Pago */
+            dia_pago?: number;
+        };
+        /**
+         * ProveedorNuevo
+         * @description Cuerpo del alta: lo que no declara se ignora (D-6).
+         */
+        ProveedorNuevo: {
+            /** Nombre */
+            nombre: string;
+            /** Rfc */
+            rfc: string;
+            /** Tope Consignacion */
+            tope_consignacion?: string | null;
+            /**
+             * Dia Corte
+             * @default 4
+             */
+            dia_corte: number;
+            /**
+             * Dia Pago
+             * @default 6
+             */
+            dia_pago: number;
         };
         /** RenglonExplosion */
         RenglonExplosion: {
@@ -1272,6 +1411,174 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Obra"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_proveedores: {
+        parameters: {
+            query?: {
+                estado?: components["schemas"]["EstadoProveedor"][];
+                q?: string | null;
+                pagina?: number;
+                tamano_pagina?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListaProveedores"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_proveedor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProveedorNuevo"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proveedor"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    obtener_proveedor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proveedor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proveedor"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    actualizar_proveedor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proveedor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProveedorCambios"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proveedor"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    desactivar_proveedor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proveedor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Motivo"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proveedor"];
                 };
             };
             /** @description Validation Error */

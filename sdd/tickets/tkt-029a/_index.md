@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR
+PENDIENTE FUSIÓN · delta escrito; PR por abrir. Siguiente: aprobación de la fusión por la persona dueña
 
 ## Ficha
 
@@ -17,7 +17,7 @@ LISTO PARA EJECUTAR
 | **Reglas implicadas** | `RN-17`; `RN-15` y `RN-16` solo como contexto (v1.1) |
 | **Invariantes en riesgo** | 28, 8 y 10; regresión de la cadena de migraciones y de las rutas protegidas |
 | **Módulos en alcance** | `proveedores`; `auditoria` e `identidad` por su interfaz |
-| **Capas en alcance** | dominio · aplicación · api · infraestructura. Con migración `0012`. Sin frontend |
+| **Capas en alcance** | dominio · aplicación · api · infraestructura. Con migración `0013`. Sin frontend |
 | **Criterios `[M]`** | `CA-1` a `CA-11`, `CA-R1` y `CA-R2` |
 | **Depende de** | TKT-003, TKT-005, TKT-006 y TKT-007 (todas ARCHIVADO) |
 | **Rama** | `tkt-029a-catalogo-proveedores` |
@@ -28,8 +28,8 @@ LISTO PARA EJECUTAR
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-10 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-10 |
-| Impl | `impl.md` (se enlaza en `/sdd-ejecutar`) | `/sdd-ejecutar` | Pendiente |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a (2026-11-12) y b (2026-11-14) escritas; la revisión del 2026-11-14 añade su sección |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-14 |
 
 ## Log de estados
 
@@ -38,6 +38,10 @@ LISTO PARA EJECUTAR
 | 2026-11-10 | — | `SPEC PENDIENTE` | `/sdd-definir` | Spec creada. TKT-029 partido en TKT-029a y TKT-029b por el plazo de la tercera entrega. Must validado por la persona dueña: esquema `proveedor` y las cinco operaciones de catálogo y desactivación, solo backend, sin baja ni puerto ni pantalla. 11 criterios `[M]` más dos de regresión; rechazos de RFC duplicado (también en carrera), forma, permiso, listado, consulta, cambio y desactivación. Cuatro objeciones adversariales incorporadas. Seis preguntas abiertas con recomendación para el diseño y un hallazgo sobre el wireframe. INVEST sin fallos, con reserva en el tamaño |
 | 2026-11-10 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Diseño escrito por `arquitecto-tecnico` (opus): patrón de TKT-017 y TKT-012a, sin baja ni puerto ni pantalla; el índice `uq_proveedor_rfc` arbitra el duplicado y la carrera; `REVOKE DELETE` al rol de aplicación; copia local de `MetaPagina` y `Motivo` en `proveedores`, sin paquete nuevo ni ADR. Filas A1 a A4 (esquema, dominio, repositorio y casos de uso, ~480 líneas) y B1 y B2 (API, borrador y tipos, ~290 líneas) en dos entregas y un solo PR. `revisor-impacto`: sin frontera cruzada (16 contratos en verde), diseño incompleto; sus hallazgos se incorporaron, entre ellos que la premisa del paquete `contrato_api` era falsa (Pydantic fusiona clases idénticas) y que la migración `0012` afecta a las suites que bajan desde la cabeza. Nueve decisiones esperan a la persona dueña (D-1 a D-9) |
 | 2026-11-10 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | persona dueña | Diseño aprobado con las recomendaciones de D-1 a D-9 (ver «Decisiones registradas»). Siguiente: `/sdd-ejecutar TKT-029a` sobre la entrega a (filas A1 a A4) |
+| 2026-11-12 | `LISTO PARA EJECUTAR` | `EN REVISIÓN · entrega a` | `/sdd-ejecutar` | Entrega a (filas A1 a A4) ejecutada con TDD. La migración pasa a `0013` porque TKT-059 ocupó `0012`. Suite completa 3314 passed, 26 skipped; 8 de 8 mutantes aplicables muertos; `auditor-arquitectura` y `auditor-sql` en `APROBADO` sin hallazgos. Siguiente: `/sdd-revisar` de la entrega a y después `/sdd-ejecutar TKT-029a` para la entrega b |
+| 2026-11-14 | `EN REVISIÓN · entrega a` | `EN REVISIÓN` | `/sdd-ejecutar` | Entrega b (filas B1 y B2) ejecutada con TDD: cinco rutas, contrato y tipos regenerados. Suite completa 3422 passed, 26 skipped; 9 de 9 mutantes muertos. `auditor-arquitectura` y `auditor-seguridad` en `APROBADO`; `auditor-codigo` pidió cambios (F001 Mayor, F003 Menor), se corrigieron con tests primero y la reauditoría fue `APROBADO`. Siguiente: `/sdd-revisar TKT-029a` |
+| 2026-11-14 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Revisión del ticket completo (la entrega b es la última). `auditor-codigo` revisó la entrega a y encontró cuatro Menores, corregidos. `auditor-docs` encontró dos Mayores: el `lock_timeout` sin traducir, que la persona dueña decidió traducir en este ticket (fila B3, con `TC-43` y `M-13`), y el ADR de `D-7`, que la persona dueña mantuvo sin ADR; más cuatro Menores de documentación, resueltos. B3 se amplió al alta por decisión de la persona dueña. Dos mutantes sobrevivieron (`from error` en actualizar y desactivar, y la lectura de la rama de RFC duplicado fuera del gestor en el alta) y se mataron con tests. Suite completa 3437 passed, 26 skipped; las cinco auditorías en `APROBADO`. El `openapi.yaml` cambia y debe señalarse a quien apruebe el PR. Siguiente: `/sdd-completar TKT-029a` |
+| 2026-11-14 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Delta escrito y enlazado; `auditor-docs` pidió cambios (un Mayor sobre `D-7` sin ADR, resuelto con la excepción de la persona dueña, y cinco Menores) y se corrigieron; filas del registro de evolución añadidas y `meta-sdd` ejecutado, con propuestas sin aplicar. Siguiente: commit, push y PR único del ticket |
 
 ## Decisiones registradas
 
@@ -45,6 +49,8 @@ LISTO PARA EJECUTAR
 - **2026-11-10 · persona dueña.** El puerto `CatalogoProveedores` se difiere a TKT-030, su primer consumidor.
 - **2026-11-10 · persona dueña.** La pantalla del catálogo no entra: es de TKT-032.
 - **2026-11-10 · persona dueña (aprobación del diseño).** D-1: el RFC se recorta de espacios y se pasa a mayúsculas. D-2: el `409` `RFC_DUPLICADO` lleva `proveedor_existente_id` y «nombre · RFC», sin acción. D-3: el `PATCH` se admite sobre un proveedor `DESACTIVADO`. D-4: se quita `DELETE` al rol de aplicación sobre `proveedor`. D-5: `nombre` hasta 200 caracteres, con `maxLength` en el borrador. D-6: los campos extra del cuerpo se ignoran. D-7: copia local de `MetaPagina` y `Motivo` en `proveedores`, sin paquete nuevo ni ADR. D-8: lista por nombre y después por identificador. D-9: `q` hasta 200 caracteres y sin `NUL`.
+- **2026-11-14 · persona dueña (revisión).** `lock_timeout`: el vencimiento de `55P03` (y de `57014`) en el alta, el cambio y la desactivación de un proveedor se traduce en este ticket a `409` `CONCURRENCIA` con su acción, como exige `RNF-16` (fila B3 del diseño, pregunta 8 de la spec). El diseño lo había aceptado como `500` sin su decisión. Se decidió primero para el cambio y la desactivación y, a la pregunta de la revisión, se amplió el mismo día al alta.
+- **2026-11-14 · persona dueña (revisión).** D-7 se mantiene sin ADR, como se aprobó el 2026-11-10: el porqué de las copias locales de `MetaPagina` y `Motivo` queda en el comentario de cada copia, en `design.md` y en TC-42.
 
 ## Tickets futuros sugeridos
 

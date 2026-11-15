@@ -20,7 +20,7 @@ Historia de referencia: [HDU-004](../../../docs/04-historias-usuario.md#hdu-004-
 
 | Nivel | Ítem |
 |---|---|
-| **Must** | Migración `0012`: tabla `proveedor` con `UNIQUE (rfc)` (invariante 28), `estado` `ACTIVO`/`DESACTIVADO`/`BAJA`, `tope_consignacion`, `dia_corte` y `dia_pago`, y los permisos del rol de aplicación |
+| **Must** | Migración `0013`: tabla `proveedor` con `UNIQUE (rfc)` (invariante 28), `estado` `ACTIVO`/`DESACTIVADO`/`BAJA`, `tope_consignacion`, `dia_corte` y `dia_pago`, y los permisos del rol de aplicación |
 | **Must** | `POST /api/v1/proveedores` (`crear_proveedor`): alta `ACTIVO` con jueves y sábado por omisión (`RN-17`); RFC duplicado responde `409` `RFC_DUPLICADO` con el proveedor existente |
 | **Must** | `GET /api/v1/proveedores` (`listar_proveedores`: por omisión solo `ACTIVO`, que es el selector; filtro `estado`, búsqueda `q`, paginación) y `GET /api/v1/proveedores/{proveedor_id}` (`obtener_proveedor`) |
 | **Must** | `PATCH /api/v1/proveedores/{proveedor_id}` (`actualizar_proveedor`): nombre, tope de consignación y días de corte y pago |
@@ -51,11 +51,11 @@ Invariantes del modelo de datos que toca: **28** (`UNIQUE (rfc)`: un proveedor n
 
 ## Invariantes que deben sobrevivir al cambio
 
-El ticket **añade una migración encima de la cabeza `0011`** y un enrutador nuevo; no modifica comportamiento existente, pero toca dos garantías generales que otras suites vigilan.
+El ticket **añade una migración encima de la cabeza `0012`** y un enrutador nuevo; no modifica comportamiento existente, pero toca dos garantías generales que otras suites vigilan.
 
 | Invariante | Qué protege | Criterio de regresión |
 |---|---|---|
-| Cadena de migraciones, reversibilidad y privilegios por omisión de los tres roles | La migración `0012` cuelga de `0011`, sube y baja limpia y no abre permisos de más | `CA-R1` |
+| Cadena de migraciones, reversibilidad y privilegios por omisión de los tres roles | La migración `0013` cuelga de `0012`, sube y baja limpia y no abre permisos de más | `CA-R1` |
 | Rutas protegidas y CSRF (TKT-006, TKT-057) | Las rutas nuevas de mutación exigen sesión, CSRF y rol | `CA-R2` |
 
 ## Criterios de aceptación
@@ -262,8 +262,8 @@ Escenario: El motor rechaza lo que el API dejara pasar
 ### CA-R1 `[M]` · Regresión · La migración encaja en la cadena
 
 ```gherkin
-Escenario: La migración 0012 sube, baja y respeta los permisos
-  Dado la base en la cabeza 0011
+Escenario: La migración 0013 sube, baja y respeta los permisos
+  Dado la base en la cabeza 0012
   Cuando se aplica alembic upgrade head y luego un downgrade de una versión
   Entonces la tabla proveedor se crea y se elimina sin dejar objetos huérfanos
   Y la cabeza sigue siendo única y lineal
@@ -318,6 +318,7 @@ Decididas por la persona dueña el 2026-11-10: partir el ticket sin baja, sin pa
 | 5 | **Longitud máxima de `nombre`.** El borrador no la fija. Recomendación: 200 caracteres, con `maxLength` en el borrador, como `D-5` de TKT-012a | Texto libre sin tope | Resuelta el 2026-11-10 con la recomendación (`design.md`) |
 | 6 | **Campos extra en el cuerpo** (`estado`, `rfc` en el `PATCH`, `id`…). Recomendación: se ignoran, como se confirmó en TKT-017 (`E2`) y en TKT-012a (`D-2`) | Con rechazo `422`, un cliente con campos de más dejaría de funcionar | Resuelta el 2026-11-10 con la recomendación (`design.md`) |
 | 7 | **El wireframe contradice al resto.** `docs/08-wireframes.md` dice que no hay baja aparte y que la única operación es la desactivación como baja lógica con `activo = false`; el ticket, el borrador, la especificación de la API y el modelo de datos definen dos operaciones y un `estado` de tres valores. Esta spec sigue las cuatro fuentes que coinciden. El wireframe se reconcilia en TKT-032, que dibuja la pantalla | El texto del wireframe seguiría desactualizado | Hallazgo registrado · se corrige en TKT-032 |
+| 8 | **Vencimiento de `lock_timeout` en proveedores (`55P03`).** Recomendación: traducirlo a `409` `CONCURRENCIA` con su acción, como exige `RNF-16` y como hacen `archivos` y `presupuesto`. El diseño lo había aceptado sin código y sin decisión de la persona dueña | Un `500` ante un bloqueo vencido, que `RNF-16` no admite | **Resuelta el 2026-11-14 por la persona dueña:** se traduce en este ticket, con su prueba de rechazo. **Ampliada el mismo día a la alta**, tras la revisión de `auditor-codigo`: el alta también espera por el índice único `uq_proveedor_rfc` y vence igual |
 
 ## Pasada adversarial
 
@@ -326,7 +327,7 @@ Resultado de `abogado-del-diablo` sobre esta spec.
 | # | Severidad | Objeción | Acción tomada |
 |---|---|---|---|
 | 1 | Alta | **`CA-10` depende de una decisión abierta.** El segundo escenario (el rol de aplicación no puede borrar) solo existe si la pregunta 4 se aprueba; sin ella, «nunca se borra» descansa únicamente en que no haya una ruta `DELETE`, que un defecto futuro puede añadir | Aceptada. La pregunta 4 se resuelve en el diseño; si se rechaza, se borra el segundo escenario y la spec lo dice expresamente |
-| 2 | Alta | **El esc. 12 de HDU-004 queda a medias**, y el DoD de la historia dice que ninguno de sus escenarios es opcional: dar por cerrado TKT-029a no cierra el 12 | Aceptada. Está declarado como «mitad de desactivación» en la historia de referencia, en el alcance y en `HDU-004` sin activar; el cierre lo asume TKT-029b |
+| 2 | Alta | **El esc. 12 de HDU-004 queda a medias**, y el DoD de la historia dice que ninguno de sus escenarios es opcional: dar por cerrado TKT-029a no cierra el 12 | Aceptada. Está declarado como «mitad de desactivación» en el alcance de esta spec y en la partición de `docs/05-tickets-trabajo.md`; la historia no lo dice, y el cierre del esc. 12 lo asume TKT-029b |
 | 3 | Media | El borrador seguirá listando `dar_baja_proveedor` con `x-tickets: [TKT-029]` mientras la API publicada no la tenga: una divergencia entre contrato e implementación | Aceptada y sin cambio de contrato. Ninguna prueba compara hoy la cobertura de operaciones de `proveedores` y TKT-029b la cierra; el borrador no se toca |
 | 4 | Media | Un `q` con `%` o `_` actuaría como comodín en una búsqueda `ILIKE` y devolvería más proveedores de los esperados | Aceptada. Incorporada a `CA-6` con su rechazo: se busca como texto literal |
 
@@ -338,7 +339,7 @@ Siempre al final.
 
 - `backend/cimenta/proveedores/` es un esqueleto: `__init__.py` e `interfaz.py` vacíos. No hay tablas, rutas ni montaje. `backend/cimenta/compras/` también está vacío.
 - `import-linter`: `grafo-compras` admite a `cimenta.proveedores` como importador y `grafo-proveedores` solo admite a sí mismo, así que nadie importa `proveedores`.
-- La cabeza de migraciones es `0011` (`v0011_presupuesto_campos_sin_fuente.py`). TKT-012a no migra, así que `0012` es de esta entrega; TKT-019 tomaría la siguiente.
+- La cabeza de migraciones es `0012` (`v0012_archivos_archivo.py`, TKT-059). Esta entrega añade `0013` (`v0013_proveedores_catalogo.py`); TKT-019 tomará `0014`.
 - Patrones reutilizables de TKT-017 y TKT-012a: montaje por enrutador propio, `exigir_rol` y `verificar_origen`, transacción única en el caso de uso con `asentar`, traducción de `23505`, paginación con página vacía (`D20`), contrato de error con `Accion`. Como los módulos no se importan entre sí, la paginación se replica dentro de `proveedores`.
 - El catálogo del contrato de error ya trae `RFC_DUPLICADO` y `PROVEEDOR_CON_ORDENES_ABIERTAS` (este último, de TKT-029b). La bitácora ya tiene `CREAR`, `ACTUALIZAR` y `DESACTIVAR`.
 - Frontend: la sección `PROVEEDORES` (`/compras/proveedores`) y su marcador ya existen en `secciones.ts` y `modulos/proveedores/rutas.tsx`. Esta entrega no los toca.
