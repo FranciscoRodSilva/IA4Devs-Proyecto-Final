@@ -345,10 +345,10 @@ Cuatro decisiones de esta tabla que no son evidentes:
 | `GET` | `/proveedores` | Todos | — | HDU-004 · 2, 12 | TKT-029 |
 | `GET` | `/proveedores/{proveedor_id}` | Todos | — | — | TKT-029 |
 | `PATCH` | `/proveedores/{proveedor_id}` | CO | RN-17 | — | TKT-029 |
-| `POST` | `/proveedores/{proveedor_id}/baja` | CO | — | HDU-004 · 12 | TKT-029b |
+| `POST` | `/proveedores/{proveedor_id}/baja` | CO | — | HDU-004 · 12 y 13 | TKT-029b |
 | `POST` | `/proveedores/{proveedor_id}/desactivacion` | CO | — | HDU-004 · 12 | TKT-029 |
 
-**Baja y desactivación son dos operaciones** (HDU-004 esc. 12), y ninguna borra. `proveedor.estado` es `ACTIVO`, `DESACTIVADO` o `BAJA`. Desactivar se admite siempre: el proveedor sale del selector de órdenes nuevas y sus órdenes pendientes se siguen recibiendo. Dar de baja es definitivo y se rechaza con `409` `CONFLICTO` `PROVEEDOR_CON_ORDENES_ABIERTAS` si tiene órdenes `ABIERTA` o `PARCIAL`, con la acción de desactivarlo.
+**Baja y desactivación son dos operaciones** (HDU-004 esc. 12), y ninguna borra. `proveedor.estado` es `ACTIVO`, `DESACTIVADO` o `BAJA`. Desactivar se admite, tenga o no órdenes pendientes, siempre que el proveedor esté `ACTIVO`: el proveedor sale del selector de órdenes nuevas y sus órdenes pendientes se siguen recibiendo. La acción `DESACTIVAR_PROVEEDOR` solo se ofrece desde `ACTIVO`. Dar de baja es definitivo *(asumido, PA-24)*, procede desde `ACTIVO` y desde `DESACTIVADO`, y se rechaza con `409` `CONFLICTO` `PROVEEDOR_CON_ORDENES_ABIERTAS` si tiene órdenes `ABIERTA` o `PARCIAL`, con la acción de desactivarlo cuando el proveedor está `ACTIVO`. Desde `BAJA` responde `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION`.
 
 ### 4.6. `almacen`
 

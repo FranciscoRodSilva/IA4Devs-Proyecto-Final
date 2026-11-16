@@ -1,0 +1,404 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 10 items
+
+tests\test_tkt029b_casos_de_uso.py FFFFFFFFFF                            [100%]
+
+================================== FAILURES ===================================
+_ test_hdu004_esc13_baja_desde_activo_sin_ordenes_conserva_la_fila_y_asienta_dar_baja _
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2EF0670>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2E48EC0>
+creador = UUID('6e4bdd8e-92f9-4bdf-9321-1ac87d844f9d')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000257F2E486E0>
+
+    def test_hdu004_esc13_baja_desde_activo_sin_ordenes_conserva_la_fila_y_asienta_dar_baja(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-23 · HDU-004 esc. 13 · CA-1 — `ACTIVO` sin órdenes pasa a `BAJA`; nada más cambia; `DAR_BAJA` lleva el motivo.
+    
+        El proveedor tiene tope y días distintos de los de omisión, para comprobar que se conservan. La fila se
+        compara completa: solo `estado` cambia. El asiento es único y trae `entidad_tipo` `proveedor`, el
+        usuario, el reloj inyectado, el motivo recibido, `datos_antes` `ACTIVO` y `datos_despues` `BAJA`, con
+        `regla_negocio` y `obra_id` nulos. Otro proveedor no cambia.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:298: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+__ test_hdu004_esc13_baja_desde_desactivado_asienta_el_estado_anterior_real ___
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2F89850>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2FA4F50>
+creador = UUID('c7e3e154-fd1b-4f45-a727-9baf2dfdb8f1')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000257F2FA4E10>
+
+    def test_hdu004_esc13_baja_desde_desactivado_asienta_el_estado_anterior_real(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-24 · HDU-004 esc. 13 · CA-2 — `DESACTIVADO` sin órdenes pasa a `BAJA` y `datos_antes` guarda `DESACTIVADO` (`M-13`).
+    
+        El asiento no puede copiar el literal `ACTIVO` de la desactivación: guarda el estado leído de la fila.
+        Con `datos_antes` fijo en `ACTIVO` (`M-13`) la prueba cae. La fila conserva todo lo demás.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:367: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+_ test_hdu004_esc12_baja_con_ordenes_pendientes_se_rechaza_y_ofrece_desactivar _
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2F8B060>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2FA6350>
+padres = Padres(obra=UUID('d36e56f3-4b05-473a-a37f-b809b78aed81'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('3ef4b7a9-a3be-4b14-b62e-9896292c95a1'), solicitante=UUID('b2de4b8a-258a-453c-9399-af748f026eaa'))
+creador = UUID('b2de4b8a-258a-453c-9399-af748f026eaa')
+
+    def test_hdu004_esc12_baja_con_ordenes_pendientes_se_rechaza_y_ofrece_desactivar(
+        contexto_proveedores: Contexto,
+        base: Base,
+        padres: Padres,
+        creador: uuid.UUID,
+    ) -> None:
+        """TC-25 · HDU-004 esc. 12 · CA-3 — `ACTIVO` con una `ABIERTA` y una `PARCIAL`: `409` `PROVEEDOR_CON_ORDENES_ABIERTAS` (`M-11`).
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`), el `codigo` del catálogo, el mensaje
+        literal de `D-4` con el nombre `CoPanel` y «2 órdenes», `detalle.ordenes` con el `id`, el `folio` y el
+        `estado` de cada una **por folio** (se insertan al revés: la `ABIERTA` `OC-T029B-0002` entra antes que
+        la `PARCIAL` `OC-T029B-0001`), y la acción `DESACTIVAR_PROVEEDOR` solo para quien gestiona proveedores.
+        El proveedor sigue `ACTIVO` y no se asienta nada: ni fila ni bitácora ni órdenes cambian.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:435: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+_ test_hdu004_esc12_baja_con_ordenes_pendientes_cuenta_en_singular_y_plural[activo_una_orden] _
+
+estado = 'ACTIVO', cantidad = 1
+mensaje = 'CoPanel tiene 1 orden pendiente de recibir; se puede desactivar para órdenes nuevas conservando las existentes.'
+con_accion = True
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2E9DDD0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2E4E520>
+padres = Padres(obra=UUID('7d60eb9a-5fa4-4dd3-b93e-0ba80ad3373f'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('0aba5a18-5a41-470a-8014-478d98e3c0a8'), solicitante=UUID('29b0fd80-f815-4f87-883f-20bc4ca28c11'))
+creador = UUID('29b0fd80-f815-4f87-883f-20bc4ca28c11')
+
+    @pytest.mark.parametrize(
+        ("estado", "cantidad", "mensaje", "con_accion"),
+        [
+            pytest.param(
+                "ACTIVO",
+                1,
+                "CoPanel tiene 1 orden pendiente de recibir; se puede desactivar para órdenes "
+                "nuevas conservando las existentes.",
+                True,
+                id="activo_una_orden",
+            ),
+            pytest.param(
+                "DESACTIVADO",
+                2,
+                "CoPanel tiene 2 órdenes pendientes de recibir y ya está desactivado; la baja "
+                "procede cuando esas órdenes se reciban completas o se cancelen.",
+                False,
+                id="desactivado_dos_ordenes",
+            ),
+        ],
+    )
+    def test_hdu004_esc12_baja_con_ordenes_pendientes_cuenta_en_singular_y_plural(
+        estado: str,
+        cantidad: int,
+        mensaje: str,
+        con_accion: bool,
+        contexto_proveedores: Contexto,
+        base: Base,
+        padres: Padres,
+        creador: uuid.UUID,
+    ) -> None:
+        """Variantes de TC-25 y TC-26 · HDU-004 esc. 12 · CA-3 · CA-4 · D-4 — «1 orden pendiente» y «2 órdenes pendientes» en cada rama.
+    
+        TC-25 prueba el plural desde `ACTIVO` y TC-26 el singular desde `DESACTIVADO`; esta prueba cierra las
+        otras dos combinaciones, para que el número de órdenes y la rama del mensaje no puedan intercambiarse
+        sin que algo caiga. La primera orden por folio es `PARCIAL` y las demás `ABIERTA`; se insertan al revés.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:513: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+_ test_hdu004_esc12_baja_con_ordenes_pendientes_cuenta_en_singular_y_plural[desactivado_dos_ordenes] _
+
+estado = 'DESACTIVADO', cantidad = 2
+mensaje = 'CoPanel tiene 2 órdenes pendientes de recibir y ya está desactivado; la baja procede cuando esas órdenes se reciban completas o se cancelen.'
+con_accion = False
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2E9C5C0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2E4DA70>
+padres = Padres(obra=UUID('fa1bc694-53c6-461b-8fff-87c04f1fe08d'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('fb758322-f068-4e79-87d2-0713a91a20de'), solicitante=UUID('93c20982-5d06-41ba-8465-7e7608d2304f'))
+creador = UUID('93c20982-5d06-41ba-8465-7e7608d2304f')
+
+    @pytest.mark.parametrize(
+        ("estado", "cantidad", "mensaje", "con_accion"),
+        [
+            pytest.param(
+                "ACTIVO",
+                1,
+                "CoPanel tiene 1 orden pendiente de recibir; se puede desactivar para órdenes "
+                "nuevas conservando las existentes.",
+                True,
+                id="activo_una_orden",
+            ),
+            pytest.param(
+                "DESACTIVADO",
+                2,
+                "CoPanel tiene 2 órdenes pendientes de recibir y ya está desactivado; la baja "
+                "procede cuando esas órdenes se reciban completas o se cancelen.",
+                False,
+                id="desactivado_dos_ordenes",
+            ),
+        ],
+    )
+    def test_hdu004_esc12_baja_con_ordenes_pendientes_cuenta_en_singular_y_plural(
+        estado: str,
+        cantidad: int,
+        mensaje: str,
+        con_accion: bool,
+        contexto_proveedores: Contexto,
+        base: Base,
+        padres: Padres,
+        creador: uuid.UUID,
+    ) -> None:
+        """Variantes de TC-25 y TC-26 · HDU-004 esc. 12 · CA-3 · CA-4 · D-4 — «1 orden pendiente» y «2 órdenes pendientes» en cada rama.
+    
+        TC-25 prueba el plural desde `ACTIVO` y TC-26 el singular desde `DESACTIVADO`; esta prueba cierra las
+        otras dos combinaciones, para que el número de órdenes y la rama del mensaje no puedan intercambiarse
+        sin que algo caiga. La primera orden por folio es `PARCIAL` y las demás `ABIERTA`; se insertan al revés.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:513: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+_ test_hdu004_esc12_baja_de_desactivado_con_orden_parcial_se_rechaza_sin_acciones _
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2AAB5E0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2ADAC30>
+padres = Padres(obra=UUID('dd2c3d2d-7bb4-41e1-bd8f-78537fda03dc'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('5342f809-eb42-45ca-9cd0-d7e18b20d46e'), solicitante=UUID('427b3921-1c8e-4e7b-9adb-0c17a9159e12'))
+creador = UUID('427b3921-1c8e-4e7b-9adb-0c17a9159e12')
+
+    def test_hdu004_esc12_baja_de_desactivado_con_orden_parcial_se_rechaza_sin_acciones(
+        contexto_proveedores: Contexto,
+        base: Base,
+        padres: Padres,
+        creador: uuid.UUID,
+    ) -> None:
+        """TC-26 · HDU-004 esc. 12 · CA-4 — `DESACTIVADO` con una `PARCIAL`: `409` con la orden listada y `acciones` vacía (`M-10`).
+    
+        Desactivar de nuevo respondería `409`, así que el rechazo no ofrece `DESACTIVAR_PROVEEDOR`; el mensaje
+        explica por qué (`D-4`, singular). La orden `PARCIAL` se siembra con `cantidad_recibida` mayor que
+        cero y un renglón completo, más una segunda orden `CERRADA` que no debe listarse. Nada cambia: el proveedor sigue
+        `DESACTIVADO` y no hay asiento. Con la acción ofrecida siempre (`M-10`) la prueba cae.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:561: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+_____ test_hdu004_esc12_baja_de_un_proveedor_ya_dado_de_baja_es_terminal ______
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2F89590>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2FA0380>
+padres = Padres(obra=UUID('c58112e0-9b4f-4cee-8d5b-dfd687d781c7'), tipo_partida=UUID('c1e0a010-0001-4000-8000-000000000001'), insumo=UUID('64576e6d-2c7b-474b-8e58-f2c07f8be65b'), solicitante=UUID('ba0210eb-79a2-4b37-8ff4-5daf0b48392b'))
+creador = UUID('ba0210eb-79a2-4b37-8ff4-5daf0b48392b')
+
+    def test_hdu004_esc12_baja_de_un_proveedor_ya_dado_de_baja_es_terminal(
+        contexto_proveedores: Contexto,
+        base: Base,
+        padres: Padres,
+        creador: uuid.UUID,
+    ) -> None:
+        """TC-27 · HDU-004 esc. 12 · CA-7 — `BAJA` es terminal: `409` `ESTADO_NO_PERMITE_OPERACION` con `estado_actual` `BAJA` (`M-2`).
+    
+        Dos proveedores en `BAJA`, uno sin órdenes y otro con una `ABIERTA`: el estado terminal precede a las
+        órdenes pendientes, así que ninguno responde `PROVEEDOR_CON_ORDENES_ABIERTAS`. El cuerpo completo trae
+        el mensaje literal de `D-4`, `detalle` `{"estado_actual": "BAJA"}` y `acciones` vacía; no se asienta
+        nada. Además, `desactivar_proveedor` sobre `BAJA` sigue respondiendo su mensaje de siempre.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:618: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+_____________ test_hdu004_esc12_baja_de_un_proveedor_inexistente ______________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2EF3A00>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2FA0F30>
+creador = UUID('fddb0c9c-a595-49e1-a872-8fe7c3e7a0e2')
+
+    def test_hdu004_esc12_baja_de_un_proveedor_inexistente(
+        contexto_proveedores: Contexto, base: Base, creador: uuid.UUID
+    ) -> None:
+        """TC-28 · HDU-004 esc. 12 · CA-10 — `404` `NO_ENCONTRADO` con `recurso="proveedor"` y ningún asiento.
+    
+        Hay un proveedor real, para que el rechazo sea por el id y no por tabla vacía; no cambia.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:667: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+___________ test_hdu004_esc13_baja_bitacora_en_la_misma_transaccion ___________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2A52140>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2E83350>
+creador = UUID('6266f1aa-6ce2-40b5-a387-f4f2b5b50116')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000257F2E4F820>
+
+    def test_hdu004_esc13_baja_bitacora_en_la_misma_transaccion(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-29 · HDU-004 esc. 13 · CA-1 · regla 8 — si asentar falla, el proveedor sigue `ACTIVO` y no hay asiento (`M-12`).
+    
+        `asentar` se sustituye por uno que, antes de lanzar, comprueba que corre en la sesión de la baja y que
+        ya ve el cambio a `BAJA` todavía sin confirmar: la bitácora se escribe en la misma transacción que el
+        cambio. Al lanzar, la transacción se deshace. Con `asentar` en una sesión propia (`M-12`) no vería la
+        `BAJA` sin confirmar y la prueba cae.
+        """
+        modulo = _modulo()
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:708: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+__________________ test_hdu004_esc12_dos_bajas_concurrentes ___________________
+
+contexto_proveedores = <functools._lru_cache_wrapper object at 0x00000257F2175B10>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000257F2E80550>
+creador = UUID('679c6bd8-9e3d-4ce6-8736-cc44e53b8396')
+segundo_usuario = UUID('adecdf6c-2ac1-4ebf-a735-89392558b5eb')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000257F2E4FCE0>
+
+    def test_hdu004_esc12_dos_bajas_concurrentes(
+        contexto_proveedores: Contexto,
+        base: Base,
+        creador: uuid.UUID,
+        segundo_usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-30 · HDU-004 esc. 12 · CA-11 — dos bajas a la vez: B espera el `FOR UPDATE` y ve `BAJA` (`M-9`).
+    
+        Determinista y sin `sleep`. El hilo A se pausa dentro de `repositorio_proveedor.leer_proveedor`, en la
+        llamada con `para_cambio=True`, con el `SELECT ... FOR UPDATE` ya tomado; el hilo B arranca y su
+        lectura bloqueante queda detenida (la prueba lo espera sobre `pg_stat_activity` y `pg_blocking_pids`);
+        con B detenido, la base sigue viendo `ACTIVO`. Se libera a A, que da de baja y confirma. B lee `BAJA` y
+        responde `ESTADO_NO_PERMITE_OPERACION` con el estado actual `BAJA`. Con la lectura sin `FOR UPDATE`
+        (`M-9`) A nunca llega a la pausa y la prueba cae al esperarla; si B leyera `ACTIVO` quedarían dos
+        asientos `DAR_BAJA`. El hilo pausado se libera siempre en `finally`.
+        """
+>       dar_baja = _dar_baja()
+                   ^^^^^^^^^^^
+
+tests\test_tkt029b_casos_de_uso.py:763: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _dar_baja() -> Any:
+        """`dar_baja_proveedor` leída como atributo del módulo: mientras no exista, el caso falla con `AttributeError`."""
+>       return _modulo().dar_baja_proveedor
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.aplicacion.proveedores' has no attribute 'dar_baja_proveedor'. Did you mean: 'crear_proveedor'?
+
+tests\test_tkt029b_casos_de_uso.py:154: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc13_baja_desde_activo_sin_ordenes_conserva_la_fila_y_asienta_dar_baja
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc13_baja_desde_desactivado_asienta_el_estado_anterior_real
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc12_baja_con_ordenes_pendientes_se_rechaza_y_ofrece_desactivar
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc12_baja_con_ordenes_pendientes_cuenta_en_singular_y_plural[activo_una_orden]
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc12_baja_con_ordenes_pendientes_cuenta_en_singular_y_plural[desactivado_dos_ordenes]
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc12_baja_de_desactivado_con_orden_parcial_se_rechaza_sin_acciones
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc12_baja_de_un_proveedor_ya_dado_de_baja_es_terminal
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc12_baja_de_un_proveedor_inexistente
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc13_baja_bitacora_en_la_misma_transaccion
+FAILED tests/test_tkt029b_casos_de_uso.py::test_hdu004_esc12_dos_bajas_concurrentes
+============================= 10 failed in 4.10s ==============================

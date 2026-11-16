@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · entrega b (F4 a F7)
+PENDIENTE FUSIÓN
 
 ## Ficha
 
@@ -28,8 +28,8 @@ LISTO PARA EJECUTAR · entrega b (F4 a F7)
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-15 |
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito el 2026-11-15; aprobado el 2026-11-15 |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entrega a escrita el 2026-11-15; entrega b pendiente |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a y b escritas el 2026-11-15 y el 2026-11-16 |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-16 |
 
 ## Log de estados
 
@@ -45,7 +45,13 @@ LISTO PARA EJECUTAR · entrega b (F4 a F7)
 
 | 2026-11-15 | `EN REVISIÓN · entrega a` | `LISTO PARA EJECUTAR · entrega b` | `/sdd-revisar` | Entrega a revisada y acumulada en la rama del ticket, **sin PR**. Suite completa `3603 passed, 26 skipped`; `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios; `CA-12`, `CA-R1`, `CA-R2` y la parte de `CA-5` y `CA-14` de la entrega cumplidos; mutación `M-4` a `M-8`, `M-11`, `M-14` a `M-17` muerta. `auditor-arquitectura` y `auditor-sql` `APROBADO`; `auditor-codigo` `REQUIERE CAMBIOS` en la primera pasada (cuatro Menores) y `APROBADO` tras dos ciclos de corrección (`F005` y `F006` eran código de pruebas). `auditor-docs` y `auditor-seguridad` no aplican a esta entrega. La documentación (`docs/03` §10, que sigue diciendo «Veintidós verbos») es la fila F7 |
 
+| 2026-11-16 | `LISTO PARA EJECUTAR · entrega b` | `LISTO PARA PR` | `/sdd-ejecutar` y `/sdd-revisar` | Entrega b (F4 a F7) ejecutada con TDD y revisada: ruta `POST /baja`, caso de uso, regla de dominio, borrador, tipos del cliente y documentación. Suite completa `3654 passed, 26 skipped`; `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios; mutantes `M-1`, `M-2`, `M-3`, `M-9`, `M-10`, `M-12` y `M-13` muertos (`M-9` por TC-30, no por TC-42). `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` y `auditor-docs` `REQUIERE CAMBIOS` en la primera pasada y `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` tras dos ciclos de corrección, con los Menores resueltos por el orquestador con el texto literal del auditor. La persona dueña aprobó añadir el ADR de `D-3` y `PA-24`. `N002` de `auditor-codigo` (renombrar once tests) se rechaza porque el diseño fija `test_tkt029b_…` para esos criterios. Ambas entregas acumuladas en la rama, sin PR todavía |
+
+| 2026-11-16 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | `delta.md` escrito para el ticket entero y observaciones del proceso añadidas a `sdd/_evolucion.md`. La deuda abierta del delta recoge los tickets futuros: reactivación de proveedores (`PA-24`), índice y puerto en TKT-030 y TKT-032. Se abre el único PR del ticket; el número consta en el comentario de registro tras la fusión |
+
 ## Decisiones registradas
+
+- **2026-11-16 · persona dueña.** Aprobados el ADR de `D-3` (`docs/adr/20261116-verbo-dar-baja-y-bajada-recreando-el-tipo.md`) y la pregunta abierta `PA-24` (reactivación y RFC de un proveedor en `BAJA`), tras los hallazgos `F001` y `F006` de `auditor-docs`.
 
 - **2026-11-15 · persona dueña.** Aprobadas D-1 a D-12 con la recomendación de cada una. En D-3 rige la bajada que recrea el tipo tras su guarda; en D-6 se añade el escenario 13 a HDU-004 y `CA-R1` se reformula como «sin modificarse salvo el conteo de verbos» (D-7); en D-8 el ticket se ejecuta en dos entregas con un solo PR.
 

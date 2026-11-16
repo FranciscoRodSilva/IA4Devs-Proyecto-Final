@@ -2348,16 +2348,19 @@ paths:
       description: >-
         Pasa `proveedor.estado` a `BAJA` con motivo y lo asienta en la bitácora.
         Es baja **lógica**: nunca hay borrado físico y el historial se conserva.
-        Con órdenes en `ABIERTA` o `PARCIAL` responde `409` `CONFLICTO`
-        `PROVEEDOR_CON_ORDENES_ABIERTAS` listándolas y ofrece desactivarlo, que
-        siempre se admite (HDU-004 esc. 12).
+        Procede desde `ACTIVO` y desde `DESACTIVADO`; desde `BAJA` responde `409`
+        `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION`. Con órdenes en `ABIERTA` o
+        `PARCIAL` responde `409` `CONFLICTO` `PROVEEDOR_CON_ORDENES_ABIERTAS`
+        listándolas y, solo si el proveedor está `ACTIVO`, ofrece la acción
+        `DESACTIVAR_PROVEEDOR` (HDU-004 esc. 12 y 13). El vencimiento de un bloqueo
+        es `409` `CONCURRENCIA`, con `Retry-After`.
       security:
         - sesion: []
           csrf: []
       x-roles: [COMPRAS]
       x-reglas: []
-      x-escenarios: ['HDU-004 esc. 12']
-      x-tickets: [TKT-029]
+      x-escenarios: ['HDU-004 esc. 12', 'HDU-004 esc. 13']
+      x-tickets: [TKT-029b]
       requestBody:
         $ref: '#/components/requestBodies/MotivoObligatorio'
       responses:
@@ -2374,7 +2377,15 @@ paths:
         '404':
           $ref: '#/components/responses/NoEncontrado'
         '409':
-          description: Tiene órdenes abiertas o parciales.
+          description: >-
+            Tiene órdenes abiertas o parciales (`PROVEEDOR_CON_ORDENES_ABIERTAS`), ya
+            está en `BAJA` (`ESTADO_NO_PERMITE_OPERACION`) o venció un bloqueo
+            (`CONCURRENCIA`, con `Retry-After`).
+          headers:
+            X-Correlacion-Id:
+              $ref: '#/components/headers/XCorrelacionId'
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
           content:
             application/json:
               schema:
@@ -2388,6 +2399,9 @@ paths:
                     - id: 5c4b3a29-1807-4f6e-9d5c-4b3a29180716
                       folio: OC-AP05825-0017
                       estado: PARCIAL
+                    - id: 8e1f2a3b-4c5d-4e6f-8a7b-9c0d1e2f3a4b
+                      folio: OC-AP05825-0021
+                      estado: ABIERTA
                 acciones:
                   - clave: DESACTIVAR_PROVEEDOR
                     metodo: POST
@@ -2404,7 +2418,8 @@ paths:
       operationId: desactivar_proveedor
       summary: Retira al proveedor del selector de órdenes nuevas
       description: >-
-        **Se admite siempre**, tenga o no órdenes pendientes: pasa
+        Se admite tenga o no órdenes pendientes, siempre que el proveedor esté
+        `ACTIVO`: pasa
         `proveedor.estado` a `DESACTIVADO` con motivo y lo asienta en la bitácora
         como `DESACTIVAR`. El proveedor deja de aparecer en el selector de órdenes
         nuevas; sus órdenes `ABIERTA` o `PARCIAL` se siguen recibiendo y todo su

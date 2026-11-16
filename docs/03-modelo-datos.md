@@ -920,7 +920,7 @@ erDiagram
 
 **`orden_compra.proveedor_id` existe desde el MVP** aunque el módulo completo sea v1.1: la orden de compra necesita saber a quién se le pide desde el primer día. En MVP el proveedor es un catálogo mínimo (nombre y RFC); las funcionalidades de anticipos y consignación llegan después. La columna de la orden **no lleva clave foránea** ([§5](#5-compras)): la valida el puerto `CatalogoProveedores`, que `proveedores` implementa respondiendo si el proveedor existe y si está `ACTIVO`.
 
-**`UNIQUE (rfc)`** (invariante 28) detiene en el motor el proveedor duplicado de [HDU-004](04-historias-usuario.md#hdu-004--proveedores-y-emisión-de-órdenes-de-compra). **`estado` distingue dos salidas que no son la misma.** `DESACTIVADO` se admite siempre: el proveedor deja de ofrecerse en el selector y en la emisión, y sus órdenes vivas siguen recibiendo material. `BAJA` es la baja lógica definitiva y se rechaza con `409` `CONFLICTO` `PROVEEDOR_CON_ORDENES_ABIERTAS` mientras tenga órdenes `ABIERTA` o `PARCIAL`, ofreciendo desactivar. Ninguna de las dos borra la fila ni su historial.
+**`UNIQUE (rfc)`** (invariante 28) detiene en el motor el proveedor duplicado de [HDU-004](04-historias-usuario.md#hdu-004--proveedores-y-emisión-de-órdenes-de-compra). **`estado` distingue dos salidas que no son la misma.** `DESACTIVADO` se admite, tenga o no órdenes pendientes, siempre que el proveedor esté `ACTIVO`: el proveedor deja de ofrecerse en el selector y en la emisión, y sus órdenes vivas siguen recibiendo material. `BAJA` es la baja lógica definitiva y es terminal. Se rechaza con `409` `CONFLICTO` `PROVEEDOR_CON_ORDENES_ABIERTAS` mientras el proveedor tenga órdenes `ABIERTA` o `PARCIAL`, ofreciendo desactivar, y con `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION` si ya está en `BAJA`. Ninguna de las dos borra la fila ni su historial.
 
 **«Nunca se borra» lo hace cumplir el motor** (TKT-029a): la migración `0013` concede al rol de aplicación `SELECT`, `INSERT` y `UPDATE` sobre `proveedor` y le revoca `DELETE`, que los privilegios por omisión de `0001` concederían a toda tabla nueva. La tabla guarda además `creado_en` y `creado_por_id` (clave foránea a `usuario`, `ON DELETE RESTRICT`), y tres restricciones de valor: estado en el conjunto cerrado, tope de consignación no negativo y días de la semana entre 1 y 7.
 
@@ -1009,7 +1009,9 @@ La tabla se protege a nivel de motor: el rol de aplicación tiene permiso de `IN
 
 **`bitacora.obra_id` es un identificador lógico, sin clave foránea.** `auditoria` es transversal y no depende de nadie ([arquitectura §5](02-arquitectura.md#5-contextos-delimitados)); una clave hacia `obra` la haría depender de `presupuesto`. La obra la copia el caso de uso que asienta, igual que `entidad_tipo` + `entidad_id`.
 
-**El enum `accion` es cerrado y es el mismo que el borrador de la API declara en `AccionBitacora`.** Veintidós verbos: `CREAR`, `ACTUALIZAR`, `EVALUAR`, `BLOQUEAR`, `AUTORIZAR`, `RECHAZAR`, `CANCELAR`, `EMITIR`, `AJUSTAR`, `REPROGRAMAR`, `CONGELAR`, `RECAPTURAR`, `DESCARTAR`, `CONFIRMAR`, `ANULAR`, `SUSPENDER`, `REACTIVAR`, `CERRAR`, `DESACTIVAR`, `LIBERAR`, `VALIDAR` y `DENEGAR`. Un verbo nuevo es una migración del enum y un cambio del borrador en el mismo PR.
+**El enum `accion` es cerrado y es el mismo que el borrador de la API declara en `AccionBitacora`.** Veintitrés verbos: `CREAR`, `ACTUALIZAR`, `EVALUAR`, `BLOQUEAR`, `AUTORIZAR`, `RECHAZAR`, `CANCELAR`, `EMITIR`, `AJUSTAR`, `REPROGRAMAR`, `CONGELAR`, `RECAPTURAR`, `DESCARTAR`, `CONFIRMAR`, `ANULAR`, `SUSPENDER`, `REACTIVAR`, `CERRAR`, `DESACTIVAR`, `LIBERAR`, `VALIDAR`, `DENEGAR` y `DAR_BAJA`. Un verbo nuevo es una migración del enum y un cambio del borrador en el mismo PR.
+
+El verbo entra con `ALTER TYPE … ADD VALUE`, sin `BEFORE` ni `AFTER`, así que queda al final de la lista. PostgreSQL no deja usar un valor nuevo de un `ENUM` hasta confirmar la transacción que lo añadió, y las migraciones de este proyecto corren todas en una sola transacción: ninguna migración posterior puede usar el verbo en el mismo `upgrade head`. PostgreSQL tampoco sabe quitar un valor de un `ENUM`. Por eso la bajada de la migración `0016` recrea el tipo, y antes se niega si la bitácora tiene asientos `DAR_BAJA`, porque la bitácora es permanente (RN-04). Sin asientos con el verbo, la bajada no pierde nada.
 
 **Un `403` se asienta como `DENEGAR`, en una transacción propia.** Es la única escritura en la bitácora que no acompaña a un cambio —no hay cambio que acompañar—, así que no puede ir "en la misma transacción". Siempre lleva usuario autenticado: `usuario_id` sigue siendo `NOT NULL`. Las denegaciones **anónimas** —una prueba de origen CSRF ausente, unas credenciales erróneas al iniciar sesión— no tienen a quién atribuirse y no van a la bitácora: van a `intento_acceso` y al registro técnico. Un `403` sin recurso se atribuye a quien se le denegó: `entidad_tipo = 'usuario'` y `entidad_id = usuario_id`. Ni el identificador de la sesión —es la credencial de la cookie, y el rol de lectura lee la bitácora— ni la correlación de la petición —va al registro técnico ([API §2.7](07-especificacion-api.md#27-correlación))— entran en el asiento (TKT-007).
 
@@ -1288,9 +1290,33 @@ stateDiagram-v2
 
 **`CANCELADA` es el único estado que se guarda**, en `orden_compra.cancelada_en` ([§5](#5-compras)). `ABIERTA`, `PARCIAL` y `CERRADA` se derivan de las cantidades de sus renglones ([§1](#1-principios-de-modelado)); el diagrama los dibuja porque describe el ciclo de vida, no porque haya una columna para cada uno.
 
+**Derivación del estado.** Una orden con `cancelada_en` con valor es `CANCELADA`, sean cuales sean sus renglones. Una orden viva es `CERRADA` si ninguno de sus renglones tiene saldo, es decir, si ninguno tiene `cantidad_recibida` menor que `cantidad_ordenada`. Si algún renglón tiene saldo, la orden es `PARCIAL` cuando algún renglón tiene `cantidad_recibida` mayor que cero, y `ABIERTA` cuando ninguno la tiene. Un renglón que recibió más de lo ordenado, por un excedente autorizado, no tiene saldo: cuenta como completo.
+
+**Una orden viva sin renglones es `CERRADA` (asumido).** El esquema la admite, porque ninguna restricción lo impide, pero no tiene material por recibir y por eso no es pendiente. La emisión de TKT-030 siempre crea renglones.
+
 **Una orden solo llega a `CERRADA` cuando se entrega completa** (PA-07). No existe transición de cierre con saldo: si el proveedor no entrega, el faltante se reprograma y la orden permanece en `PARCIAL` indefinidamente. Cancelar solo es posible mientras no haya ninguna recepción.
 
 **Una recepción con excedente autorizado también cierra** (`RN-07`, `PA-16`): el renglón recibe su saldo y el excedente que Dirección General autorizó, queda cubierto, y la orden pasa a `CERRADA` si ningún otro renglón conserva saldo; si lo conserva, sigue en `PARCIAL`. No es un cierre con saldo: es una entrega completa que trajo de más. **Una orden `CERRADA` no admite corrección de sus entradas** (`PA-17`, resuelta el 2026-10-17): bajar lo recibido le devolvería saldo y la reabriría, así que se rechaza con `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION` y no existe transición de `CERRADA` a `PARCIAL`.
+
+### Proveedor
+
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVO
+    ACTIVO --> DESACTIVADO: desactivación con motivo
+    ACTIVO --> BAJA: baja con motivo, sin órdenes ABIERTA ni PARCIAL
+    DESACTIVADO --> BAJA: baja con motivo, sin órdenes ABIERTA ni PARCIAL
+    BAJA --> [*]
+```
+
+El alta deja al proveedor `ACTIVO`. Cada transición se pide con su motivo y deja su asiento en la bitácora, en la misma transacción.
+
+- `ACTIVO --> DESACTIVADO`: la desactivación se admite, tenga o no órdenes pendientes; el proveedor sale del selector de órdenes nuevas y sus órdenes vivas siguen recibiendo material.
+- `ACTIVO --> BAJA`: la baja se admite solo si el proveedor no tiene órdenes `ABIERTA` ni `PARCIAL`; si las tiene, se rechaza con `409` `PROVEEDOR_CON_ORDENES_ABIERTAS` y se ofrece desactivar.
+- `DESACTIVADO --> BAJA`: la misma regla de órdenes pendientes; el rechazo ya no ofrece desactivar, porque el proveedor ya está desactivado.
+- `BAJA --> [*]`: `BAJA` es terminal y no hay reactivación. Desde `BAJA` ni la baja ni la desactivación proceden, y responden `409` `ESTADO_NO_PERMITE_OPERACION`.
+
+**`BAJA` no libera el RFC.** El proveedor conserva su RFC, y `UNIQUE (rfc)` (invariante 28) sigue impidiendo un alta nueva con el mismo valor. Quien vuelva a trabajar con un proveedor dado de baja no puede darlo de alta otra vez; reactivarlo o liberar su RFC es una decisión de negocio que este diagrama no toma y que queda abierta en `PA-24` (la baja terminal y la conservación del RFC son un supuesto **(asumido)**, a la espera de la respuesta).
 
 ### Avance
 

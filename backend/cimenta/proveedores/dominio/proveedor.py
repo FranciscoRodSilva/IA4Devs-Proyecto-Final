@@ -1,7 +1,8 @@
 """Reglas puras del proveedor (TKT-029a, fila A1). Sin efectos secundarios.
 
 Implementa RN-17 (días de corte y de pago por omisión), CA-9 (solo un proveedor ACTIVO admite la
-desactivación) y la normalización del RFC aprobada como D-1 del diseño.
+desactivación) y la normalización del RFC aprobada como D-1 del diseño. La baja (TKT-029b) añade
+`RechazoBaja` y `rechazo_de_baja`, que decide su rechazo.
 """
 
 from __future__ import annotations
@@ -37,3 +38,26 @@ def admite_desactivacion(estado: EstadoProveedor) -> bool:
     Solo un proveedor ACTIVO puede desactivarse; un DESACTIVADO o un BAJA se rechazan.
     """
     return estado is EstadoProveedor.ACTIVO
+
+
+class RechazoBaja(StrEnum):
+    """Por qué un proveedor no admite la baja.
+
+    `ESTADO_TERMINAL`: ya está en `BAJA`. `ORDENES_PENDIENTES`: hay órdenes `ABIERTA` o `PARCIAL`.
+    """
+
+    ESTADO_TERMINAL = "ESTADO_TERMINAL"
+    ORDENES_PENDIENTES = "ORDENES_PENDIENTES"
+
+
+def rechazo_de_baja(estado: EstadoProveedor, ordenes_pendientes: int) -> RechazoBaja | None:
+    """Implementa CA-1, CA-2, CA-3, CA-4 y CA-7 de TKT-029b. Sin efectos secundarios.
+
+    BAJA es terminal y se evalúa antes que las órdenes pendientes: un proveedor ya dado de baja
+    se rechaza por su estado aunque conserve órdenes abiertas.
+    """
+    if estado is EstadoProveedor.BAJA:
+        return RechazoBaja.ESTADO_TERMINAL
+    if ordenes_pendientes > 0:
+        return RechazoBaja.ORDENES_PENDIENTES
+    return None

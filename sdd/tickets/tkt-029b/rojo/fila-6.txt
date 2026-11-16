@@ -1,0 +1,595 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0 -- D:\Documentos\LIDR\Proyecto Final\backend\.venv\Scripts\python.exe
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collecting ... collected 224 items
+
+tests/test_tkt029b_api_baja.py::test_hdu004_esc13_api_baja_desde_activo_responde_200_en_baja FAILED [  0%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc13_api_baja_desde_desactivado_asienta_el_estado_anterior_real FAILED [  0%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_con_ordenes_pendientes_responde_409_y_ofrece_desactivar FAILED [  1%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_de_desactivado_con_orden_pendiente_responde_409_sin_acciones FAILED [  1%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cerrada] FAILED [  2%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cerrada_con_excedente] FAILED [  2%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cancelada_sin_recibir_nada] FAILED [  3%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[abierta_de_otro_proveedor] FAILED [  3%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[abierta_un_renglon_sin_recibir] FAILED [  4%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[parcial_un_renglon_completo_y_otro_con_saldo] FAILED [  4%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_desactivar_con_ordenes_pendientes_procede_y_la_baja_sigue_rechazada FAILED [  4%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_de_un_proveedor_en_baja_es_terminal FAILED [  5%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_ausente] FAILED [  5%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_en_blanco] FAILED [  6%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_de_2001] FAILED [  6%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[nul_en_motivo] FAILED [  7%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_numero_json] FAILED [  7%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[cuerpo_que_no_es_objeto] FAILED [  8%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_en_el_limite_y_recortado FAILED [  8%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[DIRECCION_GENERAL] FAILED [  8%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[DIRECTOR_PROYECTOS] FAILED [  9%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[RESIDENTE] FAILED [  9%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[ALMACEN] FAILED [ 10%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[ADMINISTRACION] FAILED [ 10%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[ambos_ausentes] FAILED [ 11%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[solo_cookie] FAILED [ 11%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[solo_cabecera] FAILED [ 12%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[distintos] FAILED [ 12%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_el_origen_se_verifica_antes_que_el_rol FAILED [ 12%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_la_ruta_de_baja_es_def_con_sesion_y_origen_primero FAILED [ 13%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_de_un_proveedor_inexistente_o_con_identificador_mal_formado FAILED [ 13%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_con_bloqueo_vencido FAILED [ 14%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_tiempo_de_ejecucion_vencido_es_concurrencia FAILED [ 14%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir FAILED [ 15%]
+tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_nunca_borra_y_el_rfc_de_una_baja_sigue_ocupado FAILED [ 15%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_borrador_declara_la_baja_con_su_ticket_sus_respuestas_y_su_409_completo FAILED [ 16%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_borrador_la_desactivacion_ya_no_se_admite_siempre FAILED [ 16%]
+tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_publicada_igual_al_borrador FAILED [ 16%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_alta_responde_201 PASSED [ 17%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc03_api_rfc_duplicado PASSED [ 17%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nombre_ausente] PASSED [ 18%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nombre_vacio] PASSED [ 18%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nombre_en_blanco] PASSED [ 19%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nul_en_nombre] PASSED [ 19%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_ausente] PASSED [ 20%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_corto] PASSED [ 20%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_largo] PASSED [ 20%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_empieza_con_digito] PASSED [ 21%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_letra_O_en_la_fecha] PASSED [ 21%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_numero_json] PASSED [ 22%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[nul_en_rfc] PASSED [ 22%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_salto_de_linea_final] PASSED [ 23%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_digito_arabigo_indico] PASSED [ 23%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_eszett_se_expande] PASSED [ 24%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_i_sin_punto] PASSED [ 24%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[rfc_s_larga] PASSED [ 25%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_cero] PASSED [ 25%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_ocho] PASSED [ 25%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_cero] PASSED [ 26%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_ocho] PASSED [ 26%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_cadena] PASSED [ 27%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_cadena] PASSED [ 27%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_decimal] PASSED [ 28%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_decimal] PASSED [ 28%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_corte_booleano] PASSED [ 29%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[dia_pago_booleano] PASSED [ 29%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_negativo] PASSED [ 29%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_cinco_decimales] PASSED [ 30%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_numero_json] PASSED [ 30%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_exponente] PASSED [ 31%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_digito_arabigo_indico] PASSED [ 31%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_salto_de_linea_final] PASSED [ 32%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_forma_invalida[tope_quince_enteros] PASSED [ 32%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tope_del_nombre PASSED [ 33%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_rfc_con_enie_minuscula_se_normaliza_a_mayuscula PASSED [ 33%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECCION_GENERAL_alta] PASSED [ 33%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECTOR_PROYECTOS_alta] PASSED [ 34%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[RESIDENTE_alta] PASSED [ 34%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[ALMACEN_alta] PASSED [ 35%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[ADMINISTRACION_alta] PASSED [ 35%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECTOR_PROYECTOS_cambio] PASSED [ 36%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_permiso[DIRECTOR_PROYECTOS_desactivacion] PASSED [ 36%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[ambos_ausentes-alta] PASSED [ 37%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[ambos_ausentes-cambio] PASSED [ 37%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[ambos_ausentes-desactivacion] PASSED [ 37%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cookie-alta] PASSED [ 38%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cookie-cambio] PASSED [ 38%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cookie-desactivacion] PASSED [ 39%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cabecera-alta] PASSED [ 39%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cabecera-cambio] PASSED [ 40%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[solo_cabecera-desactivacion] PASSED [ 40%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[distintos-alta] PASSED [ 41%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[distintos-cambio] PASSED [ 41%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_mutaciones_sin_sesion_y_sin_csrf[distintos-desactivacion] PASSED [ 41%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_el_origen_se_verifica_antes_que_el_rol[alta] PASSED [ 42%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_el_origen_se_verifica_antes_que_el_rol[cambio] PASSED [ 42%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_el_origen_se_verifica_antes_que_el_rol[desactivacion] PASSED [ 43%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc02_api_lista_por_omision_solo_activos PASSED [ 43%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_lista_filtro_y_busqueda PASSED [ 44%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[estado_otro] PASSED [ 44%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[pagina_cero] PASSED [ 45%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[tamano_cero] PASSED [ 45%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[tamano_sobre_200] PASSED [ 45%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[q_con_nul] PASSED [ 46%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_parametros_invalidos[q_de_201] PASSED [ 46%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_pagina_inalcanzable[1000] PASSED [ 47%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_lista_pagina_inalcanzable[1000000000000000000000000000000] PASSED [ 47%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_obtener_proveedor PASSED [ 48%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_proveedor PASSED [ 48%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[cuerpo_vacio] PASSED [ 49%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[solo_campos_desconocidos] PASSED [ 49%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_cero] PASSED [ 50%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_ocho] PASSED [ 50%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_pago_cero] PASSED [ 50%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_pago_ocho] PASSED [ 51%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_cadena] PASSED [ 51%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_corte_nulo] PASSED [ 52%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[dia_pago_nulo] PASSED [ 52%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[tope_negativo] PASSED [ 53%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nombre_vacio] PASSED [ 53%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nombre_nulo] PASSED [ 54%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nul_en_nombre] PASSED [ 54%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_cuerpo_invalido[nombre_de_201] PASSED [ 54%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_inexistente PASSED [ 55%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar PASSED [ 55%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[motivo_ausente] PASSED [ 56%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[motivo_en_blanco] PASSED [ 56%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[motivo_de_2001] PASSED [ 57%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_sin_motivo[nul_en_motivo] PASSED [ 57%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_un_desactivado_o_inexistente PASSED [ 58%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_actualizar_con_bloqueo_vencido PASSED [ 58%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc12_api_desactivar_con_bloqueo_vencido PASSED [ 58%]
+tests/test_tkt029a_api_proveedores.py::test_hdu004_esc03_api_alta_con_bloqueo_vencido PASSED [ 59%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[actualizar] PASSED [ 59%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[desactivar] PASSED [ 60%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_tiempo_de_ejecucion_vencido_es_concurrencia[crear] PASSED [ 60%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir[actualizar] PASSED [ 61%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir[desactivar] PASSED [ 61%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir[crear] PASSED [ 62%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores FAILED [ 62%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_las_rutas_de_proveedores_son_def_con_sesion_y_origen_primero PASSED [ 62%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_alta_ignora_campos_extra PASSED [ 63%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[ProveedorNuevo] PASSED [ 63%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[ProveedorCambios] PASSED [ 64%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[Proveedor] PASSED [ 64%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[ListaProveedores] PASSED [ 65%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[EstadoProveedor] PASSED [ 65%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[Motivo] PASSED [ 66%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_forma_publicada_igual_al_borrador[MetaPagina] PASSED [ 66%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_operaciones_publicadas_igual_al_borrador FAILED [ 66%]
+tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_las_copias_se_publican_fusionadas PASSED [ 67%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_cierre_sin_par_valido_es_403_origen_no_verificado[ambos_ausentes] PASSED [ 67%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_cierre_sin_par_valido_es_403_origen_no_verificado[solo_cookie] PASSED [ 68%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_cierre_sin_par_valido_es_403_origen_no_verificado[solo_cabecera] PASSED [ 68%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_cierre_sin_par_valido_es_403_origen_no_verificado[distintos] PASSED [ 69%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_cierre_con_cabecera_no_ascii_es_403_y_no_500 PASSED [ 69%]
+tests/test_tkt057_csrf.py::test_tkt057_ca10_cierre_con_par_valido_se_ejecuta PASSED [ 70%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc1_sin_sesion_ni_token_es_401_y_la_bitacora_sigue_vacia[sin_cookie] PASSED [ 70%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc1_sin_sesion_ni_token_es_401_y_la_bitacora_sigue_vacia[sesion_inexistente] PASSED [ 70%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc2_el_rechazo_con_sesion_se_asienta_como_denegar_de_ana[ambos_ausentes] PASSED [ 71%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc2_el_rechazo_con_sesion_se_asienta_como_denegar_de_ana[solo_cookie] PASSED [ 71%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc2_el_rechazo_con_sesion_se_asienta_como_denegar_de_ana[distintos] PASSED [ 72%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc2_el_denegar_persiste_aunque_la_peticion_deshaga_la_suya PASSED [ 72%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[ambos_none] PASSED [ 73%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[cookie_none] PASSED [ 73%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[cabecera_none] PASSED [ 74%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[ambos_vacios] PASSED [ 74%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[cookie_vacia] PASSED [ 75%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[cabecera_vacia] PASSED [ 75%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[distintos] PASSED [ 75%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[prefijo] PASSED [ 76%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[distinta_capitalizacion] PASSED [ 76%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_rechaza_ausentes_vacios_y_distintos[no_ascii_distintos] PASSED [ 77%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_acepta_dos_valores_iguales[corto] PASSED [ 77%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_acepta_dos_valores_iguales[urlsafe] PASSED [ 78%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_acepta_dos_valores_iguales[no_ascii] PASSED [ 78%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_no_lanza_con_cabecera_no_ascii PASSED [ 79%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_par_csrf_valido_compara_con_compare_digest_en_bytes_utf8 PASSED [ 79%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc3_inicio_sin_token_es_403_y_asienta_el_rechazo_anonimo PASSED [ 79%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc3_inicio_con_correo_inexistente_sin_token_tambien_asienta_el_intento PASSED [ 80%]
+tests/test_tkt057_csrf.py::test_tkt057_ca11_esc3_el_rechazo_de_origen_registra_el_metodo_y_la_ruta_que_recibe PASSED [ 80%]
+tests/test_tkt057_csrf.py::test_tkt057_car8_inicio_con_par_valido_responde_200_y_abre_la_sesion PASSED [ 81%]
+tests/test_tkt057_csrf.py::test_tkt057_car7_inicio_con_par_valido_y_contrasena_erronea_sigue_siendo_401 PASSED [ 81%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_inicio_sin_par_valido_es_403_origen_no_verificado[solo_cookie] PASSED [ 82%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_inicio_sin_par_valido_es_403_origen_no_verificado[solo_cabecera] PASSED [ 82%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_inicio_sin_par_valido_es_403_origen_no_verificado[distintos] PASSED [ 83%]
+tests/test_tkt057_csrf.py::test_tkt057_ca09_inicio_con_cabecera_no_ascii_es_403_y_no_500 PASSED [ 83%]
+tests/test_tkt057_csrf.py::test_tkt057_ca05_esc2_cuerpo_sin_contrasena_es_422_antes_que_el_token[sin_token] PASSED [ 83%]
+tests/test_tkt057_csrf.py::test_tkt057_ca05_esc2_cuerpo_sin_contrasena_es_422_antes_que_el_token[par_distinto] PASSED [ 84%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_openapi_publica_el_esquema_csrf_como_cabecera PASSED [ 84%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_openapi_las_operaciones_que_mutan_exigen_csrf[/api/v1/sesion] PASSED [ 85%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_openapi_las_operaciones_que_mutan_exigen_csrf[/api/v1/sesion/cierre] PASSED [ 85%]
+tests/test_tkt057_csrf.py::test_tkt057_m4_openapi_las_rutas_get_no_exigen_csrf PASSED [ 86%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_openapi_el_cuerpo_de_iniciar_sesion_sigue_siendo_credenciales_inicio PASSED [ 86%]
+tests/test_tkt057_csrf.py::test_tkt057_ca12_esc1_el_inicio_de_sesion_fija_un_token_csrf_nuevo PASSED [ 87%]
+tests/test_tkt057_csrf.py::test_tkt057_ca12_esc1_tras_el_inicio_la_cookie_nueva_con_la_cabecera_vieja_se_rechaza PASSED [ 87%]
+tests/test_tkt057_csrf.py::test_tkt057_ca12_esc1_tras_el_inicio_la_cookie_nueva_con_la_cabecera_nueva_cierra PASSED [ 87%]
+tests/test_tkt057_csrf.py::test_tkt057_ca12_esc2_el_cierre_de_sesion_fija_un_token_csrf_nuevo PASSED [ 88%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_toda_ruta_que_muta_de_la_aplicacion_verifica_el_origen PASSED [ 88%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_cada_ruta_que_muta_rechaza_las_cuatro_combinaciones_con_403 PASSED [ 89%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_que_muta_sin_verificacion_se_detecta_y_se_nombra[DELETE] PASSED [ 89%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_que_muta_sin_verificacion_se_detecta_y_se_nombra[PATCH] PASSED [ 90%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_que_muta_sin_verificacion_se_detecta_y_se_nombra[POST] PASSED [ 90%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_que_muta_sin_verificacion_se_detecta_y_se_nombra[PUT] PASSED [ 91%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_la_sesion_o_el_rol_solos_no_son_verificacion_de_origen[solo_sesion] PASSED [ 91%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_la_sesion_o_el_rol_solos_no_son_verificacion_de_origen[solo_rol] PASSED [ 91%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_con_verificar_origen_no_se_senala[en_el_decorador] PASSED [ 92%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_con_verificar_origen_no_se_senala[en_un_parametro] PASSED [ 92%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_con_verificar_origen_no_se_senala[en_una_sub_dependencia] PASSED [ 93%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_con_verificar_origen_no_se_senala[credenciales_de_inicio] PASSED [ 93%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_las_lecturas_no_se_senalan PASSED [ 94%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_que_ejecuta_sin_par_valido_falla_las_cuatro_combinaciones PASSED [ 94%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_un_403_por_otro_motivo_no_cuenta_como_rechazo_de_origen PASSED [ 95%]
+tests/test_tkt057_csrf.py::test_tkt057_ca18_oraculo_una_ruta_que_muta_sin_entrada_en_el_mapa_falla_y_lo_dice PASSED [ 95%]
+tests/test_tkt057_csrf.py::test_tkt057_car5_las_piezas_nuevas_son_funciones_sincronas_y_estan_en_el_recorrido PASSED [ 95%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_cerrar_sesion_lleva_tkt057_en_x_tickets PASSED [ 96%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_iniciar_sesion_sigue_declarando_tkt057_en_x_tickets PASSED [ 96%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_el_200_de_iniciar_sesion_declara_las_cookies_de_sesion_y_csrf PASSED [ 97%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_el_204_de_cerrar_sesion_declara_las_cookies_de_sesion_y_csrf PASSED [ 97%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_set_cookie_sesion_y_csrf_describe_las_dos_cookies_y_la_rotacion PASSED [ 98%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_el_componente_set_cookie_sesion_ya_no_queda_huerfano PASSED [ 98%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_set_cookie_csrf_sigue_declarado_y_referenciado PASSED [ 99%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_el_esquema_csrf_dice_que_el_token_rota_al_iniciar_y_al_cerrar_sesion PASSED [ 99%]
+tests/test_tkt057_csrf.py::test_tkt057_m8_borrador_demasiados_intentos_cita_cinco_veinte_y_quince_minutos PASSED [100%]
+
+================================== FAILURES ===================================
+________ test_hdu004_esc13_api_baja_desde_activo_responde_200_en_baja _________
+tests\test_tkt029b_api_baja.py:465: in test_hdu004_esc13_api_baja_desde_activo_responde_200_en_baja
+    assert respuesta.status_code == 200, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/f5b9c8e8-c3ad-4a6b-b7f5-6fb0e993d8dd/baja","correlacion_id":"7d143bd4-2580-4f91-893e-ae98ea3849ab"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_hdu004_esc13_api_baja_desde_desactivado_asienta_el_estado_anterior_real _
+tests\test_tkt029b_api_baja.py:524: in test_hdu004_esc13_api_baja_desde_desactivado_asienta_el_estado_anterior_real
+    assert respuesta.status_code == 200, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/aabda175-d501-4e90-8942-9929b06d4f4c/baja","correlacion_id":"a0c80637-a596-4c21-81ba-6c12eaae49dd"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_hdu004_esc12_api_baja_con_ordenes_pendientes_responde_409_y_ofrece_desactivar _
+tests\test_tkt029b_api_baja.py:575: in test_hdu004_esc12_api_baja_con_ordenes_pendientes_responde_409_y_ofrece_desactivar
+    _exigir_ordenes_pendientes(
+tests\test_tkt029b_api_baja.py:403: in _exigir_ordenes_pendientes
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/412f9e09-905a-452f-84c3-ed0dbb9fa93b/baja","correlacion_id":"49923c82-39b6-42a5-8646-11101a048565"}
+_ test_hdu004_esc12_api_baja_de_desactivado_con_orden_pendiente_responde_409_sin_acciones _
+tests\test_tkt029b_api_baja.py:616: in test_hdu004_esc12_api_baja_de_desactivado_con_orden_pendiente_responde_409_sin_acciones
+    _exigir_ordenes_pendientes(
+tests\test_tkt029b_api_baja.py:403: in _exigir_ordenes_pendientes
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/a9c98f59-88d9-4b3a-8f5a-b86fb62579c8/baja","correlacion_id":"5c0ebd15-6c80-47a0-9870-c56019adb1c1"}
+_ test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cerrada] _
+tests\test_tkt029b_api_baja.py:684: in test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir
+    assert respuesta.status_code == 200, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/84aa3198-0bf8-430b-81ba-9a4b9856469f/baja","correlacion_id":"d92c0b7d-3482-430e-9748-c5b3b3628f5c"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cerrada_con_excedente] _
+tests\test_tkt029b_api_baja.py:684: in test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir
+    assert respuesta.status_code == 200, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/975bd7e0-5837-44d7-bb10-819fa1a7e4e7/baja","correlacion_id":"b0aba005-01cb-4dde-8e17-62f42b092eee"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cancelada_sin_recibir_nada] _
+tests\test_tkt029b_api_baja.py:684: in test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir
+    assert respuesta.status_code == 200, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/4cd77b7e-5ad6-494e-888c-086a368ef708/baja","correlacion_id":"bd6d3a27-1014-4178-a668-29d7dd6410d0"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[abierta_de_otro_proveedor] _
+tests\test_tkt029b_api_baja.py:684: in test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir
+    assert respuesta.status_code == 200, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/2fd80339-b002-4029-9291-9e8f28469f99/baja","correlacion_id":"b5fa1430-287c-43dd-bb2b-d4f30bd185b2"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[abierta_un_renglon_sin_recibir] _
+tests\test_tkt029b_api_baja.py:690: in test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir
+    _exigir_ordenes_pendientes(
+tests\test_tkt029b_api_baja.py:403: in _exigir_ordenes_pendientes
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/08c1d2f3-151a-414f-97e1-8123d7d4d2c9/baja","correlacion_id":"5d67b130-8086-438b-9cec-5459ee7c936b"}
+_ test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[parcial_un_renglon_completo_y_otro_con_saldo] _
+tests\test_tkt029b_api_baja.py:690: in test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir
+    _exigir_ordenes_pendientes(
+tests\test_tkt029b_api_baja.py:403: in _exigir_ordenes_pendientes
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/023297f7-6cd5-4e0f-a2e2-01be3921c07d/baja","correlacion_id":"3a34a160-8c1c-451d-8272-4de499d50ab4"}
+_ test_hdu004_esc12_api_desactivar_con_ordenes_pendientes_procede_y_la_baja_sigue_rechazada _
+tests\test_tkt029b_api_baja.py:728: in test_hdu004_esc12_api_desactivar_con_ordenes_pendientes_procede_y_la_baja_sigue_rechazada
+    _exigir_ordenes_pendientes(
+tests\test_tkt029b_api_baja.py:403: in _exigir_ordenes_pendientes
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/fa82460c-3478-4eed-a395-eaead5e3e9fe/baja","correlacion_id":"35eb8e05-84f7-4562-bd69-8f8ea233458e"}
+_______ test_hdu004_esc12_api_baja_de_un_proveedor_en_baja_es_terminal ________
+tests\test_tkt029b_api_baja.py:783: in test_hdu004_esc12_api_baja_de_un_proveedor_en_baja_es_terminal
+    _exigir_estado_terminal(respuesta, mensaje=MENSAJE_YA_DADO_DE_BAJA)
+tests\test_tkt029b_api_baja.py:427: in _exigir_estado_terminal
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/33106316-b555-4148-aed4-11d0deae2a10/baja","correlacion_id":"72ed7f79-a125-4782-a23a-09a67ada0549"}
+_ test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_ausente] _
+tests\test_tkt029b_api_baja.py:828: in test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion
+    _error_de_validacion(respuesta, *esperado)
+tests\test_tkt029b_api_baja.py:338: in _error_de_validacion
+    return exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/b5801a3f-9a7c-4e36-ba0b-a14b1b25a779/baja","correlacion_id":"12f1377b-766a-40fd-baa4-c83291f15d1f"}
+_ test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_en_blanco] _
+tests\test_tkt029b_api_baja.py:828: in test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion
+    _error_de_validacion(respuesta, *esperado)
+tests\test_tkt029b_api_baja.py:338: in _error_de_validacion
+    return exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/21a47555-150f-4267-8f4b-e790512a8b58/baja","correlacion_id":"92224c78-63f4-48e7-b1f5-fa855b246071"}
+_ test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_de_2001] _
+tests\test_tkt029b_api_baja.py:828: in test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion
+    _error_de_validacion(respuesta, *esperado)
+tests\test_tkt029b_api_baja.py:338: in _error_de_validacion
+    return exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/f01eb476-468a-4c99-a990-2f25ea667e59/baja","correlacion_id":"41def38a-cc46-48cb-8d7c-a078571946d1"}
+_ test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[nul_en_motivo] _
+tests\test_tkt029b_api_baja.py:828: in test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion
+    _error_de_validacion(respuesta, *esperado)
+tests\test_tkt029b_api_baja.py:338: in _error_de_validacion
+    return exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/25c2dc62-d5b2-49ca-8b43-2cac475f089c/baja","correlacion_id":"adee2fb3-9bd3-4f4a-820d-4cf5375c2155"}
+_ test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_numero_json] _
+tests\test_tkt029b_api_baja.py:830: in test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion
+    assert respuesta.status_code == 422, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/aa420edc-9c9e-4523-9190-fdebd442dd82/baja","correlacion_id":"a52b140e-6489-4edd-bf80-debae7705459"}
+E   assert 404 == 422
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[cuerpo_que_no_es_objeto] _
+tests\test_tkt029b_api_baja.py:830: in test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion
+    assert respuesta.status_code == 422, respuesta.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/420e6725-2f7a-4708-823e-02ff846414ff/baja","correlacion_id":"7dae5bf8-9d6e-4594-bebd-f90fc0e9c7a0"}
+E   assert 404 == 422
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_________ test_hdu004_esc12_api_baja_motivo_en_el_limite_y_recortado __________
+tests\test_tkt029b_api_baja.py:869: in test_hdu004_esc12_api_baja_motivo_en_el_limite_y_recortado
+    assert en_el_limite.status_code == 200, en_el_limite.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/825afbe8-9c0a-4fa2-b306-dec47b62636b/baja","correlacion_id":"f10b1db6-06a3-4bdf-a7df-49604e7accee"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________ test_tkt029b_api_baja_sin_permiso[DIRECCION_GENERAL] _____________
+tests\test_tkt029b_api_baja.py:902: in test_tkt029b_api_baja_sin_permiso
+    cuerpo_de_error = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/c620cb78-d316-436d-a108-d7f30d1cb2c1/baja","correlacion_id":"6b7edfff-2ef4-43e4-bd8f-0f6518fd403c"}
+____________ test_tkt029b_api_baja_sin_permiso[DIRECTOR_PROYECTOS] ____________
+tests\test_tkt029b_api_baja.py:902: in test_tkt029b_api_baja_sin_permiso
+    cuerpo_de_error = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/11ff9a31-4d71-40ce-a5ff-a1699b5a0992/baja","correlacion_id":"c15eca1b-fd52-4250-909d-22b7dad87faf"}
+________________ test_tkt029b_api_baja_sin_permiso[RESIDENTE] _________________
+tests\test_tkt029b_api_baja.py:902: in test_tkt029b_api_baja_sin_permiso
+    cuerpo_de_error = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/02c3aa12-e924-4a75-afa9-30fd6473dd79/baja","correlacion_id":"d9e274ac-d822-4144-a8d9-9098886da2f7"}
+_________________ test_tkt029b_api_baja_sin_permiso[ALMACEN] __________________
+tests\test_tkt029b_api_baja.py:902: in test_tkt029b_api_baja_sin_permiso
+    cuerpo_de_error = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/50a4200f-ea74-45be-bf85-a56a509b3e9a/baja","correlacion_id":"0ddfbc9c-657f-418f-bf7c-2431f292d4af"}
+______________ test_tkt029b_api_baja_sin_permiso[ADMINISTRACION] ______________
+tests\test_tkt029b_api_baja.py:902: in test_tkt029b_api_baja_sin_permiso
+    cuerpo_de_error = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/5e7a7371-2097-4916-a2a0-282784457af7/baja","correlacion_id":"f8323acf-e1e9-4f3a-a780-136e1b6c15d2"}
+_________ test_tkt029b_api_baja_sin_sesion_y_sin_csrf[ambos_ausentes] _________
+tests\test_tkt029b_api_baja.py:953: in test_tkt029b_api_baja_sin_sesion_y_sin_csrf
+    exigir_error(anonima, estado=401, esperado=_sin_sesion(), esquema="ErrorSesion")
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/409f43c1-c84f-4262-888c-39ca57c96949/baja","correlacion_id":"e47eaf47-e811-4c40-ac48-267ffcd9a88f"}
+__________ test_tkt029b_api_baja_sin_sesion_y_sin_csrf[solo_cookie] ___________
+tests\test_tkt029b_api_baja.py:953: in test_tkt029b_api_baja_sin_sesion_y_sin_csrf
+    exigir_error(anonima, estado=401, esperado=_sin_sesion(), esquema="ErrorSesion")
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/a8525207-c626-4872-9e2e-4afe5fef8ad1/baja","correlacion_id":"0fb95ac5-b5a1-44a3-9981-3d221a95484c"}
+_________ test_tkt029b_api_baja_sin_sesion_y_sin_csrf[solo_cabecera] __________
+tests\test_tkt029b_api_baja.py:953: in test_tkt029b_api_baja_sin_sesion_y_sin_csrf
+    exigir_error(anonima, estado=401, esperado=_sin_sesion(), esquema="ErrorSesion")
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/de270760-2c5d-4f9c-8133-174d29ff2875/baja","correlacion_id":"b79ffadc-d5b1-493a-9c56-33f0c363eaf6"}
+___________ test_tkt029b_api_baja_sin_sesion_y_sin_csrf[distintos] ____________
+tests\test_tkt029b_api_baja.py:953: in test_tkt029b_api_baja_sin_sesion_y_sin_csrf
+    exigir_error(anonima, estado=401, esperado=_sin_sesion(), esquema="ErrorSesion")
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/6feb7356-09d8-4ecc-a774-9c103697d41b/baja","correlacion_id":"cc950ecb-527c-4d83-afd6-a208be79a0a5"}
+________ test_tkt029b_api_baja_el_origen_se_verifica_antes_que_el_rol _________
+tests\test_tkt029b_api_baja.py:1008: in test_tkt029b_api_baja_el_origen_se_verifica_antes_que_el_rol
+    exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/adc217f7-1423-44cd-8efb-a9f29b027c18/baja","correlacion_id":"f5b8fc02-67d5-4f93-804f-5fd9b39d7f7e"}
+_____ test_tkt029b_api_la_ruta_de_baja_es_def_con_sesion_y_origen_primero _____
+tests\test_tkt029b_api_baja.py:1048: in test_tkt029b_api_la_ruta_de_baja_es_def_con_sesion_y_origen_primero
+    assert len(halladas) == 1, f"Debe haber exactamente un POST {camino}; hay {len(halladas)}"
+E   AssertionError: Debe haber exactamente un POST /api/v1/proveedores/{proveedor_id}/baja; hay 0
+E   assert 0 == 1
+E    +  where 0 = len([])
+_ test_tkt029b_api_baja_de_un_proveedor_inexistente_o_con_identificador_mal_formado _
+tests\test_tkt029b_api_baja.py:1084: in test_tkt029b_api_baja_de_un_proveedor_inexistente_o_con_identificador_mal_formado
+    exigir_error(
+herramientas\soporte_tkt017_api.py:176: in exigir_error
+    assert cuerpo == {**esperado, "correlacion_id": respuesta.headers[CABECERA_CORRELACION]}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError
+__________________ test_tkt029b_api_baja_con_bloqueo_vencido __________________
+tests\test_tkt029b_api_baja.py:1198: in test_tkt029b_api_baja_con_bloqueo_vencido
+    _exigir_concurrencia(
+tests\test_tkt029b_api_baja.py:1114: in _exigir_concurrencia
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:173: in exigir_error
+    assert respuesta.status_code == estado, respuesta.text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/a483d438-eca5-4724-8107-e58b1861b11c/baja","correlacion_id":"1d3e1a3f-afc8-4492-aa4b-eb0c00f0fc27"}
+______ test_tkt029b_api_baja_tiempo_de_ejecucion_vencido_es_concurrencia ______
+tests\test_tkt029b_api_baja.py:1241: in test_tkt029b_api_baja_tiempo_de_ejecucion_vencido_es_concurrencia
+    assert sqlstates == ["57014"], "La sentencia debe vencer el tiempo en el motor, no simularse"
+E   AssertionError: La sentencia debe vencer el tiempo en el motor, no simularse
+E   assert [] == ['57014']
+E     
+E     Right contains one more item: '57014'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     '57014',
+E     - ]
+_ test_tkt029b_api_baja_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir __
+tests\test_tkt029b_api_baja.py:1277: in test_tkt029b_api_baja_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir
+    assert sqlstates == ["22012"], "El motor debe responder con un SQLSTATE que no es de tiempo"
+E   AssertionError: El motor debe responder con un SQLSTATE que no es de tiempo
+E   assert [] == ['22012']
+E     
+E     Right contains one more item: '22012'
+E     
+E     Full diff:
+E     + []
+E     - [
+E     -     '22012',
+E     - ]
+__ test_hdu004_esc12_api_baja_nunca_borra_y_el_rfc_de_una_baja_sigue_ocupado __
+tests\test_tkt029b_api_baja.py:1322: in test_hdu004_esc12_api_baja_nunca_borra_y_el_rfc_de_una_baja_sigue_ocupado
+    assert dada_de_baja.status_code == 200, dada_de_baja.text
+E   AssertionError: {"tipo":"NO_ENCONTRADO","mensaje":"La ruta pedida no existe.","recurso":"/api/v1/proveedores/850cf678-af08-4aa7-95d2-ba243878faac/baja","correlacion_id":"932cbd62-36d3-4af7-adec-00ebd2fad26b"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_ test_tkt029b_borrador_declara_la_baja_con_su_ticket_sus_respuestas_y_su_409_completo _
+tests\test_tkt029b_api_baja.py:1369: in test_tkt029b_borrador_declara_la_baja_con_su_ticket_sus_respuestas_y_su_409_completo
+    assert operacion["x-tickets"] == ["TKT-029b"]
+E   AssertionError: assert ['TKT-029'] == ['TKT-029b']
+E     
+E     At index 0 diff: 'TKT-029' != 'TKT-029b'
+E     
+E     Full diff:
+E       [
+E     -     'TKT-029b',
+E     ?             -
+E     +     'TKT-029',
+E       ]
+_______ test_tkt029b_borrador_la_desactivacion_ya_no_se_admite_siempre ________
+tests\test_tkt029b_api_baja.py:1413: in test_tkt029b_borrador_la_desactivacion_ya_no_se_admite_siempre
+    assert "Se admite siempre" not in descripcion
+E   AssertionError: assert 'Se admite siempre' not in '**Se admite..._OPERACION`.'
+E     
+E     'Se admite siempre' is contained here:
+E       **Se admite siempre**, tenga o no órdenes pendientes: pasa `proveedor.estado` a `DESACTIVADO` con motivo y lo asienta en la bitácora como `DESACTIVAR`. El proveedor deja de aparecer en el selector de órdenes nuevas; sus órdenes `ABIERTA` o `PARCIAL` se siguen recibiendo y todo su historial se conserva. Es la salida que ofrece el rechazo de `dar_baja_proveedor` (HDU-004 esc. 12). Sobre un proveedor que no está `ACTIVO` responde `409` `ESTADO_NO_PERMITE_OPERACION`.
+E     ?   +++++++++++++++++
+______________ test_tkt029b_api_baja_publicada_igual_al_borrador ______________
+tests\test_tkt029b_api_baja.py:1430: in test_tkt029b_api_baja_publicada_igual_al_borrador
+    assert ruta in contrato["paths"], "El contrato publicado no trae la ruta de la baja"
+E   AssertionError: El contrato publicado no trae la ruta de la baja
+E   assert '/api/v1/proveedores/{proveedor_id}/baja' in {'/api/v1/sesion/csrf': {'get': {'tags': ['identidad'], 'summary': 'Obtener Token Csrf', 'description': 'M1: emite un token nuevo en cada petición, en cookie legible por JavaScript y en el cuerpo.', 'operationId': 'obtener_token_csrf', ...}}, '/api/v1/sesion': {'get': {'tags': ['identidad'], 'summary': 'Obtener Sesion Actual', 'description': 'M5: la sesión de quien llama, ya validada contra la tabla.', 'operationId': 'obtener_sesion_actual', ...}, 'post': {'tags': ['identidad'], 'summary': 'Iniciar Sesion', 'description': 'M2 · RNF-03 · CA-12: abre una sesión, fija la cookie opaca y rota el token CSRF. Sin `max_age`: la caducidad la decide el servidor.', 'operationId': 'iniciar_sesion', ...}}, '/api/v1/sesion/cierre': {'post': {'tags': ['identidad'], 'summary': 'Cerrar Sesion', 'description': 'M4 · CA-12: revoca la sesión (nunca la borra), expira la cookie y rota el token CSRF. Exige el par CSRF (CA-9).', 'operationId': 'cerrar_sesion', ...}}, '/api/v1/archivos/{archivo_id}': {'get': {'tags': ['archivos'], 'summary': 'Obtener', 'description': 'Metadatos del archivo, sin la clave del objeto.', 'operationId': 'obtener_archivo', ...}}, ...}
+_______ test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores ________
+tests\test_tkt029a_api_proveedores.py:1691: in test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores
+    assert rutas == {
+E   AssertionError: assert {('GET', '/ap...sactivacion')} == {('GET', '/ap...sactivacion')}
+E     
+E     Extra items in the right set:
+E     ('POST', '/api/v1/proveedores/{proveedor_id}/baja')
+E     
+E     Full diff:
+E       {
+E           (...
+E     
+E     ...Full output truncated (24 lines hidden), use '-vv' to show
+__________ test_tkt029a_api_operaciones_publicadas_igual_al_borrador __________
+tests\test_tkt029a_api_proveedores.py:1860: in test_tkt029a_api_operaciones_publicadas_igual_al_borrador
+    assert publicados == OPERACIONES_DE_PROVEEDOR
+E   AssertionError: assert {'actualizar_...er_proveedor'} == {'actualizar_...er_proveedor'}
+E     
+E     Extra items in the right set:
+E     'dar_baja_proveedor'
+E     
+E     Full diff:
+E       {
+E           'actualizar_proveedor',...
+E     
+E     ...Full output truncated (6 lines hidden), use '-vv' to show
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc13_api_baja_desde_activo_responde_200_en_baja
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc13_api_baja_desde_desactivado_asienta_el_estado_anterior_real
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_con_ordenes_pendientes_responde_409_y_ofrece_desactivar
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_de_desactivado_con_orden_pendiente_responde_409_sin_acciones
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cerrada]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cerrada_con_excedente]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[cancelada_sin_recibir_nada]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[abierta_de_otro_proveedor]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[abierta_un_renglon_sin_recibir]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_solo_bloquean_las_ordenes_vivas_con_material_por_recibir[parcial_un_renglon_completo_y_otro_con_saldo]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_desactivar_con_ordenes_pendientes_procede_y_la_baja_sigue_rechazada
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_de_un_proveedor_en_baja_es_terminal
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_ausente]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_en_blanco]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_de_2001]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[nul_en_motivo]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[motivo_numero_json]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_invalido_responde_422_con_el_campo_de_la_desactivacion[cuerpo_que_no_es_objeto]
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_motivo_en_el_limite_y_recortado
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[DIRECCION_GENERAL]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[DIRECTOR_PROYECTOS]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[RESIDENTE]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[ALMACEN]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_permiso[ADMINISTRACION]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[ambos_ausentes]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[solo_cookie]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[solo_cabecera]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_sin_sesion_y_sin_csrf[distintos]
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_el_origen_se_verifica_antes_que_el_rol
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_la_ruta_de_baja_es_def_con_sesion_y_origen_primero
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_de_un_proveedor_inexistente_o_con_identificador_mal_formado
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_con_bloqueo_vencido
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_tiempo_de_ejecucion_vencido_es_concurrencia
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_error_de_base_ajeno_al_tiempo_es_un_500_sin_traducir
+FAILED tests/test_tkt029b_api_baja.py::test_hdu004_esc12_api_baja_nunca_borra_y_el_rfc_de_una_baja_sigue_ocupado
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_borrador_declara_la_baja_con_su_ticket_sus_respuestas_y_su_409_completo
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_borrador_la_desactivacion_ya_no_se_admite_siempre
+FAILED tests/test_tkt029b_api_baja.py::test_tkt029b_api_baja_publicada_igual_al_borrador
+FAILED tests/test_tkt029a_api_proveedores.py::test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores
+FAILED tests/test_tkt029a_api_proveedores.py::test_tkt029a_api_operaciones_publicadas_igual_al_borrador
+================== 40 failed, 184 passed in 66.58s (0:01:06) ==================

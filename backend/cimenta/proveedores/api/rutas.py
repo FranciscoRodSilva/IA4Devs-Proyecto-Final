@@ -2,7 +2,8 @@
 
 La ruta traduce HTTP a una llamada al caso de uso; no decide nada. Los rechazos (RFC duplicado,
 proveedor inexistente, estado que no admite la desactivación) los lanza el caso de uso con las clases
-de `contrato_error` y los serializa el manejador global. No existe ninguna ruta `DELETE` (CA-10).
+de `contrato_error` y los serializa el manejador global. La baja (TKT-029b) es la ruta
+`POST .../baja`, con motivo. No existe ninguna ruta `DELETE` (CA-10).
 """
 
 from __future__ import annotations
@@ -153,6 +154,27 @@ def desactivar_proveedor(
 ) -> Proveedor:
     """CA-9: pasa un proveedor `ACTIVO` a `DESACTIVADO` con motivo y lo devuelve releído."""
     proveedores.desactivar_proveedor(
+        contexto,
+        proveedor_id=proveedor_id,
+        motivo=cuerpo.motivo,
+        usuario_id=usuario.usuario_id,
+    )
+    return Proveedor.desde(proveedores.obtener_proveedor(contexto, proveedor_id))
+
+
+@enrutador.post(
+    "/proveedores/{proveedor_id}/baja",
+    operation_id="dar_baja_proveedor",
+    dependencies=[Depends(verificar_origen), Depends(exigir_rol(*ROLES_GESTION))],
+)
+def dar_baja_proveedor(
+    proveedor_id: uuid.UUID,
+    cuerpo: Motivo,
+    usuario: Annotated[UsuarioAutenticado, Depends(sesion_vigente)],
+    contexto: Annotated[ContextoProveedores, Depends(contexto_de)],
+) -> Proveedor:
+    """CA-1 y CA-2 de TKT-029b: pasa un proveedor `ACTIVO` o `DESACTIVADO` a `BAJA` con motivo y lo devuelve releído."""
+    proveedores.dar_baja_proveedor(
         contexto,
         proveedor_id=proveedor_id,
         motivo=cuerpo.motivo,

@@ -1,0 +1,48 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 3 items
+
+tests\test_tkt029b_dominio_baja.py FFF                                   [100%]
+
+================================== FAILURES ===================================
+_____ test_hdu004_esc12_dominio_baja_sin_ordenes_pendientes_no_se_rechaza _____
+
+    def test_hdu004_esc12_dominio_baja_sin_ordenes_pendientes_no_se_rechaza() -> None:
+        """HDU-004 esc. 12 · CA-1 · CA-2 — un proveedor ACTIVO o DESACTIVADO sin órdenes pendientes
+        admite la baja: `rechazo_de_baja` devuelve None."""
+        modulo = _modulo()
+>       rechazo_de_baja = modulo.rechazo_de_baja
+                          ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.dominio.proveedor' has no attribute 'rechazo_de_baja'
+
+tests\test_tkt029b_dominio_baja.py:28: AttributeError
+______________ test_hdu004_esc12_dominio_baja_es_estado_terminal ______________
+
+    def test_hdu004_esc12_dominio_baja_es_estado_terminal() -> None:
+        """HDU-004 esc. 12 · CA-7 — un proveedor en BAJA se rechaza con ESTADO_TERMINAL, haya o no
+        órdenes pendientes (el estado terminal precede a las órdenes pendientes)."""
+        modulo = _modulo()
+>       rechazo_de_baja = modulo.rechazo_de_baja
+                          ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.dominio.proveedor' has no attribute 'rechazo_de_baja'
+
+tests\test_tkt029b_dominio_baja.py:39: AttributeError
+________ test_hdu004_esc12_dominio_ordenes_pendientes_impiden_la_baja _________
+
+    def test_hdu004_esc12_dominio_ordenes_pendientes_impiden_la_baja() -> None:
+        """HDU-004 esc. 12 · CA-3 · CA-4 — un proveedor ACTIVO o DESACTIVADO con al menos una orden
+        pendiente se rechaza con ORDENES_PENDIENTES, desde la primera orden (borde 1)."""
+        modulo = _modulo()
+>       rechazo_de_baja = modulo.rechazo_de_baja
+                          ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'cimenta.proveedores.dominio.proveedor' has no attribute 'rechazo_de_baja'
+
+tests\test_tkt029b_dominio_baja.py:51: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029b_dominio_baja.py::test_hdu004_esc12_dominio_baja_sin_ordenes_pendientes_no_se_rechaza
+FAILED tests/test_tkt029b_dominio_baja.py::test_hdu004_esc12_dominio_baja_es_estado_terminal
+FAILED tests/test_tkt029b_dominio_baja.py::test_hdu004_esc12_dominio_ordenes_pendientes_impiden_la_baja
+============================== 3 failed in 0.16s ==============================
