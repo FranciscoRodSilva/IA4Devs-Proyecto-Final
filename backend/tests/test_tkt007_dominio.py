@@ -214,7 +214,7 @@ def test_tkt007_ca05_float_y_decimal_rechazados(campo: str, valor: object, ruta:
 
 @pytest.mark.parametrize("verbo", ["BORRAR", "autorizar", "", None, 5], ids=repr)
 def test_tkt007_ca05_verbo_inexistente(verbo: object) -> None:
-    """TC-26 · CA-5 esc. 4 — un verbo fuera de los 22 (o con otra mayúscula) es VALOR_NO_PERMITIDO."""
+    """TC-26 · CA-5 esc. 4 — un verbo fuera de los 23 (o con otra mayúscula) es VALOR_NO_PERMITIDO."""
     from cimenta.auditoria.dominio.asiento import DefectoDeCampo
 
     resultado = _revisar(accion=verbo)
@@ -425,13 +425,13 @@ def test_tkt007_ca05_todos_los_campos_mal_siguen_el_orden_del_diseno() -> None:
 
 
 def test_tkt007_ca01_enum_del_dominio_igual_al_borrador() -> None:
-    """TC-30 · CA-1 esc. 4 — AccionBitacora del dominio tiene los 22 verbos del borrador, en su orden y con name == value."""
+    """TC-30 · CA-1 esc. 4 — AccionBitacora del dominio tiene los 23 verbos del borrador, en su orden y con name == value."""
     from cimenta.auditoria.dominio.asiento import AccionBitacora
 
     documento = yaml.safe_load(BORRADOR.read_text(encoding="utf-8"))
     verbos_del_borrador = documento["components"]["schemas"]["AccionBitacora"]["enum"]
 
-    assert len(verbos_del_borrador) == 22
+    assert len(verbos_del_borrador) == 23
     assert [miembro.value for miembro in AccionBitacora] == verbos_del_borrador
     assert all(miembro.name == miembro.value for miembro in AccionBitacora)
 

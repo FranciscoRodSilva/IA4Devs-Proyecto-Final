@@ -1,0 +1,66 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0 -- D:\Documentos\LIDR\Proyecto Final\backend\.venv\Scripts\python.exe
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collecting ... collected 93 items
+
+tests/test_tkt029b_migracion.py::test_tkt029b_car1_0016_cuelga_de_0015_y_la_cabeza_es_unica FAILED [  1%]
+tests/test_tkt029b_migracion.py::test_tkt029b_car1_ca14_el_tipo_gana_dar_baja_al_final_y_el_rol_de_aplicacion_lo_asienta FAILED [  2%]
+tests/test_tkt029b_migracion.py::test_tkt029b_car1_la_bajada_devuelve_los_22_verbos_y_deja_la_bitacora_como_estaba FAILED [  4%]
+tests/test_tkt029b_migracion.py::test_tkt029b_car1_la_bajada_se_niega_con_asientos_dar_baja FAILED [  5%]
+tests/test_tkt029b_migracion.py::test_tkt029b_car1_sube_baja_y_vuelve_a_subir FAILED [  6%]
+tests/test_tkt029b_migracion.py::test_tkt029b_car1_tras_la_bajada_el_rol_de_aplicacion_conserva_sus_privilegios FAILED [  7%]
+tests/test_tkt007_esquema.py::test_tkt007_ca01_enum_igual_al_borrador FAILED [ 10%]
+tests/test_tkt007_esquema.py::test_tkt007_ca01_la_diferencia_nombra_el_verbo FAILED [ 11%]
+tests/test_tkt007_esquema.py::test_tkt007_ca10_subir_bajar_subir FAILED  [ 31%]
+tests/test_tkt007_dominio.py::test_tkt007_ca01_enum_del_dominio_igual_al_borrador FAILED [ 89%]
+tests/test_tkt007_fronteras.py::test_tkt007_ca08_funciones_desde_la_interfaz FAILED [ 96%]
+
+================================== FAILURES ===================================
+E   AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+    assert '0016' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_migracion.py:99: AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+E   AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+    assert '0016' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_migracion.py:99: AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+E   AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+    assert '0016' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_migracion.py:99: AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+E   AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+    assert '0016' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_migracion.py:99: AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+E   AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+    assert '0016' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_migracion.py:99: AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+E   AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+    assert '0016' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_migracion.py:99: AssertionError: Falta la migración 0016 (v0016_auditoria_verbo_dar_baja.py): Alembic no la conoce (TKT-029b, fila F1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015']
+E   AssertionError: assert 22 == 23
+     +  where 22 = len(['CREAR', 'ACTUALIZAR', 'EVALUAR', 'BLOQUEAR', 'AUTORIZAR', 'RECHAZAR', ...])
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt007_esquema.py:262: AssertionError: assert 22 == 23
+E   AssertionError: assert 22 == 23
+     +  where 22 = len(['CREAR', 'ACTUALIZAR', 'EVALUAR', 'BLOQUEAR', 'AUTORIZAR', 'RECHAZAR', ...])
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt007_esquema.py:268: AssertionError: assert 22 == 23
+E   AssertionError: assert 22 == 23
+     +  where 22 = len((('CREAR',), ('ACTUALIZAR',), ('EVALUAR',), ('BLOQUEAR',), ('AUTORIZAR',), ('RECHAZAR',), ...))
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt007_esquema.py:543: AssertionError: assert 22 == 23
+E   AssertionError: assert 22 == 23
+     +  where 22 = len(['CREAR', 'ACTUALIZAR', 'EVALUAR', 'BLOQUEAR', 'AUTORIZAR', 'RECHAZAR', ...])
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt007_dominio.py:434: AssertionError: assert 22 == 23
+E   AssertionError: assert 22 == 23
+     +  where 22 = len(<enum 'AccionBitacora'>)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt007_fronteras.py:247: AssertionError: assert 22 == 23
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029b_migracion.py::test_tkt029b_car1_0016_cuelga_de_0015_y_la_cabeza_es_unica
+FAILED tests/test_tkt029b_migracion.py::test_tkt029b_car1_ca14_el_tipo_gana_dar_baja_al_final_y_el_rol_de_aplicacion_lo_asienta
+FAILED tests/test_tkt029b_migracion.py::test_tkt029b_car1_la_bajada_devuelve_los_22_verbos_y_deja_la_bitacora_como_estaba
+FAILED tests/test_tkt029b_migracion.py::test_tkt029b_car1_la_bajada_se_niega_con_asientos_dar_baja
+FAILED tests/test_tkt029b_migracion.py::test_tkt029b_car1_sube_baja_y_vuelve_a_subir
+FAILED tests/test_tkt029b_migracion.py::test_tkt029b_car1_tras_la_bajada_el_rol_de_aplicacion_conserva_sus_privilegios
+FAILED tests/test_tkt007_esquema.py::test_tkt007_ca01_enum_igual_al_borrador
+FAILED tests/test_tkt007_esquema.py::test_tkt007_ca01_la_diferencia_nombra_el_verbo
+FAILED tests/test_tkt007_esquema.py::test_tkt007_ca10_subir_bajar_subir - Ass...
+FAILED tests/test_tkt007_dominio.py::test_tkt007_ca01_enum_del_dominio_igual_al_borrador
+FAILED tests/test_tkt007_fronteras.py::test_tkt007_ca08_funciones_desde_la_interfaz
+======================== 11 failed, 82 passed in 8.34s ========================

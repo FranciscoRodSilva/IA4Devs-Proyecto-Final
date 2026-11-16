@@ -5501,7 +5501,7 @@ components:
     # ---------------------------------------------------------------- bitácora
     AccionBitacora:
       type: string
-      enum: [CREAR, ACTUALIZAR, EVALUAR, BLOQUEAR, AUTORIZAR, RECHAZAR, CANCELAR, EMITIR, AJUSTAR, REPROGRAMAR, CONGELAR, RECAPTURAR, DESCARTAR, CONFIRMAR, ANULAR, SUSPENDER, REACTIVAR, CERRAR, DESACTIVAR, LIBERAR, VALIDAR, DENEGAR]
+      enum: [CREAR, ACTUALIZAR, EVALUAR, BLOQUEAR, AUTORIZAR, RECHAZAR, CANCELAR, EMITIR, AJUSTAR, REPROGRAMAR, CONGELAR, RECAPTURAR, DESCARTAR, CONFIRMAR, ANULAR, SUSPENDER, REACTIVAR, CERRAR, DESACTIVAR, LIBERAR, VALIDAR, DENEGAR, DAR_BAJA]
       description: >-
         El mismo enumerado que `bitacora.accion` en el modelo de datos §10.
         `DENEGAR` asienta un `403` de un usuario autenticado, en una transacción

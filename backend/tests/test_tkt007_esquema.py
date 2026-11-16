@@ -259,13 +259,13 @@ def test_tkt007_ca01_enum_igual_al_borrador(base_de_prueba: str, conectar: Conec
 
     assert diferencias_de_verbos(de_la_base, del_borrador) == []
     assert de_la_base == del_borrador
-    assert len(de_la_base) == 22
+    assert len(de_la_base) == 23
 
 
 def test_tkt007_ca01_la_diferencia_nombra_el_verbo() -> None:
     """TC-04 · CA-1 esc. 4 — el oráculo de TC-03 nombra el verbo que difiere (sin base)."""
     borrador = verbos_del_borrador()
-    assert len(borrador) == 22
+    assert len(borrador) == 23
 
     sobrante = diferencias_de_verbos(borrador, [*borrador, "BORRAR"])
     assert len(sobrante) == 1
@@ -540,7 +540,7 @@ def test_tkt007_ca10_subir_bajar_subir(base_vacia: str, migrar: Migrar, conectar
         primera = fotografia_de_bitacora(administrador)
     assert existe_el_tipo == (True,)
     assert {fila[0] for fila in primera[0]} == {nombre for nombre, _, _ in COLUMNAS_ESPERADAS}
-    assert len(primera[4]) == 22
+    assert len(primera[4]) == 23
 
     migrar(base_vacia, REVISION_ANTERIOR, "downgrade")
     with conectar("migracion", base_vacia) as administrador:

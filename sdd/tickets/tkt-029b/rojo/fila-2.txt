@@ -1,0 +1,45 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 11 items
+
+tests\test_tkt029b_dominio_orden.py FFFFFFFFFFF                          [100%]
+
+================================== FAILURES ===================================
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:32: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:39: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:46: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:54: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:61: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:69: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:77: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:84: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:91: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:99: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+E   ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_dominio_orden.py:107: ModuleNotFoundError: No module named 'cimenta.compras.dominio.orden_compra'
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029b_dominio_orden.py::test_hdu004_esc12_tc09_un_renglon_sin_recibir_es_abierta
+FAILED tests/test_tkt029b_dominio_orden.py::test_hdu004_esc12_tc09_dos_renglones_sin_recibir_son_abierta
+FAILED tests/test_tkt029b_dominio_orden.py::test_hdu004_esc12_tc10_renglon_recibido_en_parte_es_parcial
+FAILED tests/test_tkt029b_dominio_orden.py::test_hdu004_esc12_tc10_renglon_completo_y_otro_sin_recibir_es_parcial
+FAILED tests/test_tkt029b_dominio_orden.py::test_hdu004_esc12_tc11_renglon_completo_es_cerrada
+FAILED tests/test_tkt029b_dominio_orden.py::test_hdu004_esc12_tc11_excedente_autorizado_es_cerrada
+FAILED tests/test_tkt029b_dominio_orden.py::test_hdu004_esc12_tc11_renglon_sin_saldo_con_renglon_en_cero_es_cerrada
+FAILED tests/test_tkt029b_dominio_orden.py::test_tkt029b_tc12_secuencia_vacia_es_cerrada
+FAILED tests/test_tkt029b_dominio_orden.py::test_tkt029b_tc13_recibido_igual_a_ordenada_en_otra_escala_es_cerrada
+FAILED tests/test_tkt029b_dominio_orden.py::test_tkt029b_tc13_recibido_a_una_diezmilesima_de_la_ordenada_es_parcial
+FAILED tests/test_tkt029b_dominio_orden.py::test_tkt029b_tc13_esta_pendiente_solo_para_abierta_y_parcial
+============================= 11 failed in 0.04s ==============================
