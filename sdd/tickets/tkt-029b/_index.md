@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN
+ARCHIVADO · las dos entregas se fusionaron juntas en el PR #78. La planificación queda archivada.
 
 ## Ficha
 
@@ -30,6 +30,7 @@ PENDIENTE FUSIÓN
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito el 2026-11-15; aprobado el 2026-11-15 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a y b escritas el 2026-11-15 y el 2026-11-16 |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-16 |
+| PR | [#78](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/78) | `/sdd-completar` | Fusionado el 2026-11-16 |
 
 ## Log de estados
 
@@ -48,6 +49,8 @@ PENDIENTE FUSIÓN
 | 2026-11-16 | `LISTO PARA EJECUTAR · entrega b` | `LISTO PARA PR` | `/sdd-ejecutar` y `/sdd-revisar` | Entrega b (F4 a F7) ejecutada con TDD y revisada: ruta `POST /baja`, caso de uso, regla de dominio, borrador, tipos del cliente y documentación. Suite completa `3654 passed, 26 skipped`; `ruff`, `mypy`, `lint-imports` y `verificar_float` limpios; mutantes `M-1`, `M-2`, `M-3`, `M-9`, `M-10`, `M-12` y `M-13` muertos (`M-9` por TC-30, no por TC-42). `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` y `auditor-docs` `REQUIERE CAMBIOS` en la primera pasada y `APROBADO CON MENORES RESUELTOS SIN REAUDITAR` tras dos ciclos de corrección, con los Menores resueltos por el orquestador con el texto literal del auditor. La persona dueña aprobó añadir el ADR de `D-3` y `PA-24`. `N002` de `auditor-codigo` (renombrar once tests) se rechaza porque el diseño fija `test_tkt029b_…` para esos criterios. Ambas entregas acumuladas en la rama, sin PR todavía |
 
 | 2026-11-16 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | `delta.md` escrito para el ticket entero y observaciones del proceso añadidas a `sdd/_evolucion.md`. La deuda abierta del delta recoge los tickets futuros: reactivación de proveedores (`PA-24`), índice y puerto en TKT-030 y TKT-032. Se abre el único PR del ticket; el número consta en el comentario de registro tras la fusión |
+
+| 2026-11-16 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar TKT-029b` | PR #78 fusionado en `Produccion` (commit `d8cca2a`) con las diez comprobaciones requeridas en verde sobre `2fa09aa`. La planificación queda archivada; el número del PR consta en el comentario de registro |
 
 ## Decisiones registradas
 
