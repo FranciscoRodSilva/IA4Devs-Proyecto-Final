@@ -1,9 +1,10 @@
-"""Casos de uso del catálogo de proveedores (TKT-029a, fila A4): alta, consulta, lista, cambio y desactivación.
+"""Casos de uso del catálogo de proveedores (TKT-029a, fila A4): alta, consulta, lista, cambio, desactivación y baja (TKT-029b).
 
-Orquesta; no decide. La normalización del RFC y la regla de qué estado admite la desactivación viven en
-`dominio/proveedor.py`. Cada caso de uso abre una sola transacción y asienta la bitácora en ella. La
-unicidad del RFC la arbitra `uq_proveedor_rfc`: su `23505` se traduce aquí a `RFC_DUPLICADO`, sin
-comprobación previa, así que cubre también la carrera entre dos altas simultáneas.
+Orquesta; no decide. La normalización del RFC, la regla de qué estado admite la desactivación y la
+que decide la baja (`rechazo_de_baja`) viven en `dominio/proveedor.py`. Cada caso de uso abre una
+sola transacción y asienta la bitácora en ella. La unicidad del RFC la arbitra `uq_proveedor_rfc`:
+su `23505` se traduce aquí a `RFC_DUPLICADO`, sin comprobación previa, así que cubre también la
+carrera entre dos altas simultáneas.
 """
 
 from __future__ import annotations
@@ -12,13 +13,19 @@ import uuid
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, assert_never
 
 from sqlalchemy.exc import DBAPIError
 
 from cimenta.auditoria.interfaz import asentar
+from cimenta.compras.interfaz import OrdenPendiente, ordenes_pendientes_de_proveedor
 from cimenta.proveedores.aplicacion.contexto import ContextoProveedores
-from cimenta.proveedores.dominio.proveedor import EstadoProveedor, admite_desactivacion
+from cimenta.proveedores.dominio.proveedor import (
+    EstadoProveedor,
+    RechazoBaja,
+    admite_desactivacion,
+    rechazo_de_baja,
+)
 from cimenta.proveedores.infraestructura import repositorio_proveedor
 from cimenta.proveedores.infraestructura.repositorio_proveedor import FilaProveedor
 from contrato_error.acciones import Accion
@@ -38,6 +45,7 @@ ROLES_LECTURA = (
 CAMPOS_CAMBIABLES: Final = frozenset({"nombre", "tope_consignacion", "dia_corte", "dia_pago"})
 
 MENSAJE_PROVEEDOR_NO_EXISTE = "El proveedor no existe."
+MENSAJE_YA_DADO_DE_BAJA = "El proveedor ya está dado de baja: su estado es BAJA."
 
 _RESTRICCION_RFC = "uq_proveedor_rfc"
 _SQLSTATE_UNICIDAD = "23505"
@@ -236,6 +244,101 @@ def desactivar_proveedor(
             datos_antes={"estado": EstadoProveedor.ACTIVO.value},
             datos_despues={"estado": EstadoProveedor.DESACTIVADO.value},
         )
+
+
+def dar_baja_proveedor(
+    contexto: ContextoProveedores,
+    *,
+    proveedor_id: uuid.UUID,
+    motivo: str,
+    usuario_id: uuid.UUID,
+) -> None:
+    """Pasa un proveedor `ACTIVO` o `DESACTIVADO` a `BAJA` y asienta `DAR_BAJA` con motivo (CA-1 a CA-4, CA-7, CA-10, CA-11).
+
+    Una sola transacción. El `FOR UPDATE` sobre el proveedor precede a la lectura de sus órdenes
+    pendientes, así que dos bajas simultáneas se serializan y la segunda ve `BAJA` (CA-11). Los rechazos
+    se lanzan dentro de la transacción: se revierte y no queda asiento. La bitácora guarda el estado
+    leído como `datos_antes`, no un literal.
+    """
+    ahora = contexto.reloj()
+    with (
+        _traducir_concurrencia("POST", f"/api/v1/proveedores/{proveedor_id}/baja"),
+        contexto.fabrica_sesiones().begin() as sesion_bd,
+    ):
+        fila = repositorio_proveedor.leer_proveedor(sesion_bd, proveedor_id, para_cambio=True)
+        if fila is None:
+            raise NoEncontrado(recurso="proveedor", mensaje=MENSAJE_PROVEEDOR_NO_EXISTE)
+        estado = EstadoProveedor(fila.estado)
+        pendientes = ordenes_pendientes_de_proveedor(sesion_bd, proveedor_id)
+        rechazo = rechazo_de_baja(estado, len(pendientes))
+        match rechazo:
+            case None:
+                pass
+            case RechazoBaja.ESTADO_TERMINAL:
+                raise ConflictoEstado(
+                    codigo="ESTADO_NO_PERMITE_OPERACION",
+                    mensaje=MENSAJE_YA_DADO_DE_BAJA,
+                    detalle={"estado_actual": fila.estado},
+                    acciones=(),
+                )
+            case RechazoBaja.ORDENES_PENDIENTES:
+                raise _rechazo_ordenes_pendientes(fila, estado, pendientes)
+            case _ as nunca:
+                assert_never(nunca)
+        repositorio_proveedor.actualizar_proveedor(
+            sesion_bd, proveedor_id, {"estado": EstadoProveedor.BAJA.value}
+        )
+        asentar(
+            sesion_bd,
+            accion="DAR_BAJA",
+            entidad_tipo="proveedor",
+            entidad_id=proveedor_id,
+            usuario_id=usuario_id,
+            ocurrido_en=ahora,
+            motivo=motivo,
+            datos_antes={"estado": fila.estado},
+            datos_despues={"estado": EstadoProveedor.BAJA.value},
+        )
+
+
+def _texto_ordenes(n: int) -> str:
+    return "1 orden pendiente" if n == 1 else f"{n} órdenes pendientes"
+
+
+def _rechazo_ordenes_pendientes(
+    fila: FilaProveedor, estado: EstadoProveedor, pendientes: tuple[OrdenPendiente, ...]
+) -> ConflictoEstado:
+    """CA-3 y CA-4: lista las órdenes pendientes y ofrece desactivar solo si el proveedor sigue `ACTIVO`."""
+    texto = _texto_ordenes(len(pendientes))
+    detalle = {
+        "ordenes": [{"id": o.id, "folio": o.folio, "estado": o.estado.value} for o in pendientes]
+    }
+    if admite_desactivacion(estado):
+        return ConflictoEstado(
+            codigo="PROVEEDOR_CON_ORDENES_ABIERTAS",
+            mensaje=(
+                f"{fila.nombre} tiene {texto} de recibir; se puede desactivar para órdenes "
+                "nuevas conservando las existentes."
+            ),
+            detalle=detalle,
+            acciones=(
+                Accion(
+                    "DESACTIVAR_PROVEEDOR",
+                    "POST",
+                    f"/api/v1/proveedores/{fila.id}/desactivacion",
+                    ROLES_GESTION,
+                ),
+            ),
+        )
+    return ConflictoEstado(
+        codigo="PROVEEDOR_CON_ORDENES_ABIERTAS",
+        mensaje=(
+            f"{fila.nombre} tiene {texto} de recibir y ya está desactivado; la baja procede "
+            "cuando esas órdenes se reciban completas o se cancelen."
+        ),
+        detalle=detalle,
+        acciones=(),
+    )
 
 
 @contextmanager

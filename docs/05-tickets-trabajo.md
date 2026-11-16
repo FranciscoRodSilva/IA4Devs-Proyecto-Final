@@ -859,7 +859,7 @@ Historia: [HDU-002](04-historias-usuario.md#hdu-002--requisición-con-control-de
 - [ ] Índices de clave foránea y de consulta de [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo): `(obra_id, tipo_partida_id, estado)` en `requisicion`, uno por cada clave foránea que se filtra de padre a hijo, y `orden_compra_renglon (orden_compra_id)` completo
 - [ ] Privilegios por tabla: `folio_consecutivo` con `SELECT` y `UPDATE`; `reprogramacion_entrega` con `SELECT` e `INSERT`; `orden_compra`, `orden_compra_renglon` y `solicitud_autorizacion` sin `DELETE`. Las requisiciones y sus renglones conservan `DELETE`, y sus disparadores lo limitan a `BORRADOR` (ver TKT-023)
 - [ ] Subida de `dnspython` de 2.9.0 a 2.9.2 en `backend/uv.lock`, sin tocar ninguna otra dependencia. Comprobado el 2026-11-15 con `pip-audit`: con 2.9.2 el filtro sale con 0 y no hace falta la excepción de [CA-13](../sdd/tickets/tkt-019/spec.md)
-- [ ] `orden_compra.proveedor_id` **sin clave foránea**: `proveedor` es de `proveedores`, que depende de `compras`, y la clave invertiría la arista. Lo valida el puerto `CatalogoProveedores` que declara `compras` (TKT-029, TKT-030), y está en la lista cerrada de [modelo de datos §2](03-modelo-datos.md#2-convenciones)
+- [ ] `orden_compra.proveedor_id` **sin clave foránea**: `proveedor` es de `proveedores`, que depende de `compras`, y la clave invertiría la arista. Lo valida el puerto `CatalogoProveedores` que declara `compras` (TKT-030), y está en la lista cerrada de [modelo de datos §2](03-modelo-datos.md#2-convenciones)
 - [ ] `obra_id` y `tipo_partida_id` con restricción `NOT NULL` en `requisicion` — invariante 1 (**PA-01**)
 - [ ] El estado de `requisicion` distingue `RECHAZADA` —decisión de Dirección sobre una excepción— de `CANCELADA` —el solicitante desistió—: mezclarlas contaminaría la consulta de excepciones de `RN-04`
 - [ ] `CHECK (cantidad >= 0)` y `CHECK (costo_unitario >= 0)` en los renglones de orden, y `CHECK (cantidad >= 0)` y `CHECK (costo_unitario_estimado >= 0)` en los de requisición — invariante 8
@@ -1113,9 +1113,8 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 - [ ] Alta con jueves y sábado como corte y pago por defecto (`RN-17`), visible en el selector al guardarse (HDU-004 esc. 2)
 - [ ] RFC duplicado responde `409` `CONFLICTO` `RFC_DUPLICADO` mostrando el proveedor existente y no crea nada; la restricción única lo garantiza aunque la comprobación previa se salte (esc. 3)
 - [ ] `GET /api/v1/proveedores`, `POST /api/v1/proveedores`, `GET /api/v1/proveedores/{proveedor_id}`, `PATCH /api/v1/proveedores/{proveedor_id}` para los datos de catálogo —no para el estado—
-- [ ] **Dos operaciones de estado, y ninguna borra** (HDU-004 esc. 12). `POST /api/v1/proveedores/{proveedor_id}/desactivacion` con motivo **se admite siempre**: pasa a `DESACTIVADO`, deja de aparecer en el selector y en la emisión, conserva todo su historial y sus órdenes `ABIERTA` o `PARCIAL` siguen recibiendo material
+- [ ] **Dos operaciones de estado, y ninguna borra** (HDU-004 esc. 12). `POST /api/v1/proveedores/{proveedor_id}/desactivacion` con motivo **se admite, tenga o no órdenes pendientes, siempre que el proveedor esté `ACTIVO`**: pasa a `DESACTIVADO`, deja de aparecer en el selector y en la emisión, conserva todo su historial y sus órdenes `ABIERTA` o `PARCIAL` siguen recibiendo material
 - [ ] `POST /api/v1/proveedores/{proveedor_id}/baja` es la baja lógica definitiva —`BAJA`—: consulta por la interfaz publicada de `compras` las órdenes `ABIERTA` o `PARCIAL`, y si las hay responde `409` `CONFLICTO` `PROVEEDOR_CON_ORDENES_ABIERTAS` listándolas, con la acción de desactivar. **Nunca hay borrado físico**: no existe `DELETE` sobre proveedores, y un test recorre el enrutador para comprobarlo
-- [ ] El proveedor implementa el puerto `CatalogoProveedores` que `compras` declara, respondiendo si existe y si está `ACTIVO`: uno `DESACTIVADO` o en `BAJA` no admite órdenes nuevas
 - [ ] Altas, cambios, bajas y desactivaciones asentadas en la bitácora
 - [ ] Tests `test_hdu004_esc02_…`, `esc03` y `esc12` en verde. El de la baja usa una orden `PARCIAL` **sembrada con `cantidad_recibida` mayor que cero** por la vía de pruebas —las órdenes reales llegan con TKT-030 y las entradas con TKT-035—, contra PostgreSQL real y no con dobles; el mismo escenario verifica que desactivar ese proveedor sí procede
 
@@ -1126,7 +1125,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 | Ticket | Contenido | Migración | Depende de | Escenarios de HDU-004 |
 |---|---|---|---|---|
 | TKT-029a | Esquema `proveedor` y `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`, `actualizar_proveedor` y `desactivar_proveedor`, solo backend | `0013`, cuelga de `0012` | TKT-003, TKT-005, TKT-006, TKT-007 | 2, 3 y la mitad de desactivación del 12 |
-| TKT-029b | `dar_baja_proveedor` con `PROVEEDOR_CON_ORDENES_ABIERTAS`, su prueba con una orden `PARCIAL` sembrada y el puerto `CatalogoProveedores`. Antes de diseñarla hay que decidir el verbo de bitácora de la baja y la máquina de estados del proveedor | Ninguna prevista | TKT-029a, TKT-019 | 12, completo |
+| TKT-029b | `dar_baja_proveedor` con `PROVEEDOR_CON_ORDENES_ABIERTAS`, su prueba con una orden `PARCIAL` sembrada, y la lectura de órdenes pendientes por la interfaz publicada de `compras`. El puerto `CatalogoProveedores` pasa a TKT-030. El verbo `DAR_BAJA` y la máquina de estados del proveedor los decidió la persona dueña el 2026-11-15 | `0016`, cuelga de `0015` | TKT-029a, TKT-019 | 12 y 13, completo |
 
 La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcilia el boceto de `docs/08-wireframes.md`, hoy en desacuerdo con el borrador sobre la baja.
 
@@ -1153,6 +1152,8 @@ La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcili
 - [ ] Sin proveedor responde `422`; con un proveedor que no está `ACTIVO`, `409` `CONFLICTO` `PROVEEDOR_INACTIVO` **(asumido: el escenario 8 solo nombra la falta de proveedor)**; en ningún caso se crea orden (esc. 8)
 - [ ] **El consumido no cambia al emitir**: el importe deja de contar como requisición viva y pasa a contar como saldo de orden. Un test compara el disponible antes y después, al céntimo ([modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo))
 - [ ] `POST /api/v1/ordenes-compra` con `requisicion_id` y `proveedor_id`; `GET /api/v1/ordenes-compra/{orden_compra_id}`; `GET /api/v1/ordenes-compra?obra_id=…&proveedor_id=…&estado=…`
+- [ ] El proveedor implementa el puerto `CatalogoProveedores` que `compras` declara, respondiendo si existe y si está `ACTIVO`: uno `DESACTIVADO` o en `BAJA` no admite órdenes nuevas. Este puerto lo estrena TKT-030, no TKT-029b, porque su primer consumidor es la emisión
+- [ ] **Should.** La emisión lee el proveedor con `FOR SHARE` en la misma transacción que crea la orden, para que una baja concurrente no deje una orden `ABIERTA` de un proveedor en `BAJA` (TKT-029b, pasada adversarial, objeción 1, [diseño](../sdd/tickets/tkt-029b/design.md))
 - [ ] Tests `test_hdu004_esc04_…` a `test_hdu004_esc08_…` en verde
 
 **Non-goals** — No envía la orden al proveedor por ningún canal. No reparte una requisición entre varios proveedores. No reevalúa `RN-03`: el gasto ya se evaluó al levantar la requisición.
@@ -1193,7 +1194,7 @@ La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcili
 
 - [ ] `GET /api/v1/proveedores/{proveedor_id}/pedidos-por-obra?desde=…&hasta=…&estado=…`: por obra e insumo, cantidad e importe pedidos, más el total del proveedor; los datos los da la interfaz publicada de `compras` (HDU-004 esc. 11)
 - [ ] Se prueba con el caso real del cliente: dos obras, mismo proveedor, mismo insumo —100 tableros para la obra 1 y 50 para la 2— y el desglose no los suma en una sola fila
-- [ ] Interfaz de catálogo con el componente de formulario de TKT-008: el botón `+` abre el alta con el foco en el nombre (esc. 1); RFC duplicado muestra el existente (esc. 3); desactivar se ofrece siempre, y la baja con órdenes pendientes pinta el `409` `PROVEEDOR_CON_ORDENES_ABIERTAS` con sus órdenes y la acción de desactivar tomada del contrato (esc. 12)
+- [ ] Interfaz de catálogo con el componente de formulario de TKT-008: el botón `+` abre el alta con el foco en el nombre (esc. 1); RFC duplicado muestra el existente (esc. 3); desactivar se ofrece solo si el proveedor está `ACTIVO`, y la baja con órdenes pendientes pinta el `409` `PROVEEDOR_CON_ORDENES_ABIERTAS` con sus órdenes y la acción de desactivar tomada del contrato (esc. 12)
 - [ ] Emisión desde la lista de requisiciones `EVALUADA` o `AUTORIZADA`, con selector que solo lista proveedores `ACTIVO`; los `409` de los escenarios 6 y 7 se pintan con la pantalla de bloqueo de TKT-008 y sus acciones
 - [ ] Cancelación con el componente de captura de motivo; el `409` del escenario 10 ofrece la acción de reprogramar del contrato, no un botón cableado
 - [ ] Importes con `decimal.js`

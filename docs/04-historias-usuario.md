@@ -59,7 +59,7 @@ Nueve historias que recorren el ciclo de valor completo: alta de obra → línea
 | HDU-008 | [Avance de destajo medido y validado](#hdu-008--avance-de-destajo-medido-y-validado) | *Should* | C4/C8 | Media-Alta | 12 | 2 |
 | HDU-009 | [Nómina semanal](#hdu-009--nómina-semanal) | *Should* | C5 | Alta | 13 | 2 |
 
-**Total: 79 SP · 164 escenarios, cerca de la mitad de ellos de rechazo, error o borde.**
+**Total: 79 SP · 165 escenarios, cerca de la mitad de ellos de rechazo, error o borde.**
 
 En la columna `Fase`, **1+2** significa que la historia se entrega en la fase 1 y sus escenarios marcados `· fase 2` se aceptan al cerrar la fase 2. HDU-005 reparte así sus 11 SP: 8 en la fase 1 y 3 en la fase 2. HDU-002 no suma puntos por su escenario de fase 2: es un rechazo en el cliente que cae sobre el armazón sin conexión de TKT-063.
 
@@ -924,8 +924,17 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 - **Dado que** un proveedor tiene órdenes en estado "ABIERTA" o "PARCIAL"
 - **Cuando** el usuario intenta darlo de baja
 - **Entonces** el sistema lo rechaza listando las órdenes pendientes
-- **Y** ofrece desactivarlo para nuevas órdenes conservando las existentes
+- **Y** ofrece desactivarlo para nuevas órdenes conservando las existentes, solo si el proveedor está "ACTIVO"
+- **Y** si el proveedor ya está "DESACTIVADO", el rechazo no ofrece desactivarlo, porque ya lo está
 - **Y** un proveedor desactivado deja de aparecer en el selector pero conserva todo su historial.
+
+**Escenario 13: Baja de un proveedor sin órdenes pendientes**
+
+- **Dado que** un proveedor está en estado "ACTIVO" o "DESACTIVADO" y no tiene órdenes en estado "ABIERTA" ni "PARCIAL"
+- **Cuando** el usuario lo da de baja indicando el motivo
+- **Entonces** el proveedor pasa a estado "BAJA" de forma definitiva
+- **Y** deja de aparecer en el catálogo por omisión, pero conserva todo su historial
+- **Y** la bitácora registra la baja con su motivo y el estado anterior del proveedor.
 
 ### Reglas de negocio implicadas
 
@@ -951,7 +960,7 @@ Los escenarios 24 a 26 no aplican ninguna regla de negocio: implementan `RNF-06`
 
 ### Definition of Done — funcionalidad nueva
 
-- [ ] Cubre los 12 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
+- [ ] Cubre los 13 escenarios, **incluidos todos los de rechazo, error y borde**: ninguno es opcional
 - [ ] Al menos un test por escenario
 - [ ] La consulta del escenario 11 se prueba con el caso real: dos obras, mismo proveedor, mismo insumo
 - [ ] PR enlazado al ticket · revisión de al menos un humano

@@ -6,10 +6,11 @@ HTTPS. Las ayudas son solo las de `herramientas.soporte_tkt017_api`, con `borrad
 `ProveedorNuevo.dia_corte` y `dia_pago` usan `allOf: [$ref DiaSemana]`, que `aplanar` no resuelve.
 
 Operaciones del borrador que cubre: `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`,
-`actualizar_proveedor` y `desactivar_proveedor`. `dar_baja_proveedor` es de TKT-029b y **no** se publica
-(`TC-40` lo exige). El catálogo es global, sin obra: no hay caso de «otra obra» (IDOR) en esta fila. La
-concurrencia (`CA-3`, bloqueo de la desactivación) se prueba en los casos de uso (`TC-15`, `TC-20`); el
-vencimiento de `lock_timeout` y de `statement_timeout` (`TC-43`, fila B3) se prueba aquí, por HTTP.
+`actualizar_proveedor` y `desactivar_proveedor`. `dar_baja_proveedor` es de TKT-029b y se publica desde esa
+entrega (`TC-40`, actualizado por `CA-R3` de TKT-029b, lo exige). El catálogo es global, sin obra: no hay
+caso de «otra obra» (IDOR) en esta fila. La concurrencia (`CA-3`, bloqueo de la desactivación) se prueba
+en los casos de uso (`TC-15`, `TC-20`); el vencimiento de `lock_timeout` y de `statement_timeout` (`TC-43`,
+fila B3) se prueba aquí, por HTTP.
 
 Cada rechazo comprueba el contrato de error completo con `exigir_error` (`tipo`, `codigo`, `mensaje` literal,
 `errores` o `detalle`, `acciones`, la correlación de la cabecera y la validez contra el esquema del
@@ -1674,9 +1675,9 @@ def test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores(
 ) -> None:
     """TC-38 · CA-10 esc. 1 — el enrutador de la aplicación no tiene ninguna ruta `DELETE` bajo `/api/v1/proveedores`.
 
-    Control positivo (anti-verde vacío): sí encuentra las cinco rutas de este ticket y ninguna otra, así que
-    la ausencia de `DELETE` no se debe a que el recorrido no vea las rutas de proveedores. `/baja` es de
-    TKT-029b y no existe todavía.
+    Control positivo (anti-verde vacío): sí encuentra las seis rutas del catálogo y ninguna otra, así que
+    la ausencia de `DELETE` no se debe a que el recorrido no vea las rutas de proveedores. La sexta, `/baja`,
+    es de TKT-029b (`CA-R3`: este caso dejó de afirmar que no existe).
     """
     aplicacion = construir_aplicacion(monkeypatch)
 
@@ -1693,6 +1694,7 @@ def test_tkt029a_ca10_no_existe_ninguna_ruta_delete_de_proveedores(
         ("GET", f"{RUTA}/{{proveedor_id}}"),
         ("PATCH", f"{RUTA}/{{proveedor_id}}"),
         ("POST", f"{RUTA}/{{proveedor_id}}/desactivacion"),
+        ("POST", f"{RUTA}/{{proveedor_id}}/baja"),
     }
     assert not [metodo for metodo, _ in rutas if metodo == "DELETE"]
 
@@ -1805,6 +1807,7 @@ OPERACIONES_DE_PROVEEDOR = {
     "obtener_proveedor",
     "actualizar_proveedor",
     "desactivar_proveedor",
+    "dar_baja_proveedor",
 }
 
 
@@ -1840,11 +1843,12 @@ def test_tkt029a_api_forma_publicada_igual_al_borrador(
 def test_tkt029a_api_operaciones_publicadas_igual_al_borrador(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """TC-40 · CA-1 · CA-6 a CA-9 · E-2 · E-3 — los cinco `operationId` están publicados, `dar_baja_proveedor` no, y los parámetros de la lista son los del borrador.
+    """TC-40 · CA-1 · CA-6 a CA-9 · E-2 · E-3 — los seis `operationId` están publicados, `dar_baja_proveedor` incluido, y los parámetros de la lista son los del borrador.
 
     Los parámetros de `listar_proveedores` (`estado`, `q`, `pagina`, `tamano_pagina`) se comparan con
     `parametros_de`, incluido el `default` de `estado` (E-2: `["ACTIVO"]`). La alta publica el `201` y exige
-    `sesion` y `csrf`. `dar_baja_proveedor` y su ruta `/baja` son de TKT-029b y no se publican.
+    `sesion` y `csrf`. `dar_baja_proveedor` y su ruta `/baja` son de TKT-029b y se publican desde esa entrega
+    (`CA-R3`: este caso dejó de afirmar que no existen).
     """
     contrato = contrato_publicado(monkeypatch)
     publicados = {
@@ -1854,7 +1858,7 @@ def test_tkt029a_api_operaciones_publicadas_igual_al_borrador(
         for operacion in operaciones.values()
     }
     assert publicados == OPERACIONES_DE_PROVEEDOR
-    assert f"{RUTA}/{{proveedor_id}}/baja" not in contrato["paths"]
+    assert f"{RUTA}/{{proveedor_id}}/baja" in contrato["paths"]
 
     comparable = borrador_comparable()
     assert parametros_de(contrato, RUTA, "get") == parametros_de(comparable, "/proveedores", "get")

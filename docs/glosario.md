@@ -150,6 +150,14 @@ Pago adelantado antes de recibir material. Se amortiza contra las facturas poste
 
 Cierre semanal de facturas de proveedor. En esta constructora el corte es **jueves** y el pago **sábado**.
 
+### Baja de proveedor
+
+Baja lógica y definitiva de un proveedor: su estado pasa a `BAJA`, que es terminal *(asumido, PA-24)*, y no hay reactivación. **No libera el RFC** *(asumido, PA-24)*: un alta nueva con el mismo RFC sigue rechazándose. Solo procede si el proveedor no tiene órdenes `ABIERTA` ni `PARCIAL`; si las tiene, el sistema responde `409`; solo ofrece desactivarlo si el proveedor está `ACTIVO`. Si ya está `DESACTIVADO`, el `409` no ofrece ninguna acción. Nunca borra la fila ni su historial.
+
+### Desactivación de proveedor
+
+Salida del selector de órdenes nuevas: el proveedor pasa a `DESACTIVADO` y deja de ofrecerse para emitir órdenes. Conserva su historial y sus órdenes `ABIERTA` o `PARCIAL`, que siguen recibiendo material. Solo se admite desde `ACTIVO`, tenga o no órdenes pendientes. Es la salida que el sistema ofrece cuando una baja se rechaza por órdenes pendientes.
+
 ---
 
 ## Subcontratistas y avance

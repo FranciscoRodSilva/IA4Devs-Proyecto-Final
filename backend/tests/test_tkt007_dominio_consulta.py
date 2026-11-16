@@ -182,7 +182,7 @@ def test_tkt007_ca06_rango_invertido_de_instantes() -> None:
 
 
 def test_tkt007_ca06_accion_inexistente() -> None:
-    """TC-48 · CA-6 esc. 5 — un verbo fuera de los 22 es VALOR_NO_PERMITIDO en `accion`, aunque los demás sean válidos."""
+    """TC-48 · CA-6 esc. 5 — un verbo fuera de los 23 es VALOR_NO_PERMITIDO en `accion`, aunque los demás sean válidos."""
     from cimenta.auditoria.dominio.asiento import DefectoDeCampo
 
     esperado = (

@@ -1316,6 +1316,14 @@ CUERPOS_VALIDOS: dict[str, PeticionValida] = {
         {"motivo": "Duplicado en el catálogo 2026-11-10"},
         ruta="/api/v1/proveedores/3f8a2c1e-9b4d-4e7a-8c5f-2d6b1a0e9c3f/desactivacion",
     ),
+    # TKT-029b, fila F6 (D-10 y TC-48 del diseño): ampliación declarada del contrato de este test. La baja es la
+    # cuarta ruta que muta del catálogo de proveedores; mismo criterio que la desactivación: `verificar_origen` va
+    # antes que `exigir_rol` y que cualquier consulta, así que el `403` sale sin tocar la base y el identificador
+    # puede ser cualquiera.
+    "POST /api/v1/proveedores/{proveedor_id}/baja": PeticionValida(
+        {"motivo": "Cerró su negocio 2026-11-15"},
+        ruta="/api/v1/proveedores/3f8a2c1e-9b4d-4e7a-8c5f-2d6b1a0e9c3f/baja",
+    ),
 }
 
 

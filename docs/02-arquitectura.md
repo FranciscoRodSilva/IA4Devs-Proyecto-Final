@@ -232,7 +232,7 @@ El grafo lo resuelve solo. `avance → personal` ya existe, así que si `avance`
 
 `analitica` no reescribe esas CTE: pide las cinco cifras a la interfaz publicada de `compras`, con el rol de solo lectura. La fórmula existe una sola vez, en [modelo de datos §15](03-modelo-datos.md#15-la-consulta-del-semáforo), y el disponible del tablero es por construcción el que aplica la regla.
 
-**`CatalogoProveedores` resuelve el mismo problema en la otra dirección.** La emisión de una orden tiene que comprobar que el proveedor existe y está activo, pero `proveedores → compras` ya existe para la v1.1. `compras` declara el puerto, `proveedores` lo implementa, y `orden_compra.proveedor_id` es un identificador lógico, sin clave foránea ([modelo de datos §2](03-modelo-datos.md#2-convenciones)).
+**`CatalogoProveedores` resuelve el mismo problema en la otra dirección.** La emisión de una orden tiene que comprobar que el proveedor existe y está activo, pero `proveedores → compras` ya existe para la v1.1, y su primer uso real es de lectura: la baja de TKT-029b pide a la interfaz publicada de `compras` las órdenes pendientes del proveedor. `compras` declara el puerto, `proveedores` lo implementa (TKT-030), y `orden_compra.proveedor_id` es un identificador lógico, sin clave foránea ([modelo de datos §2](03-modelo-datos.md#2-convenciones)).
 
 ### El módulo que no existe
 

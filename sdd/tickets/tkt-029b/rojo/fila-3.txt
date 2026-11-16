@@ -1,0 +1,37 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: D:\Documentos\LIDR\Proyecto Final\backend
+configfile: pyproject.toml
+plugins: anyio-4.15.1, platformdirs-4.14.0, cov-7.1.0
+collected 8 items
+
+tests\test_tkt029b_ordenes_pendientes.py FFFFFFFF                        [100%]
+
+================================== FAILURES ===================================
+E   ImportError: cannot import name 'OrdenPendiente' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:180: ImportError: cannot import name 'OrdenPendiente' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+E   ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:243: ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+E   ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:243: ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+E   ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:243: ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+E   ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:264: ImportError: cannot import name 'ordenes_pendientes_de_proveedor' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+E   ImportError: cannot import name 'OrdenPendiente' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:281: ImportError: cannot import name 'OrdenPendiente' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+E   ImportError: cannot import name 'OrdenPendiente' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:308: ImportError: cannot import name 'OrdenPendiente' from 'cimenta.compras.interfaz' (D:\Documentos\LIDR\Proyecto Final\backend\cimenta\compras\interfaz.py)
+E   AssertionError: assert None == ['OrdenPendiente', 'ordenes_pendientes_de_proveedor']
+     +  where None = getattr(<module 'cimenta.compras.interfaz' from 'D:\\Documentos\\LIDR\\Proyecto Final\\backend\\cimenta\\compras\\interfaz.py'>, '__all__', None)
+D:\Documentos\LIDR\Proyecto Final\backend\tests\test_tkt029b_ordenes_pendientes.py:332: AssertionError: assert None == ['OrdenPendiente', 'ordenes_pendientes_de_proveedor']
+=========================== short test summary info ===========================
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_hdu004_esc12_ordenes_pendientes_devuelve_la_parcial_y_la_abierta_por_folio
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_hdu004_esc12_cancelada_cerrada_o_ajena_no_es_pendiente[cancelada_sin_nada_recibido]
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_hdu004_esc12_cancelada_cerrada_o_ajena_no_es_pendiente[cerrada_con_excedente_autorizado]
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_hdu004_esc12_cancelada_cerrada_o_ajena_no_es_pendiente[abierta_de_otro_proveedor]
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_tkt029b_orden_viva_sin_renglones_no_es_pendiente
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_tkt029b_lectura_de_pendientes_corre_en_solo_lectura_y_no_escribe
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_tkt029b_lectura_de_pendientes_usa_la_sesion_recibida
+FAILED tests/test_tkt029b_ordenes_pendientes.py::test_tkt029b_interfaz_de_compras_publica_solo_la_lectura_y_proveedores_no_la_salta
+============================== 8 failed in 3.07s ==============================
