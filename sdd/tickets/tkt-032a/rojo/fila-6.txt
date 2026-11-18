@@ -9,7 +9,7 @@
 > vitest run PantallaProveedores.alta
 
 
- RUN  v5.0.5 C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/5176ed57-21d5-4041-a143-962ff6158fc4/scratchpad/frontend
+ RUN  v5.0.5 <scratchpad>/frontend
 
  ❯ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx (21 tests | 21 failed) 35378ms
    ❯ TKT-032a · TC-F18 · el botón + abre el formulario de alta (CA-2) (2)

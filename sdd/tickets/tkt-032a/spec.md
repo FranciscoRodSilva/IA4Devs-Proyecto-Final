@@ -22,7 +22,7 @@ Historia de referencia: [HDU-004](../../../docs/04-historias-usuario.md#hdu-004-
 |---|---|
 | **Must** | Pantalla «Proveedores» en el menú de Compras: la lista del catálogo con nombre, RFC, estado, día de corte y día de pago, búsqueda por texto, filtro por estado y paginación |
 | **Must** | Alta: el botón `+` abre el formulario con el foco en el nombre (esc. 1); captura nombre, RFC, tope de consignación, día de corte y día de pago, con jueves y sábado por omisión (esc. 2); el proveedor aparece en la lista al guardar |
-| **Must** | RFC duplicado: el `409` `RFC_DUPLICADO` se pinta junto al campo con el proveedor existente y la acción de verlo; no se crea nada (esc. 3) |
+| **Must** | RFC duplicado: el `409` `RFC_DUPLICADO` se pinta junto al campo con el proveedor existente, sin acción de verlo (H-1); no se crea nada (esc. 3) |
 | **Must** | Editar: nombre, tope de consignación, día de corte y día de pago; el RFC se muestra de solo lectura |
 | **Must** | Desactivar con motivo, ofrecido **solo** a un proveedor `ACTIVO` (esc. 12) |
 | **Must** | Dar de baja con motivo, ofrecido a un proveedor `ACTIVO` o `DESACTIVADO` (esc. 13); con órdenes `ABIERTA` o `PARCIAL` el `409` `PROVEEDOR_CON_ORDENES_ABIERTAS` se pinta como bloqueo con la lista de órdenes y la acción de desactivar tomada del contrato (esc. 12) |

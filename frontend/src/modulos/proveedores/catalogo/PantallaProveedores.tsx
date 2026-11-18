@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FormularioCatalogo } from "@/compartido/formularios/FormularioCatalogo";
 import { AvisoErrorLista, EsqueletoLista, SinProveedores } from "./estados-lista";
 import { camposAlta, DIAS, esquemaAlta, VALORES_INICIALES_ALTA } from "./proveedores.formulario";
-import { claves, crearProveedor, proveedoresOptions } from "./proveedores.consultas";
+import { claves, crearProveedor, proveedoresOptions, totalDePaginas } from "./proveedores.consultas";
 
 type Esquemas = components["schemas"];
 type Proveedor = Esquemas["Proveedor"];
@@ -18,7 +18,6 @@ type EstadoProveedor = Esquemas["EstadoProveedor"];
 
 /** Cortesía de navegación: el control real es el 403 del servidor (D-2). */
 const ETIQUETA_ALTA = "Dar de alta un proveedor";
-const TAMANO_PAGINA = 50;
 
 type FiltroEstado = "ACTIVO" | "DESACTIVADO" | "BAJA" | "TODOS";
 const OPCIONES_FILTRO: ReadonlyArray<{ valor: FiltroEstado; etiqueta: string }> = [
@@ -95,7 +94,7 @@ function TablaProveedores({ proveedores, conAcciones }: PropsTabla) {
               <td className="px-3 py-2">
                 <div className="flex flex-wrap gap-2">
                   {accionesDe(proveedor.estado).map((accion) => (
-                    // F6, F7 y F8 conectan cada acción: en F5 los botones solo se pintan.
+                    // F7 conecta «Editar» y F8 «Desactivar» y «Dar de baja»: hasta entonces los botones solo se pintan.
                     <Button
                       key={accion}
                       type="button"
@@ -156,7 +155,7 @@ export function PantallaProveedores() {
 
   // La página pedida salió vacía pero el filtro tiene datos: se pide la última con datos (ajuste durante el render).
   if (lista.data !== undefined && lista.data.elementos.length === 0 && lista.data.paginacion.total > 0) {
-    const ultima = Math.ceil(lista.data.paginacion.total / TAMANO_PAGINA);
+    const ultima = totalDePaginas(lista.data.paginacion.total);
     if (ultima !== pagina) setPagina(ultima);
   }
 
@@ -171,10 +170,11 @@ export function PantallaProveedores() {
     if (lista.isError) return <AvisoErrorLista error={lista.error} alReintentar={() => void lista.refetch()} />;
     const { elementos, paginacion } = lista.data;
     if (elementos.length === 0) {
-      if (paginacion.total > 0) return <EsqueletoLista />;
-      return <SinProveedores invitarAlta={puedeOperar && filtro === "ACTIVO" && q === ""} />;
+      // Solo se espera (esqueleto) cuando ya se pidió otra página; si la última es la actual, no hay nada que esperar.
+      if (paginacion.total > 0 && totalDePaginas(paginacion.total) !== pagina) return <EsqueletoLista />;
+      return <SinProveedores invitarAlta={puedeOperar && filtro === "ACTIVO" && q === "" && paginacion.total === 0} />;
     }
-    const totalPaginas = Math.max(1, Math.ceil(paginacion.total / TAMANO_PAGINA));
+    const totalPaginas = totalDePaginas(paginacion.total);
     return (
       <div className="grid gap-2">
         <TablaProveedores proveedores={elementos} conAcciones={puedeOperar} />

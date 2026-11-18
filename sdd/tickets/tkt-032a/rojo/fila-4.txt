@@ -6,7 +6,7 @@
 > vitest run proveedores
 
 
- RUN  v5.0.5 C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/5176ed57-21d5-4041-a143-962ff6158fc4/scratchpad/frontend
+ RUN  v5.0.5 <scratchpad>/frontend
 
  ❯ |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts (114 tests | 114 failed) 23ms
    ❯ TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) (25)

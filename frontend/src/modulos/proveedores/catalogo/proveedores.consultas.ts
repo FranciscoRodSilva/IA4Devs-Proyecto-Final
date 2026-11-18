@@ -21,7 +21,13 @@ export interface ParametrosLista {
 
 /** Igual que el servidor: sin filtro, la lista trae solo los activos (D-5). */
 const ESTADOS_POR_OMISION: ReadonlyArray<EstadoProveedor> = ["ACTIVO"];
-const TAMANO_PAGINA = 50;
+/** Tamaño de página que pide la lista; la pantalla lo importa para contar las páginas. */
+export const TAMANO_PAGINA = 50;
+
+/** Cuántas páginas hay para `total` filas: al menos una, aunque no haya ninguna. */
+export function totalDePaginas(total: number): number {
+  return Math.max(1, Math.ceil(total / TAMANO_PAGINA));
+}
 
 /**
  * La lista de proveedores. Toda dependencia de la consulta va en la clave: estados, búsqueda, página y tamaño. El

@@ -20,6 +20,8 @@ import {
   darDeBajaProveedor,
   desactivarProveedor,
   proveedoresOptions,
+  TAMANO_PAGINA,
+  totalDePaginas,
 } from "./proveedores.consultas";
 
 // TKT-032a · fila F4 · TC-F07 y TC-F08 (parte de las consultas) · CA-1 · CA-R4. La lista pide siempre el estado
@@ -123,6 +125,14 @@ describe("TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1)", ()
     const url = await pedirLista({ estados: ["ACTIVO"], q: "Aceros del Bajío", pagina: 1 });
 
     expect(url.searchParams.get("q")).toBe("Aceros del Bajío");
+  });
+
+  test("tkt032a_lista · TC-F07 · una búsqueda con espacios en los extremos se envía recortada, y una de solo espacios no envía q", async () => {
+    const recortada = await pedirLista({ estados: ["ACTIVO"], q: "  copanel  ", pagina: 1 });
+    expect(recortada.searchParams.get("q")).toBe("copanel");
+
+    const soloEspacios = await pedirLista({ estados: ["ACTIVO"], q: "   ", pagina: 1 });
+    expect(soloEspacios.searchParams.has("q")).toBe(false);
   });
 
   test("hdu004_esc12 · TC-F07 · «Todos» repite el parámetro con los tres estados, en ese orden", async () => {
@@ -583,5 +593,16 @@ describe("TKT-032a · darDeBajaProveedor · el bloqueo por órdenes pendientes (
       ok: false,
       error: expect.objectContaining({ codigo: "PROVEEDOR_CON_ORDENES_ABIERTAS", detalle: { ordenes: ORDENES }, acciones: [] }),
     });
+  });
+});
+
+describe("TKT-032a · totalDePaginas · el cálculo de la paginación (TC-F13, CA-1)", () => {
+  test("tkt032a_lista · TC-F13 · totalDePaginas cuenta al menos una página y redondea hacia arriba", () => {
+    expect(totalDePaginas(0)).toBe(1);
+    expect(totalDePaginas(1)).toBe(1);
+    expect(totalDePaginas(50)).toBe(1);
+    expect(totalDePaginas(51)).toBe(2);
+    expect(totalDePaginas(120)).toBe(3);
+    expect(TAMANO_PAGINA).toBe(50);
   });
 });

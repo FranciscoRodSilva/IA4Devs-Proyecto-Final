@@ -547,6 +547,32 @@ describe("TKT-032a · TC-F13 · la paginación (CA-1)", () => {
     expect(screen.getByText(/^Página 1 de /)).toBeInTheDocument();
     expect(controles.anterior).toBeDisabled();
   });
+
+  test("tkt032a_lista · TC-F13 · una página vacía con total mayor que cero que ya es la última no deja el esqueleto para siempre", async () => {
+    // 51 proveedores a 50 por página: la última página es la 2. El servidor responde esa página vacía pero con total 51
+    // (la fila se movió entre dos peticiones), así que no hay una página «anterior con datos» a la que saltar: la que se
+    // pidió ya es la última. La pantalla debe acabar el esqueleto y decir que el filtro no trae nada, sin invitar al +.
+    const { usuario } = await abrirPantallaConTabla([ROL_QUE_OPERA], { proveedores: catalogo(51) });
+    expect(screen.getByText("Página 1 de 2")).toBeInTheDocument();
+    servidorPruebas.use(
+      http.get(`${ORIGEN}${RUTA_LISTA}`, ({ request }) => {
+        // Solo la página 2 sale vacía; el resto sigue el doble de la prueba.
+        if (new URL(request.url).searchParams.get("pagina") !== "2") return undefined;
+        return HttpResponse.json({
+          elementos: [],
+          paginacion: { pagina: 2, tamano_pagina: TAMANO_PAGINA, total: 51 },
+        } satisfies Esquemas["ListaProveedores"]);
+      }),
+    );
+
+    await usuario.click(controles.siguiente);
+
+    expect(await screen.findByText(TEXTO_VACIO)).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: ETIQUETA_CARGANDO })).not.toBeInTheDocument();
+    // total > 0: no es «sin proveedores», así que no se invita a dar de alta el primero.
+    expect(screen.queryByText(INVITACION_ALTA)).not.toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
 });
 
 describe("TKT-032a · TC-F14 · el estado se rotula con texto (CA-1, Should)", () => {

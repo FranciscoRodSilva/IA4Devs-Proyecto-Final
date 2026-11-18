@@ -4,7 +4,7 @@
 
 ## Estado
 
-EN REVISIÓN · entrega a (filas F1 a F6 del diseño). Queda pendiente la entrega «b» (F7 a F10), que se ejecuta sobre la misma rama.
+LISTO PARA EJECUTAR · entrega b (filas F7 a F10 del diseño). La entrega a (F1 a F6, sin F3) quedó revisada y acumulada en la rama `tkt-032a-pantalla-proveedores`, sin PR.
 
 ## Ficha
 
@@ -39,6 +39,7 @@ EN REVISIÓN · entrega a (filas F1 a F6 del diseño). Queda pendiente la entreg
 | 2026-11-17 | `SPEC PENDIENTE` | `DISEÑO PENDIENTE REVISIÓN` | `/sdd-disenar` | Design escrito: 10 filas en dos entregas (a: boceto, extensiones compartidas, lista y alta; b: edición, desactivar, baja y bloqueos, contrato y extremo a extremo), solo frontend más un sembrador local en `backend/herramientas/`. Escalera sin objeto en el peldaño 4 sobre un invariante. `revisor-impacto`: sin frontera cruzada y ocho hallazgos incorporados (uno bloqueante: la etiqueta `DESACTIVAR_PROVEEDOR` rompe cuatro líneas de una prueba de TKT-008c, ahora D-10). Pasada adversarial con la skill: siete objeciones. Esperan a la persona dueña: boceto de F1, D-6 a D-10, y para `/sdd-escalar` H-1 (el contrato no trae la acción de ver al proveedor duplicado) y H-2 (el E2E exige un archivo nuevo en `backend/herramientas/`). El gate del estado se leyó como `SPEC LISTA PARA DISEÑO`, no `SPEC PENDIENTE`: mismo significado, el hub lo cambió el definir |
 | 2026-11-17 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | `/sdd-disenar` | La persona dueña aprobó el diseño completo en la conversación principal: todas las recomendaciones del diseño, incluidos H-1 (`CA-3` sin acción de verlo) y H-2 (sembrador local de pruebas); `/sdd-escalar` no hace falta |
 | 2026-11-17 | `LISTO PARA EJECUTAR` | `EN REVISIÓN · entrega a` | `/sdd-ejecutar` | Entrega a (F1 a F6) ejecutada con TDD: F1 boceto 2c, F2 etiquetas, F3 eliminada porque TKT-012b ya trajo `soloLectura`, F4 consultas y esquemas, F5 lista y rutas, F6 alta. Suite del cliente en verde (859 pruebas), mutantes M-1 a M-5 caídos, `auditor-arquitectura` `APROBADO` con tres observaciones. Quedan la entrega b (F7 a F10) y arreglar `frontend/node_modules`, que un `npm ci` fallido dejó incompleto por un servidor de desarrollo abierto |
+| 2026-11-18 | `EN REVISIÓN · entrega a` | `LISTO PARA EJECUTAR · entrega b` | `/sdd-revisar` | Entrega a revisada y acumulada en la rama, sin PR. Suite del cliente en verde (863 pruebas tras el ciclo), lint, typecheck y verificadores de documentos limpios. `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` y `auditor-docs` pidieron cambios (un Mayor cada uno, más Menores) y quedaron `APROBADO` tras un ciclo de corrección. La corrección añadió cuatro pruebas, extrajo `totalDePaginas`, marcó la baja terminal `(asumido, PA-24)` y quitó rutas locales de la evidencia. Siguiente: `/sdd-ejecutar` sobre la entrega b |
 
 ## Decisiones registradas
 

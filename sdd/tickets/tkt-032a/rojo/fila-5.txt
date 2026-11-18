@@ -4,10 +4,10 @@
 
 
 > cimenta-frontend@0.0.0 test
-> vitest run PantallaProveedores --reporter=default --reporter=json --outputFile.json=C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/***/scratchpad/rojo-f5.json
+> vitest run PantallaProveedores --reporter=default --reporter=json --outputFile.json=<scratchpad>/rojo-f5.json
 
 
- RUN  v5.0.5 C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/5176ed57-21d5-4041-a143-962ff6158fc4/scratchpad/frontend
+ RUN  v5.0.5 <scratchpad>/frontend
 
  ✓ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.ruta.test.tsx (9 tests) 680ms
  ❯ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx (44 tests | 44 failed) 71018ms
@@ -945,7 +945,7 @@ Ignored nodes: comments, script, style
    Start at  22:55:08
    Duration  72.97s (tests 95%, environment 2%, import 2%, setup 1%)
 
-JSON report written to C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/5176ed57-21d5-4041-a143-962ff6158fc4/scratchpad/rojo-f5.json
+JSON report written to <scratchpad>/rojo-f5.json
 
 # ---- npm run lint (exit 0) ----
 > cimenta-frontend@0.0.0 lint

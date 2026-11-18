@@ -3,7 +3,7 @@
 > vitest run PantallaBloqueo ConflictoEnLinea FormularioCatalogo CapturaMotivo
 
 
- RUN  v5.0.5 C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/5176ed57-21d5-4041-a143-962ff6158fc4/scratchpad/frontend
+ RUN  v5.0.5 <scratchpad>/frontend
 
  ❯ |cliente| src/compartido/formularios/ConflictoEnLinea.test.tsx (9 tests | 1 failed) 168ms
    ❯ TKT-032a · rechazos del catálogo de proveedores en línea (TC-F01) (1)

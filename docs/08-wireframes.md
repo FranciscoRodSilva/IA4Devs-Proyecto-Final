@@ -403,7 +403,7 @@ La columna, con su encabezado, se dibuja solo si el rol puede operar, no según 
 - *Buscar* filtra por nombre o RFC (`q`) y vuelve a la página 1; el filtro *Estado* también.
 - *Editar* (`ACTIVO` y `DESACTIVADO`) abre el formulario con el RFC de solo lectura; envía solo los campos que cambiaron.
 - *Desactivar* (solo `ACTIVO`) pide el motivo. El proveedor pasa a `DESACTIVADO`: sale del selector de órdenes nuevas, conserva sus órdenes pendientes y su historial, y **no vuelve a activarse** (no existe esa operación; `PA-24`).
-- *Dar de baja* (`ACTIVO` y `DESACTIVADO`) pide el motivo. El proveedor pasa a `BAJA`, que es definitiva y conserva el RFC. Si tiene órdenes `ABIERTA` o `PARCIAL`, el servidor la rechaza y la pantalla muestra el bloqueo.
+- *Dar de baja* (`ACTIVO` y `DESACTIVADO`) pide el motivo. El proveedor pasa a `BAJA`, que es definitiva y conserva el RFC *(asumido, PA-24)*. Si tiene órdenes `ABIERTA` o `PARCIAL`, el servidor la rechaza y la pantalla muestra el bloqueo.
 - *Desactivar el proveedor* del bloqueo existe solo si el servidor la manda en `acciones[]` (proveedor `ACTIVO`) y abre el mismo motivo de desactivar.
 
 **Estados.**
@@ -932,7 +932,7 @@ La columna *Acción* pinta el valor de `accion` tal cual llega, del enum cerrado
 **Acciones.**
 
 - *Requisición*: el selector solo lista requisiciones `EVALUADA` y `AUTORIZADA` sin convertir. Si es `AUTORIZADA`, muestra quién la autorizó y la solicitud que la habilitó, que la orden conserva como referencia (esc. 5).
-- *Proveedor*: solo activos; uno desactivado no aparece pero conserva su historial (HDU-004 esc. 12). El alta, la edición, la desactivación y la baja de proveedores viven en la [pantalla Proveedores](#2c--pantalla-proveedores) y no se dibujan aquí. Son **dos operaciones distintas**, y ninguna borra: `POST /proveedores/{proveedor_id}/desactivacion` pasa el proveedor a `DESACTIVADO` (sale del selector y conserva sus órdenes pendientes) y `POST /proveedores/{proveedor_id}/baja` lo pasa a `BAJA` (definitiva, solo sin órdenes `ABIERTA` ni `PARCIAL`).
+- *Proveedor*: solo activos; uno desactivado no aparece pero conserva su historial (HDU-004 esc. 12). El alta, la edición, la desactivación y la baja de proveedores viven en la [pantalla Proveedores](#2c--pantalla-proveedores) y no se dibujan aquí. Son **dos operaciones distintas**, y ninguna borra: `POST /proveedores/{proveedor_id}/desactivacion` pasa el proveedor a `DESACTIVADO` (sale del selector y conserva sus órdenes pendientes) y `POST /proveedores/{proveedor_id}/baja` lo pasa a `BAJA` (definitiva, solo sin órdenes `ABIERTA` ni `PARCIAL`) *(asumido, PA-24)*.
 - *Fecha comprometida*: obligatoria al emitir, una por orden, que se copia a cada renglón; el borrador OpenAPI admite además una fecha propia por renglón, que el boceto no dibuja. Es la fecha de la que parte la reprogramación de HDU-005 esc. 10.
 - *Emitir* crea la orden en `ABIERTA` con folio único y consecutivo asignado por el servidor —el cliente no lo propone— y la requisición pasa a `CONVERTIDA` (esc. 4). El boceto abrevia los folios (`OC-0137`, `REQ-1042`); el borrador OpenAPI los forma con el código de la obra, como `OC-AP05825-0017`.
 - *Imprimir*: la orden no se envía al proveedor desde el sistema (non-goal de HDU-004); se imprime o se comparte fuera.
@@ -1215,6 +1215,7 @@ Todo lo marcado **(asumido)** arriba, reunido para revisarlo de una vez:
 | 4 | *Guardar topes* envía un `PUT` por fila, y una fila que falla no deshace las demás | TKT-018a |
 | 9 | La captura rechazada por `RN-07` se conserva en el dispositivo hasta reenviarla o descartarla, sin borrador en el servidor | TKT-038 |
 | 10 | El corte entre amarillo y rojo es `obra.umbral_alerta_pct`, sobre la desviación relativa: el cliente dio los tres colores, no el corte ([PRD §10](01-descripcion-producto.md#supuestos-asumidos-sin-bloqueo)) | Dirección General, sin bloqueo |
+| 2c | La baja es terminal y conserva el RFC `(asumido, PA-24)`: el proveedor no vuelve a activarse y su RFC sigue ocupado | Persona dueña del producto, antes de abrir el ticket de reactivación |
 
 `PA-16`, `PA-17` y `PA-18` se respondieron el 2026-10-17 y ya no figuran aquí: autorizar un excedente de recepción habilita reenviar la entrada, que lo suma marcado como excedente (pantallas 7 y 9); una entrada de una orden `CERRADA` no se corrige (pantalla 9); y el semáforo tiene tres colores (pantalla 10).
 

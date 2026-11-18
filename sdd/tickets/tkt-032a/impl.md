@@ -21,6 +21,7 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 | 2026-11-17 | El tope de consignación se rotula «Tope de consignación (opcional)». | El boceto lo dibuja con «opcional» al final. Las pruebas lo buscan con `/^Tope de consignación/`. |
 | 2026-11-17 | Un `alBloqueo` del alta cierra el formulario y pinta un aviso de cabecera con el mensaje y la referencia. | El endpoint `POST /proveedores` no declara ningún `409` de regla ni `CONCURRENCIA`, así que es una rama defensiva. La fila F8 lo sustituye por `PantallaBloqueo`. |
 | 2026-11-17 | El RFC en minúsculas se normaliza a mayúsculas y se acepta. | El servidor hace la misma normalización; la tabla de entradas hostiles del diseño decía «minúsculas» entre lo rechazable y el texto del esquema decía «recortado y en mayúsculas». Se siguió el texto del esquema. |
+| 2026-11-18 | Por el hallazgo F001 de `auditor-docs`, el boceto y la viñeta de la pantalla 8 marcan la baja terminal como supuesto `(asumido, PA-24)`, y se añadió su fila a §13 de `docs/08-wireframes.md`. | La baja definitiva que conserva el RFC no figuraba como supuesto en el wireframe ni en el diseño, y la auditoría de documentación lo pidió. |
 
 ### Archivos tocados
 
@@ -42,7 +43,10 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 | `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx` | nuevo | pruebas |
 | `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.ruta.test.tsx` | nuevo | pruebas |
 | `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx` | nuevo | pruebas |
-| `sdd/tickets/tkt-032a/rojo/fila-2.txt`, `fila-4.txt`, `fila-5.txt`, `fila-6.txt` | nuevo: salida literal de cada rojo | evidencia |
+| `sdd/tickets/tkt-032a/rojo/fila-2.txt`, `fila-4.txt`, `fila-5.txt`, `fila-6.txt` | nuevo: salida literal de cada rojo, con la ruta local sustituida por `<scratchpad>` tras el hallazgo F001 de seguridad | evidencia |
+| `sdd/tickets/tkt-032a/rojo/correccion-1.txt` | nuevo: salida del rojo de las pruebas añadidas en el ciclo de corrección 1 | evidencia |
+| `frontend/src/modulos/proveedores/catalogo/proveedores.consultas.ts` y `PantallaProveedores.tsx` | modificados en el ciclo 1: `TAMANO_PAGINA` y `totalDePaginas` exportados desde la consulta, página vacía que ya es la última sin esqueleto infinito, comentario de F7 y F8 | frontend |
+| `docs/08-wireframes.md`, `sdd/tickets/tkt-032a/design.md` y `spec.md` | modificados en el ciclo 1: la baja terminal se marca `(asumido, PA-24)` y se añade la fila 2c a §13; el *Must* de la spec dice «sin acción de verlo» | documentación |
 
 **Cambio declarado a una prueba existente (D-10).** En `FormularioCatalogo.test.tsx`, el test `tkt008_ca11_esc07 · la baja la rechaza el servidor` busca el botón por la clave cruda `DESACTIVAR_PROVEEDOR` en cuatro líneas (443, 445, 447 y 456) y pasa a buscar «Desactivar el proveedor», porque `etiquetas.ts` ya rotula esa acción. `VER_ORDENES_ABIERTAS` sigue cruda. Es el único cambio a una prueba existente y lo aprobó la persona dueña el 2026-11-17.
 
@@ -72,7 +76,7 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 | F5 | `rojo/fila-5.txt`: 44 failed, 9 passed (regresión), 0 errores | `tester-frontend` · `desarrollador-react` | 53 passed; suite completa 838 passed | Sí, abajo |
 | F6 | `rojo/fila-6.txt`: 21 failed, 0 errores | `tester-frontend` · `desarrollador-react` | 21 passed; suite completa 859 passed (36 archivos) | Sí, abajo |
 
-**Resumen de la salida del verde de cierre de la entrega** (corrida por el orquestador, con Docker respondiendo, sobre la copia sincronizada del repositorio):
+**Resumen de la salida del verde de cierre de la entrega** (corrida del 2026-11-17, con Docker respondiendo, sobre la copia sincronizada del repositorio):
 
 ```text
  Test Files  36 passed (36)
@@ -133,8 +137,11 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 
 | Auditor | Veredicto | Hallazgos | Ciclos |
 |---|---|---|---|
-| `auditor-arquitectura` | `APROBADO` | 0 críticos, 0 mayores, 0 menores y 3 observaciones sin acción | 1 |
+| `auditor-arquitectura` | `APROBADO` (en `/sdd-ejecutar` y de nuevo en `/sdd-revisar`) | 0 críticos, 0 mayores, 0 menores y 3 observaciones sin acción | 1 |
 | `auditor-sql` | No aplica | La entrega no tiene esquema ni migración | — |
+| `auditor-codigo` | `APROBADO` tras el ciclo 1 | Primera pasada: 1 Mayor y 4 Menores; los cinco quedaron `Resuelto` | 2 |
+| `auditor-seguridad` | `APROBADO` | 2 observaciones Baja: la F001 se corrigió en el ciclo 1; la F002 (`maxLength`) no se aplica, porque el control real es el servidor | 1 |
+| `auditor-docs` | `APROBADO` tras el ciclo 1 | Primera pasada: 1 Mayor y 3 Menores; los cuatro quedaron `Resuelto` | 2 |
 
 ### Hallazgos y su resolución
 
@@ -143,6 +150,15 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 | O-1 | `auditor-arquitectura` | Observación | `PantallaProveedores.tsx`, `alAccion` del alta | `alAccion` es una función vacía: hoy `RFC_DUPLICADO` llega sin acciones (H-1). Si un ticket de backend añade `VER_PROVEEDOR`, habrá que revisarlo. | Aceptado: es la decisión H-1 |
 | O-2 | `auditor-arquitectura` | Observación | `PantallaProveedores.tsx`, botones de fila | Los botones Editar, Desactivar y Dar de baja se pintan sin acción hasta la entrega b. No fusionar la entrega a sola. | Aceptado: un solo PR por ticket, se abre al aprobarse la entrega b |
 | O-3 | `auditor-arquitectura` | Observación | `PantallaProveedores.tsx` y `proveedores.consultas.ts` | `TAMANO_PAGINA = 50` está duplicado en dos archivos. | Se resuelve en la entrega b si toca esos archivos; si no, queda anotado |
+| C-F001 | `auditor-codigo` | Mayor | `PantallaProveedores.tsx` y `proveedores.consultas.ts` | `TAMANO_PAGINA` duplicado y cálculo de páginas repetido (incluye la O-3 de arquitectura) | Resuelto: constante y `totalDePaginas` en la consulta |
+| C-F002 | `auditor-codigo` | Menor | `PantallaProveedores.tsx` | Esqueleto infinito con página vacía, `total` mayor que cero y última página igual a la actual | Resuelto, con prueba nueva en rojo antes del código |
+| C-F003 | `auditor-codigo` | Menor | `PantallaProveedores.tsx` | Rama `alBloqueoAlta` sin prueba | Resuelto con prueba nueva; el mutante ahora cae |
+| C-F004 | `auditor-codigo` | Menor | `proveedores.consultas.ts` | `.trim()` de `q` sin prueba | Resuelto con prueba nueva; el mutante ahora cae |
+| C-F005 | `auditor-codigo` | Menor | `PantallaProveedores.tsx` | Comentario que citaba filas de trabajo | Resuelto |
+| S-F001 | `auditor-seguridad` | Baja | `rojo/fila-*.txt` | Ruta local con el nombre de usuario en la evidencia | Resuelto: prefijo sustituido por `<scratchpad>` |
+| S-F002 | `auditor-seguridad` | Baja | `PantallaProveedores.tsx` | Búsqueda sin `maxLength` de 200 | Aceptado: cortesía opcional, el servidor responde `422` |
+| D-F001 | `auditor-docs` | Mayor | `docs/08-wireframes.md` | La baja terminal sin `(asumido, PA-24)` | Resuelto, con la fila 2c de §13 |
+| D-F002 a D-F004 | `auditor-docs` | Menor | `spec.md` e `impl.md` | *Must* de la spec contradecía H-1; cifra de CRLF y fecha de la corrida sin copiar de la salida | Resuelto |
 
 ### Qué verificó el auditor (copiado de su informe)
 
@@ -152,7 +168,7 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 - **Fase 2 y backend.** Sin captura sin conexión, evidencia, nómina ni destajo. Sin cambios a `cimenta/`, `migraciones/` ni `docs/api/openapi.yaml`.
 - **Obras y pruebas de TKT-008c.** `PantallaObras.tsx` no figura en el diff. `FormularioCatalogo.test.tsx` cambia exactamente las cuatro líneas de D-10; `PantallaBloqueo.test.tsx` y `ConflictoEnLinea.test.tsx` solo suman líneas.
 - **Secretos, contrato de error y camino no feliz.** Sin secretos; ningún `RN-xx` inventado; rechazos para cada `422`, `RFC_DUPLICADO`, `403`, rol sin sección, sin sesión, y errores de la lista.
-- **Máquina.** Lint y typecheck limpios; 36 archivos y 859 pruebas en verde; `verificar_docs.py` sin problemas y `markdownlint-cli2` con 0 problemas.
+- **Máquina (primera pasada, antes del ciclo 1).** Lint y typecheck limpios; 36 archivos y 859 pruebas en verde; `verificar_docs.py` sin problemas y `markdownlint-cli2` con 0 problemas.
 
 ## Hallazgos fuera de alcance
 
@@ -169,16 +185,39 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 | `docs/08-wireframes.md` | Subsección «2c · Pantalla Proveedores»; viñeta *Proveedor* de la pantalla 8 reconciliada con las dos operaciones; el `403` de la pantalla 6 pasa a ser el mensaje del servidor, sin cifras (D-6). |
 | `sdd/tickets/tkt-032a/design.md` | Fila F3 marcada «Ajustado · eliminada» y tabla de «Ajustes de la ejecución». |
 
-`python tools/verificar_docs.py` → sin problemas una vez existe este archivo; queda el aviso informativo de que 15 archivos tienen CRLF en la copia de trabajo, que Git normaliza.
+`python tools/verificar_docs.py` → sin problemas una vez existe este archivo; queda el aviso informativo de que 16 archivos tienen CRLF en la copia de trabajo y LF en el índice (salida de `verificar_docs.py` del 2026-11-18).
 
 ## Verificación de la entrega
 
 - [x] Criterios `[M]` de la entrega a cumplidos con evidencia (los parciales están señalados)
 - [x] Ciclo TDD por fila: rojo antes de verde, ningún test editado por un desarrollador (el único cambio a una prueba existente es D-10, hecho por el tester)
-- [x] Suite del cliente en verde: 859 pruebas
+- [x] Suite del cliente en verde: 863 pruebas tras el ciclo de corrección 1
 - [x] Al menos un test de rechazo por regla implicada
 - [x] Mutación en rutas de permiso y de estado, con huellas y `git status` idénticos
 - [x] Auditoría de arquitectura `APROBADO`
 - [x] Documentación afectada actualizada en el mismo cambio
 - [x] Lint y typecheck limpios
 - [x] Sin secretos en el diff; rama `tkt-032a-pantalla-proveedores`
+
+## Verificación final · entrega a
+
+Corrida del 2026-11-18 por el orquestador, con Docker respondiendo (`docker info` da 29.9.3), sobre la copia sincronizada de `frontend/` y la raíz del repositorio:
+
+```text
+ Test Files  36 passed (36)
+      Tests  863 passed (863)
+```
+
+`npm run lint` (`eslint .`) y `npm run typecheck` (`tsc --noEmit`) terminan sin salida de error. `python tools/verificar_docs.py` termina con «✓ Sin problemas» y el aviso informativo de CRLF de 16 archivos.
+
+| Criterio | Nivel | Resultado en la entrega a |
+|---|---|---|
+| `CA-1`, `CA-2`, `CA-3`, `CA-4`, `CA-R1` | `[M]` | Cumplido, con la evidencia de «Resultado contra los criterios de aceptación» |
+| `CA-9`, `CA-R4` | `[M]` | Parcial en la entrega a, como se declaró; se completan en la entrega b |
+| `CA-5` a `CA-8`, `CA-10`, `CA-11`, `CA-R2`, `CA-R3` | `[M]` | Pendientes de la entrega b |
+
+**Auditorías.** `auditor-arquitectura` y `auditor-seguridad`: `APROBADO`. `auditor-codigo` y `auditor-docs`: `REQUIERE CAMBIOS` en la primera pasada y `APROBADO` tras un ciclo de corrección, con todos los hallazgos `Resuelto` y ninguno `Nuevo`.
+
+**Desviaciones.** F3 eliminada (TKT-012b ya trajo `soloLectura`); la baja terminal se marca como supuesto `(asumido, PA-24)`. Ninguna cambia el alcance.
+
+**Qué queda pendiente.** La entrega b (F7 a F10) y arreglar `frontend/node_modules`. La entrega a no se fusiona ni se despliega sola: los botones de fila no hacen nada hasta F7 y F8.

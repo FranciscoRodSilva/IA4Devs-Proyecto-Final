@@ -3,7 +3,15 @@ import { http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { components as Servidor } from "@/api/generado/servidor";
 import type { Rol } from "@/api/sesion";
-import { errorConflictoEstado, errorPermiso, errorValidacion, proveedor as proveedorBase, tokenCsrf, usuarioActual } from "@/pruebas/cuerpos";
+import {
+  errorConflictoEstado,
+  errorPermiso,
+  errorRn01SegundaVigente,
+  errorValidacion,
+  proveedor as proveedorBase,
+  tokenCsrf,
+  usuarioActual,
+} from "@/pruebas/cuerpos";
 import { renderizarAplicacion } from "@/pruebas/render";
 import { servidorPruebas } from "@/pruebas/servidor";
 
@@ -502,6 +510,31 @@ describe("TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rec
     expect(await within(dialogo).findByText(MENSAJE_TOPE_INVALIDO)).toBeInTheDocument();
     expect(controles.tope).toHaveAttribute("aria-invalid", "true");
     expect(alta.cuerpos).toHaveLength(0);
+  });
+});
+
+describe("TKT-032a · un 409 REGLA_NEGOCIO del alta se avisa en la cabecera (rechazo; D-6)", () => {
+  test("tkt032a_alta · un 409 REGLA_NEGOCIO del alta cierra el formulario y avisa en la cabecera con el mensaje del servidor y su referencia", async () => {
+    // El alta no tiene reglas de negocio propias: si el servidor mandara una, no se pinta como conflicto en línea (que es
+    // para el RFC repetido) sino que se cierra el formulario y se avisa arriba, con el mensaje del servidor y su referencia.
+    // La fábrica ya construye el cuerpo con los tipos generados del contrato de error; aquí solo cambia el mensaje.
+    const rechazo = {
+      ...errorRn01SegundaVigente(),
+      mensaje: "El catálogo de proveedores no admite altas en este momento.",
+    };
+    const alta = dobleAlta(() => HttpResponse.json(rechazo, { status: 409 }));
+    const { usuario, lista } = await abrirPantallaConTabla([ROL_QUE_OPERA], { alta });
+    const dialogo = await abrirFormulario(usuario);
+    await capturarNombreYRfc(usuario, campos(dialogo));
+    await usuario.click(campos(dialogo).guardar);
+
+    const aviso = await screen.findByRole("alert");
+    expect(within(aviso).getByText(rechazo.mensaje)).toBeInTheDocument();
+    expect(within(aviso).getByText(`Referencia: ${rechazo.correlacion_id}`)).toBeInTheDocument();
+    await waitFor(sinFormulario);
+    expect(alta.cuerpos).toHaveLength(1);
+    // Ningún proveedor nuevo: no se vuelve a pedir la lista.
+    expect(lista.pedidas).toHaveLength(1);
   });
 });
 

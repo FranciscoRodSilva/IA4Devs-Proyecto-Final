@@ -218,7 +218,7 @@ Es el texto que F1 pega en `docs/08-wireframes.md` (**este diseño no lo edita**
 - *Buscar* filtra por nombre o RFC (`q`) y vuelve a la página 1; el filtro *Estado* también.
 - *Editar* (`ACTIVO` y `DESACTIVADO`) abre el formulario con el RFC de solo lectura; envía solo los campos que cambiaron.
 - *Desactivar* (solo `ACTIVO`) pide el motivo. El proveedor pasa a `DESACTIVADO`: sale del selector de órdenes nuevas, conserva sus órdenes pendientes y su historial, y **no vuelve a activarse** (no existe esa operación; `PA-24`).
-- *Dar de baja* (`ACTIVO` y `DESACTIVADO`) pide el motivo. El proveedor pasa a `BAJA`, que es definitiva y conserva el RFC. Si tiene órdenes `ABIERTA` o `PARCIAL`, el servidor la rechaza y la pantalla muestra el bloqueo.
+- *Dar de baja* (`ACTIVO` y `DESACTIVADO`) pide el motivo. El proveedor pasa a `BAJA`, que es definitiva y conserva el RFC *(asumido, PA-24)*. Si tiene órdenes `ABIERTA` o `PARCIAL`, el servidor la rechaza y la pantalla muestra el bloqueo.
 - *Desactivar el proveedor* del bloqueo existe solo si el servidor la manda en `acciones[]` (proveedor `ACTIVO`) y abre el mismo motivo de desactivar.
 
 **Estados.**
@@ -242,7 +242,7 @@ Es el texto que F1 pega en `docs/08-wireframes.md` (**este diseño no lo edita**
 Reconciliación de la pantalla 8 (F1 la hace con una sola sustitución). La viñeta *Proveedor* de «Acciones» de la pantalla 8, que hoy dice «No hay *baja* aparte: la única operación es `POST /proveedores/{id}/desactivacion`, que es una baja lógica (`activo = false`) y conserva órdenes e historial», pasa a:
 
 ````markdown
-- *Proveedor*: solo activos; uno desactivado no aparece pero conserva su historial (HDU-004 esc. 12). El alta, la edición, la desactivación y la baja de proveedores viven en la [pantalla Proveedores](#2c--pantalla-proveedores) y no se dibujan aquí. Son **dos operaciones distintas**, y ninguna borra: `POST /proveedores/{proveedor_id}/desactivacion` pasa el proveedor a `DESACTIVADO` (sale del selector y conserva sus órdenes pendientes) y `POST /proveedores/{proveedor_id}/baja` lo pasa a `BAJA` (definitiva, solo sin órdenes `ABIERTA` ni `PARCIAL`).
+- *Proveedor*: solo activos; uno desactivado no aparece pero conserva su historial (HDU-004 esc. 12). El alta, la edición, la desactivación y la baja de proveedores viven en la [pantalla Proveedores](#2c--pantalla-proveedores) y no se dibujan aquí. Son **dos operaciones distintas**, y ninguna borra: `POST /proveedores/{proveedor_id}/desactivacion` pasa el proveedor a `DESACTIVADO` (sale del selector y conserva sus órdenes pendientes) y `POST /proveedores/{proveedor_id}/baja` lo pasa a `BAJA` (definitiva, solo sin órdenes `ABIERTA` ni `PARCIAL`) *(asumido, PA-24)*.
 ````
 
 F1 también corrige, con una sustitución, la línea de la tabla de endpoints de la pantalla 8 que dice «`GET /proveedores` (activos)» solo si hace falta que diga `GET /proveedores?estado=ACTIVO`; **no es necesario**: el parámetro por omisión del borrador ya es `ACTIVO`. La ejecución no la toca.
