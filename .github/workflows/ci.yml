@@ -284,12 +284,15 @@ jobs:
       - name: Exportar el lock del backend
         working-directory: backend
         run: uv export --locked --all-groups --no-emit-project --format requirements.txt -o "$RUNNER_TEMP/req.txt"
-      # pip-audit termina en 1 cuando encuentra una vulnerabilidad; por eso este paso lleva `|| true` y es el
-      # único del pipeline que lo lleva. Sin él, el guion se cortaría aquí y el informe no llegaría al script
+      # pip-audit termina en 1 cuando encuentra una vulnerabilidad; por eso este paso lleva `|| true`, igual que
+      # el de `npm audit --json` más abajo y ningún otro del pipeline. Sin él, el guion se cortaría aquí y el informe no llegaría al script
       # siguiente. Quien decide si el pipeline falla es tools/severidad_pip_audit.py (RNF-08): sale con 2 si el
       # informe falta o no se puede leer, así que un error de pip-audit tampoco pasa en verde.
-      # Excepciones: ninguna al arrancar. Una vulnerabilidad se acepta solo con `--ignore-vuln <ID>` en este paso,
-      # con un comentario que nombre quién la decidió, su motivo y la fecha de revisión.
+      # Excepciones. Python: ninguna al arrancar; una vulnerabilidad se acepta solo con `--ignore-vuln <ID>` en este
+      # paso, con un comentario que nombre quién la decidió, su motivo y la fecha de revisión. npm: una, la de
+      # `picomatch` (GHSA-fc5q-39xc-vjpf, sin versión corregida), declarada en la tabla EXCEPCIONES de
+      # tools/severidad_npm_audit.py con su motivo y su fecha de revisión (2026-12-18); pasada esa fecha el paso
+      # vuelve a fallar. Ninguna otra se acepta por la línea de órdenes.
       - name: Auditar Python con pip-audit
         if: ${{ !cancelled() }}
         working-directory: backend
@@ -298,10 +301,17 @@ jobs:
       - name: Filtrar los hallazgos por severidad
         if: ${{ !cancelled() }}
         run: python3 tools/severidad_pip_audit.py "$RUNNER_TEMP/pip-audit.json"
+      # Como pip-audit, `npm audit` termina en 1 cuando encuentra una vulnerabilidad, y por eso este paso también lleva
+      # `|| true`: sin él, el guion se cortaría aquí y el informe no llegaría al script siguiente. Quien decide si el
+      # pipeline falla es tools/severidad_npm_audit.py (RNF-08): sale con 2 si el informe falta o no se puede leer
+      # (por ejemplo, el JSON de error que npm escribe sin red), así que un error de npm audit tampoco pasa en verde.
       - name: Auditar npm
         if: ${{ !cancelled() }}
         working-directory: frontend
-        run: npm audit --audit-level=high
+        run: npm audit --json > "$RUNNER_TEMP/npm-audit.json" || true
+      - name: Filtrar los hallazgos de npm por severidad
+        if: ${{ !cancelled() }}
+        run: python3 tools/severidad_npm_audit.py "$RUNNER_TEMP/npm-audit.json"
       - name: Auditar el lock de mermaid-cli
         if: ${{ !cancelled() }}
         working-directory: .github/mermaid
