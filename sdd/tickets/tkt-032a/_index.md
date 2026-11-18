@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · las dos entregas (a: F1 a F6 sin F3; b: F7 a F10) están revisadas y el cierre del ticket (delta, evolución y documentación) viaja dentro del PR del ticket. Pasa a `ARCHIVADO` al fusionarse.
+ARCHIVADO · las dos entregas (a: F1 a F6 sin F3; b: F7 a F10) se fusionaron juntas en el PR #82. La planificación queda archivada. El PR se fusionó con una excepción aprobada por la persona dueña: la comprobación de dependencias estaba en rojo por avisos de `npm audit` ajenos al ticket (`hono` y `minimatch`, de severidad moderada), y el PR no cambia dependencias. El despliegue es un evento posterior.
 
 ## Ficha
 
@@ -30,7 +30,7 @@ PENDIENTE FUSIÓN · las dos entregas (a: F1 a F6 sin F3; b: F7 a F10) están re
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito el 2026-11-17, aprobado el 2026-11-17 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a y b escritas |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-18 |
-| PR | Se enlaza en el comentario de registro de la fusión | `/sdd-completar` | Pendiente de abrir |
+| PR | [#82](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/82) | `/sdd-completar` | Fusionado el 2026-11-18 |
 
 ## Log de estados
 
@@ -44,6 +44,7 @@ PENDIENTE FUSIÓN · las dos entregas (a: F1 a F6 sin F3; b: F7 a F10) están re
 | 2026-11-18 | `LISTO PARA EJECUTAR · entrega b` | `EN REVISIÓN · entrega b` | `/sdd-ejecutar` | Entrega b (F7 a F10) ejecutada con TDD: edición, desactivar, dar de baja y bloqueos, prueba de contrato y recorrido de extremo a extremo con una orden `PARCIAL` real y su sembrador local (H-2). Cliente 925 pruebas, E2E 10 de 10, backend afectado 49, lint, typecheck, `tipos:verificar` y verificadores limpios; mutantes `M-6` y `M-7` caídos; `auditor-arquitectura` `APROBADO`. El rojo de F9 nació en verde, justificado con cinco mutantes. Siguiente: `/sdd-revisar` sobre la entrega b |
 | 2026-11-18 | `EN REVISIÓN · entrega b` | `LISTO PARA PR` | `/sdd-revisar` | Entrega b revisada. Cliente 931 pruebas, E2E 10 de 10, backend afectado 49, lint, typecheck, `tipos:verificar` y verificadores limpios. `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` (1 Mayor y 9 Menores) y `auditor-docs` (5 Menores) pidieron cambios y quedaron `APROBADO` tras un ciclo; un Menor de comentario se reauditó con `haiku`. El Mayor fue una rama de `409` `CONCURRENCIA` del `PATCH` sin prueba: se fijó el comportamiento actual con una prueba y la decisión de ofrecer «Reintentar» queda para la persona dueña. Siguiente: `/sdd-completar TKT-032a` |
 | 2026-11-18 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Cierre del ticket: `delta.md` escrito, documentación auditada (un Mayor de markdownlint en `design.md:71` y cinco Menores, resueltos), nueve filas de evolución y propuestas de `meta-sdd` sin aplicar, y el hub archivado dentro del PR. La frase desfasada de TKT-029 en `docs/05-tickets-trabajo.md` ahora apunta a TKT-032a. Siguiente: commit, PR y aprobación de la fusión |
+| 2026-11-18 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar TKT-032a` | PR #82 fusionado en `Produccion` (commit `9d82438`) con nueve de las diez comprobaciones requeridas en verde sobre `2dda490`; la de «Dependencias · auditoría de vulnerabilidades» estaba en rojo por avisos de `npm audit` ajenos al ticket y la persona dueña aprobó fusionar con esa excepción. `Produccion` no tiene protección de rama, así que la fusión fue un merge normal atado al SHA, sin `--admin`, con comentario de registro en el PR. La planificación queda archivada |
 
 ## Decisiones registradas
 
