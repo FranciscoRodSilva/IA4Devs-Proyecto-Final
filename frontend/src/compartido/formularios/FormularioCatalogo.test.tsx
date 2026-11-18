@@ -440,11 +440,11 @@ describe("TKT-008 · formulario de catálogo", () => {
       .getAllByRole("button")
       .filter((boton) => boton.dataset.slot !== "dialog-close")
       .map((boton) => boton.textContent?.trim() ?? "");
-    const primera = nombres.indexOf("DESACTIVAR_PROVEEDOR");
+    const primera = nombres.indexOf("Desactivar el proveedor");
     expect(primera).toBeGreaterThanOrEqual(0);
-    expect(nombres.slice(primera, primera + 2)).toEqual(["DESACTIVAR_PROVEEDOR", "VER_ORDENES_ABIERTAS"]);
+    expect(nombres.slice(primera, primera + 2)).toEqual(["Desactivar el proveedor", "VER_ORDENES_ABIERTAS"]);
     expect(nombres).not.toContain("Cerrar");
-    expect(nombres.filter((nombre) => nombre === "DESACTIVAR_PROVEEDOR" || nombre === "VER_ORDENES_ABIERTAS")).toHaveLength(2);
+    expect(nombres.filter((nombre) => nombre === "Desactivar el proveedor" || nombre === "VER_ORDENES_ABIERTAS")).toHaveLength(2);
 
     // El formulario no decide por su cuenta: no da la baja por hecha, no delega ni se cierra.
     expect(baja.alHecha).not.toHaveBeenCalled();
@@ -453,7 +453,7 @@ describe("TKT-008 · formulario de catálogo", () => {
     expect(alAccion).not.toHaveBeenCalled();
 
     // Elegir una alternativa la entrega tal como llegó.
-    await usuario.click(screen.getByRole("button", { name: "DESACTIVAR_PROVEEDOR" }));
+    await usuario.click(screen.getByRole("button", { name: "Desactivar el proveedor" }));
     expect(alAccion).toHaveBeenCalledTimes(1);
     expect(alAccion).toHaveBeenCalledWith(accionDesactivar);
   });

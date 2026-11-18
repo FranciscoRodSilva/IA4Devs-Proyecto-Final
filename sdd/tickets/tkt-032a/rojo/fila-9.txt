@@ -1,0 +1,544 @@
+# TKT-032a · fila F9 · fase ROJA · prueba de contrato TC-F37 / CA-R3 · frontend/src/modulos/proveedores/catalogo/proveedores.contrato.test.ts
+# Fecha: 2026-11-18 · sin código de producción tocado: solo se añade la prueba; proveedores.consultas.ts y servidor.ts no cambian
+# NACE EN VERDE, y es legítimo: las cinco funciones de proveedores.consultas.ts existen desde la fila F4 y servidor.ts ya publica las cuatro rutas, así que
+# no hay código que falte. Es una prueba de regresión del contrato (TC-F37 no tiene rojo por diseño: «no hay código nuevo que pedir»). Su valor se demuestra
+# con mutantes, aplicados SOLO a una copia del scratchpad (nunca al repositorio): cinco mutantes de proveedores.consultas.ts, los cinco la ponen en rojo.
+# Qué comprueba: ejecuta proveedoresOptions (lista), crearProveedor, actualizarProveedor, desactivarProveedor y darDeBajaProveedor contra MSW; anota método,
+# ruta y cuerpo reales; lee servidor.ts como texto y recupera la plantilla de cada ruta comparándola con las claves de `paths`; comprueba (1) que cada ruta es
+# clave de `paths`, (2) que la clave declara la operación del método, (3) que cada función llama a SU operación (listar_proveedores, crear_proveedor,
+# actualizar_proveedor, desactivar_proveedor, dar_baja_proveedor), y (4) que cada cuerpo solo lleva propiedades de su esquema y todas las obligatorias.
+# Los cuerpos de la prueba están atados por `satisfies` a ProveedorNuevo, ProveedorCambios y Motivo: `npm run typecheck` los comprueba.
+# Tras la prueba: `npm run typecheck` y `npm run lint` sin errores (sección 2). Los comandos corrieron sobre una copia sincronizada de frontend/ (node_modules del repo roto).
+
+########################################################################
+# 1 · VERDE DE NACIMIENTO · npm test -- proveedores.contrato --reporter=verbose
+########################################################################
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores.contrato --reporter=verbose
+
+
+ RUN  v5.0.5 <scratchpad>/frontend
+
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada ruta existe como clave de paths en servidor.ts 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · los esquemas de cuerpo que declara servidor.ts son los cuatro que la pantalla necesita 1ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  07:53:58
+   Duration  1.36s (environment 65%, setup 17%, import 12%, tests 3%, transform 3%)
+
+
+########################################################################
+# 2 · typecheck y lint con la prueba añadida
+########################################################################
+
+> cimenta-frontend@0.0.0 typecheck
+> tsc --noEmit
+
+exit 0
+
+> cimenta-frontend@0.0.0 lint
+> eslint .
+
+exit 0
+
+########################################################################
+# 3 · MUTANTES (cada uno sobre una copia; el repositorio no se toca)
+# Cada bloque: diff original -> mutado, y la salida literal de la misma prueba.
+########################################################################
+
+# M-a (ruta inexistente): darDeBajaProveedor llama a /api/v1/proveedor/{proveedor_id}/baja (sin la «s»). Resultado: 4 failed | 2 passed -> MATA.
+=== diff del mutante M-a ruta inexistente en darDeBajaProveedor (original -> mutado) ===
+91c91
+<     api.POST("/api/v1/proveedores/{proveedor_id}/baja", {
+---
+>     api.POST("/api/v1/proveedor/{proveedor_id}/baja", {
+=== npm test -- proveedores.contrato (M-a ruta inexistente en darDeBajaProveedor) ===
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores.contrato --reporter=verbose
+
+
+ RUN  v5.0.5 <scratchpad>/mut-f9/frontend
+
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones 1ms
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada ruta existe como clave de paths en servidor.ts 3ms
+   → expected [ Array(1) ] to deeply equal []
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó 1ms
+   → expected [ Array(1) ] to deeply equal []
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real 1ms
+   → expected [ 'listar_proveedores', …(4) ] to deeply equal [ 'listar_proveedores', …(4) ]
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias 1ms
+   → expected [ Array(1) ] to deeply equal []
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · los esquemas de cuerpo que declara servidor.ts son los cuatro que la pantalla necesita 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada ruta existe como clave de paths en servidor.ts
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "/api/v1/proveedor/9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24/baja",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:157:94
+    155|     const plantillas = peticiones.map((peticion) => ({ ruta: peticion.…
+    156|
+    157|     expect(plantillas.filter(({ plantilla }) => plantilla === null).ma…
+       |                                                                                              ^
+    158|   });
+    159|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "POST /api/v1/proveedor/9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24/baja",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:168:26
+    166|       .map((peticion) => `${peticion.metodo.toUpperCase()} ${peticion.…
+    167|
+    168|     expect(sinOperacion).toEqual([]);
+       |                          ^
+    169|   });
+    170|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real
+AssertionError: expected [ 'listar_proveedores', …(4) ] to deeply equal [ 'listar_proveedores', …(4) ]
+
+- Expected
++ Received
+
+  [
+    "listar_proveedores",
+    "crear_proveedor",
+    "actualizar_proveedor",
+    "desactivar_proveedor",
+-   "dar_baja_proveedor",
++   null,
+  ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:177:25
+    175|     });
+    176|
+    177|     expect(operaciones).toEqual([
+       |                         ^
+    178|       "listar_proveedores",
+    179|       "crear_proveedor",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "POST /api/v1/proveedor/9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24/baja: la operación no declara un cuerpo en servidor.ts",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:203:23
+    201|
+    202|     expect(conCuerpo).toHaveLength(4);
+    203|     expect(hallazgos).toEqual([]);
+       |                       ^
+    204|   });
+    205|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed (6)
+   Start at  07:53:37
+   Duration  1.40s (environment 64%, setup 18%, import 11%, transform 4%, tests 3%)
+
+
+# M-b (método): crearProveedor usa PUT en lugar de POST sobre /api/v1/proveedores. Resultado: 4 failed | 2 passed -> MATA.
+=== diff del mutante M-b crearProveedor POST a PUT (original -> mutado) ===
+64c64
+<   return pedir(() => api.POST("/api/v1/proveedores", { body: cuerpo }));
+---
+>   return pedir(() => api.PUT("/api/v1/proveedores", { body: cuerpo }));
+=== npm test -- proveedores.contrato (M-b crearProveedor POST a PUT) ===
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores.contrato --reporter=verbose
+
+
+ RUN  v5.0.5 <scratchpad>/mut-f9/frontend
+
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones 4ms
+   → expected [ 'get', 'put', 'patch', 'post', …(1) ] to deeply equal [ Array(5) ]
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada ruta existe como clave de paths en servidor.ts 1ms
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó 1ms
+   → expected [ 'PUT /api/v1/proveedores' ] to deeply equal []
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real 1ms
+   → expected [ 'listar_proveedores', null, …(3) ] to deeply equal [ 'listar_proveedores', …(4) ]
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias 1ms
+   → expected [ Array(1) ] to deeply equal []
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · los esquemas de cuerpo que declara servidor.ts son los cuatro que la pantalla necesita 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones
+AssertionError: expected [ 'get', 'put', 'patch', 'post', …(1) ] to deeply equal [ Array(5) ]
+
+- Expected
++ Received
+
+  [
+    "get",
+-   "post",
++   "put",
+    "patch",
+    "post",
+    "post",
+  ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:151:59
+    149|     // Sin esto, un lector del contrato roto daría una prueba vacía: a…
+    150|     expect(CLAVES_DE_PATHS).toEqual(expect.arrayContaining(["/api/v1/p…
+    151|     expect(peticiones.map((peticion) => peticion.metodo)).toEqual(["ge…
+       |                                                           ^
+    152|   });
+    153|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó
+AssertionError: expected [ 'PUT /api/v1/proveedores' ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "PUT /api/v1/proveedores",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:168:26
+    166|       .map((peticion) => `${peticion.metodo.toUpperCase()} ${peticion.…
+    167|
+    168|     expect(sinOperacion).toEqual([]);
+       |                          ^
+    169|   });
+    170|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real
+AssertionError: expected [ 'listar_proveedores', null, …(3) ] to deeply equal [ 'listar_proveedores', …(4) ]
+
+- Expected
++ Received
+
+  [
+    "listar_proveedores",
+-   "crear_proveedor",
++   null,
+    "actualizar_proveedor",
+    "desactivar_proveedor",
+    "dar_baja_proveedor",
+  ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:177:25
+    175|     });
+    176|
+    177|     expect(operaciones).toEqual([
+       |                         ^
+    178|       "listar_proveedores",
+    179|       "crear_proveedor",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "PUT /api/v1/proveedores: la operación no declara un cuerpo en servidor.ts",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:203:23
+    201|
+    202|     expect(conCuerpo).toHaveLength(4);
+    203|     expect(hallazgos).toEqual([]);
+       |                       ^
+    204|   });
+    205|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed (6)
+   Start at  07:53:39
+   Duration  1.38s (environment 64%, setup 17%, import 12%, transform 4%, tests 3%)
+
+
+# M-c (otra operación real): desactivarProveedor apunta a /baja, que SÍ existe en paths con POST. Solo lo detecta la prueba «cada función llama a la operación que le corresponde». Resultado: 1 failed | 5 passed -> MATA.
+=== diff del mutante M-c desactivarProveedor apunta a la ruta real de baja (original -> mutado) ===
+81c81
+<     api.POST("/api/v1/proveedores/{proveedor_id}/desactivacion", {
+---
+>     api.POST("/api/v1/proveedores/{proveedor_id}/baja", {
+=== npm test -- proveedores.contrato (M-c desactivarProveedor apunta a la ruta real de baja) ===
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores.contrato --reporter=verbose
+
+
+ RUN  v5.0.5 <scratchpad>/mut-f9/frontend
+
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada ruta existe como clave de paths en servidor.ts 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó 1ms
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real 3ms
+   → expected [ 'listar_proveedores', …(4) ] to deeply equal [ 'listar_proveedores', …(4) ]
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · los esquemas de cuerpo que declara servidor.ts son los cuatro que la pantalla necesita 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real
+AssertionError: expected [ 'listar_proveedores', …(4) ] to deeply equal [ 'listar_proveedores', …(4) ]
+
+- Expected
++ Received
+
+  [
+    "listar_proveedores",
+    "crear_proveedor",
+    "actualizar_proveedor",
+-   "desactivar_proveedor",
++   "dar_baja_proveedor",
+    "dar_baja_proveedor",
+  ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:177:25
+    175|     });
+    176|
+    177|     expect(operaciones).toEqual([
+       |                         ^
+    178|       "listar_proveedores",
+    179|       "crear_proveedor",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  07:53:41
+   Duration  1.37s (environment 64%, setup 18%, import 12%, transform 4%, tests 3%)
+
+
+# M-d (cuerpo): darDeBajaProveedor envía { motivos } en lugar de { motivo }. Solo lo detecta la prueba de cuerpos. Resultado: 1 failed | 5 passed -> MATA.
+=== diff del mutante M-d propiedad inventada en el cuerpo de darDeBajaProveedor (original -> mutado) ===
+93c93
+<       body: { motivo },
+---
+>       body: { motivos: motivo },
+=== npm test -- proveedores.contrato (M-d propiedad inventada en el cuerpo de darDeBajaProveedor) ===
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores.contrato --reporter=verbose
+
+
+ RUN  v5.0.5 <scratchpad>/mut-f9/frontend
+
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada ruta existe como clave de paths en servidor.ts 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó 1ms
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real 0ms
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias 4ms
+   → expected [ …(2) ] to deeply equal []
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · los esquemas de cuerpo que declara servidor.ts son los cuatro que la pantalla necesita 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias
+AssertionError: expected [ …(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "POST /api/v1/proveedores/9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24/baja: «motivos» no está en Motivo",
++   "POST /api/v1/proveedores/9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24/baja: falta «motivo» de Motivo",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:203:23
+    201|
+    202|     expect(conCuerpo).toHaveLength(4);
+    203|     expect(hallazgos).toEqual([]);
+       |                       ^
+    204|   });
+    205|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  07:53:44
+   Duration  1.35s (environment 64%, setup 17%, import 12%, transform 4%, tests 3%)
+
+
+# M-e (método): actualizarProveedor usa PUT en lugar de PATCH sobre /api/v1/proveedores/{proveedor_id}. Resultado: 4 failed | 2 passed -> MATA.
+=== diff del mutante M-e actualizarProveedor PATCH a PUT (original -> mutado) ===
+74c74
+<     api.PATCH("/api/v1/proveedores/{proveedor_id}", { params: { path: { proveedor_id: proveedorId } }, body: cambios }),
+---
+>     api.PUT("/api/v1/proveedores/{proveedor_id}", { params: { path: { proveedor_id: proveedorId } }, body: cambios }),
+=== npm test -- proveedores.contrato (M-e actualizarProveedor PATCH a PUT) ===
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores.contrato --reporter=verbose
+
+
+ RUN  v5.0.5 <scratchpad>/mut-f9/frontend
+
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones 3ms
+   → expected [ Array(5) ] to deeply equal [ Array(5) ]
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada ruta existe como clave de paths en servidor.ts 1ms
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó 1ms
+   → expected [ Array(1) ] to deeply equal []
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real 1ms
+   → expected [ 'listar_proveedores', …(4) ] to deeply equal [ 'listar_proveedores', …(4) ]
+ × |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias 1ms
+   → expected [ Array(1) ] to deeply equal []
+ ✓ |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · los esquemas de cuerpo que declara servidor.ts son los cuatro que la pantalla necesita 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · el contrato generado se lee y las cinco funciones hicieron cinco peticiones
+AssertionError: expected [ Array(5) ] to deeply equal [ Array(5) ]
+
+- Expected
++ Received
+
+  [
+    "get",
+    "post",
+-   "patch",
++   "put",
+    "post",
+    "post",
+  ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:151:59
+    149|     // Sin esto, un lector del contrato roto daría una prueba vacía: a…
+    150|     expect(CLAVES_DE_PATHS).toEqual(expect.arrayContaining(["/api/v1/p…
+    151|     expect(peticiones.map((peticion) => peticion.metodo)).toEqual(["ge…
+       |                                                           ^
+    152|   });
+    153|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada clave declara la operación del método con que se llamó
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "PUT /api/v1/proveedores/9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:168:26
+    166|       .map((peticion) => `${peticion.metodo.toUpperCase()} ${peticion.…
+    167|
+    168|     expect(sinOperacion).toEqual([]);
+       |                          ^
+    169|   });
+    170|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada función llama a la operación que le corresponde, no a otra real
+AssertionError: expected [ 'listar_proveedores', …(4) ] to deeply equal [ 'listar_proveedores', …(4) ]
+
+- Expected
++ Received
+
+  [
+    "listar_proveedores",
+    "crear_proveedor",
+-   "actualizar_proveedor",
++   null,
+    "desactivar_proveedor",
+    "dar_baja_proveedor",
+  ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:177:25
+    175|     });
+    176|
+    177|     expect(operaciones).toEqual([
+       |                         ^
+    178|       "listar_proveedores",
+    179|       "crear_proveedor",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.contrato.test.ts > TKT-032a · el contrato de proveedores.consultas.ts contra servidor.ts (TC-F37, CA-R3) > tkt032a_contrato · TC-F37 · cada cuerpo lleva solo propiedades que el esquema de su operación declara y todas las obligatorias
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "PUT /api/v1/proveedores/9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24: la operación no declara un cuerpo en servidor.ts",
++ ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.contrato.test.ts:203:23
+    201|
+    202|     expect(conCuerpo).toHaveLength(4);
+    203|     expect(hallazgos).toEqual([]);
+       |                       ^
+    204|   });
+    205|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed (6)
+   Start at  07:53:46
+   Duration  1.38s (environment 64%, setup 17%, import 12%, transform 4%, tests 3%)
+
+
+########################################################################
+# 4 · El repositorio quedó sin mutar
+########################################################################
+# SHA-256 de proveedores.consultas.ts y servidor.ts, tomada antes de los mutantes y vuelta a comparar después: idéntica (el repositorio no se tocó):
+#   3fceae68a073dde6f9df12fd9a20dd1ebacf67671cdd5e00d8cd04fb726e4994 *frontend/src/modulos/proveedores/catalogo/proveedores.consultas.ts
+#   454db0dac9e9a41930d7dbcd0855c274f88ed3d4ba111dd67b93f4e2922ec720 *frontend/src/api/generado/servidor.ts
+# git status --short idéntico antes y después, salvo este archivo.

@@ -1,0 +1,96 @@
+# TKT-032a · entrega a · /sdd-revisar ciclo de corrección 1 · fase ROJA (paso del tester) · salida literal
+# Comando: npm test -- proveedores (desde frontend/, sobre una copia sincronizada; colores ANSI quitados, DEBUG_PRINT_LIMIT=200; el prefijo de la copia aparece como <scratchpad>)
+# Fecha: 2026-11-18 · sin código de producción tocado
+# Pruebas nuevas (cuatro) y su resultado esperado:
+#   F001 proveedores.consultas.test.ts · totalDePaginas ...... ROJO por TypeError: totalDePaginas is not a function (la exportación no existe todavía)
+#   F002 PantallaProveedores.test.tsx · última página vacía .. ROJO por «Unable to find ... /No hay proveedores con este filtro/» (el esqueleto no termina)
+#   F003 PantallaProveedores.alta.test.tsx · 409 REGLA_NEGOCIO  VERDE de nacimiento: la rama alBloqueoAlta existe y solo le faltaba un test
+#   F004 proveedores.consultas.test.ts · búsqueda recortada .... VERDE de nacimiento: .trim() ya existe; el valor es que el mutante sin .trim() cae (comprobado en copia)
+# Verificación: 0 errores de importación, de sintaxis o de entorno; las 231 pruebas previas y las dos nuevas en verde siguen pasando.
+# `npm run lint`: limpio. `npm run typecheck`: falla SOLO por F001 (las dos líneas de abajo) hasta que el corrector exporte TAMANO_PAGINA y totalDePaginas
+#   desde proveedores.consultas.ts; no la creó el tester.
+# Mutantes en copia del scratchpad (no en el repo):
+#   F004 sin .trim() en proveedoresOptions -> cae «una búsqueda con espacios en los extremos se envía recortada...» (2 failed: ese y F001)
+#   F003 alBloqueoAlta sin setAltaAbierta(false) -> cae «un 409 REGLA_NEGOCIO del alta cierra el formulario...» (1 failed)
+
+## npm test -- proveedores
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores
+
+
+ RUN  v5.0.5 <scratchpad>/frontend
+
+ ❯ |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts (43 tests | 1 failed) 90ms
+   ❯ TKT-032a · totalDePaginas · el cálculo de la paginación (TC-F13, CA-1) (1)
+     × tkt032a_lista · TC-F13 · totalDePaginas cuenta al menos una página y redondea hacia arriba 1ms
+ ❯ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx (45 tests | 1 failed) 9694ms
+   ❯ TKT-032a · TC-F13 · la paginación (CA-1) (5)
+     × tkt032a_lista · TC-F13 · una página vacía con total mayor que cero que ya es la última no deja el esqueleto para siempre 1683ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F13 · la paginación (CA-1) > tkt032a_lista · TC-F13 · una página vacía con total mayor que cero que ya es la última no deja el esqueleto para siempre
+TestingLibraryElementError: Unable to find an element with the text: /No hay proveedores con este filtro/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:570:25
+    568|     await usuario.click(controles.siguiente);
+    569|
+    570|     expect(await screen.findByText(TEXTO_VACIO)).toBeInTheDocument();
+       |                         ^
+    571|     expect(screen.queryByRole("status", { name: ETIQUETA_CARGANDO })).…
+    572|     // total > 0: no es «sin proveedores», así que no se invita a dar …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · totalDePaginas · el cálculo de la paginación (TC-F13, CA-1) > tkt032a_lista · TC-F13 · totalDePaginas cuenta al menos una página y redondea hacia arriba
+TypeError: totalDePaginas is not a function
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:601:12
+    599| describe("TKT-032a · totalDePaginas · el cálculo de la paginación (TC-…
+    600|   test("tkt032a_lista · TC-F13 · totalDePaginas cuenta al menos una pá…
+    601|     expect(totalDePaginas(0)).toBe(1);
+       |            ^
+    602|     expect(totalDePaginas(1)).toBe(1);
+    603|     expect(totalDePaginas(50)).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  2 failed | 231 passed (233)
+   Start at  02:16:52
+   Duration  11.82s (tests 66%, environment 18%, import 9%, setup 5%, transform 2%)
+
+
+## npm run typecheck
+
+> cimenta-frontend@0.0.0 typecheck
+> tsc --noEmit
+
+src/modulos/proveedores/catalogo/proveedores.consultas.test.ts(23,3): error TS2459: Module '"./proveedores.consultas"' declares 'TAMANO_PAGINA' locally, but it is not exported.
+src/modulos/proveedores/catalogo/proveedores.consultas.test.ts(24,3): error TS2305: Module '"./proveedores.consultas"' has no exported member 'totalDePaginas'.
+
+## npm run lint
+
+> cimenta-frontend@0.0.0 lint
+> eslint .
+

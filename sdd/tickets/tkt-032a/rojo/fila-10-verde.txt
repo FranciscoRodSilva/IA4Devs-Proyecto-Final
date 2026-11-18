@@ -1,0 +1,31 @@
+TKT-032a · fila F10 · verde del E2E (entrega b)
+Orden: `npm run e2e` sobre la copia sincronizada, con el backend real, la base local y el sembrador ya escrito.
+
+
+> cimenta-frontend@0.0.0 e2e
+> playwright test
+
+[WebServer] INFO:     Started server process [12576]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+[WebServer] (node:43364) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:35788) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [chromium] › e2e\humo.spec.ts:44:1 › tkt008_ca14_esc01 · entrar y salir (791ms)
+  ok  2 [chromium] › e2e\humo.spec.ts:57:1 › tkt008_ca14_esc02 · credenciales incorrectas (549ms)
+  ok  3 [chromium] › e2e\humo.spec.ts:68:3 › teléfono › tkt008_ca07_esc08 · teléfono (597ms)
+  ok  4 [chromium] › e2e\linea-base.spec.ts:50:1 › hdu001_esc14 · congelar como DP y capturar como DG (1.9s)
+  ok  5 [chromium] › e2e\obras.spec.ts:59:1 › hdu001_esc02 · alta de obra de punta a punta (1.2s)
+  ok  6 [chromium] › e2e\obras.spec.ts:72:1 › hdu001_esc03 · el mismo código otra vez (1.6s)
+  ok  7 [chromium] › e2e\obras.spec.ts:117:1 › hdu001_esc20 · ca18 · editar el nombre, suspender y reactivar una obra activa (1.9s)
+  ok  8 [chromium] › e2e\obras.spec.ts:167:1 › hdu001_esc20 · ca18 · eliminar una obra con historial queda bloqueado y la obra sigue en la lista (1.4s)
+  ok  9 [chromium] › e2e\proveedores.spec.ts:120:1 › hdu004_esc02 · recorrido del catálogo (2.3s)
+  ok 10 [chromium] › e2e\proveedores.spec.ts:168:1 › hdu004_esc12 · baja bloqueada por una orden PARCIAL real (2.2s)
+
+  10 passed (24.1s)
+exit 0

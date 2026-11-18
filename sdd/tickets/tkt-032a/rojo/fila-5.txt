@@ -1,0 +1,955 @@
+# TKT-032a · fila F5 · fase ROJA · salida literal de: npm test -- PantallaProveedores (desde frontend/, sobre una copia sincronizada; colores ANSI quitados y DEBUG_PRINT_LIMIT=200 para acortar los volcados del DOM)
+# Fecha: 2026-11-17 · sin código de producción de la fila: la ruta /compras/proveedores sigue pintando el marcador «Esta sección aún no está disponible»
+# Resultado esperado: PantallaProveedores.test.tsx 44 failed (TC-F09 a TC-F16) · PantallaProveedores.ruta.test.tsx 9 passed (TC-F17, regresión, nace en verde a propósito)
+
+
+> cimenta-frontend@0.0.0 test
+> vitest run PantallaProveedores --reporter=default --reporter=json --outputFile.json=<scratchpad>/rojo-f5.json
+
+
+ RUN  v5.0.5 <scratchpad>/frontend
+
+ ✓ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.ruta.test.tsx (9 tests) 680ms
+ ❯ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx (44 tests | 44 failed) 71018ms
+   ❯ TKT-032a · TC-F09 · la lista del catálogo (CA-1) (8)
+     × hdu004_esc02 · TC-F09 · la lista trae nombre, RFC, estado, corte y pago de cada proveedor, en el orden que manda el servidor 1616ms
+     × hdu004_esc02 · TC-F09 · el día 1 se muestra por su nombre, el corte en su columna y el pago en la suya 1613ms
+     × hdu004_esc02 · TC-F09 · el día 2 se muestra por su nombre, el corte en su columna y el pago en la suya 1632ms
+     × hdu004_esc02 · TC-F09 · el día 3 se muestra por su nombre, el corte en su columna y el pago en la suya 1627ms
+     × hdu004_esc02 · TC-F09 · el día 4 se muestra por su nombre, el corte en su columna y el pago en la suya 1612ms
+     × hdu004_esc02 · TC-F09 · el día 5 se muestra por su nombre, el corte en su columna y el pago en la suya 1608ms
+     × hdu004_esc02 · TC-F09 · el día 6 se muestra por su nombre, el corte en su columna y el pago en la suya 1606ms
+     × hdu004_esc02 · TC-F09 · el día 7 se muestra por su nombre, el corte en su columna y el pago en la suya 1618ms
+   ❯ TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) (10)
+     × tkt032a_lista · TC-F10 · cargando: un esqueleto con su etiqueta, no un contenido vacío 1620ms
+     × tkt032a_lista · TC-F10 · vacío para Compras con el filtro por omisión: el texto y la invitación al + 1625ms
+     × tkt032a_lista · TC-F10 · vacío para DIRECCION_GENERAL: el texto, sin invitación ni botón + 1605ms
+     × tkt032a_lista · TC-F10 · vacío para DIRECTOR_PROYECTOS: el texto, sin invitación ni botón + 1602ms
+     × tkt032a_lista · TC-F10 · vacío para RESIDENTE: el texto, sin invitación ni botón + 1623ms
+     × tkt032a_lista · TC-F10 · vacío para ALMACEN: el texto, sin invitación ni botón + 1601ms
+     × tkt032a_lista · TC-F10 · vacío para ADMINISTRACION: el texto, sin invitación ni botón + 1631ms
+     × tkt032a_lista · TC-F10 · vacío para Compras con otro filtro: el texto, sin la invitación al + 1607ms
+     × tkt032a_lista · TC-F10 · error: el aviso lleva el correlacion_id y «Reintentar» vuelve a pedir la lista 1625ms
+     × tkt032a_lista · TC-F10 · con proveedores: la tabla, sin esqueleto ni texto de vacío 1621ms
+   ❯ TKT-032a · TC-F11 · el filtro por estado (CA-1, M-5) (6)
+     × tkt032a_lista · TC-F11 · por omisión pide los ACTIVO de forma explícita, página 1 y 50 por página, y el filtro dice «Activos» 1621ms
+     × tkt032a_lista · TC-F11 · elegir «Desactivados» vuelve a pedir con esos estados y muestra lo que el servidor devolvió 1611ms
+     × tkt032a_lista · TC-F11 · elegir «Dados de baja» vuelve a pedir con esos estados y muestra lo que el servidor devolvió 1604ms
+     × tkt032a_lista · TC-F11 · elegir «Todos» vuelve a pedir con esos estados y muestra lo que el servidor devolvió 1608ms
+     × tkt032a_lista · TC-F11 · cambiar el filtro desde la página 2 vuelve a la página 1, aunque el filtro nuevo también tenga página 2 1601ms
+     × tkt032a_lista · TC-F11 · volver a «Activos» muestra de nuevo solo los ACTIVO 1620ms
+   ❯ TKT-032a · TC-F12 · la búsqueda por nombre o RFC (CA-1) (5)
+     × hdu004_esc02 · TC-F12 · escribir no pide nada; «Buscar» pide q con el estado vigente y muestra lo que coincide 1610ms
+     × hdu004_esc02 · TC-F12 · Enter aplica la búsqueda igual que «Buscar» y también encuentra por RFC 1601ms
+     × tkt032a_lista · TC-F12 · buscar desde la página 2 vuelve a la página 1, aunque la búsqueda también tenga página 2 1629ms
+     × tkt032a_lista · TC-F12 · vaciar la búsqueda quita q y devuelve la lista completa 1606ms
+     × tkt032a_lista · TC-F12 · una búsqueda de solo espacios no pide q 1604ms
+   ❯ TKT-032a · TC-F13 · la paginación (CA-1) (4)
+     × tkt032a_lista · TC-F13 · 120 proveedores a 50 por página: «Página 1 de 3», 50 filas, Anterior inhabilitado y Siguiente pide la 2 1622ms
+     × tkt032a_lista · TC-F13 · en la última página Siguiente está inhabilitado y Anterior regresa a la anterior 1617ms
+     × tkt032a_lista · TC-F13 · una sola página: «Página 1 de 1» con los dos botones inhabilitados 1611ms
+     × tkt032a_lista · TC-F13 · si la página pedida llega vacía con total mayor que cero, la pantalla vuelve a una página con datos y no pinta «vacío» 1600ms
+   ❯ TKT-032a · TC-F14 · el estado se rotula con texto (CA-1, Should) (1)
+     × hdu004_esc12 · TC-F14 · Activo, Desactivado y Baja se rotulan con un texto distinto en la columna Estado 1597ms
+   ❯ TKT-032a · TC-F15 · Compras ve el + y las acciones de cada fila según el estado (CA-6, CA-7, CA-9; M-1, M-2) (5)
+     × tkt032a_rol · TC-F15 · Compras ve el botón + con su nombre accesible, una sola vez 1631ms
+     × hdu004_esc12 · TC-F15 · una fila ACTIVO de Compras ofrece exactamente sus acciones, cada una con el nombre del proveedor 1609ms
+     × hdu004_esc12 · TC-F15 · una fila DESACTIVADO de Compras ofrece exactamente sus acciones, cada una con el nombre del proveedor 1609ms
+     × hdu004_esc12 · TC-F15 · una fila BAJA de Compras ofrece exactamente sus acciones, cada una con el nombre del proveedor 1607ms
+     × hdu004_esc12 · TC-F15 · el botón de cada acción lleva el nombre de SU proveedor, no el de otra fila 1622ms
+   ❯ TKT-032a · TC-F16 · quien no opera ve la lista y ninguna acción (CA-9, rechazo; M-3) (5)
+     × tkt032a_rol · TC-F16 · DIRECCION_GENERAL ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja 1620ms
+     × tkt032a_rol · TC-F16 · DIRECTOR_PROYECTOS ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja 1602ms
+     × tkt032a_rol · TC-F16 · RESIDENTE ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja 1607ms
+     × tkt032a_rol · TC-F16 · ALMACEN ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja 1622ms
+     × tkt032a_rol · TC-F16 · ADMINISTRACION ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja 1626ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 44 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · la lista trae nombre, RFC, estado, corte y pago de cada proveedor, en el orden que manda el servidor
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:239:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · el día 1 se muestra por su nombre, el corte en su columna y el pago en la suya
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · el día 2 se muestra por su nombre, el corte en su columna y el pago en la suya
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · el día 3 se muestra por su nombre, el corte en su columna y el pago en la suya
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · el día 4 se muestra por su nombre, el corte en su columna y el pago en la suya
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · el día 5 se muestra por su nombre, el corte en su columna y el pago en la suya
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · el día 6 se muestra por su nombre, el corte en su columna y el pago en la suya
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F09 · la lista del catálogo (CA-1) > hdu004_esc02 · TC-F09 · el día 7 se muestra por su nombre, el corte en su columna y el pago en la suya
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:257:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · cargando: un esqueleto con su etiqueta, no un contenido vacío
+AssertionError: expected [] to have a length of 1 but got +0
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="min-h-screen"
+      >
+        <header
+         ...
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:273:47
+    271|     const { lista } = await abrirPantalla([ROL_QUE_OPERA], { espera: c…
+    272|
+    273|     await waitFor(() => expect(lista.pedidas).toHaveLength(1));
+       |                                               ^
+    274|     const esqueleto = screen.getByRole("status", { name: ETIQUETA_CARG…
+    275|     expect(esqueleto).toHaveAttribute("aria-busy", "true");
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · vacío para Compras con el filtro por omisión: el texto y la invitación al +
+TestingLibraryElementError: Unable to find an element with the text: /No hay proveedores con este filtro/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:287:25
+    285|     await abrirPantalla([ROL_QUE_OPERA], { proveedores: [] });
+    286|
+    287|     expect(await screen.findByText(TEXTO_VACIO)).toBeInTheDocument();
+       |                         ^
+    288|     expect(screen.getByText(INVITACION_ALTA)).toBeInTheDocument();
+    289|     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · vacío para DIRECCION_GENERAL: el texto, sin invitación ni botón +
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · vacío para DIRECTOR_PROYECTOS: el texto, sin invitación ni botón +
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · vacío para RESIDENTE: el texto, sin invitación ni botón +
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · vacío para ALMACEN: el texto, sin invitación ni botón +
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · vacío para ADMINISTRACION: el texto, sin invitación ni botón +
+TestingLibraryElementError: Unable to find an element with the text: /No hay proveedores con este filtro/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:296:25
+    294|     await abrirPantalla([rol], { proveedores: [] });
+    295|
+    296|     expect(await screen.findByText(TEXTO_VACIO)).toBeInTheDocument();
+       |                         ^
+    297|     expect(screen.queryByText(INVITACION_ALTA)).not.toBeInTheDocument(…
+    298|     expect(screen.queryByRole("button", { name: ETIQUETA_ALTA })).not.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · vacío para Compras con otro filtro: el texto, sin la invitación al +
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:304:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · error: el aviso lleva el correlacion_id y «Reintentar» vuelve a pedir la lista
+TestingLibraryElementError: Unable to find an element with the text: /7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:322:25
+    320|     await screen.findByText(/Rosa Villanueva/);
+    321|
+    322|     expect(await screen.findByText(new RegExp(CORRELACION_ID))).toBeIn…
+       |                         ^
+    323|     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    324|     expect(screen.queryByText(TEXTO_VACIO)).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F10 · los cuatro estados de la lista (CA-1) > tkt032a_lista · TC-F10 · con proveedores: la tabla, sin esqueleto ni texto de vacío
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:337:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F11 · el filtro por estado (CA-1, M-5) > tkt032a_lista · TC-F11 · por omisión pide los ACTIVO de forma explícita, página 1 y 50 por página, y el filtro dice «Activos»
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:347:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F11 · el filtro por estado (CA-1, M-5) > tkt032a_lista · TC-F11 · elegir «Desactivados» vuelve a pedir con esos estados y muestra lo que el servidor devolvió
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F11 · el filtro por estado (CA-1, M-5) > tkt032a_lista · TC-F11 · elegir «Dados de baja» vuelve a pedir con esos estados y muestra lo que el servidor devolvió
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F11 · el filtro por estado (CA-1, M-5) > tkt032a_lista · TC-F11 · elegir «Todos» vuelve a pedir con esos estados y muestra lo que el servidor devolvió
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:365:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F11 · el filtro por estado (CA-1, M-5) > tkt032a_lista · TC-F11 · cambiar el filtro desde la página 2 vuelve a la página 1, aunque el filtro nuevo también tenga página 2
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:381:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F11 · el filtro por estado (CA-1, M-5) > tkt032a_lista · TC-F11 · volver a «Activos» muestra de nuevo solo los ACTIVO
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:396:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F12 · la búsqueda por nombre o RFC (CA-1) > hdu004_esc02 · TC-F12 · escribir no pide nada; «Buscar» pide q con el estado vigente y muestra lo que coincide
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:410:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F12 · la búsqueda por nombre o RFC (CA-1) > hdu004_esc02 · TC-F12 · Enter aplica la búsqueda igual que «Buscar» y también encuentra por RFC
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:427:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F12 · la búsqueda por nombre o RFC (CA-1) > tkt032a_lista · TC-F12 · buscar desde la página 2 vuelve a la página 1, aunque la búsqueda también tenga página 2
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:439:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F12 · la búsqueda por nombre o RFC (CA-1) > tkt032a_lista · TC-F12 · vaciar la búsqueda quita q y devuelve la lista completa
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:457:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F12 · la búsqueda por nombre o RFC (CA-1) > tkt032a_lista · TC-F12 · una búsqueda de solo espacios no pide q
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:472:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F13 · la paginación (CA-1) > tkt032a_lista · TC-F13 · 120 proveedores a 50 por página: «Página 1 de 3», 50 filas, Anterior inhabilitado y Siguiente pide la 2
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:484:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F13 · la paginación (CA-1) > tkt032a_lista · TC-F13 · en la última página Siguiente está inhabilitado y Anterior regresa a la anterior
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:506:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F13 · la paginación (CA-1) > tkt032a_lista · TC-F13 · una sola página: «Página 1 de 1» con los dos botones inhabilitados
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:525:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F13 · la paginación (CA-1) > tkt032a_lista · TC-F13 · si la página pedida llega vacía con total mayor que cero, la pantalla vuelve a una página con datos y no pinta «vacío»
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:535:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F14 · el estado se rotula con texto (CA-1, Should) > hdu004_esc12 · TC-F14 · Activo, Desactivado y Baja se rotulan con un texto distinto en la columna Estado
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:554:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F15 · Compras ve el + y las acciones de cada fila según el estado (CA-6, CA-7, CA-9; M-1, M-2) > tkt032a_rol · TC-F15 · Compras ve el botón + con su nombre accesible, una sola vez
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:575:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F15 · Compras ve el + y las acciones de cada fila según el estado (CA-6, CA-7, CA-9; M-1, M-2) > hdu004_esc12 · TC-F15 · una fila ACTIVO de Compras ofrece exactamente sus acciones, cada una con el nombre del proveedor
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F15 · Compras ve el + y las acciones de cada fila según el estado (CA-6, CA-7, CA-9; M-1, M-2) > hdu004_esc12 · TC-F15 · una fila DESACTIVADO de Compras ofrece exactamente sus acciones, cada una con el nombre del proveedor
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F15 · Compras ve el + y las acciones de cada fila según el estado (CA-6, CA-7, CA-9; M-1, M-2) > hdu004_esc12 · TC-F15 · una fila BAJA de Compras ofrece exactamente sus acciones, cada una con el nombre del proveedor
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:583:34
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F15 · Compras ve el + y las acciones de cada fila según el estado (CA-6, CA-7, CA-9; M-1, M-2) > hdu004_esc12 · TC-F15 · el botón de cada acción lleva el nombre de SU proveedor, no el de otra fila
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:600:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/44]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F16 · quien no opera ve la lista y ninguna acción (CA-9, rechazo; M-3) > tkt032a_rol · TC-F16 · DIRECCION_GENERAL ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F16 · quien no opera ve la lista y ninguna acción (CA-9, rechazo; M-3) > tkt032a_rol · TC-F16 · DIRECTOR_PROYECTOS ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F16 · quien no opera ve la lista y ninguna acción (CA-9, rechazo; M-3) > tkt032a_rol · TC-F16 · RESIDENTE ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F16 · quien no opera ve la lista y ninguna acción (CA-9, rechazo; M-3) > tkt032a_rol · TC-F16 · ALMACEN ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx > TKT-032a · TC-F16 · quien no opera ve la lista y ninguna acción (CA-9, rechazo; M-3) > tkt032a_rol · TC-F16 · ADMINISTRACION ve la lista con los tres estados y ni el botón + ni Editar, Desactivar o Dar de baja
+TestingLibraryElementError: Unable to find role="table"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirPantallaConTabla src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:176:16
+    174| async function abrirPantallaConTabla(roles: Rol[], opciones: OpcionesP…
+    175|   const pantalla = await abrirPantalla(roles, opciones);
+    176|   await screen.findByRole("table");
+       |                ^
+    177|   return pantalla;
+    178| }
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.test.tsx:613:34
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/44]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  44 failed | 9 passed (53)
+   Start at  22:55:08
+   Duration  72.97s (tests 95%, environment 2%, import 2%, setup 1%)
+
+JSON report written to <scratchpad>/rojo-f5.json
+
+# ---- npm run lint (exit 0) ----
+> cimenta-frontend@0.0.0 lint
+> eslint .
+# ---- npm run typecheck (exit 0) ----
+> cimenta-frontend@0.0.0 typecheck
+> tsc --noEmit

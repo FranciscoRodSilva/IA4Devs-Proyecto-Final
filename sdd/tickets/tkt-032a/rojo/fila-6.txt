@@ -1,0 +1,583 @@
+# TKT-032a · fila F6 · fase ROJA · salida literal de: npm test -- PantallaProveedores.alta (desde frontend/, sobre una copia sincronizada; colores ANSI quitados)
+# Fecha: 2026-11-17 · sin código de producción de la fila: el botón «+» de PantallaProveedores.tsx se pinta pero no abre ningún formulario
+# Resultado esperado: PantallaProveedores.alta.test.tsx 21 failed (TC-F18 a TC-F22 y el 403 del alta), todos por «Unable to find role="dialog" and name "Alta de proveedor"»
+# Verificación: 0 errores de importación, de sintaxis o de entorno; `npm run lint` y `npm run typecheck` sin salida de error (limpios)
+
+
+
+> cimenta-frontend@0.0.0 test
+> vitest run PantallaProveedores.alta
+
+
+ RUN  v5.0.5 <scratchpad>/frontend
+
+ ❯ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx (21 tests | 21 failed) 35378ms
+   ❯ TKT-032a · TC-F18 · el botón + abre el formulario de alta (CA-2) (2)
+     × hdu004_esc01 · TC-F18 · el botón + abre «Alta de proveedor» con el foco en el nombre, que es el primer campo 1704ms
+     × hdu004_esc01 · TC-F18 · el formulario nace con nombre, RFC y tope vacíos, y con jueves y sábado precargados (RN-17) 1668ms
+   ❯ TKT-032a · TC-F19 · alta con los valores por omisión (CA-2) (2)
+     × hdu004_esc02 · TC-F19 · el cuerpo lleva dia_corte 4 y dia_pago 6 como enteros y tope null; el formulario se cierra y la lista se vuelve a pedir con el proveedor nuevo 1686ms
+     × hdu004_esc02 · TC-F19 · un RFC en minúsculas y con espacios se envía recortado y en mayúsculas 1697ms
+   ❯ TKT-032a · TC-F20 · alta con tope, corte y pago distintos (CA-2, CA-R4; M-4) (3)
+     × hdu004_esc02 · TC-F20 · el tope 300000.00 viaja como cadena idéntica, sin pasar por número, y los días elegidos como enteros 1682ms
+     × hdu004_esc02 · TC-F20 · el tope 99999999999999.9999 viaja como cadena idéntica, sin pasar por número, y los días elegidos como enteros 1685ms
+     × hdu004_esc02 · TC-F20 · el proveedor con tope y días distintos aparece en la lista con su corte y su pago 1699ms
+   ❯ TKT-032a · TC-F21 · el RFC ya existe (CA-3, rechazo; H-1, D-9) (4)
+     × hdu004_esc03 · TC-F21 · el formulario sigue abierto con lo capturado y el conflicto en línea nombra al proveedor existente; la lista no se vuelve a pedir 1682ms
+     × hdu004_esc03 · TC-F21 · ningún botón de acción: el servidor manda acciones [] y el cliente no cablea «ver al proveedor» (H-1) 1688ms
+     × hdu004_esc03 · TC-F21 · no aparece ninguna fila nueva: la tabla conserva sus dos proveedores 1677ms
+     × hdu004_esc03 · TC-F21 · el RFC no se marca como error de forma: es un dato que ya existe, no un 422 (D-9) 1688ms
+   ❯ TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) (9)
+     × tkt032a_alta · TC-F22 · un 422 en nombre se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva 1679ms
+     × tkt032a_alta · TC-F22 · un 422 en rfc se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva 1685ms
+     × tkt032a_alta · TC-F22 · un 422 en tope_consignacion se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva 1656ms
+     × tkt032a_alta · TC-F22 · un 422 en dia_corte se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva 1689ms
+     × tkt032a_alta · TC-F22 · un 422 en dia_pago se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva 1679ms
+     × tkt032a_alta · TC-F22 · un nombre vacío se rechaza antes de enviar, junto a su campo, y no sale ninguna petición 1687ms
+     × tkt032a_alta · TC-F22 · un nombre de solo espacios cuenta como vacío: no se envía 1685ms
+     × tkt032a_alta · TC-F22 · un RFC mal formado se rechaza antes de enviar, junto a su campo, y no sale ninguna petición 1687ms
+     × tkt032a_alta · TC-F22 · un tope que no es decimal plano («1e3») se rechaza antes de enviar y no sale ninguna petición (CA-R4) 1683ms
+   ❯ TKT-032a · un 403 del alta se pinta en el formulario sin cerrarlo (CA-9, D-6; rechazo) (1)
+     × tkt032a_alta · un 403 muestra «Tu rol no permite esta operación.» sin cifras ni tratamiento de bloqueo, y el formulario sigue abierto 1685ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 21 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F18 · el botón + abre el formulario de alta (CA-2) > hdu004_esc01 · TC-F18 · el botón + abre «Alta de proveedor» con el foco en el nombre, que es el primer campo
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:184:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F18 · el botón + abre el formulario de alta (CA-2) > hdu004_esc01 · TC-F18 · el formulario nace con nombre, RFC y tope vacíos, y con jueves y sábado precargados (RN-17)
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:194:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F19 · alta con los valores por omisión (CA-2) > hdu004_esc02 · TC-F19 · el cuerpo lleva dia_corte 4 y dia_pago 6 como enteros y tope null; el formulario se cierra y la lista se vuelve a pedir con el proveedor nuevo
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:222:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F19 · alta con los valores por omisión (CA-2) > hdu004_esc02 · TC-F19 · un RFC en minúsculas y con espacios se envía recortado y en mayúsculas
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:249:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F20 · alta con tope, corte y pago distintos (CA-2, CA-R4; M-4) > hdu004_esc02 · TC-F20 · el tope 300000.00 viaja como cadena idéntica, sin pasar por número, y los días elegidos como enteros
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F20 · alta con tope, corte y pago distintos (CA-2, CA-R4; M-4) > hdu004_esc02 · TC-F20 · el tope 99999999999999.9999 viaja como cadena idéntica, sin pasar por número, y los días elegidos como enteros
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:270:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F20 · alta con tope, corte y pago distintos (CA-2, CA-R4; M-4) > hdu004_esc02 · TC-F20 · el proveedor con tope y días distintos aparece en la lista con su corte y su pago
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:295:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F21 · el RFC ya existe (CA-3, rechazo; H-1, D-9) > hdu004_esc03 · TC-F21 · el formulario sigue abierto con lo capturado y el conflicto en línea nombra al proveedor existente; la lista no se vuelve a pedir
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:326:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F21 · el RFC ya existe (CA-3, rechazo; H-1, D-9) > hdu004_esc03 · TC-F21 · ningún botón de acción: el servidor manda acciones [] y el cliente no cablea «ver al proveedor» (H-1)
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:357:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F21 · el RFC ya existe (CA-3, rechazo; H-1, D-9) > hdu004_esc03 · TC-F21 · no aparece ninguna fila nueva: la tabla conserva sus dos proveedores
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:370:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F21 · el RFC ya existe (CA-3, rechazo; H-1, D-9) > hdu004_esc03 · TC-F21 · el RFC no se marca como error de forma: es un dato que ya existe, no un 422 (D-9)
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:384:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un 422 en nombre se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un 422 en rfc se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un 422 en tope_consignacion se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un 422 en dia_corte se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un 422 en dia_pago se pinta junto a su campo con aria-invalid, el formulario sigue abierto y lo capturado se conserva
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:422:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un nombre vacío se rechaza antes de enviar, junto a su campo, y no sale ninguna petición
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:451:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un nombre de solo espacios cuenta como vacío: no se envía
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:467:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un RFC mal formado se rechaza antes de enviar, junto a su campo, y no sale ninguna petición
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:480:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · TC-F22 · el rechazo de forma, junto a su campo (CA-4, rechazo) > tkt032a_alta · TC-F22 · un tope que no es decimal plano («1e3») se rechaza antes de enviar y no sale ninguna petición (CA-R4)
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:496:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/21]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx > TKT-032a · un 403 del alta se pinta en el formulario sin cerrarlo (CA-9, D-6; rechazo) > tkt032a_alta · un 403 muestra «Tu rol no permite esta operación.» sin cifras ni tratamiento de bloqueo, y el formulario sigue abierto
+TestingLibraryElementError: Unable to find role="dialog" and name "Alta de proveedor"
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen"
+    >
+      <header
+        class="flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirFormulario src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:145:17
+    143| async function abrirFormulario(usuario: Usuario) {
+    144|   await usuario.click(screen.getByRole("button", { name: ETIQUETA_ALTA…
+    145|   return screen.findByRole("dialog", { name: TITULO_FORMULARIO });
+       |                 ^
+    146| }
+    147|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.alta.test.tsx:514:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/21]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  21 failed (21)
+   Start at  23:03:03
+   Duration  37.24s (tests 95%, environment 2%, import 2%, setup 1%)
+

@@ -174,3 +174,27 @@ describe("TKT-018a · rechazos de la línea base en línea (TC-04)", () => {
     expect(screen.getAllByRole("button").map((boton) => boton.textContent)).toEqual(["Confirmar el tope"]);
   });
 });
+
+describe("TKT-032a · rechazos del catálogo de proveedores en línea (TC-F01)", () => {
+  test("hdu004_esc03 · TC-F01 · el RFC duplicado muestra «Proveedor existente» con su valor, sin UUID ni clave cruda", () => {
+    // CA-3 · HDU-004 esc. 3. El servidor manda `acciones: []` (H-1): no hay botón para verlo.
+    const idExistente = "6d5c4b3a-2918-4f7e-8d5c-4b3a29180716";
+    const error = errorConflictoEstado("RFC_DUPLICADO", {
+      mensaje: "Ya existe un proveedor con el RFC XAXX010101000.",
+      detalle: { proveedor_existente: "CoPanel · XAXX010101000", proveedor_existente_id: idExistente },
+      acciones: [],
+    });
+
+    render(<ConflictoEnLinea error={error} alAccion={vi.fn()} />);
+
+    expect(screen.getByText(error.mensaje)).toBeInTheDocument();
+    expect(screen.getByText("Proveedor existente", { selector: "dt" })).toBeInTheDocument();
+    expect(screen.getByText("CoPanel · XAXX010101000", { selector: "dd" })).toBeInTheDocument();
+    // Ni la clave cruda ni el identificador interno (D-8) llegan a la vista.
+    expect(screen.queryByText("proveedor_existente")).not.toBeInTheDocument();
+    expect(screen.queryByText("proveedor_existente_id")).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(idExistente);
+    // Lo que el servidor no manda no se pinta.
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+});

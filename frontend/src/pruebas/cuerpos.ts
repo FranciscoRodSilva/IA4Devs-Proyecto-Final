@@ -156,6 +156,21 @@ export function obra(cambios: Partial<Esquemas["Obra"]> = {}): Esquemas["Obra"] 
   } satisfies Esquemas["Obra"];
 }
 
+/** Un proveedor ACTIVO con el corte en jueves y el pago en sábado (TKT-032a). El tope viaja como cadena, con la escala del servidor. */
+export function proveedor(cambios: Partial<Esquemas["Proveedor"]> = {}): Esquemas["Proveedor"] {
+  return {
+    id: "9c2e5a41-7b3d-4f68-a1c9-3d5e7f9b1a24",
+    nombre: "CoPanel",
+    rfc: "XAXX010101000",
+    tope_consignacion: "300000.0000",
+    dia_corte: 4,
+    dia_pago: 6,
+    estado: "ACTIVO",
+    creado_en: "2026-11-17T15:00:00Z",
+    ...cambios,
+  } satisfies Esquemas["Proveedor"];
+}
+
 // Cuerpos de bloqueo (409). Las cifras de `errorRn03ExcedeImporte` son las de CA-8 esc. 1: 45,000 presupuestados,
 // 33,000 consumidos (6,000 + 9,000 + 18,000), 12,000 disponibles, 15,000 solicitados y 3,000 de excedente.
 const ID_REQUISICION = "3d9a7c10-6b2e-4f41-8a95-0c7d2e5b9f13";

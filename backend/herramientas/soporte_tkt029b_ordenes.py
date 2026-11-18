@@ -1,4 +1,4 @@
-"""Siembra de órdenes de compra para las pruebas de TKT-029b (fila F3). Solo lo importan las pruebas.
+"""Siembra de órdenes de compra para las pruebas de TKT-029b (fila F3). Solo lo importan las pruebas y los sembradores locales de `herramientas/`.
 
 `sembrar_orden_compra` escribe, con la conexión que recibe, una requisición `CONVERTIDA`, su orden de
 compra y los renglones de la orden. Cumple lo que `0014` exige: el folio es obligatorio fuera de
@@ -10,7 +10,7 @@ conexión `autocommit`, cada sentencia se confirma sola. Las cantidades y los im
 desde cadena, nunca desde `float`.
 
 Vive fuera de los archivos de prueba para que ninguno importe a otro (nota de ejecución del diseño de
-TKT-029b). Es de apoyo de pruebas: ningún código de producción lo importa.
+TKT-029b). Es de apoyo de pruebas: ningún código de producción la importa; solo la usan las pruebas y los sembradores locales de `herramientas/`.
 """
 
 from __future__ import annotations

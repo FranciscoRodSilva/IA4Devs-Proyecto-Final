@@ -1127,7 +1127,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 | TKT-029a | Esquema `proveedor` y `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`, `actualizar_proveedor` y `desactivar_proveedor`, solo backend | `0013`, cuelga de `0012` | TKT-003, TKT-005, TKT-006, TKT-007 | 2, 3 y la mitad de desactivación del 12 |
 | TKT-029b | `dar_baja_proveedor` con `PROVEEDOR_CON_ORDENES_ABIERTAS`, su prueba con una orden `PARCIAL` sembrada, y la lectura de órdenes pendientes por la interfaz publicada de `compras`. El puerto `CatalogoProveedores` pasa a TKT-030. El verbo `DAR_BAJA` y la máquina de estados del proveedor los decidió la persona dueña el 2026-11-15 | `0016`, cuelga de `0015` | TKT-029a, TKT-019 | 12 y 13, completo |
 
-La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcilia el boceto de `docs/08-wireframes.md`, hoy en desacuerdo con el borrador sobre la baja.
+La pantalla del catálogo y el escenario 1 son de TKT-032a, que además reconcilió el boceto de `docs/08-wireframes.md` con la baja; la consulta por obra, la emisión y la cancelación son de TKT-032b.
 
 ---
 
@@ -1201,6 +1201,13 @@ La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcili
 - [ ] Tests `test_hdu004_esc01_…` y `test_hdu004_esc11_…` en verde
 
 **Non-goals** — No compara precios entre proveedores ni gestiona cotizaciones. No exporta la consulta.
+
+**Partición en dos tickets hermanos** (aprobada el 2026-11-17 por la persona dueña, tras la prueba manual de la entrega 3, que mostró que el catálogo de proveedores no tiene pantalla). TKT-032 queda como paraguas.
+
+| Ticket | Contenido | Migración | Depende de | Escenarios de HDU-004 |
+|---|---|---|---|---|
+| TKT-032a | Pantalla del catálogo de proveedores: lista, alta, edición, desactivación y baja con su `409`, y una prueba de extremo a extremo. Solo frontend | Ninguna | TKT-029a, TKT-029b, TKT-008 | 1, 2, 3, 12 y 13 (la parte de la pantalla) |
+| TKT-032b | `consultar_pedidos_proveedor_por_obra`, la emisión y la cancelación de órdenes, con sus pantallas | Ninguna | TKT-029, TKT-030, TKT-031 | 11, y las pantallas de 4 a 10 |
 
 ---
 

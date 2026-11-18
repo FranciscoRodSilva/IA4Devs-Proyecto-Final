@@ -1,0 +1,65 @@
+TKT-032a · fila F10 · rojo del E2E (entrega b)
+Orden: `npm run e2e` sobre la copia sincronizada de frontend/ del scratchpad, con el backend real, la base local y Docker respondiendo.
+Resultado esperado: los tres specs existentes y TC-E1 pasan; TC-E2 falla porque el sembrador `herramientas.semilla_orden_proveedor_local` aún no existe.
+Rutas locales sustituidas por <scratchpad> y <repo>.
+
+
+> cimenta-frontend@0.0.0 e2e
+> playwright test
+
+[WebServer] INFO:     Started server process [24864]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+[WebServer] (node:14772) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:11524) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [chromium] › e2e\humo.spec.ts:44:1 › tkt008_ca14_esc01 · entrar y salir (1.4s)
+  ok  2 [chromium] › e2e\humo.spec.ts:57:1 › tkt008_ca14_esc02 · credenciales incorrectas (673ms)
+  ok  3 [chromium] › e2e\humo.spec.ts:68:3 › teléfono › tkt008_ca07_esc08 · teléfono (602ms)
+  ok  4 [chromium] › e2e\linea-base.spec.ts:50:1 › hdu001_esc14 · congelar como DP y capturar como DG (2.0s)
+  ok  5 [chromium] › e2e\obras.spec.ts:59:1 › hdu001_esc02 · alta de obra de punta a punta (1.2s)
+  ok  6 [chromium] › e2e\obras.spec.ts:72:1 › hdu001_esc03 · el mismo código otra vez (1.7s)
+  ok  7 [chromium] › e2e\obras.spec.ts:117:1 › hdu001_esc20 · ca18 · editar el nombre, suspender y reactivar una obra activa (2.0s)
+  ok  8 [chromium] › e2e\obras.spec.ts:167:1 › hdu001_esc20 · ca18 · eliminar una obra con historial queda bloqueado y la obra sigue en la lista (1.5s)
+  ok  9 [chromium] › e2e\proveedores.spec.ts:120:1 › hdu004_esc02 · recorrido del catálogo (2.4s)
+  x  10 [chromium] › e2e\proveedores.spec.ts:168:1 › hdu004_esc12 · baja bloqueada por una orden PARCIAL real (1.2s)
+
+
+  1) [chromium] › e2e\proveedores.spec.ts:168:1 › hdu004_esc12 · baja bloqueada por una orden PARCIAL real 
+
+    Error: No se pudo sembrar la orden PARCIAL del proveedor EEE799199D19: el sembrador salió con estado 1. ¿Corre `docker compose up -d db`, está migrada la base y existe el sembrador `herramientas.semilla_orden_proveedor_local`?
+    <scratchpad>\backend\.venv\Scripts\python.exe: No module named herramientas.semilla_orden_proveedor_local
+
+
+       at sembrar-orden.ts:83
+
+      81 |   const detalleDelFallo = [resultado.stderr, resultado.error?.message].filter(Boolean).join("\n");
+      82 |   const fallo = (motivo: string): Error =>
+    > 83 |     new Error(
+         |     ^
+      84 |       `No se pudo sembrar la orden PARCIAL del proveedor ${rfc}: ${motivo}. ¿Corre \`docker compose up -d db\`, está migrada la base y existe el sembrador \`herramientas.semilla_orden_proveedor_local\`?\n${detalleDelFallo}`,
+      85 |     );
+      86 |
+        at fallo (<scratchpad>\frontend\e2e\sembrar-orden.ts:83:5)
+        at sembrarOrdenParcial (<scratchpad>\frontend\e2e\sembrar-orden.ts:88:11)
+        at <scratchpad>\frontend\e2e\proveedores.spec.ts:180:17
+
+    Error Context: test-results\proveedores-hdu004-esc12-·-bfba9--por-una-orden-PARCIAL-real-chromium\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\proveedores-hdu004-esc12-·-bfba9--por-una-orden-PARCIAL-real-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\proveedores-hdu004-esc12-·-bfba9--por-una-orden-PARCIAL-real-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e\proveedores.spec.ts:168:1 › hdu004_esc12 · baja bloqueada por una orden PARCIAL real 
+  9 passed (27.0s)
+exit 1

@@ -335,3 +335,87 @@ describe("TKT-018a · rechazos de la línea base en la pantalla de bloqueo (TC-0
     expect(screen.queryByText("version_vigente")).not.toBeInTheDocument();
   });
 });
+
+describe("TKT-032a · rechazos del catálogo de proveedores en la pantalla de bloqueo (TC-F02, TC-F03)", () => {
+  const ID_ORDEN_PARCIAL = "5c4b3a29-1807-4f6e-9d5c-4b3a29180716";
+  const ID_ORDEN_ABIERTA = "4b3a2918-0716-4e5d-8c4b-3a2918071605";
+  const desactivar: Accion = {
+    clave: "DESACTIVAR_PROVEEDOR",
+    metodo: "POST",
+    ruta: "/api/v1/proveedores/6d5c4b3a-2918-4f7e-8d5c-4b3a29180716/desactivacion",
+  };
+
+  /** El rechazo de la baja con órdenes pendientes, con la forma de `_rechazo_ordenes_abiertas` del backend. */
+  function errorOrdenesAbiertas(acciones: Accion[]): ErrorBloqueo {
+    return errorConflictoEstado("PROVEEDOR_CON_ORDENES_ABIERTAS", {
+      mensaje: "CoPanel tiene 2 órdenes pendientes de recibir; se puede desactivar para órdenes nuevas.",
+      detalle: {
+        ordenes: [
+          { id: ID_ORDEN_PARCIAL, folio: "OC-AP05825-0017", estado: "PARCIAL" },
+          { id: ID_ORDEN_ABIERTA, folio: "OC-AP05825-0021", estado: "ABIERTA" },
+        ],
+      },
+      acciones,
+    });
+  }
+
+  test("hdu004_esc12 · TC-F02 · las órdenes pendientes se pintan en una tabla con folio y estado, no como JSON", () => {
+    // CA-8 · HDU-004 esc. 12. Sin la tabla `ordenes` el detalle saldría como JSON crudo.
+    const error = errorOrdenesAbiertas([desactivar]);
+
+    abrir(error);
+
+    expect(screen.getByText(/PROVEEDOR_CON_ORDENES_ABIERTAS/)).toBeInTheDocument();
+    expect(screen.getByText(error.mensaje)).toBeInTheDocument();
+    const tabla = screen.getByRole("table", { name: "Órdenes pendientes" });
+    expect(within(tabla).getAllByRole("columnheader").map((columna) => columna.textContent)).toEqual(["Folio", "Estado"]);
+    const filas = within(tabla).getAllByRole("row");
+    expect(filas).toHaveLength(3);
+    expect(within(filas[1] as HTMLElement).getAllByRole("cell").map((celda) => celda.textContent)).toEqual([
+      "OC-AP05825-0017", "PARCIAL",
+    ]);
+    expect(within(filas[2] as HTMLElement).getAllByRole("cell").map((celda) => celda.textContent)).toEqual([
+      "OC-AP05825-0021", "ABIERTA",
+    ]);
+    // Ni la clave cruda, ni el JSON, ni los identificadores internos de las órdenes.
+    expect(screen.queryByText("ordenes")).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent('"folio"');
+    expect(document.body).not.toHaveTextContent(ID_ORDEN_PARCIAL);
+    expect(document.body).not.toHaveTextContent(ID_ORDEN_ABIERTA);
+  });
+
+  test("hdu004_esc12 · TC-F02 · el estado actual se rotula «Estado actual», no con su clave cruda", () => {
+    // CA-10 · el `detalle` de `ESTADO_NO_PERMITE_OPERACION` cuando otra persona cambió el estado del proveedor.
+    abrir(
+      errorConflictoEstado("ESTADO_NO_PERMITE_OPERACION", {
+        mensaje: "El proveedor CoPanel ya no admite esta operación en su estado actual.",
+        detalle: { estado_actual: "BAJA" },
+      }),
+    );
+
+    expect(valorDe("Estado actual")).toHaveTextContent(/^BAJA$/);
+    expect(screen.queryByText("estado_actual")).not.toBeInTheDocument();
+  });
+
+  test("hdu004_esc12 · TC-F03 · la acción DESACTIVAR_PROVEEDOR se rotula «Desactivar el proveedor» y se entrega tal como llegó", async () => {
+    // CA-8. La clave cruda no llega a la vista; la acción se entrega sin alterar.
+    const { alAccion, usuario } = abrir(errorOrdenesAbiertas([desactivar]));
+
+    expect(nombresDeBotones()).toEqual(["Desactivar el proveedor", "Cerrar"]);
+    expect(screen.queryByRole("button", { name: "DESACTIVAR_PROVEEDOR" })).not.toBeInTheDocument();
+
+    await usuario.click(screen.getByRole("button", { name: "Desactivar el proveedor" }));
+
+    expect(alAccion).toHaveBeenCalledTimes(1);
+    expect(alAccion).toHaveBeenCalledWith(desactivar);
+  });
+
+  test("hdu004_esc12 · TC-F03 · sin acciones del servidor solo queda «Cerrar» (lo que no se manda no se pinta)", () => {
+    // CA-8 · rechazo. Con el proveedor ya DESACTIVADO el servidor manda `acciones: []`: la pantalla no cablea ninguna.
+    abrir(errorOrdenesAbiertas([]));
+
+    expect(nombresDeBotones()).toEqual(["Cerrar"]);
+    expect(screen.queryByRole("button", { name: "Desactivar el proveedor" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "DESACTIVAR_PROVEEDOR" })).not.toBeInTheDocument();
+  });
+});
