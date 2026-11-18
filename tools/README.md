@@ -191,3 +191,37 @@ No hay opción `--ignore-vuln` en el script. Una excepción se declara en el pas
 **Pruebas sin red.** `python -m unittest tools.tests.test_severidad_pip_audit -v` las corre; sus pruebas están en `tools/tests/test_severidad_pip_audit.py`. La consulta a OSV se inyecta como parámetro en `clasificar`; `main` la toma de `consultar_osv`, que las pruebas sustituyen en el módulo. Además, `urllib.request.urlopen` se sustituye en todas las pruebas por una función que falla si alguna la llama. Ninguna prueba toca OSV. El trabajo `herramientas` las corre con el resto de `tools/`, y la guarda de `skipped=` las incluye.
 
 Sobre el árbol real, el paso de `pip-audit` seguido de este script termina en 0. Cómo reproducirlo en local está en [`arranque-local.md`](../docs/arranque-local.md#auditar-las-dependencias-en-local).
+
+## `severidad_npm_audit.py`
+
+```bash
+python tools/severidad_npm_audit.py <ruta del informe JSON de npm audit>
+```
+
+No es un verificador de documentación: es la compuerta de severidad de npm del trabajo `dependencias` del pipeline (RNF-08), y vive en `tools/` porque usa solo la biblioteca estándar. Sustituye a `npm audit --audit-level=high` sobre el lock del frontend, con el mismo umbral, para poder aceptar un aviso que no tiene versión corregida con una excepción acotada y con fecha de revisión. El informe se produce con `npm audit --json > <archivo> || true`, y el script solo entiende el formato `auditReportVersion: 2`.
+
+Falla ante un aviso `high`, `critical` o de severidad que no reconoce, salvo los de la tabla `EXCEPCIONES`, declarada en el propio script. Cada excepción es por identificador `GHSA` exacto y por la severidad aceptada, nunca por paquete, y lleva quién la decidió, su motivo y la fecha de revisión. Pasada esa fecha, que vale inclusive, deja de valer y el script vuelve a fallar; el reloj es la función `fecha_de_hoy`, que las pruebas sustituyen. Un paquete cuyo `via` nombra a otro paquete sigue a sus avisos raíz: se excusa solo si todos los avisos raíz que fallan están aceptados y vigentes. No existe una opción para ignorar avisos por la línea de órdenes.
+
+Hoy la tabla tiene una sola excepción: `picomatch` (`GHSA-fc5q-39xc-vjpf`), aceptada el 2026-11-18 por la persona dueña del proyecto, con fecha de revisión **2026-12-18**.
+
+**Etiquetas.** Una línea por paquete del informe. Así se ve en el registro del pipeline:
+
+```text
+EXCUSADA  vite  GHSA-fc5q-39xc-vjpf · fecha de revisión 2026-12-18
+MEDIA  minimatch  GHSA-g3hv-75wg-m249
+ALTA  otro-paquete  GHSA-xxxx-xxxx-xxxx → falla el pipeline (RNF-08)
+```
+
+Las etiquetas son `INFO`, `BAJA`, `MEDIA`, `ALTA`, `CRÍTICA`, `DESCONOCIDA` y `EXCUSADA`. La línea lleva el sufijo `→ falla el pipeline (RNF-08)` solo cuando el paquete falla. Después de las líneas imprime, por cada excepción que excusó algo, quién la decidió, su fecha de revisión y su motivo, y, por cada excepción que ya no aparece en el informe, una línea `INFORMATIVA` que avisa de que se puede retirar de la tabla. Al final imprime `Paquetes: <n> · que fallan el pipeline: <m> · excusados: <k>`.
+
+**Códigos de salida.**
+
+| Código | Cuándo |
+|---|---|
+| `0` | Ningún paquete falla. Los `INFO`, `BAJA` y `MEDIA` se informan y los avisos aceptados y vigentes quedan excusados |
+| `1` | Algún paquete es `ALTA`, `CRÍTICA` o `DESCONOCIDA` y no está excusado, incluida una excepción caducada |
+| `2` | El informe no existe, no se puede leer o no tiene la forma esperada, incluido el informe de error que npm escribe sin red. El error va por la salida de error |
+
+Un paquete alto cuya raíz no se puede determinar (un `via` vacío, un paquete que el informe no describe o un aviso sin `GHSA` en su `url`) falla: el fallo es cerrado.
+
+**Pruebas sin red ni reloj.** `python -m unittest tools.tests.test_severidad_npm_audit -v` las corre; están en `tools/tests/test_severidad_npm_audit.py` e incluyen un fragmento literal de un informe real de `npm audit --json`, que falla sin la excepción, pasa con ella y vuelve a fallar con la fecha vencida. El trabajo `herramientas` las corre con el resto de `tools/`.
