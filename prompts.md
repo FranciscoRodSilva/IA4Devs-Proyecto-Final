@@ -12,6 +12,8 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 6. [Tickets de trabajo](#6-tickets-de-trabajo)
 7. [Pull requests](#7-pull-requests)
 8. [Entrega 2 · Código funcional](#8-entrega-2--código-funcional)
+9. [Entrega 3 · Despliegue y cierre](#9-entrega-3--despliegue-y-cierre)
+10. [Herramientas, modelos y criterio humano](#10-herramientas-modelos-y-criterio-humano)
 
 ---
 
@@ -143,7 +145,9 @@ aplica todo, empieza por la sección de seguridad
 
 ### **2.6. Tests**
 
-*Esta entrega es 100% documentación: no hay tests de código todavía. Lo más cercano son los verificadores de documentación en CI (`tools/verificar_docs.py`, `tools/extraer_mermaid.py`), que nacieron del mismo prompt de auditoría citado en 2.2 (*"Revisa que todo este correcto y congruente..."*) al detectar que esas comprobaciones solo vivían en el scratchpad de la sesión y había que llevarlas al repositorio.*
+*En la Entrega 1 no había tests de código: lo más cercano eran los verificadores de documentación en CI (`tools/verificar_docs.py`, `tools/extraer_mermaid.py`), que nacieron del prompt de auditoría citado en 2.2 (*"Revisa que todo este correcto y congruente..."*) al detectar que esas comprobaciones solo vivían en el scratchpad de la sesión.*
+
+*Desde la Entrega 2 los tests los produce el pipeline SDD: el Prompt 2 de la [sección 8](#8-entrega-2--código-funcional) define los agentes `tester-backend`, `tester-api` y `tester-frontend`, que escriben cada test en rojo antes del código y nombran en él el escenario de la historia. La suite resultante (pytest con PostgreSQL real, Vitest y Playwright) se describe en la sección «Pruebas» del [README](README.md#pruebas).*
 
 ---
 
@@ -438,3 +442,76 @@ Se tienen que poner las credenciales del usuario de prueba en .env.example y en 
 ```
 
 *Cierra la Entrega 2 contra el checklist de LIDR: deja las credenciales del usuario de prueba en `.env.example` y documenta en el `README.md` el arranque completo y la siembra de ese usuario, en la rama `feature/entrega-2-JFRS`.*
+
+---
+
+## 9. Entrega 3 · Despliegue y cierre
+
+*Prompts de la Entrega 3, ejecutados desde Claude Code (Sonnet 5.5). Cubren el despliegue del entorno de pruebas en el servidor de Database Mart y el cierre contra el checklist de LIDR. En los prompts no figura ninguna credencial: los datos de conexión al servidor se dieron de palabra en la sesión y no se versionan.*
+
+**Prompt 1:** *(Claude Code · Sonnet 5.5 · despliegue del entorno `test` · infraestructura)*
+
+```
+Hay que desplegar en test lo que se tiene del sistema actualmente para subirlo por medio de docker al servidor que tenemos de databasemart, en la base de datos de test hay que asegurarnos que se suban datos de prueba como los que tenemos en el local para que puedan usar la demo con la credenciales de test
+```
+
+*Lanza el comando de operación `/sdd-desplegar test`. El asistente aplicó primero su gate y detectó que **la imagen de la aplicación no existe** (TKT-058 sigue sin hacerse) y que la guía de despliegue solo describe PostgreSQL y Caddy en la VPS. En lugar de inventar un registro de imágenes o construir la imagen en el servidor, preguntó cómo seguir; la decisión fue desplegar solo el esquema y los datos en `test`.*
+
+*Criterio humano: aceptar el alcance reducido y no forzar un despliegue de la aplicación sin su imagen ni su ADR. La llave SSH tiene passphrase, así que no se compartió: la persona abrió el túnel por su cuenta y el asistente trabajó a través de él, sin tocar nunca la llave ni pedir la passphrase.*
+
+**Prompt 2:** *(Claude Code · Sonnet 5.5 · datos de demostración y su contraseña)*
+
+```
+2. definela tu no importa que este en internete se necesita para la demo
+```
+
+*Respuesta a la pregunta de quién define la contraseña de siembra de los usuarios de demostración. El asistente la generó aleatoria, migró `cimenta_test` por el túnel (`alembic upgrade head`, revisión `0017`), fijó las contraseñas de los roles y sembró seis usuarios por rol, los insumos sintéticos y la obra de demostración `DEMO-018A` con su línea base. Verificó los conteos contra la base y guardó la contraseña en un archivo temporal fuera del repositorio, sin imprimirla en el chat.*
+
+*Criterio humano: la persona asumió el riesgo de una contraseña de demostración sobre una base alcanzable desde Internet porque el entorno es desechable y sin datos reales, y por eso el asistente la trató como un valor de prueba, nunca como un secreto del repositorio. Quedó documentado que la aplicación todavía no está desplegada.*
+
+**Prompt 3:** *(Claude Code · Sonnet 5.5 · checklist final de la Entrega 3)*
+
+```
+Para la entrega 3 valida esto:
+
+Para el ejemplo de los archivos Readme.md y Prompts.md te pasare dos archivos los cuales son el formato de como debe ir hay que adaptar lo que tenemos a ese formato, hay que indicar todo lo que contiene la aplicación hasta esta etapa y también todo lo que se hizo para configurar y desplegar en databasemart sin mencionar nada de las credenciales y/o usuarios que se usaron para esto, la URL del repo es publica y te confirmo que es esta: https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final
+
+El Readme.md está completo, actualizado e incluye credenciales de prueba y pasos de verificación.
+
+El Prompts.md documenta tu uso de IA de forma clara y representativa (herramientas, modelos, contexto, 3 a 5 prompts clave y criterio humano ... agrega 2 o 3 mas además de los que ya hay).
+
+El código incluye entre 3 y 5 funcionalidades must-have operativas y la suite de tests requerida (unitarios, integración, E2E). (Opción B: sección "Pruebas" en el Readme.)
+
+Tengo evidencia de funcionamiento lista (URL, video o acceso al repo con credenciales).
+
+Uso solo credenciales de prueba y no hay secretos en el repositorio.
+
+La rama tiene el formato correcto: final-project-JFRS.
+```
+
+*Cierra la Entrega 3: el asistente reescribió el `README.md` al formato de LIDR (secciones 0 a 7, con la sección «Pruebas» y la descripción del despliegue), amplió este archivo con las secciones 9 y 10, buscó secretos en el repositorio y creó la rama `final-project-JFRS`.*
+
+*Criterio humano: el checklist pide una URL de la aplicación, y no existe. En lugar de redactar el README como si estuviera desplegada, se dejó dicho que lo único alojado en el servidor es la base de datos de `test` con su proxy HTTPS, y que la evidencia de funcionamiento es el repositorio público con un usuario de prueba y la suite de pruebas.*
+
+---
+
+## 10. Herramientas, modelos y criterio humano
+
+**Herramientas y modelos**
+
+| Fase | Herramienta | Modelo |
+|---|---|---|
+| Entrevista al cliente y cuestionario | Gemini | 3.1 Pro |
+| Documentación técnica (Entrega 1) | Claude Code | Opus 5 |
+| Toolkit SDD y código (Entregas 2 y 3) | Claude Code | Sonnet 5.5 |
+| Convenciones por stack | Context7, con la documentación de FastAPI, SQLAlchemy 2, Pydantic v2, React 19 y TanStack | — |
+
+**Contexto que recibe el asistente.** Cada sesión parte de `CLAUDE.md`, que fija las 17 reglas que ninguna implementación puede romper, el stack, los comandos y lo que no se debe hacer. Antes de escribir código lee el glosario, el PRD, la arquitectura, el modelo de datos y el borrador OpenAPI, que es el contrato que se implementa. Un hook recuerda en cada turno la preferencia de comunicación, y los agentes especializados cargan solo las convenciones de su capa.
+
+**Criterio humano.** La IA propone y ejecuta; la persona decide en cuatro puntos que ningún agente mueve: aprobar el diseño, resolver lo escalado, aprobar la fusión a `Produccion` y aprobar el despliegue en `prod`. Además:
+
+- **Se pregunta antes de asumir.** Toda regla de negocio ausente del PRD se convierte en una pregunta con recomendación (`PA-xx`), y lo que no se confirma no entra.
+- **Los tests no los escribe quien escribe el código.** El ciclo rojo, verde y refactor lo conducen agentes distintos, y un verificador de CI falla si un escenario queda sin test.
+- **Cada regla lleva su escenario de rechazo.** Nunca solo el camino feliz.
+- **Los secretos no se versionan ni se imprimen.** Las contraseñas de los roles se generan en el servidor, la llave SSH la protege su passphrase en el equipo de la persona y la contraseña de demostración se guarda fuera del repositorio.
+- **Se recorta el alcance a conciencia.** Para la Entrega 3 se partieron los tickets en `a` y `b` y se eligieron cuatro funcionalidades completas antes que catorce a medias.
