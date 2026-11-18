@@ -1,0 +1,46 @@
+TKT-032a · entrega b · ciclo de corrección 1 · paso del tester
+Salida literal (líneas de resultado; sin trazas de pila). Prefijo local sustituido por <scratchpad>.
+
+== 1. Verde de las pruebas nuevas (npm test -- proveedores --reporter=verbose) ==
+Las seis pruebas nuevas (seis ejecuciones; «Cancelar» es un test.each de dos filas) NACEN EN VERDE: cubren ramas que ya existían y no tenían prueba. No hay fase roja posible; la demostración de que pueden fallar son los mutantes de la sección 3.
+ ✓ PantallaProveedores.estado.test.tsx > TKT-032a · cierre de la captura de motivo sin confirmar (CA-6, CA-7, borde) > tkt032a_estado · cancelar · Desactivar: «Cancelar» cierra la captura, no envía nada y, al reabrir, el motivo está vacío 211ms
+ ✓ PantallaProveedores.estado.test.tsx > TKT-032a · cierre de la captura de motivo sin confirmar (CA-6, CA-7, borde) > tkt032a_estado · cancelar · Dar de baja: «Cancelar» cierra la captura, no envía nada y, al reabrir, el motivo está vacío 207ms
+ ✓ PantallaProveedores.estado.test.tsx > TKT-032a · TC-F32 · desde el bloqueo se desactiva al proveedor bloqueado, no a otro (CA-8, M-7) > tkt032a_estado · TC-F32 · comportamiento actual (no una decisión nueva): al abrir «Desactivar el proveedor» el bloqueo desaparece y no vuelve al cancelar la captura de motivo 258ms
+ ✓ PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F26 · el rechazo de la edición (CA-5, rechazo) > tkt032a_edicion · TC-F26 · un 409 CONCURRENCIA del PATCH cierra la edición y avisa en la cabecera con el mensaje del servidor y su referencia 206ms
+ ✓ PantallaProveedores.edicion.test.tsx > TKT-032a · cierre sin guardar y aviso de cabecera (CA-5, borde) > tkt032a_edicion · cierre · teclear en «Editar proveedor», pulsar Escape y reabrir: valores originales y ningún PATCH 293ms
+ ✓ PantallaProveedores.edicion.test.tsx > TKT-032a · cierre sin guardar y aviso de cabecera (CA-5, borde) > tkt032a_edicion · aviso · un aviso de cabecera visible desaparece al abrir «Editar» otra vez 247ms
+
+ Test Files  8 passed (8)
+      Tests  301 passed (301)
+
+== 2. Lint y typecheck ==
+npm run lint        -> eslint . (sin hallazgos)
+npm run typecheck   -> tsc --noEmit (sin errores)
+
+== 3. Mutantes (copia propia del frontend; el repositorio no se toca) ==
+-- M-F001: alBloqueoEdicion con el cuerpo vacío (no cierra la edición ni avisa)
+      Tests  2 failed | 299 passed (301)
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F26 · el rechazo de la edición (CA-5, rechazo) > tkt032a_edicion · TC-F26 · un 409 CONCURRENCIA del PATCH cierra la edición y avisa en la cabecera con el mensaje del s
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · cierre sin guardar y aviso de cabecera (CA-5, borde) > tkt032a_edicion · aviso · un aviso de cabecera visible desaparece al abrir «Editar» otra vez 1189ms
+-- M9: abrirMotivo sin setBloqueo(null)
+      Tests  1 failed | 300 passed (301)
+ × PantallaProveedores.estado.test.tsx > TKT-032a · TC-F32 · desde el bloqueo se desactiva al proveedor bloqueado, no a otro (CA-8, M-7) > tkt032a_estado · TC-F32 · comportamiento actual (no una decisión nueva): al abrir «D
+-- M10: abrirEdicion sin setAviso(null)
+      Tests  1 failed | 300 passed (301)
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · cierre sin guardar y aviso de cabecera (CA-5, borde) > tkt032a_edicion · aviso · un aviso de cabecera visible desaparece al abrir «Editar» otra vez 251ms
+-- M20: alCancelar de CapturaMotivo no cierra (() => undefined)
+      Tests  3 failed | 298 passed (301)
+ × PantallaProveedores.estado.test.tsx > TKT-032a · cierre de la captura de motivo sin confirmar (CA-6, CA-7, borde) > tkt032a_estado · cancelar · Desactivar: «Cancelar» cierra la captura, no envía nada y, al reabrir, el mo
+ × PantallaProveedores.estado.test.tsx > TKT-032a · cierre de la captura de motivo sin confirmar (CA-6, CA-7, borde) > tkt032a_estado · cancelar · Dar de baja: «Cancelar» cierra la captura, no envía nada y, al reabrir, el m
+ × PantallaProveedores.estado.test.tsx > TKT-032a · TC-F32 · desde el bloqueo se desactiva al proveedor bloqueado, no a otro (CA-8, M-7) > tkt032a_estado · TC-F32 · comportamiento actual (no una decisión nueva): al abrir «D
+-- Mesc: alCerrar de la edición no cierra (() => undefined); extra, para la prueba de Escape
+      Tests  16 failed | 285 passed (301)
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · cambia el nombre y el día de pago (CA-5) > tkt032a_edicion · TC-F24 · el PATCH al proveedor lleva SOLO nombre y dia_pago, este último como entero, sin rfc ni top
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · cambia el nombre y el día de pago (CA-5) > tkt032a_edicion · TC-F24 · el formulario se cierra y la lista se vuelve a pedir y muestra los datos nuevos 1216ms
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · cambia el nombre y el día de pago (CA-5) > tkt032a_edicion · TC-F24 · cambiar solo el día de corte envía solo dia_corte, como entero 1164ms
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · cambia el nombre y el día de pago (CA-5) > tkt032a_edicion · TC-F24 · un nombre con espacios alrededor se envía recortado 1193ms
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · el tope de consignación es dinero: viaja como cadena (CA-5, CA-R4; M-4) > tkt032a_edicion · TC-F24 · si se cambia el tope a 450000.50, el PATCH lleva solo tope_co
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · el tope de consignación es dinero: viaja como cadena (CA-5, CA-R4; M-4) > tkt032a_edicion · TC-F24 · si se cambia el tope a 99999999999999.9999, el PATCH lleva so
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · el tope de consignación es dinero: viaja como cadena (CA-5, CA-R4; M-4) > tkt032a_edicion · TC-F24 · si se vacía el tope, el PATCH lleva tope_consignacion null (
+ × PantallaProveedores.edicion.test.tsx > TKT-032a · TC-F24 · el tope de consignación es dinero: viaja como cadena (CA-5, CA-R4; M-4) > tkt032a_edicion · TC-F24 · poner tope a un proveedor que no lo tenía envía el tope com
+   (… 16 fallos en total; se muestran los primeros 8)

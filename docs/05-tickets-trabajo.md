@@ -1127,7 +1127,7 @@ Sin orden de compra no hay contra qué recibir material (`RN-05`, `RN-06`): por 
 | TKT-029a | Esquema `proveedor` y `crear_proveedor`, `listar_proveedores`, `obtener_proveedor`, `actualizar_proveedor` y `desactivar_proveedor`, solo backend | `0013`, cuelga de `0012` | TKT-003, TKT-005, TKT-006, TKT-007 | 2, 3 y la mitad de desactivación del 12 |
 | TKT-029b | `dar_baja_proveedor` con `PROVEEDOR_CON_ORDENES_ABIERTAS`, su prueba con una orden `PARCIAL` sembrada, y la lectura de órdenes pendientes por la interfaz publicada de `compras`. El puerto `CatalogoProveedores` pasa a TKT-030. El verbo `DAR_BAJA` y la máquina de estados del proveedor los decidió la persona dueña el 2026-11-15 | `0016`, cuelga de `0015` | TKT-029a, TKT-019 | 12 y 13, completo |
 
-La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcilia el boceto de `docs/08-wireframes.md`, hoy en desacuerdo con el borrador sobre la baja.
+La pantalla del catálogo y el escenario 1 son de TKT-032a, que además reconcilió el boceto de `docs/08-wireframes.md` con la baja; la consulta por obra, la emisión y la cancelación son de TKT-032b.
 
 ---
 

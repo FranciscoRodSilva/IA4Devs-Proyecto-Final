@@ -1,0 +1,960 @@
+# TKT-032a · fila F8 · fase ROJA · salida literal de: npm test -- PantallaProveedores.estado (desde frontend/, sobre una copia sincronizada; colores ANSI quitados; DEBUG_PRINT_LIMIT=200)
+# Fecha: 2026-11-18 · sin código de producción de la fila: «Desactivar CoPanel» y «Dar de baja CoPanel» de PantallaProveedores.tsx se pintan pero no hacen nada (sin diálogo de motivo, sin bloqueo, sin avisos)
+# Resultado esperado: PantallaProveedores.estado.test.tsx 29 failed (29), los 29 por «Unable to find role="dialog" and name "Desactivar a CoPanel"» o «"Dar de baja a CoPanel"»: el clic en la acción de la fila no abre la captura de motivo. Ninguno nace en verde.
+# Verificación: 0 errores de importación, de sintaxis o de entorno; `npm run lint` y `npm run typecheck` sin salida de error (limpios)
+# Comprobación aparte, solo en la copia del scratchpad (nunca en el repositorio): una implementación mínima de la fila pone los 29 en verde, así que los casos son alcanzables; con M-6 (botón cableado siempre) caen TC-F33 y TC-F34, con M-7 (acción del bloqueo sobre la primera fila) caen los dos de TC-F32, y con «Reintentar» sobre otro proveedor caen los dos de TC-F36 CONCURRENCIA.
+
+
+
+> cimenta-frontend@0.0.0 test
+> vitest run PantallaProveedores.estado
+
+
+ RUN  v5.0.5 <scratchpad>/frontend
+
+ ❯ |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx (29 tests | 29 failed) 49042ms
+   ❯ TKT-032a · TC-F27 · desactivar con motivo (CA-6, HDU-004 esc. 12) (2)
+     × hdu004_esc12 · TC-F27 · «Desactivar CoPanel» pide el motivo y, al confirmar, envía POST …/desactivacion con { motivo } al proveedor de la fila 1728ms
+     × hdu004_esc12 · TC-F27 · la lista se vuelve a pedir: el proveedor sale del filtro por omisión y aparece «Desactivado» al filtrar «Desactivados» 1663ms
+   ❯ TKT-032a · TC-F28 · desactivar sin motivo (CA-6, rechazo) (2)
+     × hdu004_esc12 · TC-F28 · rechazo: desactivar sin motivo (vacío) no envía y el campo señala el error 1685ms
+     × hdu004_esc12 · TC-F28 · rechazo: desactivar sin motivo (solo espacios) no envía y el campo señala el error 1690ms
+   ❯ TKT-032a · TC-F29 · dar de baja sin órdenes pendientes (CA-7, HDU-004 esc. 13) (2)
+     × hdu004_esc13 · TC-F29 · un proveedor ACTIVO se da de baja con motivo: envía POST …/baja con { motivo }, sale del filtro y, al filtrar «Dados de baja», su fila no lleva ninguna acción 1692ms
+     × hdu004_esc13 · TC-F29 · un proveedor DESACTIVADO se da de baja con motivo: envía POST …/baja con { motivo }, sale del filtro y, al filtrar «Dados de baja», su fila no lleva ninguna acción 1746ms
+   ❯ TKT-032a · TC-F30 · dar de baja sin motivo (CA-7, rechazo) (2)
+     × hdu004_esc13 · TC-F30 · rechazo: dar de baja sin motivo (vacío) no envía y el campo señala el error 1669ms
+     × hdu004_esc13 · TC-F30 · rechazo: dar de baja sin motivo (solo espacios) no envía y el campo señala el error 1685ms
+   ❯ TKT-032a · TC-F31 · baja con órdenes pendientes, proveedor ACTIVO (CA-8, HDU-004 esc. 12, rechazo) (2)
+     × hdu004_esc12 · TC-F31 · el 409 se pinta como bloqueo con su código, el mensaje del servidor, las órdenes (folio y estado) y la acción tomada de acciones[] 1685ms
+     × hdu004_esc12 · TC-F31 · el proveedor sigue ACTIVO en la lista, con sus acciones, y «Cerrar» quita el bloqueo sin enviar nada 1669ms
+   ❯ TKT-032a · TC-F32 · desde el bloqueo se desactiva al proveedor bloqueado, no a otro (CA-8, M-7) (2)
+     × hdu004_esc12 · TC-F32 · «Desactivar el proveedor» abre la captura de motivo de CoPanel, nombrándolo, y no envía nada todavía 1677ms
+     × hdu004_esc12 · TC-F32 · al confirmar, el POST …/desactivacion va al id de CoPanel con el motivo, el bloqueo se cierra y la lista se recarga sin él 1691ms
+   ❯ TKT-032a · TC-F33 · baja con órdenes pendientes, proveedor DESACTIVADO (CA-8, rechazo) (2)
+     × hdu004_esc12 · TC-F33 · el bloqueo lista las órdenes con el mensaje del servidor y NO ofrece desactivar: solo «Cerrar» 1753ms
+     × hdu004_esc12 · TC-F33 · «Cerrar» quita el bloqueo y el proveedor sigue DESACTIVADO, con «Editar» y «Dar de baja» 1747ms
+   ❯ TKT-032a · TC-F34 · la pantalla no cablea la acción del bloqueo (CA-8, M-6, rechazo) (1)
+     × hdu004_esc12 · TC-F34 · con PROVEEDOR_CON_ORDENES_ABIERTAS simulado SIN acciones y proveedor ACTIVO, no aparece «Desactivar el proveedor» 1687ms
+   ❯ TKT-032a · TC-F35 · otro usuario cambió el estado (CA-10, HDU-004 esc. 12, rechazo) (4)
+     × hdu004_esc12 · TC-F35 · Desactivar sobre la fila vieja: el 409 ESTADO_NO_PERMITE_OPERACION se pinta como bloqueo con el mensaje del servidor y «Estado actual» rotulado, no la clave cruda 1684ms
+     × hdu004_esc12 · TC-F35 · Dar de baja sobre la fila vieja: el 409 ESTADO_NO_PERMITE_OPERACION se pinta como bloqueo con el mensaje del servidor y «Estado actual» rotulado, no la clave cruda 1676ms
+     × hdu004_esc12 · TC-F35 · Desactivar sobre la fila vieja: la lista se vuelve a pedir y la fila vuelve con su estado actual, «Baja» y sin acciones 1686ms
+     × hdu004_esc12 · TC-F35 · Dar de baja sobre la fila vieja: la lista se vuelve a pedir y la fila vuelve con su estado actual, «Baja» y sin acciones 1683ms
+   ❯ TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) (10)
+     × tkt032a_estado · TC-F36 · Desactivar con un 403: pinta el mensaje del servidor sobre la tabla, sin cifras ni tratamiento de bloqueo, y el proveedor no cambia 1683ms
+     × tkt032a_estado · TC-F36 · Dar de baja con un 403: pinta el mensaje del servidor sobre la tabla, sin cifras ni tratamiento de bloqueo, y el proveedor no cambia 1693ms
+     × tkt032a_estado · TC-F36 · Desactivar con un 404: avisa con el mensaje del servidor y su referencia, y la lista se vuelve a pedir sin el proveedor desaparecido 1685ms
+     × tkt032a_estado · TC-F36 · Dar de baja con un 404: avisa con el mensaje del servidor y su referencia, y la lista se vuelve a pedir sin el proveedor desaparecido 1686ms
+     × tkt032a_estado · TC-F36 · Desactivar con un 500: avisa con el mensaje y la referencia del servidor y la pantalla no cae 1686ms
+     × tkt032a_estado · TC-F36 · Dar de baja con un 500: avisa con el mensaje y la referencia del servidor y la pantalla no cae 1676ms
+     × tkt032a_estado · TC-F36 · Desactivar con un error de red: muestra un aviso sin caer la pantalla y la fila conserva sus acciones 1687ms
+     × tkt032a_estado · TC-F36 · Dar de baja con un error de red: muestra un aviso sin caer la pantalla y la fila conserva sus acciones 1679ms
+     × tkt032a_estado · TC-F36 · Desactivar con un 409 CONCURRENCIA: «Reintentar» espera, y después reabre la captura de motivo de la misma operación y del mismo proveedor 1675ms
+     × tkt032a_estado · TC-F36 · Dar de baja con un 409 CONCURRENCIA: «Reintentar» espera, y después reabre la captura de motivo de la misma operación y del mismo proveedor 1693ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 29 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F27 · desactivar con motivo (CA-6, HDU-004 esc. 12) > hdu004_esc12 · TC-F27 · «Desactivar CoPanel» pide el motivo y, al confirmar, envía POST …/desactivacion con { motivo } al proveedor de la fila
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:329:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F27 · desactivar con motivo (CA-6, HDU-004 esc. 12) > hdu004_esc12 · TC-F27 · la lista se vuelve a pedir: el proveedor sale del filtro por omisión y aparece «Desactivado» al filtrar «Desactivados»
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:349:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F28 · desactivar sin motivo (CA-6, rechazo) > hdu004_esc12 · TC-F28 · rechazo: desactivar sin motivo (vacío) no envía y el campo señala el error
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F28 · desactivar sin motivo (CA-6, rechazo) > hdu004_esc12 · TC-F28 · rechazo: desactivar sin motivo (solo espacios) no envía y el campo señala el error
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:377:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F29 · dar de baja sin órdenes pendientes (CA-7, HDU-004 esc. 13) > hdu004_esc13 · TC-F29 · un proveedor ACTIVO se da de baja con motivo: envía POST …/baja con { motivo }, sale del filtro y, al filtrar «Dados de baja», su fila no lleva ninguna acción
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F29 · dar de baja sin órdenes pendientes (CA-7, HDU-004 esc. 13) > hdu004_esc13 · TC-F29 · un proveedor DESACTIVADO se da de baja con motivo: envía POST …/baja con { motivo }, sale del filtro y, al filtrar «Dados de baja», su fila no lleva ninguna acción
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:409:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F30 · dar de baja sin motivo (CA-7, rechazo) > hdu004_esc13 · TC-F30 · rechazo: dar de baja sin motivo (vacío) no envía y el campo señala el error
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F30 · dar de baja sin motivo (CA-7, rechazo) > hdu004_esc13 · TC-F30 · rechazo: dar de baja sin motivo (solo espacios) no envía y el campo señala el error
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:444:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F31 · baja con órdenes pendientes, proveedor ACTIVO (CA-8, HDU-004 esc. 12, rechazo) > hdu004_esc12 · TC-F31 · el 409 se pinta como bloqueo con su código, el mensaje del servidor, las órdenes (folio y estado) y la acción tomada de acciones[]
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ intentarBajaConOrdenes src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:470:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:475:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F31 · baja con órdenes pendientes, proveedor ACTIVO (CA-8, HDU-004 esc. 12, rechazo) > hdu004_esc12 · TC-F31 · el proveedor sigue ACTIVO en la lista, con sus acciones, y «Cerrar» quita el bloqueo sin enviar nada
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ intentarBajaConOrdenes src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:470:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:522:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F32 · desde el bloqueo se desactiva al proveedor bloqueado, no a otro (CA-8, M-7) > hdu004_esc12 · TC-F32 · «Desactivar el proveedor» abre la captura de motivo de CoPanel, nombrándolo, y no envía nada todavía
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ llegarAlBloqueo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:545:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:551:49
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F32 · desde el bloqueo se desactiva al proveedor bloqueado, no a otro (CA-8, M-7) > hdu004_esc12 · TC-F32 · al confirmar, el POST …/desactivacion va al id de CoPanel con el motivo, el bloqueo se cierra y la lista se recarga sin él
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ llegarAlBloqueo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:545:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:565:62
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F33 · baja con órdenes pendientes, proveedor DESACTIVADO (CA-8, rechazo) > hdu004_esc12 · TC-F33 · el bloqueo lista las órdenes con el mensaje del servidor y NO ofrece desactivar: solo «Cerrar»
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ intentarBajaDeUnDesactivado src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:597:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:602:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F33 · baja con órdenes pendientes, proveedor DESACTIVADO (CA-8, rechazo) > hdu004_esc12 · TC-F33 · «Cerrar» quita el bloqueo y el proveedor sigue DESACTIVADO, con «Editar» y «Dar de baja»
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ intentarBajaDeUnDesactivado src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:597:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:623:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F34 · la pantalla no cablea la acción del bloqueo (CA-8, M-6, rechazo) > hdu004_esc12 · TC-F34 · con PROVEEDOR_CON_ORDENES_ABIERTAS simulado SIN acciones y proveedor ACTIVO, no aparece «Desactivar el proveedor»
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:642:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F35 · otro usuario cambió el estado (CA-10, HDU-004 esc. 12, rechazo) > hdu004_esc12 · TC-F35 · Desactivar sobre la fila vieja: el 409 ESTADO_NO_PERMITE_OPERACION se pinta como bloqueo con el mensaje del servidor y «Estado actual» rotulado, no la clave cruda
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:671:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F35 · otro usuario cambió el estado (CA-10, HDU-004 esc. 12, rechazo) > hdu004_esc12 · TC-F35 · Dar de baja sobre la fila vieja: el 409 ESTADO_NO_PERMITE_OPERACION se pinta como bloqueo con el mensaje del servidor y «Estado actual» rotulado, no la clave cruda
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:671:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F35 · otro usuario cambió el estado (CA-10, HDU-004 esc. 12, rechazo) > hdu004_esc12 · TC-F35 · Desactivar sobre la fila vieja: la lista se vuelve a pedir y la fila vuelve con su estado actual, «Baja» y sin acciones
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:699:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F35 · otro usuario cambió el estado (CA-10, HDU-004 esc. 12, rechazo) > hdu004_esc12 · TC-F35 · Dar de baja sobre la fila vieja: la lista se vuelve a pedir y la fila vuelve con su estado actual, «Baja» y sin acciones
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:699:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Desactivar con un 403: pinta el mensaje del servidor sobre la tabla, sin cifras ni tratamiento de bloqueo, y el proveedor no cambia
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:740:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Dar de baja con un 403: pinta el mensaje del servidor sobre la tabla, sin cifras ni tratamiento de bloqueo, y el proveedor no cambia
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:740:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Desactivar con un 404: avisa con el mensaje del servidor y su referencia, y la lista se vuelve a pedir sin el proveedor desaparecido
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:757:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Dar de baja con un 404: avisa con el mensaje del servidor y su referencia, y la lista se vuelve a pedir sin el proveedor desaparecido
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:757:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Desactivar con un 500: avisa con el mensaje y la referencia del servidor y la pantalla no cae
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:777:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Dar de baja con un 500: avisa con el mensaje y la referencia del servidor y la pantalla no cae
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:777:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Desactivar con un error de red: muestra un aviso sin caer la pantalla y la fila conserva sus acciones
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:794:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Dar de baja con un error de red: muestra un aviso sin caer la pantalla y la fila conserva sus acciones
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ operarRechazada src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:723:5
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:794:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Desactivar con un 409 CONCURRENCIA: «Reintentar» espera, y después reabre la captura de motivo de la misma operación y del mismo proveedor
+TestingLibraryElementError: Unable to find role="dialog" and name "Desactivar a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:824:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/29]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx > TKT-032a · TC-F36 · 403, 404, 500, red y espera de bloqueo (CA-9, CA-10, rechazo) > tkt032a_estado · TC-F36 · Dar de baja con un 409 CONCURRENCIA: «Reintentar» espera, y después reabre la captura de motivo de la misma operación y del mismo proveedor
+TestingLibraryElementError: Unable to find role="dialog" and name "Dar de baja a CoPanel"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"flex flex-wrap items-center g...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ abrirMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:274:17
+    272| async function abrirMotivo(usuario: Usuario, operacion: Operacion, nom…
+    273|   await pulsarEnFila(usuario, operacion, nombre);
+    274|   return screen.findByRole("dialog", { name: operacion.titulo(nombre) …
+       |                 ^
+    275| }
+    276|
+ ❯ operarConMotivo src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:294:19
+ ❯ src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx:824:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/29]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  29 failed (29)
+   Start at  07:43:43
+   Duration  50.92s (tests 97%, environment 2%, import 1%)
+

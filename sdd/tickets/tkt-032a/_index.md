@@ -4,7 +4,7 @@
 
 ## Estado
 
-LISTO PARA EJECUTAR · entrega b (filas F7 a F10 del diseño). La entrega a (F1 a F6, sin F3) quedó revisada y acumulada en la rama `tkt-032a-pantalla-proveedores`, sin PR.
+PENDIENTE FUSIÓN · las dos entregas (a: F1 a F6 sin F3; b: F7 a F10) están revisadas y el cierre del ticket (delta, evolución y documentación) viaja dentro del PR del ticket. Pasa a `ARCHIVADO` al fusionarse.
 
 ## Ficha
 
@@ -27,9 +27,10 @@ LISTO PARA EJECUTAR · entrega b (filas F7 a F10 del diseño). La entrega a (F1 
 | Artefacto | Enlace | Comando | Estado |
 |---|---|---|---|
 | Spec | [spec.md](spec.md) | `/sdd-definir` | Escrita el 2026-11-17 |
-| Design | [design.md](design.md) | `/sdd-disenar` | Escrito el 2026-11-17, pendiente de revisión |
-| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entrega a escrita el 2026-11-17; falta la sección de la entrega b |
-| Delta | `delta.md` (se enlaza en `/sdd-completar`) | `/sdd-completar` | Pendiente |
+| Design | [design.md](design.md) | `/sdd-disenar` | Escrito el 2026-11-17, aprobado el 2026-11-17 |
+| Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Entregas a y b escritas |
+| Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-18 |
+| PR | Se enlaza en el comentario de registro de la fusión | `/sdd-completar` | Pendiente de abrir |
 
 ## Log de estados
 
@@ -40,6 +41,9 @@ LISTO PARA EJECUTAR · entrega b (filas F7 a F10 del diseño). La entrega a (F1 
 | 2026-11-17 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | `/sdd-disenar` | La persona dueña aprobó el diseño completo en la conversación principal: todas las recomendaciones del diseño, incluidos H-1 (`CA-3` sin acción de verlo) y H-2 (sembrador local de pruebas); `/sdd-escalar` no hace falta |
 | 2026-11-17 | `LISTO PARA EJECUTAR` | `EN REVISIÓN · entrega a` | `/sdd-ejecutar` | Entrega a (F1 a F6) ejecutada con TDD: F1 boceto 2c, F2 etiquetas, F3 eliminada porque TKT-012b ya trajo `soloLectura`, F4 consultas y esquemas, F5 lista y rutas, F6 alta. Suite del cliente en verde (859 pruebas), mutantes M-1 a M-5 caídos, `auditor-arquitectura` `APROBADO` con tres observaciones. Quedan la entrega b (F7 a F10) y arreglar `frontend/node_modules`, que un `npm ci` fallido dejó incompleto por un servidor de desarrollo abierto |
 | 2026-11-18 | `EN REVISIÓN · entrega a` | `LISTO PARA EJECUTAR · entrega b` | `/sdd-revisar` | Entrega a revisada y acumulada en la rama, sin PR. Suite del cliente en verde (863 pruebas tras el ciclo), lint, typecheck y verificadores de documentos limpios. `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` y `auditor-docs` pidieron cambios (un Mayor cada uno, más Menores) y quedaron `APROBADO` tras un ciclo de corrección. La corrección añadió cuatro pruebas, extrajo `totalDePaginas`, marcó la baja terminal `(asumido, PA-24)` y quitó rutas locales de la evidencia. Siguiente: `/sdd-ejecutar` sobre la entrega b |
+| 2026-11-18 | `LISTO PARA EJECUTAR · entrega b` | `EN REVISIÓN · entrega b` | `/sdd-ejecutar` | Entrega b (F7 a F10) ejecutada con TDD: edición, desactivar, dar de baja y bloqueos, prueba de contrato y recorrido de extremo a extremo con una orden `PARCIAL` real y su sembrador local (H-2). Cliente 925 pruebas, E2E 10 de 10, backend afectado 49, lint, typecheck, `tipos:verificar` y verificadores limpios; mutantes `M-6` y `M-7` caídos; `auditor-arquitectura` `APROBADO`. El rojo de F9 nació en verde, justificado con cinco mutantes. Siguiente: `/sdd-revisar` sobre la entrega b |
+| 2026-11-18 | `EN REVISIÓN · entrega b` | `LISTO PARA PR` | `/sdd-revisar` | Entrega b revisada. Cliente 931 pruebas, E2E 10 de 10, backend afectado 49, lint, typecheck, `tipos:verificar` y verificadores limpios. `auditor-arquitectura` y `auditor-seguridad` `APROBADO`; `auditor-codigo` (1 Mayor y 9 Menores) y `auditor-docs` (5 Menores) pidieron cambios y quedaron `APROBADO` tras un ciclo; un Menor de comentario se reauditó con `haiku`. El Mayor fue una rama de `409` `CONCURRENCIA` del `PATCH` sin prueba: se fijó el comportamiento actual con una prueba y la decisión de ofrecer «Reintentar» queda para la persona dueña. Siguiente: `/sdd-completar TKT-032a` |
+| 2026-11-18 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Cierre del ticket: `delta.md` escrito, documentación auditada (un Mayor de markdownlint en `design.md:71` y cinco Menores, resueltos), nueve filas de evolución y propuestas de `meta-sdd` sin aplicar, y el hub archivado dentro del PR. La frase desfasada de TKT-029 en `docs/05-tickets-trabajo.md` ahora apunta a TKT-032a. Siguiente: commit, PR y aprobación de la fusión |
 
 ## Decisiones registradas
 
@@ -48,9 +52,11 @@ LISTO PARA EJECUTAR · entrega b (filas F7 a F10 del diseño). La entrega a (F1 
 - 2026-11-17 · La persona dueña aprobó el boceto de F1 (catálogo de proveedores y reconciliación de la baja) y las decisiones D-6 a D-10 con su recomendación: mensaje del `403` del servidor, «Editar» en `ACTIVO` y `DESACTIVADO`, acciones de estado por fila, conflicto de RFC bajo los campos y cambio declarado de cuatro líneas de una prueba de TKT-008c. H-1 y H-2 siguen abiertos.
 
 - 2026-11-17 · La persona dueña resolvió H-1 y H-2 en la conversación principal: `CA-3` muestra el proveedor existente sin acción de verlo, y se aprueba el sembrador local `backend/herramientas/semilla_orden_proveedor_local.py` como apoyo de pruebas.
+- 2026-11-18 · La persona dueña decidió, en `/sdd-revisar` de la entrega b, dejar el alta y la edición como están ante un `409` `CONCURRENCIA`: el formulario se cierra, se avisa en la cabecera con el mensaje y la referencia, y lo capturado se pierde; no se ofrece «Reintentar».
 
 ## Tickets futuros sugeridos
 
 - **TKT-032b** · consulta proveedor × obra, emisión y cancelación de órdenes (depende de TKT-030 y TKT-031).
 - Reactivar un proveedor `DESACTIVADO` o dado de `BAJA` (`PA-24`).
 - **VER_PROVEEDOR** · añadir la acción de ver al proveedor existente en el `409` `RFC_DUPLICADO` (backend, `openapi.yaml` y pruebas de TKT-029a).
+- Extraer `EsqueletoLista` y `AvisoErrorLista` y la copia de `esBloqueo` a `compartido/`, ahora que TKT-012b está fusionado.

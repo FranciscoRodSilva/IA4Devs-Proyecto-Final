@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useId, useState } from "react";
+import type { ResultadoApi } from "@/api/cliente";
 import type { ErrorConcurrencia, ErrorReglaNegocio } from "@/api/errores";
 import type { components } from "@/api/generado/servidor";
 import { useApi } from "@/api/ProveedorApi";
@@ -7,10 +8,29 @@ import { useSesion } from "@/api/sesion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CapturaMotivo } from "@/compartido/formularios/CapturaMotivo";
+import { PantallaBloqueo } from "@/compartido/componentes/bloqueo/PantallaBloqueo";
 import { FormularioCatalogo } from "@/compartido/formularios/FormularioCatalogo";
+import { type AccionDeFila, TablaProveedores } from "./TablaProveedores";
 import { AvisoErrorLista, EsqueletoLista, SinProveedores } from "./estados-lista";
-import { camposAlta, DIAS, esquemaAlta, VALORES_INICIALES_ALTA } from "./proveedores.formulario";
-import { claves, crearProveedor, proveedoresOptions, totalDePaginas } from "./proveedores.consultas";
+import {
+  camposAlta,
+  camposEdicion,
+  cambiosDe,
+  esquemaAlta,
+  esquemaVistaEdicionProveedor,
+  type SalidaEdicion,
+  valoresInicialesDe,
+  VALORES_INICIALES_ALTA,
+} from "./proveedores.formulario";
+import { actualizarProveedor, claves, crearProveedor, proveedoresOptions, totalDePaginas } from "./proveedores.consultas";
+import {
+  type AvisoCabecera,
+  ETIQUETA_CONFIRMAR_MOTIVO,
+  OPERACION_DE_ESTADO,
+  TITULO_MOTIVO,
+  useOperacionDeEstado,
+} from "./useOperacionDeEstado";
 
 type Esquemas = components["schemas"];
 type Proveedor = Esquemas["Proveedor"];
@@ -33,95 +53,8 @@ const ESTADOS_DE_FILTRO: Readonly<Record<FiltroEstado, ReadonlyArray<EstadoProve
   TODOS: ["ACTIVO", "DESACTIVADO", "BAJA"],
 };
 
-const ETIQUETA_ESTADO: Readonly<Record<EstadoProveedor, string>> = {
-  ACTIVO: "Activo",
-  DESACTIVADO: "Desactivado",
-  BAJA: "Baja",
-};
-
-type AccionDeFila = "EDITAR" | "DESACTIVAR" | "DAR_DE_BAJA";
-const ETIQUETA_ACCION: Readonly<Record<AccionDeFila, string>> = {
-  EDITAR: "Editar",
-  DESACTIVAR: "Desactivar",
-  DAR_DE_BAJA: "Dar de baja",
-};
-
-/** D-7: lo que se ofrece sale del estado que devolvió el servidor; sobre una baja no se ofrece nada. */
-function accionesDe(estado: EstadoProveedor): readonly AccionDeFila[] {
-  switch (estado) {
-    case "ACTIVO":
-      return ["EDITAR", "DESACTIVAR", "DAR_DE_BAJA"];
-    case "DESACTIVADO":
-      return ["EDITAR", "DAR_DE_BAJA"];
-    case "BAJA":
-      return [];
-  }
-}
-
-function nombreDeDia(dia: number): string {
-  return DIAS.find((candidato) => candidato.valor === String(dia))?.etiqueta ?? String(dia);
-}
-
-interface PropsTabla {
-  proveedores: Proveedor[];
-  conAcciones: boolean;
-}
-
-function TablaProveedores({ proveedores, conAcciones }: PropsTabla) {
-  const encabezados = ["Nombre", "RFC", "Estado", "Corte", "Pago", ...(conAcciones ? ["Acciones"] : [])];
-  return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b text-left">
-          {encabezados.map((encabezado) => (
-            <th key={encabezado} scope="col" className="px-3 py-2 font-medium">
-              {encabezado}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {proveedores.map((proveedor) => (
-          <tr key={proveedor.id} className="border-b">
-            <td className="px-3 py-2">{proveedor.nombre}</td>
-            <td className="px-3 py-2">{proveedor.rfc}</td>
-            <td className={proveedor.estado === "ACTIVO" ? "px-3 py-2" : "px-3 py-2 text-muted-foreground"}>
-              {ETIQUETA_ESTADO[proveedor.estado]}
-            </td>
-            <td className="px-3 py-2">{nombreDeDia(proveedor.dia_corte)}</td>
-            <td className="px-3 py-2">{nombreDeDia(proveedor.dia_pago)}</td>
-            {conAcciones ? (
-              <td className="px-3 py-2">
-                <div className="flex flex-wrap gap-2">
-                  {accionesDe(proveedor.estado).map((accion) => (
-                    // F7 conecta «Editar» y F8 «Desactivar» y «Dar de baja»: hasta entonces los botones solo se pintan.
-                    <Button
-                      key={accion}
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      aria-label={`${ETIQUETA_ACCION[accion]} ${proveedor.nombre}`}
-                    >
-                      {ETIQUETA_ACCION[accion]}
-                    </Button>
-                  ))}
-                </div>
-              </td>
-            ) : null}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
 const TITULO_ALTA = "Alta de proveedor";
-
-/** Un rechazo del alta que no es de campo ni de RFC: se avisa en la cabecera, con su referencia si el servidor la trae. */
-interface AvisoAlta {
-  texto: string;
-  referencia: string | null;
-}
+const TITULO_EDICION = "Editar proveedor";
 
 /** Catálogo de proveedores (M-wireframe 2c): lista con filtro, búsqueda y paginación; solo COMPRAS ve las acciones. */
 export function PantallaProveedores() {
@@ -134,23 +67,61 @@ export function PantallaProveedores() {
   const [q, setQ] = useState("");
   const [pagina, setPagina] = useState(1);
   const [altaAbierta, setAltaAbierta] = useState(false);
-  const [avisoAlta, setAvisoAlta] = useState<AvisoAlta | null>(null);
+  // El proveedor que se edita; el diálogo se monta solo mientras hay uno, así que cada apertura parte de sus valores.
+  const [edicion, setEdicion] = useState<Proveedor | null>(null);
+  const [aviso, setAviso] = useState<AvisoCabecera | null>(null);
+  const { operacion, bloqueo, abrirMotivo, rechazar, alAccionBloqueo, cerrar, cerrarBloqueo } = useOperacionDeEstado(
+    refrescarProveedores,
+    setAviso,
+  );
   const lista = useQuery(proveedoresOptions(api, { estados: ESTADOS_DE_FILTRO[filtro], q, pagina }));
   const puedeOperar = (sesion.data?.roles ?? []).includes("COMPRAS");
 
   function abrirAlta() {
-    setAvisoAlta(null);
+    setAviso(null);
     setAltaAbierta(true);
+  }
+
+  function abrirEdicion(proveedor: Proveedor) {
+    setAviso(null);
+    setEdicion(proveedor);
+  }
+
+  // Cada fila entrega su acción con el proveedor de esa fila: nunca con el primero de la lista.
+  function alAccionFila(accion: AccionDeFila, proveedor: Proveedor) {
+    switch (accion) {
+      case "EDITAR":
+        abrirEdicion(proveedor);
+        return;
+      case "DESACTIVAR":
+        abrirMotivo("DESACTIVAR", proveedor);
+        return;
+      case "DAR_DE_BAJA":
+        abrirMotivo("DAR_DE_BAJA", proveedor);
+        return;
+    }
   }
 
   function refrescarProveedores() {
     void queryClient.invalidateQueries({ queryKey: claves.proveedores });
   }
 
-  // El alta no debería recibir un bloqueo de regla ni de concurrencia: si llega, cierra el formulario y se avisa en la cabecera.
-  function alBloqueoAlta(error: ErrorReglaNegocio | ErrorConcurrencia) {
-    setAltaAbierta(false);
-    setAvisoAlta({ texto: error.mensaje ?? "No se pudo dar de alta el proveedor.", referencia: error.correlacion_id });
+  // Un bloqueo de concurrencia (`BLOQUEO_VENCIDO`) cierra la edición y se avisa en la cabecera; el alta también puede
+  // recibir `CONCURRENCIA` y se trata igual. Un 404 no llega aquí (es un error del formulario).
+  function avisarYCerrar(cerrarFormulario: () => void, textoPorOmision: string) {
+    return (error: ErrorReglaNegocio | ErrorConcurrencia) => {
+      cerrarFormulario();
+      setAviso({ texto: error.mensaje ?? textoPorOmision, referencia: error.correlacion_id });
+    };
+  }
+  // Sin cambios no hay petición: el resultado vacío cierra el diálogo sin pedir la lista otra vez (datos: null).
+  // Un 404 deja al proveedor sin existir en el servidor: se devuelve el error al formulario y se recarga la lista.
+  async function guardarEdicion(proveedor: Proveedor, valores: SalidaEdicion): Promise<ResultadoApi<Proveedor | null>> {
+    const cambios = cambiosDe(proveedor, valores);
+    if (cambios === null) return { ok: true, datos: null };
+    const resultado = await actualizarProveedor(api, proveedor.id, cambios);
+    if (!resultado.ok && resultado.error.tipo === "NO_ENCONTRADO") refrescarProveedores();
+    return resultado;
   }
 
   // La página pedida salió vacía pero el filtro tiene datos: se pide la última con datos (ajuste durante el render).
@@ -177,7 +148,7 @@ export function PantallaProveedores() {
     const totalPaginas = totalDePaginas(paginacion.total);
     return (
       <div className="grid gap-2">
-        <TablaProveedores proveedores={elementos} conAcciones={puedeOperar} />
+        <TablaProveedores proveedores={elementos} conAcciones={puedeOperar} alAccionFila={alAccionFila} />
         <div className="flex items-center justify-between gap-2">
           <Button type="button" variant="outline" disabled={pagina <= 1} onClick={() => setPagina(pagina - 1)}>
             Anterior
@@ -237,11 +208,20 @@ export function PantallaProveedores() {
         </form>
       </div>
 
-      {avisoAlta === null ? null : (
+      {aviso === null ? null : (
         <div role="alert" className="grid gap-1 rounded-md border border-destructive/40 p-4 text-sm">
-          <p>{avisoAlta.texto}</p>
-          {avisoAlta.referencia === null ? null : <p>Referencia: {avisoAlta.referencia}</p>}
+          <p>{aviso.texto}</p>
+          {aviso.referencia === null ? null : <p>Referencia: {aviso.referencia}</p>}
         </div>
+      )}
+
+      {bloqueo === null ? null : (
+        <PantallaBloqueo
+          error={bloqueo.error}
+          alAccion={(accion) => alAccionBloqueo(accion, bloqueo)}
+          alCerrar={cerrarBloqueo}
+          alReintentar={() => abrirMotivo(bloqueo.verbo, bloqueo.proveedor)}
+        />
       )}
 
       {contenidoLista()}
@@ -254,10 +234,43 @@ export function PantallaProveedores() {
         valoresIniciales={VALORES_INICIALES_ALTA}
         alGuardar={(valores) => crearProveedor(api, valores)}
         alGuardado={refrescarProveedores}
-        alBloqueo={alBloqueoAlta}
+        alBloqueo={avisarYCerrar(() => setAltaAbierta(false), "No se pudo dar de alta el proveedor.")}
         alAccion={() => undefined}
         alCerrar={() => setAltaAbierta(false)}
       />
+
+      {edicion === null ? null : (
+        <FormularioCatalogo<typeof esquemaVistaEdicionProveedor, Proveedor | null>
+          abierto
+          titulo={TITULO_EDICION}
+          esquema={esquemaVistaEdicionProveedor}
+          campos={camposEdicion}
+          valoresIniciales={valoresInicialesDe(edicion)}
+          alGuardar={(valores) => guardarEdicion(edicion, valores)}
+          alGuardado={(respuesta) => {
+            if (respuesta !== null) refrescarProveedores();
+          }}
+          alBloqueo={avisarYCerrar(() => setEdicion(null), "No se pudo editar el proveedor.")}
+          alAccion={() => undefined}
+          alCerrar={() => setEdicion(null)}
+        />
+      )}
+
+      {/* Se monta solo mientras hay una operación de estado: el motivo vacío no envía y el id es el de la fila pulsada. */}
+      {operacion === null ? null : (
+        <CapturaMotivo
+          abierta
+          titulo={TITULO_MOTIVO[operacion.verbo](operacion.proveedor.nombre)}
+          etiquetaConfirmar={ETIQUETA_CONFIRMAR_MOTIVO[operacion.verbo]}
+          alConfirmar={(motivo) => OPERACION_DE_ESTADO[operacion.verbo](api, operacion.proveedor.id, motivo)}
+          alHecho={() => {
+            cerrar();
+            refrescarProveedores();
+          }}
+          alRechazo={(error) => rechazar(error, operacion)}
+          alCancelar={cerrar}
+        />
+      )}
     </section>
   );
 }

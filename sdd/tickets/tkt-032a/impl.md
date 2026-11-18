@@ -1,6 +1,6 @@
 # Impl · TKT-032a · Pantalla del catálogo de proveedores
 
-> [← index](_index.md) | [← design](design.md) | Siguiente: `delta.md` (se enlaza en `/sdd-completar`)
+> [← index](_index.md) | [← design](design.md) | Siguiente: [delta](delta.md)
 
 Este archivo se escribe por entregas y no se reescribe: la sección de cada entrega se añade a las anteriores.
 
@@ -19,7 +19,7 @@ Las acciones por fila de la lista (Editar, Desactivar, Dar de baja) están pinta
 | 2026-11-17 | F3 eliminada: no se añade `soloLectura` a `FormularioCatalogo` ni se escribe TC-F04. | TKT-012b (PR #80, ya fusionado) introdujo `soloLectura` con el mismo nombre. Su semántica añade que el campo de solo lectura no viaja en `alGuardar`; no estorba, porque el `PATCH` de la entrega b envía solo lo cambiado. Registrado en «Ajustes de la ejecución» de `design.md`. |
 | 2026-11-17 | Las mutaciones de `proveedores.consultas.ts` no invalidan la caché por sí mismas; lo hace la pantalla. | Es el patrón de obras (`(api, ...)` sin `QueryClient`). El diseño decía «tras cada mutación exitosa se invalida»: el efecto es el mismo y queda probado en TC-F19. |
 | 2026-11-17 | El tope de consignación se rotula «Tope de consignación (opcional)». | El boceto lo dibuja con «opcional» al final. Las pruebas lo buscan con `/^Tope de consignación/`. |
-| 2026-11-17 | Un `alBloqueo` del alta cierra el formulario y pinta un aviso de cabecera con el mensaje y la referencia. | El endpoint `POST /proveedores` no declara ningún `409` de regla ni `CONCURRENCIA`, así que es una rama defensiva. La fila F8 lo sustituye por `PantallaBloqueo`. |
+| 2026-11-17 | Un `alBloqueo` del alta cierra el formulario y pinta un aviso de cabecera con el mensaje y la referencia. | `POST /proveedores` y `PATCH /proveedores/{proveedor_id}` pueden responder `409` `CONCURRENCIA` (`BLOQUEO_VENCIDO`) si vence el bloqueo; el alta y la edición cierran el formulario y avisan en la cabecera con el mensaje del servidor y su referencia, y lo capturado se pierde. La persona dueña decidió el 2026-11-18 dejarlo así: no se ofrece «Reintentar». |
 | 2026-11-17 | El RFC en minúsculas se normaliza a mayúsculas y se acepta. | El servidor hace la misma normalización; la tabla de entradas hostiles del diseño decía «minúsculas» entre lo rechazable y el texto del esquema decía «recortado y en mayúsculas». Se siguió el texto del esquema. |
 | 2026-11-18 | Por el hallazgo F001 de `auditor-docs`, el boceto y la viñeta de la pantalla 8 marcan la baja terminal como supuesto `(asumido, PA-24)`, y se añadió su fila a §13 de `docs/08-wireframes.md`. | La baja definitiva que conserva el RFC no figuraba como supuesto en el wireframe ni en el diseño, y la auditoría de documentación lo pidió. |
 
@@ -221,3 +221,192 @@ Corrida del 2026-11-18 por el orquestador, con Docker respondiendo (`docker info
 **Desviaciones.** F3 eliminada (TKT-012b ya trajo `soloLectura`); la baja terminal se marca como supuesto `(asumido, PA-24)`. Ninguna cambia el alcance.
 
 **Qué queda pendiente.** La entrega b (F7 a F10) y arreglar `frontend/node_modules`. La entrega a no se fusiona ni se despliega sola: los botones de fila no hacen nada hasta F7 y F8.
+
+## Entrega b · edición, estado y extremo a extremo (F7 a F10)
+
+### Qué se implementó
+
+La entrega b conecta las acciones de fila que la entrega a solo pintaba. «Editar» abre el formulario compartido con el RFC visible y de solo lectura, y el `PATCH` envía únicamente lo que cambió (el tope solo como cadena, y `null` si se vacía); guardar sin cambios cierra sin enviar nada. «Desactivar» y «Dar de baja» piden un motivo y usan la fila pulsada como objetivo. Un `409` de la baja con órdenes pendientes se pinta con la pantalla de bloqueo sobre la tabla: la acción «Desactivar el proveedor» aparece solo si el servidor la manda en `acciones[]` y abre el motivo de desactivar del mismo proveedor que se intentó dar de baja. El estado ya no válido, la espera de concurrencia y los avisos de `403`, `404`, `500` y red tienen cada uno su camino. Una prueba de contrato ata las cinco llamadas a `servidor.ts`, y un recorrido de extremo a extremo con una orden `PARCIAL` real prueba el `409` de la baja contra el servidor.
+
+### Ajustes respecto al design
+
+Los tres ajustes de la entrega (la prueba corregida de F7, la extracción de `TablaProveedores.tsx` y el prefijo `EEE` del RFC de prueba, con la línea `FOLIO=` del sembrador) están en «Ajustes de la ejecución» de `design.md`, con fecha 2026-11-18. Ninguno cambia el alcance.
+
+### Archivos tocados
+
+| Archivo | Acción | Capa |
+|---|---|---|
+| `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.tsx` | modificado: edición, captura de motivo, bloqueo y avisos | frontend |
+| `frontend/src/modulos/proveedores/catalogo/proveedores.formulario.ts` | modificado: `camposEdicion` y `esquemaVistaEdicionProveedor` | frontend |
+| `frontend/src/modulos/proveedores/catalogo/TablaProveedores.tsx` | nuevo: tabla y acciones por estado, extraídas en el refactor de F8 | frontend |
+| `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.edicion.test.tsx` | nuevo (27 pruebas) | pruebas |
+| `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.estado.test.tsx` | nuevo (29 pruebas) | pruebas |
+| `frontend/src/modulos/proveedores/catalogo/proveedores.contrato.test.ts` | nuevo (6 pruebas) | pruebas |
+| `frontend/e2e/proveedores.spec.ts` y `frontend/e2e/sembrar-orden.ts` | nuevos: dos recorridos y la ayuda que invoca al sembrador | pruebas |
+| `backend/herramientas/semilla_orden_proveedor_local.py` | nuevo: sembrador local de una orden `PARCIAL` (apoyo de pruebas, H-2) | herramientas |
+| `backend/herramientas/soporte_tkt029b_ordenes.py` | modificado: solo el docstring | herramientas |
+| `docs/arranque-local.md` | modificado: un párrafo con el sembrador | documentación |
+| `sdd/tickets/tkt-032a/rojo/fila-7.txt`, `fila-8.txt`, `fila-9.txt`, `fila-10.txt` y `fila-10-verde.txt` | nuevos: salida literal de cada rojo y del verde del E2E | evidencia |
+
+Ningún archivo de `backend/cimenta/`, de las migraciones ni de `docs/api/openapi.yaml` cambió, y `PantallaObras.tsx` y los componentes compartidos tampoco.
+
+### Pruebas
+
+| # | Test | Tipo | Criterio | Antes del código | Al cerrar |
+|---|---|---|---|---|---|
+| TC-F23 a TC-F26 y D-7 | `PantallaProveedores.edicion.test.tsx` (27): RFC de solo lectura, `PATCH` solo con lo cambiado, sin cambios no hay petición, `422`, `404` con recarga y `403` | feliz · borde · **rechazo** | `CA-5` | FALLA (26; 1 guarda de `BAJA` nace en verde) | PASA |
+| TC-F27 a TC-F30 | desactivar y dar de baja con motivo, y sin motivo | feliz · **rechazo** | `CA-6`, `CA-7` | FALLA | PASA |
+| TC-F31 a TC-F34 | bloqueo con órdenes pendientes: acción tomada de `acciones[]`, mismo proveedor, sin acción con `DESACTIVADO` o con `acciones: []` | **rechazo** | `CA-8` | FALLA | PASA |
+| TC-F35 | `ESTADO_NO_PERMITE_OPERACION` con «Estado actual» rotulado y lista recargada | **rechazo** | `CA-10` | FALLA | PASA |
+| TC-F36 | `403` sin cifras, `404` con recarga, `500`, red y `CONCURRENCIA` con «Reintentar» | **rechazo** | `CA-9`, `CA-10` | FALLA (29 en total con las de F31 a F35) | PASA |
+| TC-F37 | `proveedores.contrato.test.ts` (6): cada ruta, método y cuerpo existe en `servidor.ts` | contrato | `CA-R3` | NACE EN VERDE: las funciones existen desde F4; el valor está en los mutantes | PASA |
+| TC-E1 | `hdu004_esc02 · recorrido del catálogo` | feliz · **rechazo** (RFC repetido) | `CA-11`, `CA-2`, `CA-3`, `CA-6` | PASA (usa solo la pantalla ya construida) | PASA |
+| TC-E2 | `hdu004_esc12 · baja bloqueada por una orden PARCIAL real` | **rechazo** | `CA-8`, `CA-11` | FALLA: falta el sembrador | PASA |
+
+### Ciclo TDD por fila
+
+| Fila | Rojo (salida o ruta) | Ejecutó | Verde | Tabla «mutante · test que cae» |
+|---|---|---|---|---|
+| F7 | `rojo/fila-7.txt`: 26 failed, 1 passed (guarda de `BAJA`), 0 errores | `tester-frontend` · `desarrollador-react` | 103 passed en `PantallaProveedores` | No aplica |
+| F8 | `rojo/fila-8.txt`: 29 failed, 0 errores | `tester-frontend` · `desarrollador-react` | 208 passed en las cuatro suites del diseño; 919 passed en la suite completa | Sí, abajo |
+| F9 | `rojo/fila-9.txt`: nace en verde (6 passed) con cinco mutantes de ruta, método y cuerpo que la ponen en rojo | `tester-frontend` | 6 passed; `tipos:verificar` «Tipos al día» | Sí, en `rojo/fila-9.txt` |
+| F10 | `rojo/fila-10.txt`: 9 passed y 1 failed (TC-E2: «No module named herramientas.semilla_orden_proveedor_local») | `tester-frontend` · `desarrollador-aplicacion` | `rojo/fila-10-verde.txt`: 10 passed | No aplica |
+
+**Evidencia de cierre de la entrega** (corrida del 2026-11-18, con Docker respondiendo, `docker info` da 29.9.3):
+
+```text
+Cliente (vitest, copia sincronizada):  Test Files  39 passed (39)  ·  Tests  925 passed (925)   [al cerrar la ejecución; 931 tras el ciclo de corrección de la revisión]
+Extremo a extremo (playwright):        10 passed (24.1s)
+```
+
+`npm run lint`, `npm run typecheck` y `npm run tipos:verificar` («Tipos al día») terminan limpios. Desde `backend/`, `lint-imports` da «Contracts: 16 kept, 0 broken», `ruff check .` «All checks passed!», `mypy .` «no issues found in 376 source files» y `verificar_float` «archivos revisados: 42; hallazgos: 0». `uv run pytest tests/test_tkt029b_ordenes_pendientes.py tests/test_tkt029b_api_baja.py` da 49 passed. Las 925 pruebas del cliente al cerrar la ejecución suman las 863 de la entrega a y las 62 nuevas (27 + 29 + 6); el ciclo de corrección de la revisión añadió 6 más, hasta 931.
+
+**Refactor.** En F8, `TablaProveedores.tsx` se extrajo de la pantalla con la suite en verde. F7, F9 y F10: sin refactor.
+
+**Tests devueltos al tester.** En F7, el caso `ACTIVO` del bloque D-7 elegía «viernes», el día de pago que ya tenía el proveedor de la prueba, así que `cambiosDe` no enviaba nada. El desarrollador lo devolvió sin editarlo y el tester lo cambió a «lunes» con `{ dia_pago: 1 }`.
+
+**Mutación en rutas críticas.** Corrida por el orquestador sobre una copia en el scratchpad, con el repositorio intacto: `git status` y las huellas SHA-256 de `PantallaProveedores.tsx` y `TablaProveedores.tsx` fueron idénticas antes y después, y la copia se restauró tras cada mutante.
+
+| Mutante | Cambio | Test que cae |
+|---|---|---|
+| `M-6` | el bloqueo siempre lleva la acción `DESACTIVAR_PROVEEDOR`, venga o no en `acciones[]` | 6 pruebas: TC-F33, TC-F34, las dos de TC-F35 y las dos de `CONCURRENCIA` de TC-F36 |
+| `M-7` | la acción del bloqueo desactiva a la primera fila de la lista en lugar del proveedor bloqueado | las dos de TC-F32 |
+
+Los mutantes `M-1` a `M-5` de la entrega a siguen valiendo contra la suite acumulada, que contiene sus pruebas sin cambio.
+
+### Entorno de ejecución
+
+`frontend/node_modules` sigue incompleto, así que el cliente se probó sobre la copia sincronizada. Para el extremo a extremo se montó en el scratchpad una disposición que imita la raíz del repositorio (copia de `frontend/`, `docs/api/openapi.yaml` y un enlace a `backend/`), y se copió el archivo `.env` local al scratchpad **sin leerlo** para que Playwright arrancara el backend; la copia se borró al terminar. El extremo a extremo siembra datos en la base local acumulativa (proveedores `E2E-…`, una orden `OC-E2E-…`).
+
+## Modelo por paso (entrega b)
+
+| Paso | Agente | Modelo previsto | Modelo usado | Motivo del cambio |
+|---|---|---|---|---|
+| F7 · rojo | `tester-frontend` | `sonnet` | `sonnet` | — |
+| F7 · verde | `desarrollador-react` | `haiku` | `haiku` | — |
+| F7 · prueba devuelta | `tester-frontend` | `sonnet` | `sonnet` | — |
+| F8 · rojo | `tester-frontend` | `sonnet` | `sonnet` | — |
+| F8 · verde | `desarrollador-react` | `sonnet` | `sonnet` | Disparador «los permisos de un rol» (§14.2), como fija el diseño |
+| F9 · rojo | `tester-frontend` | `sonnet` | `sonnet` | — |
+| F10 · rojo | `tester-frontend` | `sonnet` | `sonnet` | — |
+| F10 · verde | `desarrollador-aplicacion` | `haiku` | `haiku` | — |
+| Auditoría de cierre | `auditor-arquitectura` | `sonnet` | `sonnet` | — |
+
+## Resultado contra los criterios de aceptación (entrega b)
+
+| Criterio | Nivel | Estado | Evidencia |
+|---|---|---|---|
+| `CA-5` | `[M]` | Cumplido | TC-F23 a TC-F26 |
+| `CA-6` | `[M]` | Cumplido | TC-F27, TC-F28, TC-E1 |
+| `CA-7` | `[M]` | Cumplido | TC-F29, TC-F30 |
+| `CA-8` | `[M]` | Cumplido | TC-F31 a TC-F34, TC-E2 |
+| `CA-9` | `[M]` | Cumplido | TC-F15, TC-F16, TC-F17 (entrega a) y el `403` del alta, la edición y las operaciones de estado (TC-F36) |
+| `CA-10` | `[M]` | Cumplido | TC-F35, TC-F36 |
+| `CA-11` | `[M]` | Cumplido | TC-E1, TC-E2 (10 passed en el E2E) |
+| `CA-R2` | `[M]` | Cumplido con el cambio declarado D-10 | las suites de `FormularioCatalogo`, `CapturaMotivo`, `ConflictoEnLinea` y `PantallaBloqueo` en verde |
+| `CA-R3` | `[M]` | Cumplido | TC-F37 y `tipos:verificar` |
+| `CA-R4` | `[M]` | Cumplido | TC-F08, TC-F20, TC-F24 y `M-4` |
+
+## Auditorías (entrega b)
+
+| Auditor | Veredicto | Hallazgos | Ciclos |
+|---|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 0 críticos, 0 mayores, 0 menores y 2 observaciones sin acción | 1 |
+| `auditor-sql` | No aplica | Sin esquema ni migración; el sembrador solo inserta con SQL parametrizado | — |
+
+Observaciones: **O-1** el sembrador importa `normalizar_rfc` del dominio de `proveedores` y consulta tablas por SQL, como ya hacen los demás sembradores de `herramientas/` (que `import-linter` no analiza); si otro código lo necesita, conviene publicarlo en `proveedores.interfaz`. **O-2** la orden `PARCIAL` lleva una cantidad recibida sin movimientos de inventario y su requisición entra al consumido de la obra de humo; solo afecta a la base local y el E2E no afirma cifras de semáforo.
+
+### Qué verificó el auditor (copiado de su informe)
+
+- **El cliente nunca decide una regla.** El bloqueo lo pinta `PantallaBloqueo` desde `error.acciones`; el objetivo es el proveedor guardado al rechazarse la operación, no `accion.ruta` ni la primera fila; las acciones por fila salen de `proveedor.estado`. TC-F32, TC-F33 y TC-F34 y los mutantes `M-6` y `M-7` lo cubren.
+- **Dinero nunca flotante.** `topeCambio` compara con `Decimal.eq`; sin `Number`, `parseFloat` ni `parseInt` en el módulo, el sembrador, el spec y la ayuda; `verificar_float` limpio.
+- **El sembrador.** `exigir_base_local()` antes de leer variables y de crear el motor, SQL parametrizado, `commit()` y `rollback()`, rol de aplicación, solo `INSERT` en `requisicion`, `orden_compra` y `orden_compra_renglon`; sin cambios en `cimenta/`, migraciones ni `openapi.yaml`.
+- **Fase 2, archivos y secretos.** Sin nómina, destajo, captura sin conexión ni evidencia; sin archivos; ninguna credencial ni ruta de usuario en el diff.
+- **Contrato.** Rutas y códigos solo del borrador OpenAPI; ninguna regla `RN-xx` inventada.
+
+## Hallazgos fuera de alcance (entrega b)
+
+| Archivo | Observación | Prioridad |
+|---|---|---|
+| `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.tsx` | `alAccion={() => undefined}` del alta y de la edición descarta cualquier acción: es la decisión H-1. Revisarlo si un ticket de backend añade `VER_PROVEEDOR`. | Baja |
+| `backend/cimenta/proveedores/interfaz.py` | Sigue vacía; publicar ahí la normalización del RFC cuando otro código la necesite. | Baja |
+| `docs/05-tickets-trabajo.md` | La frase «La pantalla del catálogo y el escenario 1 son de TKT-032» quedó desfasada tras la partición; la ajusta `/sdd-completar`. | Baja |
+| `frontend/node_modules` | Sigue incompleto; ver «Entorno de ejecución». | Media: acción de la persona dueña |
+| `frontend/src/modulos/proveedores/catalogo/PantallaProveedores.tsx` | Decisión de la persona dueña (2026-11-18): el alta y la edición no ofrecen «Reintentar» ni conservan lo capturado cuando responden `409` `CONCURRENCIA` (`BLOQUEO_VENCIDO`). Cierran el formulario, avisan en la cabecera y lo capturado se pierde. Se acepta tal cual; sin ticket. | Cerrada |
+| `frontend/src/modulos/proveedores/catalogo/useOperacionDeEstado.ts` | La función `esBloqueo` existe copiada también en `frontend/src/compartido/formularios/FormularioCatalogo.tsx`; exportar una sola y reutilizarla toca un componente compartido, fuera del alcance de este ticket. | Baja |
+
+## Documentación actualizada (entrega b)
+
+| Documento | Qué cambió |
+|---|---|
+| `docs/arranque-local.md` | Un párrafo con el sembrador `semilla_orden_proveedor_local`, sus tres variables y sus dos líneas de salida. |
+| `sdd/tickets/tkt-032a/design.md` | Filas F7 a F10 en «Hecho», tres ajustes nuevos y el prefijo `EEE` del RFC de prueba en TC-E1. |
+
+`python tools/verificar_docs.py` → «✓ Sin problemas», con el aviso informativo de CRLF en 16 archivos.
+
+## Verificación de la entrega b
+
+- [x] Criterios `[M]` de la entrega b cumplidos con evidencia
+- [x] Ciclo TDD completo en cada fila: rojo antes de verde, ningún test editado por un desarrollador (la prueba corregida en F7 la cambió el tester)
+- [x] Suite del cliente (925 al cerrar la ejecución; 931 tras la revisión), extremo a extremo (10) y pruebas de backend afectadas (49) en verde
+- [x] Al menos un test de rechazo por regla implicada
+- [x] Mutación en rutas de permiso y estado (`M-6`, `M-7`), con huellas y `git status` idénticos
+- [x] Auditoría de arquitectura `APROBADO`
+- [x] Documentación afectada actualizada en el mismo cambio
+- [x] `ruff`, `mypy`, `lint-imports`, `verificar_float`, lint y typecheck limpios
+- [x] Rama `tkt-032a-pantalla-proveedores`, sin secretos en el diff
+
+## Verificación final · entrega b
+
+Corrida del 2026-11-18 por el orquestador en `/sdd-revisar`, con Docker respondiendo (`docker info` da 29.9.3), sobre la copia sincronizada de `frontend/` y la raíz del repositorio. Las cifras se copian de la salida de esa corrida, que es la posterior al ciclo de corrección.
+
+```text
+Cliente (vitest):             Test Files  39 passed (39)  ·  Tests  931 passed (931)
+Extremo a extremo (playwright):  10 passed (24.8s)
+Backend afectado (pytest):    49 passed in 15.58s
+```
+
+`npm run lint` y `npm run typecheck` terminan sin salida de error; `npm run tipos:verificar` da «Tipos al día». Desde `backend/`: `lint-imports` «Contracts: 16 kept, 0 broken», `ruff check .` «All checks passed!», `mypy .` «Success: no issues found in 376 source files» y `verificar_float` «archivos revisados: 42; hallazgos: 0». `python tools/verificar_docs.py` termina con «✓ Sin problemas» y `python -m unittest discover -s tools/tests` con 518 pruebas en OK. El E2E se corrió antes de añadir el último comentario de una línea del spec (F007), que no cambia comportamiento.
+
+| Criterio | Nivel | Resultado |
+|---|---|---|
+| `CA-1` a `CA-4`, `CA-R1` | `[M]` | Cumplido (entrega a) |
+| `CA-5` a `CA-8`, `CA-10`, `CA-11` | `[M]` | Cumplido, con la evidencia de «Resultado contra los criterios de aceptación (entrega b)» |
+| `CA-9` | `[M]` | Cumplido |
+| `CA-R2`, `CA-R3`, `CA-R4` | `[M]` | Cumplido |
+
+**Ciclo de corrección 1 de la entrega b.** `auditor-codigo` pidió cambios (1 Mayor y 9 Menores) y `auditor-docs` otros cinco Menores; `auditor-arquitectura` y `auditor-seguridad` dieron `APROBADO` a la primera. El Mayor era una rama alcanzable sin prueba: un `409` `CONCURRENCIA` del `PATCH` cierra la edición y se pierde lo capturado. Se fijó con una prueba el comportamiento actual (no se cambió) y la decisión de ofrecer «Reintentar» quedó para la persona dueña. El tester añadió 6 pruebas y limpió el E2E (espera real de la búsqueda, tiempo del test, folio exacto), todo con la salida en `rojo/correccion-b1.txt`; el corrector extrajo `useOperacionDeEstado.ts`, fusionó los dos avisos de bloqueo en `avisarYCerrar` y corrigió la premisa falsa del diseño sobre el `409`. Un Menor de comentario (F007) persistió en la primera reauditoría, se corrigió con el texto literal y se reauditó con `haiku`: `Resuelto`.
+
+| Auditor | Veredicto final | Ciclos |
+|---|---|---|
+| `auditor-arquitectura` | `APROBADO` | 1 |
+| `auditor-seguridad` | `APROBADO`, con 3 observaciones Baja | 1 |
+| `auditor-codigo` | `APROBADO` tras el ciclo 1 y una reauditoría acotada | 2 |
+| `auditor-docs` | `APROBADO` tras el ciclo 1 | 2 |
+| `auditor-sql` | No aplica | — |
+
+**Desviaciones.** `PantallaProveedores.tsx` quedó en 276 líneas y no por debajo de 260 (el resto es JSX y estado de filtros); la copia local de `esBloqueo` no se unificó con la de `FormularioCatalogo.tsx` porque es un componente compartido fuera del alcance. Ninguna cambia el alcance.
+
+**Decisión de la persona dueña (2026-11-18).** El alta y la edición se quedan como están ante un `409` `CONCURRENCIA`: el formulario se cierra, se avisa en la cabecera y lo capturado se pierde; no se ofrece «Reintentar». No hay ticket pendiente por este motivo.
+
+**Pendiente.** (1) `frontend/node_modules` sigue incompleto. (2) Los verificadores que solo corren con el pipeline de un PR real (los nueve trabajos de `ci.yml` y la comprobación «Etiqueta de origen») se verifican en `/sdd-completar`.

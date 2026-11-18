@@ -110,8 +110,20 @@ export const camposAlta: ReadonlyArray<CampoProveedor> = [
   { nombre: "dia_pago", etiqueta: "Día de pago", tipo: "desplegable", opciones: DIAS },
 ];
 
+/** Los campos de la edición, en su orden: el RFC se ve con su valor, es de solo lectura, y el nombre recibe el foco. */
+export const camposEdicion: ReadonlyArray<CampoProveedor> = [
+  { nombre: "nombre", etiqueta: "Nombre" },
+  { nombre: "rfc", etiqueta: "RFC", soloLectura: true },
+  { nombre: "tope_consignacion", etiqueta: "Tope de consignación (opcional)" },
+  { nombre: "dia_corte", etiqueta: "Día de corte", tipo: "desplegable", opciones: DIAS },
+  { nombre: "dia_pago", etiqueta: "Día de pago", tipo: "desplegable", opciones: DIAS },
+];
+
 /** La edición: el RFC no es editable y no se valida ni viaja. */
 export const esquemaEdicion = z.object(camposComunes);
+
+/** Lo de `esquemaEdicion` más el RFC, que `FormularioCatalogo` muestra como `soloLectura` y nunca viaja (D-7, CA-5). */
+export const esquemaVistaEdicionProveedor = esquemaEdicion.extend({ rfc: z.string() });
 
 /** Los valores con que arranca la edición: el tope vacío si no lo hay, y los días como texto del desplegable. */
 export function valoresInicialesDe(proveedor: Proveedor): EntradaEdicion {
