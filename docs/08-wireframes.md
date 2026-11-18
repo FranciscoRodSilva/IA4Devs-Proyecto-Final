@@ -317,6 +317,112 @@ La columna, con su encabezado, se dibuja solo si el rol puede operar, no según 
 - **Obra que ya no existe (`404`) o falla inesperada.** Al eliminar o cambiar el estado, un aviso de alerta encima de la lista con el mensaje del servidor, o *"No se pudo eliminar la obra."* / *"No se pudo completar la operación."* si no lo trae, y la *Referencia* cuando el servidor la envía. Al editar, el aviso va en el formulario, con *"No se pudo guardar."* como texto por omisión.
 - **Sin permiso (`403`).** Las acciones de fila son cortesía de navegación: quien llega a ejecutarlas sin rol recibe el `403` del servidor, sin ninguna cifra.
 
+### 2c · Pantalla Proveedores
+
+| | |
+|---|---|
+| **Rol** | Compras da de alta, edita, desactiva y da de baja · los seis roles consultan |
+| **Historias** | TKT-032a, sobre HDU-004 esc. 1, 2, 3, 12 y 13 |
+| **Endpoints** | `GET /proveedores` · `POST /proveedores` · `PATCH /proveedores/{proveedor_id}` · `POST /proveedores/{proveedor_id}/desactivacion` · `POST /proveedores/{proveedor_id}/baja` |
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Proveedores                                                                                            [ + ] │
+│ Estado [ Activos v ]    [ Buscar por nombre o RFC________________ ] [ Buscar ]                               │
+├────────────────────┬─────────────────┬────────────┬──────────┬──────────┬─────────────────────────────────────┤
+│ Nombre             │ RFC             │ Estado     │ Corte    │ Pago     │ Acciones                            │
+├────────────────────┼─────────────────┼────────────┼──────────┼──────────┼─────────────────────────────────────┤
+│ CoPanel            │ XAXX010101000   │ Activo     │ jueves   │ sábado   │ [Editar] [Desactivar] [Dar de baja] │
+│ Aceros del Bajío   │ ABA040312KT7    │ Activo     │ jueves   │ sábado   │ [Editar] [Desactivar] [Dar de baja] │
+├────────────────────┴─────────────────┴────────────┴──────────┴──────────┴─────────────────────────────────────┤
+│ [ Anterior ]                                Página 1 de 1                                      [ Siguiente ] │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  Con el filtro «Todos»: un proveedor desactivado ofrece Editar y Dar de baja; uno dado de baja, ninguna acción.
+  │ Pinturas del Norte │ PNO990101AB2  │ Desactivado│ jueves   │ sábado   │ [Editar]               [Dar de baja] │
+  │ Ferretera Vieja    │ FVI870605XY9  │ Baja       │ martes   │ sábado   │                                      │
+
+  Formulario · Alta de proveedor (se abre con el botón +; el foco queda en el nombre)
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ Nombre                       [ CoPanel________________________ ]         │
+  │ RFC                          [ XAXX010101000__________________ ]         │
+  │ Tope de consignación         [ 300000.00______________________ ]  opcional│
+  │ Día de corte                 [ jueves v ]                                │
+  │ Día de pago                  [ sábado v ]                                │
+  │                                                                          │
+  │                                         [ Cancelar ]   [ Guardar ]       │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Formulario · Editar proveedor (el RFC no se cambia)
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ Nombre                       [ CoPanel S.A. de C.V.___________ ]         │
+  │ RFC                          [ XAXX010101000 ]  solo lectura             │
+  │ Tope de consignación         [ 300000.0000____________________ ]         │
+  │ Día de corte                 [ jueves v ]                                │
+  │ Día de pago                  [ viernes v ]                               │
+  │                                         [ Cancelar ]   [ Guardar ]       │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Conflicto en línea · el RFC ya existe (409 CONFLICTO, RFC_DUPLICADO)
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ RFC                          [ XAXX010101000__________________ ]         │
+  │ ! Ya existe un proveedor con el RFC XAXX010101000.                       │
+  │ Proveedor existente  CoPanel · XAXX010101000                             │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Captura de motivo · Desactivar / Dar de baja
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ Dar de baja a CoPanel                                                    │
+  │ La baja es definitiva: el proveedor no recibe órdenes ni vuelve a        │
+  │ activarse, y su historial se conserva.                                   │
+  │ Motivo   [ __________________________________________________ ]         │
+  │                                        [ Cancelar ]   [ Confirmar baja ] │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Bloqueo · baja con órdenes pendientes (409 CONFLICTO, PROVEEDOR_CON_ORDENES_ABIERTAS), proveedor ACTIVO
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ NO SE PUEDE COMPLETAR                                                    │
+  │ PROVEEDOR_CON_ORDENES_ABIERTAS                                           │
+  │ CoPanel tiene 2 órdenes pendientes de recibir; se puede desactivar para  │
+  │ órdenes nuevas conservando las existentes.                               │
+  │   Órdenes pendientes                                                     │
+  │   Folio              Estado                                              │
+  │   OC-AP05825-0017    PARCIAL                                             │
+  │   OC-AP05825-0021    ABIERTA                                             │
+  │ [ Desactivar el proveedor ]   [ Cerrar ]                                 │
+  │                                       Referencia: c3d4e5f6-a7b8-4901     │
+  └──────────────────────────────────────────────────────────────────────────┘
+  Con el proveedor ya DESACTIVADO el servidor no manda la acción: queda solo [ Cerrar ].
+```
+
+**Datos.** La lista muestra nombre, RFC, estado, día de corte y día de pago, ordenada por nombre y paginada de 50 en 50. Por omisión solo trae los `ACTIVO`, igual que el servidor: para ver los `DESACTIVADO` o los `BAJA` se cambia el filtro *Estado*. El día se muestra por su nombre (`1` lunes … `7` domingo, ISO 8601) y se envía como entero; el alta propone jueves y sábado (`RN-17`). El tope de consignación se captura como texto, se envía como cadena decimal y no tiene ninguna regla en el MVP (`RN-15` es v1.1).
+
+**Acciones.**
+
+- *`+` · Dar de alta un proveedor* abre el formulario con el foco en el nombre. Solo lo ve Compras; los otros cinco roles consultan la lista sin él. Ocultarlo es cortesía: el control es el `403` del servidor.
+- *Buscar* filtra por nombre o RFC (`q`) y vuelve a la página 1; el filtro *Estado* también.
+- *Editar* (`ACTIVO` y `DESACTIVADO`) abre el formulario con el RFC de solo lectura; envía solo los campos que cambiaron.
+- *Desactivar* (solo `ACTIVO`) pide el motivo. El proveedor pasa a `DESACTIVADO`: sale del selector de órdenes nuevas, conserva sus órdenes pendientes y su historial, y **no vuelve a activarse** (no existe esa operación; `PA-24`).
+- *Dar de baja* (`ACTIVO` y `DESACTIVADO`) pide el motivo. El proveedor pasa a `BAJA`, que es definitiva y conserva el RFC. Si tiene órdenes `ABIERTA` o `PARCIAL`, el servidor la rechaza y la pantalla muestra el bloqueo.
+- *Desactivar el proveedor* del bloqueo existe solo si el servidor la manda en `acciones[]` (proveedor `ACTIVO`) y abre el mismo motivo de desactivar.
+
+**Estados.**
+
+- **Cargando.** Esqueleto con la etiqueta accesible *Cargando los proveedores*.
+- **Vacío.** *"No hay proveedores con este filtro."* Con el filtro por omisión, a Compras se le dice *"Da de alta el primer proveedor con el botón +."*
+- **Con proveedores.** La tabla del boceto.
+- **Error.** *"No se pudo cargar la lista de proveedores."* con *Reintentar* y la referencia del error.
+- **Bloqueado.** Aplica a *Dar de baja*, *Desactivar* y *Reintentar*: la [pantalla de bloqueo](#6-pantalla-de-bloqueo) se pinta sobre la tabla con el `409` que mandó el servidor.
+
+**Estados de rechazo.**
+
+- **RFC duplicado (`409` `CONFLICTO`, `RFC_DUPLICADO`).** En línea, debajo de los campos, con el proveedor existente y sin ninguna fila nueva. El formulario conserva lo capturado. El contrato no ofrece una acción para verlo; se encuentra con la búsqueda por RFC y el filtro *Todos*.
+- **Campo vacío o con forma incorrecta (`422`).** Junto al campo, antes de enviar (*"Escribe el nombre del proveedor."*) o con el mensaje del servidor.
+- **Baja con órdenes pendientes (`409` `PROVEEDOR_CON_ORDENES_ABIERTAS`).** El bloqueo del boceto; el proveedor no cambia de estado.
+- **Estado que cambió mientras tanto (`409` `ESTADO_NO_PERMITE_OPERACION`).** El bloqueo muestra el mensaje del servidor y la fila se recarga con su estado actual.
+- **Sin permiso (`403`).** El mensaje que manda el servidor, sin ninguna cifra.
+- **Proveedor que ya no existe (`404`).** Aviso y recarga de la lista.
+
 ---
 
 ## 3. Importación de la línea base
@@ -676,7 +782,7 @@ Es el componente reutilizable de TKT-008. Renderiza **cualquier** `409` a partir
 
 > **Una clave, un significado.** `VER_SOLICITUD_AUTORIZACION` abre una solicitud que ya existe —el bloqueo de `RN-03` la crea en la misma transacción— y `SOLICITAR_AUTORIZACION` crea una que no existe, lo que solo ocurre con el excedente de `RN-07`. Por eso el componente rotula cada botón por su clave y nunca crea una segunda solicitud para una requisición que ya la tiene.
 
-**Qué no es esta pantalla.** Un `422` no la abre: se pinta junto al campo. Un `403` tampoco: es *"No tienes permiso"*, sin cifras. Un `409` de `tipo` `CONFLICTO` dentro de un formulario —código de obra duplicado, RFC duplicado— puede pintarse en línea junto al campo con los datos que trae la respuesta (la obra o el proveedor existente), porque no hay nada que bloquear: solo un dato que corregir.
+**Qué no es esta pantalla.** Un `422` no la abre: se pinta junto al campo. Un `403` tampoco: es el `mensaje` del servidor, sin cifras. Un `409` de `tipo` `CONFLICTO` dentro de un formulario —código de obra duplicado, RFC duplicado— puede pintarse en línea junto al campo con los datos que trae la respuesta (la obra o el proveedor existente), porque no hay nada que bloquear: solo un dato que corregir.
 
 **Estados de rechazo de las propias acciones.** Si la acción invocada responde a su vez con un `409`, la pantalla se **sustituye** por la nueva, no se apila. Si responde con un error de red, el botón vuelve a estar disponible y se muestra el error; la pantalla no se cierra, porque el usuario perdería las cifras.
 
@@ -826,7 +932,7 @@ La columna *Acción* pinta el valor de `accion` tal cual llega, del enum cerrado
 **Acciones.**
 
 - *Requisición*: el selector solo lista requisiciones `EVALUADA` y `AUTORIZADA` sin convertir. Si es `AUTORIZADA`, muestra quién la autorizó y la solicitud que la habilitó, que la orden conserva como referencia (esc. 5).
-- *Proveedor*: solo activos; uno desactivado no aparece pero conserva su historial (HDU-004 esc. 12). El alta y la desactivación de proveedores usan el formulario de catálogo de TKT-008 (esc. 1 a 3) y no se dibujan aquí. No hay *baja* aparte: la única operación es `POST /proveedores/{id}/desactivacion`, que es una baja lógica (`activo = false`) y conserva órdenes e historial.
+- *Proveedor*: solo activos; uno desactivado no aparece pero conserva su historial (HDU-004 esc. 12). El alta, la edición, la desactivación y la baja de proveedores viven en la [pantalla Proveedores](#2c--pantalla-proveedores) y no se dibujan aquí. Son **dos operaciones distintas**, y ninguna borra: `POST /proveedores/{proveedor_id}/desactivacion` pasa el proveedor a `DESACTIVADO` (sale del selector y conserva sus órdenes pendientes) y `POST /proveedores/{proveedor_id}/baja` lo pasa a `BAJA` (definitiva, solo sin órdenes `ABIERTA` ni `PARCIAL`).
 - *Fecha comprometida*: obligatoria al emitir, una por orden, que se copia a cada renglón; el borrador OpenAPI admite además una fecha propia por renglón, que el boceto no dibuja. Es la fecha de la que parte la reprogramación de HDU-005 esc. 10.
 - *Emitir* crea la orden en `ABIERTA` con folio único y consecutivo asignado por el servidor —el cliente no lo propone— y la requisición pasa a `CONVERTIDA` (esc. 4). El boceto abrevia los folios (`OC-0137`, `REQ-1042`); el borrador OpenAPI los forma con el código de la obra, como `OC-AP05825-0017`.
 - *Imprimir*: la orden no se envía al proveedor desde el sistema (non-goal de HDU-004); se imprime o se comparte fuera.

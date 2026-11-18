@@ -22,6 +22,8 @@ export const CLAVES_DETALLE: readonly ClaveDetalle[] = [
   { clave: "solicitado", etiqueta: "Solicitado", formato: "importe" },
   { clave: "excedente", etiqueta: "Excedente", formato: "importe" },
   { clave: "obra_existente", etiqueta: "Obra existente", formato: "texto" },
+  { clave: "proveedor_existente", etiqueta: "Proveedor existente", formato: "texto" },
+  { clave: "estado_actual", etiqueta: "Estado actual", formato: "texto" },
   { clave: "version_vigente", etiqueta: "Versión vigente", formato: "texto" },
   { clave: "estado_obra", etiqueta: "Estado de la obra", formato: "texto" },
   { clave: "importe_venta", etiqueta: "Venta", formato: "importe" },
@@ -49,6 +51,7 @@ export const CLAVES_OCULTAS: readonly string[] = [
   "insumo_id",
   "orden_compra_renglon_id",
   "obra_existente_id",
+  "proveedor_existente_id",
   "linea_base_id",
   "linea_base_vigente_id",
 ];
@@ -108,6 +111,14 @@ export const TABLAS_DETALLE: readonly TablaDetalle[] = [
     ],
   },
   {
+    clave: "ordenes",
+    titulo: "Órdenes pendientes",
+    columnas: [
+      { encabezado: "Folio", campo: "folio", tipo: "texto" },
+      { encabezado: "Estado", campo: "estado", tipo: "texto" },
+    ],
+  },
+  {
     clave: "causas",
     titulo: "Causas",
     columnas: [
@@ -133,4 +144,5 @@ export const ETIQUETAS_ACCION: Readonly<Partial<Record<string, string>>> = {
   VER_OBRA: "Ver la obra",
   SUSPENDER_OBRA: "Suspender",
   CERRAR_OBRA: "Cerrar",
+  DESACTIVAR_PROVEEDOR: "Desactivar el proveedor",
 };

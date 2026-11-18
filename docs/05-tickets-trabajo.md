@@ -1202,6 +1202,13 @@ La pantalla del catálogo y el escenario 1 son de TKT-032, que además reconcili
 
 **Non-goals** — No compara precios entre proveedores ni gestiona cotizaciones. No exporta la consulta.
 
+**Partición en dos tickets hermanos** (aprobada el 2026-11-17 por la persona dueña, tras la prueba manual de la entrega 3, que mostró que el catálogo de proveedores no tiene pantalla). TKT-032 queda como paraguas.
+
+| Ticket | Contenido | Migración | Depende de | Escenarios de HDU-004 |
+|---|---|---|---|---|
+| TKT-032a | Pantalla del catálogo de proveedores: lista, alta, edición, desactivación y baja con su `409`, y una prueba de extremo a extremo. Solo frontend | Ninguna | TKT-029a, TKT-029b, TKT-008 | 1, 2, 3, 12 y 13 (la parte de la pantalla) |
+| TKT-032b | `consultar_pedidos_proveedor_por_obra`, la emisión y la cancelación de órdenes, con sus pantallas | Ninguna | TKT-029, TKT-030, TKT-031 | 11, y las pantallas de 4 a 10 |
+
 ---
 
 ## Tickets de HDU-005 · Entrada de material con recepción parcial

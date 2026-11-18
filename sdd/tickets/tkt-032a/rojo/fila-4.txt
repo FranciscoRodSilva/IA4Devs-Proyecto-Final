@@ -1,0 +1,1553 @@
+# TKT-032a · fila F4 · fase ROJA · salida literal de: npm test -- proveedores (desde frontend/, sobre una copia sincronizada)
+# Fecha: 2026-11-17 · stubs de proveedores.formulario.ts y proveedores.consultas.ts que lanzan «TKT-032a F4: pendiente»
+
+
+> cimenta-frontend@0.0.0 test
+> vitest run proveedores
+
+
+ RUN  v5.0.5 C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/5176ed57-21d5-4041-a143-962ff6158fc4/scratchpad/frontend
+
+ ❯ |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts (114 tests | 114 failed) 23ms
+   ❯ TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) (25)
+     × hdu004_esc02 · TC-F05 · nombre y RFC con los valores por omisión salen como el cuerpo del alta: jueves, sábado y sin tope 3ms
+     × hdu004_esc02 · TC-F05 · el nombre y el RFC salen sin espacios en los extremos 0ms
+     × hdu004_esc02 · TC-F05 · el RFC 13 posiciones, persona moral con cuatro letras sale en mayúsculas 0ms
+     × hdu004_esc02 · TC-F05 · el RFC 12 posiciones, tres letras sale en mayúsculas 0ms
+     × hdu004_esc02 · TC-F05 · el RFC con Ñ sale en mayúsculas 0ms
+     × hdu004_esc02 · TC-F05 · el RFC con & sale en mayúsculas 0ms
+     × hdu004_esc02 · TC-F05 · el RFC en minúsculas sale en mayúsculas 0ms
+     × hdu004_esc02 · TC-F05 · el RFC con ñ minúscula sale en mayúsculas 0ms
+     × hdu004_esc02 · TC-F05 · un nombre de exactamente 200 caracteres se acepta 0ms
+     × hdu004_esc02 · TC-F05 · el día «1» del desplegable sale como el entero 1, en corte y en pago 0ms
+     × hdu004_esc02 · TC-F05 · el día «2» del desplegable sale como el entero 2, en corte y en pago 0ms
+     × hdu004_esc02 · TC-F05 · el día «3» del desplegable sale como el entero 3, en corte y en pago 0ms
+     × hdu004_esc02 · TC-F05 · el día «4» del desplegable sale como el entero 4, en corte y en pago 0ms
+     × hdu004_esc02 · TC-F05 · el día «5» del desplegable sale como el entero 5, en corte y en pago 0ms
+     × hdu004_esc02 · TC-F05 · el día «6» del desplegable sale como el entero 6, en corte y en pago 0ms
+     × hdu004_esc02 · TC-F05 · el día «7» del desplegable sale como el entero 7, en corte y en pago 0ms
+     × hdu004_esc02 · TC-F05 · el tope vacío sale como null: sin tope 0ms
+     × hdu004_esc02 · TC-F05 · CA-R4 · el tope «0» sale tal cual, como cadena 0ms
+     × hdu004_esc02 · TC-F05 · CA-R4 · el tope «0.0001» sale tal cual, como cadena 0ms
+     × hdu004_esc02 · TC-F05 · CA-R4 · el tope «300000» sale tal cual, como cadena 0ms
+     × hdu004_esc02 · TC-F05 · CA-R4 · el tope «300000.00» sale tal cual, como cadena 0ms
+     × hdu004_esc02 · TC-F05 · CA-R4 · el tope «300000.0000» sale tal cual, como cadena 0ms
+     × hdu004_esc02 · TC-F05 · CA-R4 · el tope «12345678901234» sale tal cual, como cadena 0ms
+     × hdu004_esc02 · TC-F05 · CA-R4 · el tope «99999999999999.9999» sale tal cual, como cadena 0ms
+     × hdu004_esc02 · TC-F05 · RN-17 · los valores iniciales del alta, con nombre y RFC, proponen jueves y sábado sin tope 0ms
+   ❯ TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) (44)
+     × tkt032a_alta · TC-F05 · rechazo: el nombre vacío se señala en su campo con el texto del boceto 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el nombre de solo espacios se señala en su campo con el texto del boceto 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el nombre de solo saltos de línea y tabuladores se señala en su campo con el texto del boceto 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el nombre con el carácter NUL se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el nombre de 201 caracteres se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC vacío se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC de solo espacios se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con tres posiciones se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC de 11 posiciones se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC de 14 posiciones se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con dos letras al inicio se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con cinco letras al inicio se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con un guion se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con un espacio en medio se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con un salto de línea en medio se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con dígitos que no son ASCII se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: el RFC con letras donde van los seis dígitos se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con exponente se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope negativo se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con signo positivo se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con un dígito que no es ASCII se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con cinco decimales se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con quince enteros se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con punto final y sin decimales se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope sin enteros se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con coma decimal se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope que no es un número se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope infinito se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope hexadecimal se señala en su campo con mensaje 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_corte con «0» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_corte con «8» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_corte con «» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_corte con «abc» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_corte con «1.5» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_corte con «-1» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_corte con «٣» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_pago con «0» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_pago con «8» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_pago con «» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_pago con «abc» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_pago con «1.5» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_pago con «-1» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: dia_pago con «٣» no es un día de 1 a 7 y se señala en su campo 0ms
+     × tkt032a_alta · TC-F05 · rechazo: con todo mal cada campo se señala en el suyo, con los nombres del API 0ms
+   ❯ TKT-032a · TC-F08 · el tope de consignación no pasa por number (CA-R4, rechazo) (2)
+     × tkt032a_tope · TC-F08 · el tope máximo de 14 enteros y 4 decimales sale idéntico y como cadena 0ms
+     × tkt032a_tope · TC-F08 · el esquema de edición lo entrega igual: idéntico y como cadena 0ms
+   ❯ TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) (11)
+     × tkt032a_edicion · TC-F05 · los valores iniciales de un proveedor pasan el esquema y salen con los días como enteros 0ms
+     × tkt032a_edicion · TC-F05 · el tope vaciado sale como null: así se borra el tope 0ms
+     × tkt032a_edicion · TC-F05 · rechazo: un nombre vacío se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «1e3» se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «-5» se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «٣» se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «1.23456» se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «123456789012345» se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · rechazo: el día de pago «0» se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · rechazo: el día de pago «8» se señala en su campo 0ms
+     × tkt032a_edicion · TC-F05 · rechazo: el día de pago «abc» se señala en su campo 0ms
+   ❯ TKT-032a · DIAS y VALORES_INICIALES_ALTA (TC-F05, RN-17) (2)
+     × hdu004_esc02 · TC-F05 · los siete días van de lunes a domingo, en minúsculas, con el valor que viaja como texto 3ms
+     × hdu004_esc02 · TC-F05 · RN-17 · el alta propone jueves («4») para el corte, sábado («6») para el pago y el tope vacío 1ms
+   ❯ TKT-032a · valoresInicialesDe (TC-F23, CA-5) (9)
+     × tkt032a_edicion · el proveedor de la lista se precarga con el RFC, el tope sin cambiar de forma y los días como texto 0ms
+     × tkt032a_edicion · un proveedor sin tope (null) se precarga con el tope vacío, no con «null» ni «undefined» 0ms
+     × tkt032a_edicion · un proveedor sin tope (ausente) se precarga con el tope vacío, no con «null» ni «undefined» 0ms
+     × tkt032a_edicion · corte 1 y pago 7 se precargan como «1» y «7» 0ms
+     × tkt032a_edicion · corte 7 y pago 1 se precargan como «7» y «1» 0ms
+     × tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor con cuatro decimales no genera cambios 0ms
+     × tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor sin decimales no genera cambios 0ms
+     × tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor con el máximo no genera cambios 0ms
+     × tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor sin tope no genera cambios 0ms
+   ❯ TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) (21)
+     × tkt032a_edicion · TC-F06 · sin ningún cambio devuelve null: no hay petición que enviar 0ms
+     × tkt032a_edicion · TC-F06 · solo el nombre 0ms
+     × tkt032a_edicion · TC-F06 · solo el día de pago 0ms
+     × tkt032a_edicion · TC-F06 · solo el día de corte 0ms
+     × tkt032a_edicion · TC-F06 · solo el tope, que viaja como cadena 0ms
+     × tkt032a_edicion · TC-F06 · el tope vaciado envía null: así se borra, y no se confunde con «sin cambio» 0ms
+     × tkt032a_edicion · TC-F06 · un proveedor sin tope (null) al que se le deja el tope vacío no cambia 0ms
+     × tkt032a_edicion · TC-F06 · un proveedor sin tope (ausente) al que se le deja el tope vacío no cambia 0ms
+     × tkt032a_edicion · TC-F06 · un proveedor sin tope al que se le captura uno lo envía 0ms
+     × tkt032a_edicion · TC-F06 · varios cambios a la vez viajan juntos y nada más 0ms
+     × tkt032a_edicion · TC-F06 · CA-R4 · el tope «300000.0000» contra «300000» es el mismo número y no cuenta como cambio (Decimal.eq) 0ms
+     × tkt032a_edicion · TC-F06 · CA-R4 · el tope «300000.0000» contra «300000.00» es el mismo número y no cuenta como cambio (Decimal.eq) 0ms
+     × tkt032a_edicion · TC-F06 · CA-R4 · el tope «300000» contra «300000.0000» es el mismo número y no cuenta como cambio (Decimal.eq) 0ms
+     × tkt032a_edicion · TC-F06 · CA-R4 · el tope «0.0000» contra «0» es el mismo número y no cuenta como cambio (Decimal.eq) 0ms
+     × tkt032a_edicion · TC-F06 · CA-R4 · el tope «1000.5000» contra «1000.5» es el mismo número y no cuenta como cambio (Decimal.eq) 0ms
+     × tkt032a_edicion · TC-F06 · rechazo: el tope «300000.0000» contra «300000.0001» sí es un cambio, aunque sea de la última cifra 0ms
+     × tkt032a_edicion · TC-F06 · rechazo: el tope «300000.0000» contra «299999.9999» sí es un cambio, aunque sea de la última cifra 0ms
+     × tkt032a_edicion · TC-F06 · rechazo: el tope «0.0000» contra «0.0001» sí es un cambio, aunque sea de la última cifra 0ms
+     × tkt032a_edicion · TC-F06 · CA-R4 · un cambio en la última cifra del tope máximo se detecta: no se compara como number 0ms
+     × tkt032a_edicion · TC-F06 · tope 0 y sin tope son cosas distintas: pasar de null a «0» es un cambio, y de «0.0000» a vacío también 0ms
+     × tkt032a_edicion · TC-F06 · CA-5 · el RFC nunca viaja: ni cambiado ni sin cambiar 0ms
+ ❯ |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts (41 tests | 41 failed) 29ms
+   ❯ TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) (11)
+     × hdu004_esc02 · TC-F07 · sin parámetros pide solo los ACTIVO, la página 1 y 50 por página, sin búsqueda 6ms
+     × hdu004_esc02 · TC-F07 · el filtro por omisión envía estado=ACTIVO siempre, y una búsqueda vacía no envía q 1ms
+     × hdu004_esc02 · TC-F07 · una búsqueda con texto envía q, y la página pedida viaja con el tamaño de 50 1ms
+     × hdu004_esc02 · TC-F07 · la búsqueda con espacios y acentos llega íntegra 1ms
+     × hdu004_esc12 · TC-F07 · «Todos» repite el parámetro con los tres estados, en ese orden 1ms
+     × hdu004_esc12 · TC-F07 · el filtro ["DESACTIVADO"] envía solo ese estado y no el ACTIVO por omisión 1ms
+     × hdu004_esc12 · TC-F07 · el filtro ["BAJA"] envía solo ese estado y no el ACTIVO por omisión 0ms
+     × hdu004_esc02 · TC-F07 · la lista devuelve las filas y la paginación tal como las mandó el servidor 0ms
+     × hdu004_esc02 · TC-F07 · el tope de la lista llega como cadena, sin perder exactitud 1ms
+     × tkt032a_lista · TC-F07 · rechazo: un 422 de la búsqueda hace fallar la consulta con el error del contrato, sin perderlo 2ms
+     × tkt032a_lista · TC-F07 · rechazo: un 500 con cuerpo que no es JSON hace fallar la consulta como error genérico 1ms
+   ❯ TKT-032a · proveedoresOptions · la clave de caché (TC-F07, CA-1) (3)
+     × tkt032a_lista · TC-F07 · la clave cuelga del prefijo de los proveedores y lleva estados, búsqueda, página y tamaño 3ms
+     × tkt032a_lista · TC-F07 · cada dependencia de la consulta cambia la clave: otra página, otra búsqueda u otro estado no sirven datos ajenos 1ms
+     × tkt032a_lista · TC-F07 · invalidar claves.proveedores alcanza cualquier página de la lista y deja en paz a las demás cachés 0ms
+   ❯ TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) (10)
+     × hdu004_esc02 · TC-F08 · envía POST a la ruta de la lista con el cuerpo exacto, los días como enteros y el token CSRF 0ms
+     × hdu004_esc02 · TC-F08 · CA-R4 · el tope máximo viaja idéntico y como cadena: nunca como número 0ms
+     × hdu004_esc03 · TC-F08 · rechazo: el 409 RFC_DUPLICADO vuelve con su código, el proveedor existente y sin acciones, sin lanzar 0ms
+     × tkt032a_alta · TC-F08 · rechazo: un 422 en nombre vuelve como error de validación con su campo, sin lanzar 0ms
+     × tkt032a_alta · TC-F08 · rechazo: un 422 en rfc vuelve como error de validación con su campo, sin lanzar 0ms
+     × tkt032a_alta · TC-F08 · rechazo: un 422 en tope_consignacion vuelve como error de validación con su campo, sin lanzar 0ms
+     × tkt032a_alta · TC-F08 · rechazo: un 422 en dia_corte vuelve como error de validación con su campo, sin lanzar 0ms
+     × tkt032a_alta · TC-F08 · rechazo: un 422 en dia_pago vuelve como error de validación con su campo, sin lanzar 0ms
+     × hdu004_esc02 · TC-F08 · rechazo: el 403 vuelve como error de permiso con el mensaje del servidor, sin lanzar 0ms
+     × hdu004_esc02 · TC-F08 · rechazo: sin conexión vuelve como error de red, sin lanzar 0ms
+   ❯ TKT-032a · actualizarProveedor · PATCH /proveedores/{proveedor_id} (CA-5, CA-R4) (5)
+     × tkt032a_edicion · envía PATCH a la ruta del proveedor con solo los campos cambiados y el token CSRF 0ms
+     × tkt032a_edicion · tope_consignacion en null viaja como null: así se borra el tope 0ms
+     × tkt032a_edicion · CA-R4 · el tope viaja como cadena exacta, sin pasar por number 0ms
+     × tkt032a_edicion · rechazo: un 422 vuelve como error de validación con su campo, sin lanzar 0ms
+     × tkt032a_edicion · rechazo: el 404 del proveedor que ya no existe vuelve como no encontrado, sin lanzar 0ms
+   ❯ TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) (10)
+     × hdu004_esc12 · desactivar envía POST a la ruta de la operación con solo el motivo y el token CSRF 0ms
+     × hdu004_esc13 · dar de baja envía POST a la ruta de la operación con solo el motivo y el token CSRF 0ms
+     × hdu004_esc12 · desactivar: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar 0ms
+     × hdu004_esc13 · dar de baja: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar 0ms
+     × hdu004_esc12 · desactivar: el 404 del proveedor que ya no existe vuelve como no encontrado, sin lanzar 0ms
+     × hdu004_esc13 · dar de baja: el 404 del proveedor que ya no existe vuelve como no encontrado, sin lanzar 0ms
+     × hdu004_esc12 · desactivar: el 403 vuelve con el mensaje del servidor, sin lanzar 0ms
+     × hdu004_esc13 · dar de baja: el 403 vuelve con el mensaje del servidor, sin lanzar 0ms
+     × hdu004_esc12 · desactivar: el 409 CONCURRENCIA vuelve con su espera y su acción de reintentar, sin lanzar 0ms
+     × hdu004_esc13 · dar de baja: el 409 CONCURRENCIA vuelve con su espera y su acción de reintentar, sin lanzar 0ms
+   ❯ TKT-032a · darDeBajaProveedor · el bloqueo por órdenes pendientes (CA-8, HDU-004 esc. 12) (2)
+     × hdu004_esc12 · el 409 PROVEEDOR_CON_ORDENES_ABIERTAS de un proveedor ACTIVO conserva mensaje, órdenes y la acción del contrato 0ms
+     × hdu004_esc12 · rechazo: el 409 de un proveedor ya DESACTIVADO vuelve sin acciones: lo que el servidor no manda no existe 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 155 ⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc02 · TC-F07 · sin parámetros pide solo los ACTIVO, la página 1 y 50 por página, sin búsqueda
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ pedirLista src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:88:28
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:97:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc02 · TC-F07 · el filtro por omisión envía estado=ACTIVO siempre, y una búsqueda vacía no envía q
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ pedirLista src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:88:28
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:106:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc02 · TC-F07 · una búsqueda con texto envía q, y la página pedida viaja con el tamaño de 50
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ pedirLista src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:88:28
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:114:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc02 · TC-F07 · la búsqueda con espacios y acentos llega íntegra
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ pedirLista src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:88:28
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:123:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc12 · TC-F07 · «Todos» repite el parámetro con los tres estados, en ese orden
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ pedirLista src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:88:28
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:129:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc12 · TC-F07 · el filtro ["DESACTIVADO"] envía solo ese estado y no el ACTIVO por omisión
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc12 · TC-F07 · el filtro ["BAJA"] envía solo ese estado y no el ACTIVO por omisión
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ pedirLista src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:88:28
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:139:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc02 · TC-F07 · la lista devuelve las filas y la paginación tal como las mandó el servidor
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:148:48
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > hdu004_esc02 · TC-F07 · el tope de la lista llega como cadena, sin perder exactitud
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:157:48
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > tkt032a_lista · TC-F07 · rechazo: un 422 de la búsqueda hace fallar la consulta con el error del contrato, sin perderlo
+AssertionError: expected Error: TKT-032a F4: pendiente to be an instance of FalloApi
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:176:19
+    174|       );
+    175|
+    176|     expect(fallo).toBeInstanceOf(FalloApi);
+       |                   ^
+    177|     expect(fallo instanceof FalloApi ? fallo.error : null).toMatchObje…
+    178|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · GET /proveedores (TC-F07, CA-1) > tkt032a_lista · TC-F07 · rechazo: un 500 con cuerpo que no es JSON hace fallar la consulta como error genérico
+AssertionError: expected Error: TKT-032a F4: pendiente to be an instance of FalloApi
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:190:19
+    188|       );
+    189|
+    190|     expect(fallo).toBeInstanceOf(FalloApi);
+       |                   ^
+    191|     expect(fallo instanceof FalloApi ? fallo.error : null).toMatchObje…
+    192|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · la clave de caché (TC-F07, CA-1) > tkt032a_lista · TC-F07 · la clave cuelga del prefijo de los proveedores y lleva estados, búsqueda, página y tamaño
+AssertionError: expected [ 'pendiente' ] to deeply equal [ 'proveedores', 'lista', { …(4) } ]
+
+- Expected
++ Received
+
+  [
+-   "proveedores",
+-   "lista",
+-   {
+-     "estados": [
+-       "ACTIVO",
+-       "BAJA",
+-     ],
+-     "pagina": 3,
+-     "q": "a",
+-     "tamano_pagina": 50,
+-   },
++   "pendiente",
+  ]
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:201:22
+    199|     const { queryKey } = proveedoresOptions(api, { estados: ["ACTIVO",…
+    200|
+    201|     expect(queryKey).toEqual([...claves.proveedores, "lista", { estado…
+       |                      ^
+    202|   });
+    203|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · la clave de caché (TC-F07, CA-1) > tkt032a_lista · TC-F07 · cada dependencia de la consulta cambia la clave: otra página, otra búsqueda u otro estado no sirven datos ajenos
+AssertionError: expected 1 to be 5 // Object.is equality
+
+- Expected
++ Received
+
+- 5
++ 1
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:213:34
+    211|
+    212|     const hashes = [base, otraPagina, otraBusqueda, otroEstado, todos]…
+    213|     expect(new Set(hashes).size).toBe(hashes.length);
+       |                                  ^
+    214|     // Y los mismos parámetros dan la misma clave: es lo que hace que …
+    215|     expect(igualALaBase).toEqual(base);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · proveedoresOptions · la clave de caché (TC-F07, CA-1) > tkt032a_lista · TC-F07 · invalidar claves.proveedores alcanza cualquier página de la lista y deja en paz a las demás cachés
+Error: TKT-032a F4: pendiente
+ ❯ queryFn src/modulos/proveedores/catalogo/proveedores.consultas.ts:32:62
+     30|     // Clave de relleno: ni cuelga de `claves.proveedores` ni lleva lo…
+     31|     queryKey: ["pendiente"] as const,
+     32|     queryFn: (): Promise<ListaProveedores> => Promise.reject(new Error…
+       |                                                              ^
+     33|   });
+     34| }
+ ❯ Object.fetchFn [as fn] node_modules/@tanstack/query-core/src/query.ts:791:14
+ ❯ run node_modules/@tanstack/query-core/src/retryer.ts:237:49
+ ❯ Object.start node_modules/@tanstack/query-core/src/retryer.ts:303:9
+ ❯ Query.fetch node_modules/@tanstack/query-core/src/query.ts:869:34
+ ❯ QueryClient.fetchQuery node_modules/@tanstack/query-core/src/queryClient.ts:674:15
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:224:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > hdu004_esc02 · TC-F08 · envía POST a la ruta de la lista con el cuerpo exacto, los días como enteros y el token CSRF
+Error: TKT-032a F4: pendiente
+ ❯ crearProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:38:25
+     36| export function crearProveedor(api: ClienteApi, cuerpo: ProveedorNuevo…
+     37|   void [api, cuerpo];
+     38|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     39| }
+     40|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:268:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > hdu004_esc02 · TC-F08 · CA-R4 · el tope máximo viaja idéntico y como cadena: nunca como número
+Error: TKT-032a F4: pendiente
+ ❯ crearProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:38:25
+     36| export function crearProveedor(api: ClienteApi, cuerpo: ProveedorNuevo…
+     37|   void [api, cuerpo];
+     38|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     39| }
+     40|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:293:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > hdu004_esc03 · TC-F08 · rechazo: el 409 RFC_DUPLICADO vuelve con su código, el proveedor existente y sin acciones, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ crearProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:38:25
+     36| export function crearProveedor(api: ClienteApi, cuerpo: ProveedorNuevo…
+     37|   void [api, cuerpo];
+     38|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     39| }
+     40|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:320:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > tkt032a_alta · TC-F08 · rechazo: un 422 en nombre vuelve como error de validación con su campo, sin lanzar
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > tkt032a_alta · TC-F08 · rechazo: un 422 en rfc vuelve como error de validación con su campo, sin lanzar
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > tkt032a_alta · TC-F08 · rechazo: un 422 en tope_consignacion vuelve como error de validación con su campo, sin lanzar
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > tkt032a_alta · TC-F08 · rechazo: un 422 en dia_corte vuelve como error de validación con su campo, sin lanzar
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > tkt032a_alta · TC-F08 · rechazo: un 422 en dia_pago vuelve como error de validación con su campo, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ crearProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:38:25
+     36| export function crearProveedor(api: ClienteApi, cuerpo: ProveedorNuevo…
+     37|   void [api, cuerpo];
+     38|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     39| }
+     40|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:346:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > hdu004_esc02 · TC-F08 · rechazo: el 403 vuelve como error de permiso con el mensaje del servidor, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ crearProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:38:25
+     36| export function crearProveedor(api: ClienteApi, cuerpo: ProveedorNuevo…
+     37|   void [api, cuerpo];
+     38|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     39| }
+     40|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:363:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · crearProveedor · POST /proveedores (TC-F08, CA-2, CA-R4) > hdu004_esc02 · TC-F08 · rechazo: sin conexión vuelve como error de red, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ crearProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:38:25
+     36| export function crearProveedor(api: ClienteApi, cuerpo: ProveedorNuevo…
+     37|   void [api, cuerpo];
+     38|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     39| }
+     40|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:374:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · actualizarProveedor · PATCH /proveedores/{proveedor_id} (CA-5, CA-R4) > tkt032a_edicion · envía PATCH a la ruta del proveedor con solo los campos cambiados y el token CSRF
+Error: TKT-032a F4: pendiente
+ ❯ actualizarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:47:25
+     45| ): Promise<ResultadoApi<Proveedor>> {
+     46|   void [api, proveedorId, cambios];
+     47|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     48| }
+     49|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:384:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · actualizarProveedor · PATCH /proveedores/{proveedor_id} (CA-5, CA-R4) > tkt032a_edicion · tope_consignacion en null viaja como null: así se borra el tope
+Error: TKT-032a F4: pendiente
+ ❯ actualizarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:47:25
+     45| ): Promise<ResultadoApi<Proveedor>> {
+     46|   void [api, proveedorId, cambios];
+     47|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     48| }
+     49|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:398:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · actualizarProveedor · PATCH /proveedores/{proveedor_id} (CA-5, CA-R4) > tkt032a_edicion · CA-R4 · el tope viaja como cadena exacta, sin pasar por number
+Error: TKT-032a F4: pendiente
+ ❯ actualizarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:47:25
+     45| ): Promise<ResultadoApi<Proveedor>> {
+     46|   void [api, proveedorId, cambios];
+     47|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     48| }
+     49|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:406:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · actualizarProveedor · PATCH /proveedores/{proveedor_id} (CA-5, CA-R4) > tkt032a_edicion · rechazo: un 422 vuelve como error de validación con su campo, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ actualizarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:47:25
+     45| ): Promise<ResultadoApi<Proveedor>> {
+     46|   void [api, proveedorId, cambios];
+     47|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     48| }
+     49|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:417:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · actualizarProveedor · PATCH /proveedores/{proveedor_id} (CA-5, CA-R4) > tkt032a_edicion · rechazo: el 404 del proveedor que ya no existe vuelve como no encontrado, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ actualizarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:47:25
+     45| ): Promise<ResultadoApi<Proveedor>> {
+     46|   void [api, proveedorId, cambios];
+     47|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     48| }
+     49|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:430:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc12 · desactivar envía POST a la ruta de la operación con solo el motivo y el token CSRF
+Error: TKT-032a F4: pendiente
+ ❯ desactivarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:52:25
+     50| export function desactivarProveedor(api: ClienteApi, proveedorId: stri…
+     51|   void [api, proveedorId, motivo];
+     52|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     53| }
+     54|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:450:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc13 · dar de baja envía POST a la ruta de la operación con solo el motivo y el token CSRF
+Error: TKT-032a F4: pendiente
+ ❯ darDeBajaProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:57:25
+     55| export function darDeBajaProveedor(api: ClienteApi, proveedorId: strin…
+     56|   void [api, proveedorId, motivo];
+     57|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     58| }
+     59|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:450:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc12 · desactivar: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ desactivarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:52:25
+     50| export function desactivarProveedor(api: ClienteApi, proveedorId: stri…
+     51|   void [api, proveedorId, motivo];
+     52|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     53| }
+     54|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:475:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc13 · dar de baja: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ darDeBajaProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:57:25
+     55| export function darDeBajaProveedor(api: ClienteApi, proveedorId: strin…
+     56|   void [api, proveedorId, motivo];
+     57|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     58| }
+     59|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:475:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc12 · desactivar: el 404 del proveedor que ya no existe vuelve como no encontrado, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ desactivarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:52:25
+     50| export function desactivarProveedor(api: ClienteApi, proveedorId: stri…
+     51|   void [api, proveedorId, motivo];
+     52|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     53| }
+     54|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:496:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc13 · dar de baja: el 404 del proveedor que ya no existe vuelve como no encontrado, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ darDeBajaProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:57:25
+     55| export function darDeBajaProveedor(api: ClienteApi, proveedorId: strin…
+     56|   void [api, proveedorId, motivo];
+     57|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     58| }
+     59|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:496:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc12 · desactivar: el 403 vuelve con el mensaje del servidor, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ desactivarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:52:25
+     50| export function desactivarProveedor(api: ClienteApi, proveedorId: stri…
+     51|   void [api, proveedorId, motivo];
+     52|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     53| }
+     54|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:509:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc13 · dar de baja: el 403 vuelve con el mensaje del servidor, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ darDeBajaProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:57:25
+     55| export function darDeBajaProveedor(api: ClienteApi, proveedorId: strin…
+     56|   void [api, proveedorId, motivo];
+     57|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     58| }
+     59|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:509:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc12 · desactivar: el 409 CONCURRENCIA vuelve con su espera y su acción de reintentar, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ desactivarProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:52:25
+     50| export function desactivarProveedor(api: ClienteApi, proveedorId: stri…
+     51|   void [api, proveedorId, motivo];
+     52|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     53| }
+     54|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:528:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · desactivarProveedor y darDeBajaProveedor · POST con motivo (CA-6, CA-7) > hdu004_esc13 · dar de baja: el 409 CONCURRENCIA vuelve con su espera y su acción de reintentar, sin lanzar
+Error: TKT-032a F4: pendiente
+ ❯ darDeBajaProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:57:25
+     55| export function darDeBajaProveedor(api: ClienteApi, proveedorId: strin…
+     56|   void [api, proveedorId, motivo];
+     57|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     58| }
+     59|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:528:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · darDeBajaProveedor · el bloqueo por órdenes pendientes (CA-8, HDU-004 esc. 12) > hdu004_esc12 · el 409 PROVEEDOR_CON_ORDENES_ABIERTAS de un proveedor ACTIVO conserva mensaje, órdenes y la acción del contrato
+Error: TKT-032a F4: pendiente
+ ❯ darDeBajaProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:57:25
+     55| export function darDeBajaProveedor(api: ClienteApi, proveedorId: strin…
+     56|   void [api, proveedorId, motivo];
+     57|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     58| }
+     59|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:554:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.consultas.test.ts > TKT-032a · darDeBajaProveedor · el bloqueo por órdenes pendientes (CA-8, HDU-004 esc. 12) > hdu004_esc12 · rechazo: el 409 de un proveedor ya DESACTIVADO vuelve sin acciones: lo que el servidor no manda no existe
+Error: TKT-032a F4: pendiente
+ ❯ darDeBajaProveedor src/modulos/proveedores/catalogo/proveedores.consultas.ts:57:25
+     55| export function darDeBajaProveedor(api: ClienteApi, proveedorId: strin…
+     56|   void [api, proveedorId, motivo];
+     57|   return Promise.reject(new Error(PENDIENTE));
+       |                         ^
+     58| }
+     59|
+ ❯ src/modulos/proveedores/catalogo/proveedores.consultas.test.ts:580:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · nombre y RFC con los valores por omisión salen como el cuerpo del alta: jueves, sábado y sin tope
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:75:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el nombre y el RFC salen sin espacios en los extremos
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:88:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el RFC 13 posiciones, persona moral con cuatro letras sale en mayúsculas
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el RFC 12 posiciones, tres letras sale en mayúsculas
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el RFC con Ñ sale en mayúsculas
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el RFC con & sale en mayúsculas
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el RFC en minúsculas sale en mayúsculas
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el RFC con ñ minúscula sale en mayúsculas
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:101:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · un nombre de exactamente 200 caracteres se acepta
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:108:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el día «1» del desplegable sale como el entero 1, en corte y en pago
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el día «2» del desplegable sale como el entero 2, en corte y en pago
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el día «3» del desplegable sale como el entero 3, en corte y en pago
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el día «4» del desplegable sale como el entero 4, en corte y en pago
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el día «5» del desplegable sale como el entero 5, en corte y en pago
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el día «6» del desplegable sale como el entero 6, en corte y en pago
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el día «7» del desplegable sale como el entero 7, en corte y en pago
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:122:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · el tope vacío sale como null: sin tope
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:133:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · CA-R4 · el tope «0» sale tal cual, como cadena
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · CA-R4 · el tope «0.0001» sale tal cual, como cadena
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · CA-R4 · el tope «300000» sale tal cual, como cadena
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · CA-R4 · el tope «300000.00» sale tal cual, como cadena
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · CA-R4 · el tope «300000.0000» sale tal cual, como cadena
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · CA-R4 · el tope «12345678901234» sale tal cual, como cadena
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · CA-R4 · el tope «99999999999999.9999» sale tal cual, como cadena
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:143:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se acepta (TC-F05, CA-2, CA-4) > hdu004_esc02 · TC-F05 · RN-17 · los valores iniciales del alta, con nombre y RFC, proponen jueves y sábado sin tope
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:152:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el nombre vacío se señala en su campo con el texto del boceto
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el nombre de solo espacios se señala en su campo con el texto del boceto
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el nombre de solo saltos de línea y tabuladores se señala en su campo con el texto del boceto
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ mensajesDe src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:56:33
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:171:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el nombre con el carácter NUL se señala en su campo
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ mensajesDe src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:56:33
+ ❯ camposRechazados src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:63:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:175:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el nombre de 201 caracteres se señala en su campo
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ mensajesDe src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:56:33
+ ❯ camposRechazados src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:63:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:179:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC vacío se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC de solo espacios se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con tres posiciones se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC de 11 posiciones se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC de 14 posiciones se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con dos letras al inicio se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con cinco letras al inicio se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con un guion se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con un espacio en medio se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con un salto de línea en medio se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con dígitos que no son ASCII se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: el RFC con letras donde van los seis dígitos se señala en su campo
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ mensajesDe src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:56:33
+ ❯ camposRechazados src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:63:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:196:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con exponente se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope negativo se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con signo positivo se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con un dígito que no es ASCII se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con cinco decimales se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con quince enteros se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con punto final y sin decimales se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope sin enteros se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope con coma decimal se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope que no es un número se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope infinito se señala en su campo con mensaje
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · CA-R4 · rechazo: el tope hexadecimal se señala en su campo con mensaje
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ mensajesDe src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:56:33
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:213:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_corte con «0» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_corte con «8» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_corte con «» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_corte con «abc» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_corte con «1.5» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_corte con «-1» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_corte con «٣» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_pago con «0» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_pago con «8» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_pago con «» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_pago con «abc» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_pago con «1.5» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_pago con «-1» no es un día de 1 a 7 y se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: dia_pago con «٣» no es un día de 1 a 7 y se señala en su campo
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ mensajesDe src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:56:33
+ ❯ camposRechazados src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:63:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:235:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaAlta · lo que se rechaza, en su campo (TC-F05, CA-4, rechazo) > tkt032a_alta · TC-F05 · rechazo: con todo mal cada campo se señala en el suyo, con los nombres del API
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ mensajesDe src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:56:33
+ ❯ camposRechazados src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:63:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:239:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · TC-F08 · el tope de consignación no pasa por number (CA-R4, rechazo) > tkt032a_tope · TC-F08 · el tope máximo de 14 enteros y 4 decimales sale idéntico y como cadena
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:36:9
+     34|
+     35| export const esquemaAlta = z.custom<EntradaAlta>().transform((): Prove…
+     36|   throw new Error(PENDIENTE);
+       |         ^
+     37| });
+     38|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:255:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · TC-F08 · el tope de consignación no pasa por number (CA-R4, rechazo) > tkt032a_tope · TC-F08 · el esquema de edición lo entrega igual: idéntico y como cadena
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:40:9
+     38|
+     39| export const esquemaEdicion = z.custom<EntradaEdicion>().transform(():…
+     40|   throw new Error(PENDIENTE);
+       |         ^
+     41| });
+     42|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:265:38
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · los valores iniciales de un proveedor pasan el esquema y salen con los días como enteros
+Error: TKT-032a F4: pendiente
+ ❯ valoresInicialesDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:56:9
+     54| export function valoresInicialesDe(proveedor: Proveedor): EntradaEdici…
+     55|   void proveedor;
+     56|   throw new Error(PENDIENTE);
+       |         ^
+     57| }
+     58|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:275:48
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · el tope vaciado sale como null: así se borra el tope
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:40:9
+     38|
+     39| export const esquemaEdicion = z.custom<EntradaEdicion>().transform(():…
+     40|   throw new Error(PENDIENTE);
+       |         ^
+     41| });
+     42|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:287:38
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · rechazo: un nombre vacío se señala en su campo
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:40:9
+     38|
+     39| export const esquemaEdicion = z.custom<EntradaEdicion>().transform(():…
+     40|   throw new Error(PENDIENTE);
+       |         ^
+     41| });
+     42|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ camposRechazadosEnEdicion src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:68:36
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:294:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «1e3» se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «-5» se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «٣» se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «1.23456» se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · CA-R4 · rechazo: el tope «123456789012345» se señala en su campo
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:40:9
+     38|
+     39| export const esquemaEdicion = z.custom<EntradaEdicion>().transform(():…
+     40|   throw new Error(PENDIENTE);
+       |         ^
+     41| });
+     42|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ camposRechazadosEnEdicion src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:68:36
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:300:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · rechazo: el día de pago «0» se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · rechazo: el día de pago «8» se señala en su campo
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · esquemaEdicion · el mismo formulario con el RFC de solo lectura (CA-5, TC-F05) > tkt032a_edicion · TC-F05 · rechazo: el día de pago «abc» se señala en su campo
+Error: TKT-032a F4: pendiente
+ ❯ Object.transform src/modulos/proveedores/catalogo/proveedores.formulario.ts:40:9
+     38|
+     39| export const esquemaEdicion = z.custom<EntradaEdicion>().transform(():…
+     40|   throw new Error(PENDIENTE);
+       |         ^
+     41| });
+     42|
+ ❯ inst._zod.parse node_modules/zod/v4/classic/schemas.js:1218:28
+ ❯ Internals.wrapped node_modules/zod/v4/core/memoizer.js:213:24
+ ❯ handlePipeResult node_modules/zod/v4/core/schemas.js:2325:22
+ ❯ inst._zod.parse node_modules/zod/v4/core/schemas.js:2315:16
+ ❯ Module.<anonymous> node_modules/zod/v4/core/parse.js:43:32
+ ❯ _.safeParse node_modules/zod/v4/classic/schemas.js:141:22
+ ❯ camposRechazadosEnEdicion src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:68:36
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:305:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · DIAS y VALORES_INICIALES_ALTA (TC-F05, RN-17) > hdu004_esc02 · TC-F05 · los siete días van de lunes a domingo, en minúsculas, con el valor que viaja como texto
+AssertionError: expected [] to deeply equal [ …(7) ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "etiqueta": "lunes",
+-     "valor": "1",
+-   },
+-   {
+-     "etiqueta": "martes",
+-     "valor": "2",
+-   },
+-   {
+-     "etiqueta": "miércoles",
+-     "valor": "3",
+-   },
+-   {
+-     "etiqueta": "jueves",
+-     "valor": "4",
+-   },
+-   {
+-     "etiqueta": "viernes",
+-     "valor": "5",
+-   },
+-   {
+-     "etiqueta": "sábado",
+-     "valor": "6",
+-   },
+-   {
+-     "etiqueta": "domingo",
+-     "valor": "7",
+-   },
+- ]
++ []
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:311:18
+    309| describe("TKT-032a · DIAS y VALORES_INICIALES_ALTA (TC-F05, RN-17)", (…
+    310|   test("hdu004_esc02 · TC-F05 · los siete días van de lunes a domingo,…
+    311|     expect(DIAS).toEqual([
+       |                  ^
+    312|       { valor: "1", etiqueta: "lunes" },
+    313|       { valor: "2", etiqueta: "martes" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · DIAS y VALORES_INICIALES_ALTA (TC-F05, RN-17) > hdu004_esc02 · TC-F05 · RN-17 · el alta propone jueves («4») para el corte, sábado («6») para el pago y el tope vacío
+AssertionError: expected { nombre: '', rfc: '', …(3) } to deeply equal { nombre: '', rfc: '', …(3) }
+
+- Expected
++ Received
+
+  {
+-   "dia_corte": "4",
+-   "dia_pago": "6",
++   "dia_corte": "",
++   "dia_pago": "",
+    "nombre": "",
+    "rfc": "",
+    "tope_consignacion": "",
+  }
+
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:323:36
+    321|
+    322|   test("hdu004_esc02 · TC-F05 · RN-17 · el alta propone jueves («4») p…
+    323|     expect(VALORES_INICIALES_ALTA).toEqual({
+       |                                    ^
+    324|       nombre: "",
+    325|       rfc: "",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · el proveedor de la lista se precarga con el RFC, el tope sin cambiar de forma y los días como texto
+Error: TKT-032a F4: pendiente
+ ❯ valoresInicialesDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:56:9
+     54| export function valoresInicialesDe(proveedor: Proveedor): EntradaEdici…
+     55|   void proveedor;
+     56|   throw new Error(PENDIENTE);
+       |         ^
+     57| }
+     58|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:335:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · un proveedor sin tope (null) se precarga con el tope vacío, no con «null» ni «undefined»
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · un proveedor sin tope (ausente) se precarga con el tope vacío, no con «null» ni «undefined»
+Error: TKT-032a F4: pendiente
+ ❯ valoresInicialesDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:56:9
+     54| export function valoresInicialesDe(proveedor: Proveedor): EntradaEdici…
+     55|   void proveedor;
+     56|   throw new Error(PENDIENTE);
+       |         ^
+     57| }
+     58|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:351:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · corte 1 y pago 7 se precargan como «1» y «7»
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · corte 7 y pago 1 se precargan como «7» y «1»
+Error: TKT-032a F4: pendiente
+ ❯ valoresInicialesDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:56:9
+     54| export function valoresInicialesDe(proveedor: Proveedor): EntradaEdici…
+     55|   void proveedor;
+     56|   throw new Error(PENDIENTE);
+       |         ^
+     57| }
+     58|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:358:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor con cuatro decimales no genera cambios
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor sin decimales no genera cambios
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor con el máximo no genera cambios
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · valoresInicialesDe (TC-F23, CA-5) > tkt032a_edicion · TC-F25 · ida y vuelta: guardar sin tocar nada un proveedor sin tope no genera cambios
+Error: TKT-032a F4: pendiente
+ ❯ valoresInicialesDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:56:9
+     54| export function valoresInicialesDe(proveedor: Proveedor): EntradaEdici…
+     55|   void proveedor;
+     56|   throw new Error(PENDIENTE);
+       |         ^
+     57| }
+     58|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:372:48
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · sin ningún cambio devuelve null: no hay petición que enviar
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:383:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · solo el nombre
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:389:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · solo el día de pago
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:397:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[67/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · solo el día de corte
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:403:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[68/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · solo el tope, que viaja como cadena
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:409:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[69/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · el tope vaciado envía null: así se borra, y no se confunde con «sin cambio»
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:418:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[70/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · un proveedor sin tope (null) al que se le deja el tope vacío no cambia
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · un proveedor sin tope (ausente) al que se le deja el tope vacío no cambia
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:427:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[71/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · un proveedor sin tope al que se le captura uno lo envía
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:433:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[72/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · varios cambios a la vez viajan juntos y nada más
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:439:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[73/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · CA-R4 · el tope «300000.0000» contra «300000» es el mismo número y no cuenta como cambio (Decimal.eq)
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · CA-R4 · el tope «300000.0000» contra «300000.00» es el mismo número y no cuenta como cambio (Decimal.eq)
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · CA-R4 · el tope «300000» contra «300000.0000» es el mismo número y no cuenta como cambio (Decimal.eq)
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · CA-R4 · el tope «0.0000» contra «0» es el mismo número y no cuenta como cambio (Decimal.eq)
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · CA-R4 · el tope «1000.5000» contra «1000.5» es el mismo número y no cuenta como cambio (Decimal.eq)
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:458:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[74/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · rechazo: el tope «300000.0000» contra «300000.0001» sí es un cambio, aunque sea de la última cifra
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · rechazo: el tope «300000.0000» contra «299999.9999» sí es un cambio, aunque sea de la última cifra
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · rechazo: el tope «0.0000» contra «0.0001» sí es un cambio, aunque sea de la última cifra
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:469:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[75/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · CA-R4 · un cambio en la última cifra del tope máximo se detecta: no se compara como number
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:476:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[76/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · tope 0 y sin tope son cosas distintas: pasar de null a «0» es un cambio, y de «0.0000» a vacío también
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:485:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[77/155]⎯
+
+ FAIL  |cliente| src/modulos/proveedores/catalogo/proveedores.formulario.test.ts > TKT-032a · cambiosDe · el cuerpo del PATCH solo lleva lo que cambió (TC-F06, CA-5) > tkt032a_edicion · TC-F06 · CA-5 · el RFC nunca viaja: ni cambiado ni sin cambiar
+Error: TKT-032a F4: pendiente
+ ❯ cambiosDe src/modulos/proveedores/catalogo/proveedores.formulario.ts:61:9
+     59| export function cambiosDe(proveedor: Proveedor, valores: SalidaEdicion…
+     60|   void [proveedor, valores];
+     61|   throw new Error(PENDIENTE);
+       |         ^
+     62| }
+     63|
+ ❯ src/modulos/proveedores/catalogo/proveedores.formulario.test.ts:492:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[78/155]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  155 failed (155)
+   Start at  22:38:22
+   Duration  1.96s (environment 58%, setup 16%, transform 15%, import 8%, tests 2%)
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Clasificación de las 155 fallas (reporter json de la misma corrida; la salida de texto de Vitest omite el cuerpo
+# del error de las últimas, pero el resumen de arriba las cuenta todas):
+#   149 · Error: TKT-032a F4: pendiente           (112 en proveedores.formulario.test.ts, 37 en proveedores.consultas.test.ts)
+#     2 · AssertionError: expected Error: TKT-032a F4: pendiente to be an instance of FalloApi   (la consulta rechaza con «pendiente»)
+#     1 · AssertionError: expected [ 'pendiente' ] to deeply equal [ 'proveedores', 'lista', { …(4) } ]   (clave de relleno del stub)
+#     1 · AssertionError: expected 1 to be 5 // Object.is equality      (las cinco claves de relleno son una sola)
+#     1 · AssertionError: expected [] to deeply equal [ …(7) ]          (DIAS vacío en el stub)
+#     1 · AssertionError: expected { nombre: '', rfc: '', …(3) } to deeply equal { … }   (VALORES_INICIALES_ALTA sin 4 y 6)
+#   0 errores de importación, de sintaxis o de entorno. Pruebas que pasan: 0 de 155.

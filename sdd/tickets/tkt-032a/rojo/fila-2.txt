@@ -1,0 +1,375 @@
+
+> cimenta-frontend@0.0.0 test
+> vitest run PantallaBloqueo ConflictoEnLinea FormularioCatalogo CapturaMotivo
+
+
+ RUN  v5.0.5 C:/Users/romeo/AppData/Local/Temp/claude/215e8b3fbae158b8/5176ed57-21d5-4041-a143-962ff6158fc4/scratchpad/frontend
+
+ ❯ |cliente| src/compartido/formularios/ConflictoEnLinea.test.tsx (9 tests | 1 failed) 168ms
+   ❯ TKT-032a · rechazos del catálogo de proveedores en línea (TC-F01) (1)
+     × hdu004_esc03 · TC-F01 · el RFC duplicado muestra «Proveedor existente» con su valor, sin UUID ni clave cruda 6ms
+ ❯ |cliente| src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx (21 tests | 3 failed) 392ms
+   ❯ TKT-032a · rechazos del catálogo de proveedores en la pantalla de bloqueo (TC-F02, TC-F03) (4)
+     × hdu004_esc12 · TC-F02 · las órdenes pendientes se pintan en una tabla con folio y estado, no como JSON 14ms
+     × hdu004_esc12 · TC-F02 · el estado actual se rotula «Estado actual», no con su clave cruda 3ms
+     × hdu004_esc12 · TC-F03 · la acción DESACTIVAR_PROVEEDOR se rotula «Desactivar el proveedor» y se entrega tal como llegó 5ms
+ ❯ |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx (26 tests | 1 failed) 10486ms
+   ❯ TKT-008 · formulario de catálogo (21)
+     × tkt008_ca11_esc07 · la baja la rechaza el servidor (TC-89) 177ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/compartido/formularios/ConflictoEnLinea.test.tsx > TKT-032a · rechazos del catálogo de proveedores en línea (TC-F01) > hdu004_esc03 · TC-F01 · el RFC duplicado muestra «Proveedor existente» con su valor, sin UUID ni clave cruda
+TestingLibraryElementError: Unable to find an element with the text: Proveedor existente, which matches selector 'dt'. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-labelledby[39m=[32m"_r_8_"[39m
+      [33maria-live[39m=[32m"polite"[39m
+      [33mclass[39m=[32m"rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"[39m
+      [33mdata-estado[39m=[32m"bloqueado"[39m
+    [36m>[39m
+      [36m<h3[39m
+        [33mclass[39m=[32m"font-semibold"[39m
+        [33mid[39m=[32m"_r_8_"[39m
+      [36m>[39m
+        [0mNo se puede completar[0m
+      [36m</h3>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm font-medium"[39m
+      [36m>[39m
+        [0mRFC_DUPLICADO[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-1"[39m
+      [36m>[39m
+        [0mYa existe un proveedor con el RFC XAXX010101000.[0m
+      [36m</p>[39m
+      [36m<dl[39m
+        [33mclass[39m=[32m"mt-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-wrap gap-x-3 py-1"[39m
+        [36m>[39m
+          [36m<dt[39m
+            [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+          [36m>[39m
+            [0mproveedor_existente[0m
+          [36m</dt>[39m
+          [36m<dd>[39m
+            [0mCoPanel · XAXX010101000[0m
+          [36m</dd>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-wrap gap-x-3 py-1"[39m
+        [36m>[39m
+          [36m<dt[39m
+            [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+          [36m>[39m
+            [0mproveedor_existente_id[0m
+          [36m</dt>[39m
+          [36m<dd>[39m
+            [0m6d5c4b3a-2918-4f7e-8d5c-4b3a29180716[0m
+          [36m</dd>[39m
+        [36m</div>[39m
+      [36m</dl>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mt-4 flex flex-wrap items-center gap-2"[39m
+      [36m/>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/compartido/formularios/ConflictoEnLinea.test.tsx:191:19
+    189|
+    190|     expect(screen.getByText(error.mensaje)).toBeInTheDocument();
+    191|     expect(screen.getByText("Proveedor existente", { selector: "dt" })…
+       |                   ^
+    192|     expect(screen.getByText("CoPanel · XAXX010101000", { selector: "dd…
+    193|     // Ni la clave cruda ni el identificador interno (D-8) llegan a la…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.test.tsx > TKT-008 · formulario de catálogo > tkt008_ca11_esc07 · la baja la rechaza el servidor (TC-89)
+AssertionError: expected -1 to be greater than or equal to 0
+ ❯ src/compartido/formularios/FormularioCatalogo.test.tsx:444:21
+    442|       .map((boton) => boton.textContent?.trim() ?? "");
+    443|     const primera = nombres.indexOf("Desactivar el proveedor");
+    444|     expect(primera).toBeGreaterThanOrEqual(0);
+       |                     ^
+    445|     expect(nombres.slice(primera, primera + 2)).toEqual(["Desactivar e…
+    446|     expect(nombres).not.toContain("Cerrar");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  |cliente| src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx > TKT-032a · rechazos del catálogo de proveedores en la pantalla de bloqueo (TC-F02, TC-F03) > hdu004_esc12 · TC-F02 · las órdenes pendientes se pintan en una tabla con folio y estado, no como JSON
+TestingLibraryElementError: Unable to find an accessible element with the role "table" and name "Órdenes pendientes"
+
+Here are the accessible roles:
+
+  region:
+
+  Name "No se puede completar":
+  [36m<section[39m
+    [33maria-labelledby[39m=[32m"titulo-bloqueo"[39m
+    [33mclass[39m=[32m"rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950"[39m
+    [33mdata-estado[39m=[32m"bloqueado"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "No se puede completar":
+  [36m<h2[39m
+    [33mclass[39m=[32m"text-lg font-semibold"[39m
+    [33mid[39m=[32m"titulo-bloqueo"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-medium"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-2"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"mt-4 text-xs text-amber-900/80"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  term:
+
+  Name "":
+  [36m<dt[39m
+    [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  definition:
+
+  Name "":
+  [36m<dd />[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "DESACTIVAR_PROVEEDOR":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Cerrar":
+  [36m<button[39m
+    [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-labelledby[39m=[32m"titulo-bloqueo"[39m
+      [33mclass[39m=[32m"rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950"[39m
+      [33mdata-estado[39m=[32m"bloqueado"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-lg font-semibold"[39m
+        [33mid[39m=[32m"titulo-bloqueo"[39m
+      [36m>[39m
+        [0mNo se puede completar[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm font-medium"[39m
+      [36m>[39m
+        [0mPROVEEDOR_CON_ORDENES_ABIERTAS[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-2"[39m
+      [36m>[39m
+        [0mCoPanel tiene 2 órdenes pendientes de recibir; se puede desactivar para órdenes nuevas.[0m
+      [36m</p>[39m
+      [36m<dl[39m
+        [33mclass[39m=[32m"mt-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-wrap gap-x-3 py-1"[39m
+        [36m>[39m
+          [36m<dt[39m
+            [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+          [36m>[39m
+            [0mordenes[0m
+          [36m</dt>[39m
+          [36m<dd>[39m
+            [0m[{"id":"5c4b3a29-1807-4f6e-9d5c-4b3a29180716","folio":"OC-AP05825-0017","estado":"PARCIAL"},{"id":"4b3a2918-0716-4e5d-8c4b-3a2918071605","folio":"OC-AP05825-0021","estado":"ABIERTA"}][0m
+          [36m</dd>[39m
+        [36m</div>[39m
+      [36m</dl>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mt-4 flex flex-wrap items-center gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mDESACTIVAR_PROVEEDOR[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mCerrar[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-4 text-xs text-amber-900/80"[39m
+      [36m>[39m
+        [0mReferencia: [0m
+        [0m7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e[0m
+      [36m</p>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx:370:26
+    368|     expect(screen.getByText(/PROVEEDOR_CON_ORDENES_ABIERTAS/)).toBeInT…
+    369|     expect(screen.getByText(error.mensaje)).toBeInTheDocument();
+    370|     const tabla = screen.getByRole("table", { name: "Órdenes pendiente…
+       |                          ^
+    371|     expect(within(tabla).getAllByRole("columnheader").map((columna) =>…
+    372|     const filas = within(tabla).getAllByRole("row");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  |cliente| src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx > TKT-032a · rechazos del catálogo de proveedores en la pantalla de bloqueo (TC-F02, TC-F03) > hdu004_esc12 · TC-F02 · el estado actual se rotula «Estado actual», no con su clave cruda
+TestingLibraryElementError: Unable to find an element with the text: Estado actual, which matches selector 'dt'. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-labelledby[39m=[32m"titulo-bloqueo"[39m
+      [33mclass[39m=[32m"rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950"[39m
+      [33mdata-estado[39m=[32m"bloqueado"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-lg font-semibold"[39m
+        [33mid[39m=[32m"titulo-bloqueo"[39m
+      [36m>[39m
+        [0mNo se puede completar[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm font-medium"[39m
+      [36m>[39m
+        [0mESTADO_NO_PERMITE_OPERACION[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-2"[39m
+      [36m>[39m
+        [0mEl proveedor CoPanel ya no admite esta operación en su estado actual.[0m
+      [36m</p>[39m
+      [36m<dl[39m
+        [33mclass[39m=[32m"mt-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-wrap gap-x-3 py-1"[39m
+        [36m>[39m
+          [36m<dt[39m
+            [33mclass[39m=[32m"min-w-40 text-amber-900/80"[39m
+          [36m>[39m
+            [0mestado_actual[0m
+          [36m</dt>[39m
+          [36m<dd>[39m
+            [0mBAJA[0m
+          [36m</dd>[39m
+        [36m</div>[39m
+      [36m</dl>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mt-4 flex flex-wrap items-center gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mCerrar[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"mt-4 text-xs text-amber-900/80"[39m
+      [36m>[39m
+        [0mReferencia: [0m
+        [0m7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e[0m
+      [36m</p>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ valorDe src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx:51:21
+     49| /** El `<dd>` que acompaña a un `<dt>` del detalle. */
+     50| function valorDe(termino: string): HTMLElement {
+     51|   const dt = screen.getByText(termino, { selector: "dt" });
+       |                     ^
+     52|   const dd = dt.nextElementSibling;
+     53|   if (!(dd instanceof HTMLElement) || dd.tagName !== "DD") throw new E…
+ ❯ src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx:396:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  |cliente| src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx > TKT-032a · rechazos del catálogo de proveedores en la pantalla de bloqueo (TC-F02, TC-F03) > hdu004_esc12 · TC-F03 · la acción DESACTIVAR_PROVEEDOR se rotula «Desactivar el proveedor» y se entrega tal como llegó
+AssertionError: expected [ 'DESACTIVAR_PROVEEDOR', 'Cerrar' ] to deeply equal [ 'Desactivar el proveedor', 'Cerrar' ]
+
+- Expected
++ Received
+
+  [
+-   "Desactivar el proveedor",
++   "DESACTIVAR_PROVEEDOR",
+    "Cerrar",
+  ]
+
+ ❯ src/compartido/componentes/bloqueo/PantallaBloqueo.test.tsx:404:32
+    402|     const { alAccion, usuario } = abrir(errorOrdenesAbiertas([desactiv…
+    403|
+    404|     expect(nombresDeBotones()).toEqual(["Desactivar el proveedor", "Ce…
+       |                                ^
+    405|     expect(screen.queryByRole("button", { name: "DESACTIVAR_PROVEEDOR"…
+    406|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  3 failed | 2 passed (5)
+      Tests  5 failed | 80 passed (85)
+   Start at  22:28:40
+   Duration  12.42s (tests 72%, environment 16%, import 6%, setup 4%, transform 2%)
+
