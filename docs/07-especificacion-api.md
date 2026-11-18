@@ -51,9 +51,9 @@ Por eso existen los dos, y cada uno manda en un sitio:
 | **Campos** | `snake_case`, los mismos nombres que el [modelo de datos](03-modelo-datos.md) | `importe_tope`, `tipo_partida_id` |
 | **`tags`** | Uno por módulo: el que es dueño del caso de uso | `compras`, `almacen` |
 
-**Las transiciones de estado son sub-recursos `POST`**, con el sustantivo de la acción: `/requisiciones/{id}/envio`, `/cancelacion`, `/solicitudes-autorizacion/{id}/resolucion`, `/lineas-base/{id}/congelacion`. Nunca un `PATCH` del campo `estado`. La razón es que una transición no es una edición: tiene precondiciones, motivo obligatorio casi siempre, asiento en la bitácora y a veces una regla que evaluar. Un `PATCH {"estado": "AUTORIZADA"}` invita a saltarse las cuatro cosas, y le dice al agente que el estado es un campo más.
+**Las transiciones de estado son sub-recursos `POST`**, con el sustantivo de la acción: `/requisiciones/{id}/envio`, `/cancelacion`, `/solicitudes-autorizacion/{id}/resolucion`, `/lineas-base/{id}/congelacion`, y las de la obra, `/obras/{id}/suspension`, `/reactivacion` y `/cierre`. Nunca un `PATCH` del campo `estado`. La razón es que una transición no es una edición: tiene precondiciones, motivo obligatorio casi siempre, asiento en la bitácora y a veces una regla que evaluar. Un `PATCH {"estado": "AUTORIZADA"}` invita a saltarse las cuatro cosas, y le dice al agente que el estado es un campo más.
 
-Por la misma razón, **lo que no se borra no tiene `DELETE`**. Cerrar sesión es `POST /sesion/cierre` porque escribe `revocada_en` y la fila se conserva. Solo dos rutas usan `DELETE`: una obra sin historial y una requisición en `BORRADOR`, que son los dos únicos casos en que el PRD admite eliminar.
+Por la misma razón, **lo que no se borra no tiene `DELETE`**. Cerrar sesión es `POST /sesion/cierre` porque escribe `revocada_en` y la fila se conserva. Solo dos rutas usan `DELETE`: una obra sin historial y una requisición en `BORRADOR`, que son los dos únicos casos en que el PRD admite eliminar. La obra con historial responde `409` `OBRA_CON_HISTORIAL` y ofrece las acciones que permite su estado: `SUSPENDER_OBRA` y `CERRAR_OBRA` desde `ACTIVA`, solo `CERRAR_OBRA` desde `PLANEACION` y `SUSPENDIDA`, y ninguna desde `CERRADA`. Su asiento en la bitácora lleva el verbo `ELIMINAR`.
 
 ### 2.2. Consultas
 
@@ -226,7 +226,7 @@ Hacen falta cuatro más, y los cuatro respetan la misma envoltura:
 
 | `tipo` | Código | Por qué no cabe en los tres |
 |---|---|---|
-| `CONFLICTO` | `409` | Conflictos de estado o de unicidad que **no son una regla `RN-xx`**: código de obra duplicado, solicitud ya resuelta, transición desde un estado que no la admite, archivo cuyo hash no coincide, obra sin línea base congelada o sin tope de control. Misma forma que `REGLA_NEGOCIO` con un `codigo` del **catálogo cerrado** `CodigoConflicto` en lugar de `regla`. Etiquetarlos con una regla que no es la suya ensuciaría la consulta de excepciones por regla de la bitácora |
+| `CONFLICTO` | `409` | Conflictos de estado o de unicidad que **no son una regla `RN-xx`**: código de obra duplicado, solicitud ya resuelta, transición desde un estado que no la admite (`ESTADO_NO_PERMITE_OPERACION`), obra con historial que no se elimina (`OBRA_CON_HISTORIAL`), archivo cuyo hash no coincide, obra sin línea base congelada o sin tope de control. Misma forma que `REGLA_NEGOCIO` con un `codigo` del **catálogo cerrado** `CodigoConflicto` en lugar de `regla`. Etiquetarlos con una regla que no es la suya ensuciaría la consulta de excepciones por regla de la bitácora |
 | `CONCURRENCIA` | `409` | Venció `lock_timeout` o `statement_timeout` (`RNF-16`). Ver §3.3 |
 | `SESION` | `401` | Sin sesión, caducada, revocada o credenciales inválidas. No distingue correo inexistente de contraseña errónea |
 | `LIMITE_INTENTOS` · `NO_ENCONTRADO` | `429` · `404` | Forma mínima, con `correlacion_id` |

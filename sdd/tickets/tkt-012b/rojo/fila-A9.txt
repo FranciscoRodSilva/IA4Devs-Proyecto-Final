@@ -1,0 +1,798 @@
+Fila A9 · TKT-012b · Cierre de la entrega a: concurrencia, regresión y mutación (solo pruebas)
+================================================================================================
+
+Archivos nuevos (ningún archivo de producción creado ni tocado):
+  backend/tests/test_tkt012b_concurrencia.py   TC-55 a TC-60
+  backend/tests/test_tkt012b_regresion.py      TC-61, TC-62, TC-INV-2, TC-INV-3, TC-INV-4, TC-INV-5
+
+Estado de la fila: el código de producción de A1 a A8 ya existía y estaba en verde. Esta fila no produce
+un rojo de «función inexistente»: el rojo que deja es el de un defecto real de producción que TC-60 expone
+(ver sección 1). Todas las demás pruebas nuevas nacieron en verde y se investigó por qué: la mutación
+(sdd/tickets/tkt-012b/mutacion-a9.md) demuestra que cada una cae si el comportamiento se rompe. Las
+salidas de las secciones 2 a 5 son literales; el texto de los fallos conserva la codificación de la consola
+de Windows, así que algunos acentos salen como «?».
+
+Entorno: Docker Desktop en marcha (docker info responde), PostgreSQL de testcontainers, esquema por
+`alembic upgrade head`, conexión con el rol cimenta_aplicacion (la guarda de rol de la fixture `conectar`
+y `motor_aplicacion` falla la prueba si no lo es). Sin sleep: todas las esperas sondean pg_stat_activity /
+pg_blocking_pids o usan Barrier/Event con tope.
+
+================================================================================================
+1. EL ROJO DE LA FILA · TC-60 expone un defecto de producción (8 pruebas en rojo, razón correcta)
+================================================================================================
+
+Causa, en una línea: `actualizar_obra` y las tres transiciones (`suspender_obra`, `reactivar_obra`,
+`cerrar_obra`, vía `_transicionar`) no traducen el `55P03` (lock_timeout agotado) a `ConcurrenciaVencida`.
+Solo `eliminar_obra` captura `DBAPIError` y llama a `traducir_error_del_motor`. El `OperationalError`
+(psycopg.errors.LockNotAvailable) escapa y el manejador global lo responde como 500 en lugar de
+409 CONCURRENCIA con la acción REINTENTAR (RNF-16, ADR-004; el congelado de TKT-017 ya lo hace).
+
+Fallan, por esa razón y no por entorno ni sintaxis:
+  - test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[patch|suspension|reactivacion|cierre]
+      «El 55P03 debía traducirse a ConcurrenciaVencida y escapó OperationalError: (psycopg.errors.LockNotAvailable)
+       canceling statement due to lock timeout / CONTEXT: while locking tuple (0,1) in relation "obra"»
+  - test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[patch|suspension|reactivacion|cierre]
+      respuesta HTTP 500 {"mensaje":"Ocurrió un error inesperado. Cita el identificador de correlación…"}
+Pasan (la traducción sí existe): ambas pruebas con [delete]; y M15 de la mutación demuestra que mueren si se
+quita esa traducción.
+
+Líneas del resumen corto de la suite completa (sección 5):
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[cierre]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[cierre]
+8 failed, 4136 passed, 26 skipped in 809.44s (0:13:29)
+
+================================================================================================
+2. ESTABILIDAD · las pruebas de concurrencia y regresión, 3 corridas seguidas (sin flaky)
+================================================================================================
+Mismo resultado en las tres: 37 pasan y fallan exactamente las 8 de TC-60 (el defecto). Además corren
+otra vez dentro de la suite completa (sección 5): cuarta corrida con el mismo resultado.
+
+Comando: uv run pytest tests/test_tkt012b_concurrencia.py tests/test_tkt012b_regresion.py -q -p no:cacheprovider -rf
+
+=== corrida 1 de 3 · tests/test_tkt012b_concurrencia.py tests/test_tkt012b_regresion.py
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[cierre]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[cierre]
+8 failed, 37 passed in 20.86s
+=== corrida 2 de 3 · tests/test_tkt012b_concurrencia.py tests/test_tkt012b_regresion.py
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[cierre]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[cierre]
+8 failed, 37 passed in 20.97s
+=== corrida 3 de 3 · tests/test_tkt012b_concurrencia.py tests/test_tkt012b_regresion.py
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[cierre]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[cierre]
+8 failed, 37 passed in 20.61s
+
+================================================================================================
+3. REGRESIÓN DE TKT-012a (TC-INV-4): la suite se ejecuta sin tocarla
+================================================================================================
+Comando: uv run pytest tests/test_tkt012a_alta_obra.py tests/test_tkt012a_api_obras.py tests/test_tkt012a_dominio_obra.py tests/test_tkt012a_repositorio_obra.py -q -p no:cacheprovider
+88 passed in 21.57s
+
+git status --short -- "tests/test_tkt012a*"  ->  (vacío: ningún archivo de TKT-012a modificado)
+
+================================================================================================
+4. ESTÁTICOS (desde backend/)
+================================================================================================
+$ uv run ruff check .
+All checks passed!
+$ uv run ruff format --check .
+371 files already formatted
+$ uv run mypy .
+Success: no issues found in 371 source files
+
+================================================================================================
+5. SUITE COMPLETA · uv run pytest -q -p no:cacheprovider -rf   (desde backend/, salida literal)
+================================================================================================
+........................................................................ [  1%]
+........................................................................ [  3%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+........................................................................ [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 12%]
+........................................................................ [ 13%]
+........................................................................ [ 15%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+........................................................................ [ 20%]
+........................................................................ [ 22%]
+........................................................................ [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 27%]
+........................................................................ [ 29%]
+........................................................................ [ 31%]
+........................................................................ [ 32%]
+........................................................................ [ 34%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 39%]
+........................................................................ [ 41%]
+......................................................F.FFFF.FFF........ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 46%]
+........................................................................ [ 48%]
+.......ssssssss......................................................... [ 50%]
+.........ssssssssssss................................................... [ 51%]
+..........................................................sssss......... [ 53%]
+......................................................................s. [ 55%]
+........................................................................ [ 56%]
+........................................................................ [ 58%]
+........................................................................ [ 60%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 72%]
+........................................................................ [ 74%]
+........................................................................ [ 75%]
+........................................................................ [ 77%]
+........................................................................ [ 79%]
+........................................................................ [ 81%]
+........................................................................ [ 82%]
+........................................................................ [ 84%]
+........................................................................ [ 86%]
+........................................................................ [ 88%]
+........................................................................ [ 89%]
+........................................................................ [ 91%]
+........................................................................ [ 93%]
+........................................................................ [ 94%]
+........................................................................ [ 96%]
+........................................................................ [ 98%]
+..................................................................       [100%]
+================================== FAILURES ===================================
+_ test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[patch] _
+
+operacion = 'patch', metodo = 'PATCH', sufijo = ''
+cuerpo = {'nombre': 'Nombre corregido durante la carrera'}, estado = 'ACTIVA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x0000023804CF81A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x0000023800934F00>
+base_de_prueba = 'prueba_62d8c394d694'
+conectar = <function conectar.<locals>._conectar at 0x0000023804CBFE20>
+cliente_espera_corta = <starlette.testclient.TestClient object at 0x0000023800941D00>
+sembrar_usuario = <function sembrar_usuario.<locals>._sembrar at 0x0000023804D66C40>
+
+    @pytest.mark.parametrize(
+        ("operacion", "metodo", "sufijo", "cuerpo", "estado"),
+        OPERACIONES_DE_LA_OBRA,
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar(
+        operacion: str,
+        metodo: str,
+        sufijo: str,
+        cuerpo: object,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        cliente_espera_corta: TestClient,
+        sembrar_usuario: SembrarUsuario,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � con `lock_timeout` de 200 ms agotado, `55P03` es `409` `CONCURRENCIA`.
+    
+        Otra sesi�n tiene la fila de la obra con `FOR UPDATE` sin confirmar; la operaci�n espera, vence el
+        `lock_timeout` y el contrato completo es `CONCURRENCIA` `BLOQUEO_VENCIDO` con `espera_maxima_ms` 5000
+        (el `lock_timeout` del rol), `Retry-After: 1` y la acci�n `REINTENTAR` con el m�todo y la ruta **de
+        esa operaci�n**, para el Director de Proyectos. No escribe nada. Se prueban las cinco operaciones por
+        HTTP: sin la traducci�n, el error del motor sale como `500`.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        correo = f"direccion-espera-{uuid.uuid4().hex[:8]}@cimenta.test"
+        sembrar_usuario(correo, CONTRASENA_DE_PRUEBA, roles=("DIRECTOR_PROYECTOS",), nombre="Diana")
+        sesion_id = iniciar_sesion(cliente_espera_corta, correo, CONTRASENA_DE_PRUEBA)
+        cabeceras = cabeceras_de(sesion_id, TOKEN_CSRF, TOKEN_CSRF)
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            respuesta = cliente_espera_corta.request(
+                metodo, f"/api/v1/obras/{obra_id}{sufijo}", headers=cabeceras, json=cuerpo
+            )
+        finally:
+            retenedor.rollback()
+    
+>       cuerpo_de_error = exigir_error(
+            respuesta,
+            estado=409,
+            esperado={
+                "tipo": "CONCURRENCIA",
+                "codigo": "BLOQUEO_VENCIDO",
+                "mensaje": MENSAJE_BLOQUEO,
+                "detalle": {"espera_maxima_ms": 5000},
+                "acciones": [_reintento(operacion, obra_id)],
+            },
+            esquema="ErrorConcurrencia",
+            cabeceras={"Retry-After": "1"},
+        )
+
+tests\test_tkt012b_concurrencia.py:1206: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [500 Internal Server Error]>, estado = 409
+esperado = {'tipo': 'CONCURRENCIA', 'codigo': 'BLOQUEO_VENCIDO', 'mensaje': 'Otra operaci�n est� usando la l�nea base de esta obra en este momento. Vuelve a intentarlo.', 'detalle': {'espera_maxima_ms': 5000}, ...}
+esquema = 'ErrorConcurrencia', cabeceras = {'Retry-After': '1'}
+
+    def exigir_error(
+        respuesta: Any,
+        *,
+        estado: int,
+        esperado: dict[str, Any],
+        esquema: str,
+        cabeceras: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """El contrato de error completo: c�digo, cuerpo exacto con la correlaci�n de la cabecera, esquema del
+        borrador, cabeceras propias, y ninguna traza ni nombre interno."""
+>       assert respuesta.status_code == estado, respuesta.text
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: {"mensaje":"Ocurri� un error inesperado. Cita el identificador de correlaci�n si pides ayuda.","correlacion_id":"9260a2e7-c869-45c9-905d-1cd7355c5362"}
+
+herramientas\soporte_tkt017_api.py:173: AssertionError
+_ test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[suspension] _
+
+operacion = 'suspension', metodo = 'POST', sufijo = '/suspension'
+cuerpo = {'motivo': 'Decisi�n de la direcci�n por falta de anticipo'}
+estado = 'ACTIVA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000238033F1B10>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x0000023800D2F250>
+base_de_prueba = 'prueba_a27994e8eb77'
+conectar = <function conectar.<locals>._conectar at 0x0000023804D652D0>
+cliente_espera_corta = <starlette.testclient.TestClient object at 0x0000023804B7BBD0>
+sembrar_usuario = <function sembrar_usuario.<locals>._sembrar at 0x00000238004457A0>
+
+    @pytest.mark.parametrize(
+        ("operacion", "metodo", "sufijo", "cuerpo", "estado"),
+        OPERACIONES_DE_LA_OBRA,
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar(
+        operacion: str,
+        metodo: str,
+        sufijo: str,
+        cuerpo: object,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        cliente_espera_corta: TestClient,
+        sembrar_usuario: SembrarUsuario,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � con `lock_timeout` de 200 ms agotado, `55P03` es `409` `CONCURRENCIA`.
+    
+        Otra sesi�n tiene la fila de la obra con `FOR UPDATE` sin confirmar; la operaci�n espera, vence el
+        `lock_timeout` y el contrato completo es `CONCURRENCIA` `BLOQUEO_VENCIDO` con `espera_maxima_ms` 5000
+        (el `lock_timeout` del rol), `Retry-After: 1` y la acci�n `REINTENTAR` con el m�todo y la ruta **de
+        esa operaci�n**, para el Director de Proyectos. No escribe nada. Se prueban las cinco operaciones por
+        HTTP: sin la traducci�n, el error del motor sale como `500`.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        correo = f"direccion-espera-{uuid.uuid4().hex[:8]}@cimenta.test"
+        sembrar_usuario(correo, CONTRASENA_DE_PRUEBA, roles=("DIRECTOR_PROYECTOS",), nombre="Diana")
+        sesion_id = iniciar_sesion(cliente_espera_corta, correo, CONTRASENA_DE_PRUEBA)
+        cabeceras = cabeceras_de(sesion_id, TOKEN_CSRF, TOKEN_CSRF)
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            respuesta = cliente_espera_corta.request(
+                metodo, f"/api/v1/obras/{obra_id}{sufijo}", headers=cabeceras, json=cuerpo
+            )
+        finally:
+            retenedor.rollback()
+    
+>       cuerpo_de_error = exigir_error(
+            respuesta,
+            estado=409,
+            esperado={
+                "tipo": "CONCURRENCIA",
+                "codigo": "BLOQUEO_VENCIDO",
+                "mensaje": MENSAJE_BLOQUEO,
+                "detalle": {"espera_maxima_ms": 5000},
+                "acciones": [_reintento(operacion, obra_id)],
+            },
+            esquema="ErrorConcurrencia",
+            cabeceras={"Retry-After": "1"},
+        )
+
+tests\test_tkt012b_concurrencia.py:1206: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [500 Internal Server Error]>, estado = 409
+esperado = {'tipo': 'CONCURRENCIA', 'codigo': 'BLOQUEO_VENCIDO', 'mensaje': 'Otra operaci�n est� usando la l�nea base de esta obra en este momento. Vuelve a intentarlo.', 'detalle': {'espera_maxima_ms': 5000}, ...}
+esquema = 'ErrorConcurrencia', cabeceras = {'Retry-After': '1'}
+
+    def exigir_error(
+        respuesta: Any,
+        *,
+        estado: int,
+        esperado: dict[str, Any],
+        esquema: str,
+        cabeceras: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """El contrato de error completo: c�digo, cuerpo exacto con la correlaci�n de la cabecera, esquema del
+        borrador, cabeceras propias, y ninguna traza ni nombre interno."""
+>       assert respuesta.status_code == estado, respuesta.text
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: {"mensaje":"Ocurri� un error inesperado. Cita el identificador de correlaci�n si pides ayuda.","correlacion_id":"6694589b-48ed-4bf3-8f21-b4e76d93fe00"}
+
+herramientas\soporte_tkt017_api.py:173: AssertionError
+_ test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[reactivacion] _
+
+operacion = 'reactivacion', metodo = 'POST', sufijo = '/reactivacion'
+cuerpo = {'motivo': 'Decisi�n de la direcci�n por falta de anticipo'}
+estado = 'SUSPENDIDA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000238002BC7D0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x0000023803B92AD0>
+base_de_prueba = 'prueba_1fbb239db838'
+conectar = <function conectar.<locals>._conectar at 0x0000023802CEA610>
+cliente_espera_corta = <starlette.testclient.TestClient object at 0x0000023804A539B0>
+sembrar_usuario = <function sembrar_usuario.<locals>._sembrar at 0x0000023802863690>
+
+    @pytest.mark.parametrize(
+        ("operacion", "metodo", "sufijo", "cuerpo", "estado"),
+        OPERACIONES_DE_LA_OBRA,
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar(
+        operacion: str,
+        metodo: str,
+        sufijo: str,
+        cuerpo: object,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        cliente_espera_corta: TestClient,
+        sembrar_usuario: SembrarUsuario,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � con `lock_timeout` de 200 ms agotado, `55P03` es `409` `CONCURRENCIA`.
+    
+        Otra sesi�n tiene la fila de la obra con `FOR UPDATE` sin confirmar; la operaci�n espera, vence el
+        `lock_timeout` y el contrato completo es `CONCURRENCIA` `BLOQUEO_VENCIDO` con `espera_maxima_ms` 5000
+        (el `lock_timeout` del rol), `Retry-After: 1` y la acci�n `REINTENTAR` con el m�todo y la ruta **de
+        esa operaci�n**, para el Director de Proyectos. No escribe nada. Se prueban las cinco operaciones por
+        HTTP: sin la traducci�n, el error del motor sale como `500`.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        correo = f"direccion-espera-{uuid.uuid4().hex[:8]}@cimenta.test"
+        sembrar_usuario(correo, CONTRASENA_DE_PRUEBA, roles=("DIRECTOR_PROYECTOS",), nombre="Diana")
+        sesion_id = iniciar_sesion(cliente_espera_corta, correo, CONTRASENA_DE_PRUEBA)
+        cabeceras = cabeceras_de(sesion_id, TOKEN_CSRF, TOKEN_CSRF)
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            respuesta = cliente_espera_corta.request(
+                metodo, f"/api/v1/obras/{obra_id}{sufijo}", headers=cabeceras, json=cuerpo
+            )
+        finally:
+            retenedor.rollback()
+    
+>       cuerpo_de_error = exigir_error(
+            respuesta,
+            estado=409,
+            esperado={
+                "tipo": "CONCURRENCIA",
+                "codigo": "BLOQUEO_VENCIDO",
+                "mensaje": MENSAJE_BLOQUEO,
+                "detalle": {"espera_maxima_ms": 5000},
+                "acciones": [_reintento(operacion, obra_id)],
+            },
+            esquema="ErrorConcurrencia",
+            cabeceras={"Retry-After": "1"},
+        )
+
+tests\test_tkt012b_concurrencia.py:1206: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [500 Internal Server Error]>, estado = 409
+esperado = {'tipo': 'CONCURRENCIA', 'codigo': 'BLOQUEO_VENCIDO', 'mensaje': 'Otra operaci�n est� usando la l�nea base de esta obra en este momento. Vuelve a intentarlo.', 'detalle': {'espera_maxima_ms': 5000}, ...}
+esquema = 'ErrorConcurrencia', cabeceras = {'Retry-After': '1'}
+
+    def exigir_error(
+        respuesta: Any,
+        *,
+        estado: int,
+        esperado: dict[str, Any],
+        esquema: str,
+        cabeceras: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """El contrato de error completo: c�digo, cuerpo exacto con la correlaci�n de la cabecera, esquema del
+        borrador, cabeceras propias, y ninguna traza ni nombre interno."""
+>       assert respuesta.status_code == estado, respuesta.text
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: {"mensaje":"Ocurri� un error inesperado. Cita el identificador de correlaci�n si pides ayuda.","correlacion_id":"85d43afc-b602-4e07-9053-f6e7df117bf1"}
+
+herramientas\soporte_tkt017_api.py:173: AssertionError
+_ test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[cierre] _
+
+operacion = 'cierre', metodo = 'POST', sufijo = '/cierre'
+cuerpo = {'motivo': 'Decisi�n de la direcci�n por falta de anticipo'}
+estado = 'ACTIVA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000002380248A820>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x0000023803B93390>
+base_de_prueba = 'prueba_8bcbc7bb8ea6'
+conectar = <function conectar.<locals>._conectar at 0x00000238002BE8D0>
+cliente_espera_corta = <starlette.testclient.TestClient object at 0x0000023804D8AE00>
+sembrar_usuario = <function sembrar_usuario.<locals>._sembrar at 0x0000023800411C70>
+
+    @pytest.mark.parametrize(
+        ("operacion", "metodo", "sufijo", "cuerpo", "estado"),
+        OPERACIONES_DE_LA_OBRA,
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar(
+        operacion: str,
+        metodo: str,
+        sufijo: str,
+        cuerpo: object,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        cliente_espera_corta: TestClient,
+        sembrar_usuario: SembrarUsuario,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � con `lock_timeout` de 200 ms agotado, `55P03` es `409` `CONCURRENCIA`.
+    
+        Otra sesi�n tiene la fila de la obra con `FOR UPDATE` sin confirmar; la operaci�n espera, vence el
+        `lock_timeout` y el contrato completo es `CONCURRENCIA` `BLOQUEO_VENCIDO` con `espera_maxima_ms` 5000
+        (el `lock_timeout` del rol), `Retry-After: 1` y la acci�n `REINTENTAR` con el m�todo y la ruta **de
+        esa operaci�n**, para el Director de Proyectos. No escribe nada. Se prueban las cinco operaciones por
+        HTTP: sin la traducci�n, el error del motor sale como `500`.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        correo = f"direccion-espera-{uuid.uuid4().hex[:8]}@cimenta.test"
+        sembrar_usuario(correo, CONTRASENA_DE_PRUEBA, roles=("DIRECTOR_PROYECTOS",), nombre="Diana")
+        sesion_id = iniciar_sesion(cliente_espera_corta, correo, CONTRASENA_DE_PRUEBA)
+        cabeceras = cabeceras_de(sesion_id, TOKEN_CSRF, TOKEN_CSRF)
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            respuesta = cliente_espera_corta.request(
+                metodo, f"/api/v1/obras/{obra_id}{sufijo}", headers=cabeceras, json=cuerpo
+            )
+        finally:
+            retenedor.rollback()
+    
+>       cuerpo_de_error = exigir_error(
+            respuesta,
+            estado=409,
+            esperado={
+                "tipo": "CONCURRENCIA",
+                "codigo": "BLOQUEO_VENCIDO",
+                "mensaje": MENSAJE_BLOQUEO,
+                "detalle": {"espera_maxima_ms": 5000},
+                "acciones": [_reintento(operacion, obra_id)],
+            },
+            esquema="ErrorConcurrencia",
+            cabeceras={"Retry-After": "1"},
+        )
+
+tests\test_tkt012b_concurrencia.py:1206: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+respuesta = <Response [500 Internal Server Error]>, estado = 409
+esperado = {'tipo': 'CONCURRENCIA', 'codigo': 'BLOQUEO_VENCIDO', 'mensaje': 'Otra operaci�n est� usando la l�nea base de esta obra en este momento. Vuelve a intentarlo.', 'detalle': {'espera_maxima_ms': 5000}, ...}
+esquema = 'ErrorConcurrencia', cabeceras = {'Retry-After': '1'}
+
+    def exigir_error(
+        respuesta: Any,
+        *,
+        estado: int,
+        esperado: dict[str, Any],
+        esquema: str,
+        cabeceras: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """El contrato de error completo: c�digo, cuerpo exacto con la correlaci�n de la cabecera, esquema del
+        borrador, cabeceras propias, y ninguna traza ni nombre interno."""
+>       assert respuesta.status_code == estado, respuesta.text
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: {"mensaje":"Ocurri� un error inesperado. Cita el identificador de correlaci�n si pides ayuda.","correlacion_id":"2e0a463a-ba59-41b2-ace1-f502b92d30e2"}
+
+herramientas\soporte_tkt017_api.py:173: AssertionError
+_ test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[patch] _
+
+operacion = 'patch', estado = 'ACTIVA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000002380223C1A0>
+usuario = UUID('22b7df8c-56b6-46ed-914b-88fa75d9b82e')
+contexto_espera_corta = <functools._lru_cache_wrapper object at 0x000002380223F3D0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002380322B930>
+base_de_prueba = 'prueba_0730be411a07'
+conectar = <function conectar.<locals>._conectar at 0x0000023804D66350>
+
+    @pytest.mark.parametrize(
+        ("operacion", "estado"),
+        [(caso[0], caso[4]) for caso in OPERACIONES_DE_LA_OBRA],
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida(
+        operacion: str,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        contexto_espera_corta: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � cada caso de uso traduce el `55P03` a `ConcurrenciaVencida`.
+    
+        Con `lock_timeout` de 200 ms y la obra retenida por otra sesi�n, el caso de uso debe lanzar
+        `ConcurrenciaVencida` (`409` `CONCURRENCIA` `BLOQUEO_VENCIDO`, `Retry-After: 1`, `espera_maxima_ms`
+        5000 y la acci�n `REINTENTAR` con el m�todo y la ruta de esa operaci�n). Si el `DBAPIError` del
+        motor escapa sin traducir, el manejador global lo responde como `500`. Es el mismo contrato que
+        `test_tkt017_cab06_congelado_con_bloqueo_vencido_en_el_caso_de_uso` fija para el congelado.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        ctx = contexto_espera_corta()
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        llamada = _llamada_del_caso_de_uso(operacion, ctx, obra_id, usuario)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            with pytest.raises(Exception) as vencido:  # noqa: PT011 - se afirma el tipo justo debajo
+                llamada()
+        finally:
+            retenedor.rollback()
+    
+        error = vencido.value
+>       assert isinstance(error, ConcurrenciaVencida), (
+            f"El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� {type(error).__name__}: {error}"
+        )
+E       AssertionError: El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� OperationalError: (psycopg.errors.LockNotAvailable) canceling statement due to lock timeout
+E         CONTEXT:  while locking tuple (0,1) in relation "obra"
+E         [SQL: SELECT obra.id, obra.codigo, obra.nombre, obra.domicilio, obra.tipo_contrato, obra.retencion_destajo_pct, obra.fondo_garantia_pct, obra.iva_acreditable, obra.umbral_alerta_pct, obra.estado, linea_base.id AS linea_base_vigente_id, obra.creado_en, obra.actualizado_en 
+E         FROM obra LEFT OUTER JOIN linea_base ON linea_base.obra_id = obra.id AND linea_base.estado = %(estado_1)s::VARCHAR 
+E         WHERE obra.id = %(id_1)s::UUID FOR UPDATE OF obra]
+E         [parameters: {'estado_1': 'CONGELADA', 'id_1': UUID('ac27142b-d1e3-443b-9d2b-4ac0c47994f1')}]
+E         (Background on this error at: https://sqlalche.me/e/21/e3q8)
+E       assert False
+E        +  where False = isinstance(OperationalError('(psycopg.errors.LockNotAvailable) canceling statement due to lock timeout\nCONTEXT:  while locking tuple (0,1) in relation "obra"'), ConcurrenciaVencida)
+
+tests\test_tkt012b_concurrencia.py:1280: AssertionError
+_ test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[suspension] _
+
+operacion = 'suspension', estado = 'ACTIVA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x0000023800124A90>
+usuario = UUID('1bf226d1-26bf-4558-a5f4-bb777532b097')
+contexto_espera_corta = <functools._lru_cache_wrapper object at 0x0000023800125010>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000238032DE210>
+base_de_prueba = 'prueba_53b0ea6a0d20'
+conectar = <function conectar.<locals>._conectar at 0x00000238024B85C0>
+
+    @pytest.mark.parametrize(
+        ("operacion", "estado"),
+        [(caso[0], caso[4]) for caso in OPERACIONES_DE_LA_OBRA],
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida(
+        operacion: str,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        contexto_espera_corta: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � cada caso de uso traduce el `55P03` a `ConcurrenciaVencida`.
+    
+        Con `lock_timeout` de 200 ms y la obra retenida por otra sesi�n, el caso de uso debe lanzar
+        `ConcurrenciaVencida` (`409` `CONCURRENCIA` `BLOQUEO_VENCIDO`, `Retry-After: 1`, `espera_maxima_ms`
+        5000 y la acci�n `REINTENTAR` con el m�todo y la ruta de esa operaci�n). Si el `DBAPIError` del
+        motor escapa sin traducir, el manejador global lo responde como `500`. Es el mismo contrato que
+        `test_tkt017_cab06_congelado_con_bloqueo_vencido_en_el_caso_de_uso` fija para el congelado.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        ctx = contexto_espera_corta()
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        llamada = _llamada_del_caso_de_uso(operacion, ctx, obra_id, usuario)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            with pytest.raises(Exception) as vencido:  # noqa: PT011 - se afirma el tipo justo debajo
+                llamada()
+        finally:
+            retenedor.rollback()
+    
+        error = vencido.value
+>       assert isinstance(error, ConcurrenciaVencida), (
+            f"El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� {type(error).__name__}: {error}"
+        )
+E       AssertionError: El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� OperationalError: (psycopg.errors.LockNotAvailable) canceling statement due to lock timeout
+E         CONTEXT:  while locking tuple (0,1) in relation "obra"
+E         [SQL: SELECT obra.id, obra.codigo, obra.nombre, obra.domicilio, obra.tipo_contrato, obra.retencion_destajo_pct, obra.fondo_garantia_pct, obra.iva_acreditable, obra.umbral_alerta_pct, obra.estado, linea_base.id AS linea_base_vigente_id, obra.creado_en, obra.actualizado_en 
+E         FROM obra LEFT OUTER JOIN linea_base ON linea_base.obra_id = obra.id AND linea_base.estado = %(estado_1)s::VARCHAR 
+E         WHERE obra.id = %(id_1)s::UUID FOR UPDATE OF obra]
+E         [parameters: {'estado_1': 'CONGELADA', 'id_1': UUID('6ec8c88e-c2f6-443a-a493-0af31ec4dbe8')}]
+E         (Background on this error at: https://sqlalche.me/e/21/e3q8)
+E       assert False
+E        +  where False = isinstance(OperationalError('(psycopg.errors.LockNotAvailable) canceling statement due to lock timeout\nCONTEXT:  while locking tuple (0,1) in relation "obra"'), ConcurrenciaVencida)
+
+tests\test_tkt012b_concurrencia.py:1280: AssertionError
+_ test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[reactivacion] _
+
+operacion = 'reactivacion', estado = 'SUSPENDIDA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000238004A21F0>
+usuario = UUID('b4134b1e-6df8-4e9c-8f12-42541d8e4a17')
+contexto_espera_corta = <functools._lru_cache_wrapper object at 0x00000238004A2610>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002380306C4B0>
+base_de_prueba = 'prueba_61e82947cfce'
+conectar = <function conectar.<locals>._conectar at 0x0000023800124670>
+
+    @pytest.mark.parametrize(
+        ("operacion", "estado"),
+        [(caso[0], caso[4]) for caso in OPERACIONES_DE_LA_OBRA],
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida(
+        operacion: str,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        contexto_espera_corta: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � cada caso de uso traduce el `55P03` a `ConcurrenciaVencida`.
+    
+        Con `lock_timeout` de 200 ms y la obra retenida por otra sesi�n, el caso de uso debe lanzar
+        `ConcurrenciaVencida` (`409` `CONCURRENCIA` `BLOQUEO_VENCIDO`, `Retry-After: 1`, `espera_maxima_ms`
+        5000 y la acci�n `REINTENTAR` con el m�todo y la ruta de esa operaci�n). Si el `DBAPIError` del
+        motor escapa sin traducir, el manejador global lo responde como `500`. Es el mismo contrato que
+        `test_tkt017_cab06_congelado_con_bloqueo_vencido_en_el_caso_de_uso` fija para el congelado.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        ctx = contexto_espera_corta()
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        llamada = _llamada_del_caso_de_uso(operacion, ctx, obra_id, usuario)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            with pytest.raises(Exception) as vencido:  # noqa: PT011 - se afirma el tipo justo debajo
+                llamada()
+        finally:
+            retenedor.rollback()
+    
+        error = vencido.value
+>       assert isinstance(error, ConcurrenciaVencida), (
+            f"El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� {type(error).__name__}: {error}"
+        )
+E       AssertionError: El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� OperationalError: (psycopg.errors.LockNotAvailable) canceling statement due to lock timeout
+E         CONTEXT:  while locking tuple (0,1) in relation "obra"
+E         [SQL: SELECT obra.id, obra.codigo, obra.nombre, obra.domicilio, obra.tipo_contrato, obra.retencion_destajo_pct, obra.fondo_garantia_pct, obra.iva_acreditable, obra.umbral_alerta_pct, obra.estado, linea_base.id AS linea_base_vigente_id, obra.creado_en, obra.actualizado_en 
+E         FROM obra LEFT OUTER JOIN linea_base ON linea_base.obra_id = obra.id AND linea_base.estado = %(estado_1)s::VARCHAR 
+E         WHERE obra.id = %(id_1)s::UUID FOR UPDATE OF obra]
+E         [parameters: {'estado_1': 'CONGELADA', 'id_1': UUID('2f5e1597-0f35-47ba-961b-b9d5a9a67fc3')}]
+E         (Background on this error at: https://sqlalche.me/e/21/e3q8)
+E       assert False
+E        +  where False = isinstance(OperationalError('(psycopg.errors.LockNotAvailable) canceling statement due to lock timeout\nCONTEXT:  while locking tuple (0,1) in relation "obra"'), ConcurrenciaVencida)
+
+tests\test_tkt012b_concurrencia.py:1280: AssertionError
+_ test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[cierre] _
+
+operacion = 'cierre', estado = 'ACTIVA'
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000002380253CE00>
+usuario = UUID('523b260b-0048-4dcb-94bd-4cd906aa236d')
+contexto_espera_corta = <functools._lru_cache_wrapper object at 0x000002380253EF00>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000002380306DC20>
+base_de_prueba = 'prueba_12f16426c7b4'
+conectar = <function conectar.<locals>._conectar at 0x00000238004A3C10>
+
+    @pytest.mark.parametrize(
+        ("operacion", "estado"),
+        [(caso[0], caso[4]) for caso in OPERACIONES_DE_LA_OBRA],
+        ids=[caso[0] for caso in OPERACIONES_DE_LA_OBRA],
+    )
+    def test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida(
+        operacion: str,
+        estado: str,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        contexto_espera_corta: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-60 � CA-13 � ADR-004 � RNF-16 � cada caso de uso traduce el `55P03` a `ConcurrenciaVencida`.
+    
+        Con `lock_timeout` de 200 ms y la obra retenida por otra sesi�n, el caso de uso debe lanzar
+        `ConcurrenciaVencida` (`409` `CONCURRENCIA` `BLOQUEO_VENCIDO`, `Retry-After: 1`, `espera_maxima_ms`
+        5000 y la acci�n `REINTENTAR` con el m�todo y la ruta de esa operaci�n). Si el `DBAPIError` del
+        motor escapa sin traducir, el manejador global lo responde como `500`. Es el mismo contrato que
+        `test_tkt017_cab06_congelado_con_bloqueo_vencido_en_el_caso_de_uso` fija para el congelado.
+        """
+        obra_id = fabricar_obra(codigo=CODIGO, estado=estado)
+        ctx = contexto_espera_corta()
+        antes = (
+            base.filas("SELECT * FROM obra ORDER BY id"),
+            base.filas("SELECT id, accion::text FROM bitacora ORDER BY id"),
+        )
+        retenedor = conectar("aplicacion", base_de_prueba, autocommit=False)
+        llamada = _llamada_del_caso_de_uso(operacion, ctx, obra_id, usuario)
+        try:
+            retenedor.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+            with pytest.raises(Exception) as vencido:  # noqa: PT011 - se afirma el tipo justo debajo
+                llamada()
+        finally:
+            retenedor.rollback()
+    
+        error = vencido.value
+>       assert isinstance(error, ConcurrenciaVencida), (
+            f"El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� {type(error).__name__}: {error}"
+        )
+E       AssertionError: El 55P03 deb�a traducirse a ConcurrenciaVencida y escap� OperationalError: (psycopg.errors.LockNotAvailable) canceling statement due to lock timeout
+E         CONTEXT:  while locking tuple (0,1) in relation "obra"
+E         [SQL: SELECT obra.id, obra.codigo, obra.nombre, obra.domicilio, obra.tipo_contrato, obra.retencion_destajo_pct, obra.fondo_garantia_pct, obra.iva_acreditable, obra.umbral_alerta_pct, obra.estado, linea_base.id AS linea_base_vigente_id, obra.creado_en, obra.actualizado_en 
+E         FROM obra LEFT OUTER JOIN linea_base ON linea_base.obra_id = obra.id AND linea_base.estado = %(estado_1)s::VARCHAR 
+E         WHERE obra.id = %(id_1)s::UUID FOR UPDATE OF obra]
+E         [parameters: {'estado_1': 'CONGELADA', 'id_1': UUID('7c2368e6-90e3-4c41-b489-b93df563ca6d')}]
+E         (Background on this error at: https://sqlalche.me/e/21/e3q8)
+E       assert False
+E        +  where False = isinstance(OperationalError('(psycopg.errors.LockNotAvailable) canceling statement due to lock timeout\nCONTEXT:  while locking tuple (0,1) in relation "obra"'), ConcurrenciaVencida)
+
+tests\test_tkt012b_concurrencia.py:1280: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_responde_409_concurrencia_con_reintentar[cierre]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[patch]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[suspension]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[reactivacion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_bloqueo_vencido_en_el_caso_de_uso_es_concurrencia_vencida[cierre]
+8 failed, 4136 passed, 26 skipped in 809.44s (0:13:29)
+EXIT=1

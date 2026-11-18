@@ -16,12 +16,14 @@ interface CampoTextoCatalogo<N extends string> {
   nombre: N;
   etiqueta: string;
   tipo?: "text" | "email" | "date";          // "text" por omisión; los importes son texto
+  soloLectura?: boolean;                     // se muestra con su valor, no se edita y no viaja al guardar (TKT-012b CA-15)
 }
 
 interface CampoCasillaCatalogo<N extends string> {
   nombre: N;
   etiqueta: string;
   tipo: "casilla";                           // booleano: marcada o no
+  soloLectura?: boolean;                     // ver CampoTextoCatalogo
 }
 
 interface CampoDesplegableCatalogo<N extends string> {
@@ -29,6 +31,7 @@ interface CampoDesplegableCatalogo<N extends string> {
   etiqueta: string;
   tipo: "desplegable";
   opciones: ReadonlyArray<{ valor: string; etiqueta: string }>;   // se envía `valor`; la `etiqueta` solo se muestra
+  soloLectura?: boolean;                     // ver CampoTextoCatalogo
 }
 
 export type CampoCatalogo<N extends string> = CampoTextoCatalogo<N> | CampoCasillaCatalogo<N> | CampoDesplegableCatalogo<N>;
@@ -92,6 +95,15 @@ interface PropsCampoFormulario<E extends z.ZodObject> {
 const CLASE_DESPLEGABLE =
   "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30";
 
+/** Lo de solo lectura no viaja: la clave sale del objeto, no basta con que valga `undefined` (TKT-012b CA-15). */
+function sinSoloLectura<E extends z.ZodObject>(valores: z.output<E>, campos: ReadonlyArray<CampoCatalogo<Nombre<E>>>): z.output<E> {
+  const enviado: Record<string, unknown> = { ...valores };
+  for (const campo of campos) {
+    if (campo.soloLectura === true) delete enviado[campo.nombre];
+  }
+  return enviado as z.output<E>;
+}
+
 /** El mensaje de un campo, enlazado al control por `aria-describedby`. */
 function MensajeCampo({ id, texto }: { id: string; texto: string | undefined }) {
   if (texto === undefined) return null;
@@ -116,7 +128,15 @@ function CampoFormulario<E extends z.ZodObject>({ campo, registrar, error, campo
     return (
       <div className="grid gap-2">
         <div className="flex items-center gap-2">
-          <input id={idCampo} type="checkbox" className="size-4 accent-primary" {...marcado} {...registro} ref={registrarCampo} />
+          <input
+            id={idCampo}
+            type="checkbox"
+            className="size-4 accent-primary"
+            {...marcado}
+            {...registro}
+            disabled={campo.soloLectura === true}
+            ref={registrarCampo}
+          />
           <Label htmlFor={idCampo}>{campo.etiqueta}</Label>
         </div>
         <MensajeCampo id={idError} texto={error} />
@@ -128,7 +148,14 @@ function CampoFormulario<E extends z.ZodObject>({ campo, registrar, error, campo
     return (
       <div className="grid gap-2">
         <Label htmlFor={idCampo}>{campo.etiqueta}</Label>
-        <select id={idCampo} className={CLASE_DESPLEGABLE} {...marcado} {...registro} ref={registrarCampo}>
+        <select
+          id={idCampo}
+          className={CLASE_DESPLEGABLE}
+          {...marcado}
+          {...registro}
+          disabled={campo.soloLectura === true}
+          ref={registrarCampo}
+        >
           {campo.opciones.map((opcion) => (
             <option key={opcion.valor} value={opcion.valor}>
               {opcion.etiqueta}
@@ -146,6 +173,7 @@ function CampoFormulario<E extends z.ZodObject>({ campo, registrar, error, campo
       <Input
         id={idCampo}
         type={campo.tipo ?? "text"}
+        readOnly={campo.soloLectura === true}
         {...marcado}
         {...registro}
         ref={(elemento) => {
@@ -193,7 +221,7 @@ function ContenidoFormulario<E extends z.ZodObject, R>({
 
   async function enviar(valores: z.output<E>) {
     setRechazo(null);
-    const resultado = await alGuardar(valores);
+    const resultado = await alGuardar(sinSoloLectura<E>(valores, campos));
     if (resultado.ok) {
       alGuardado(resultado.datos);
       alCerrar();

@@ -13,12 +13,21 @@ confirmable.
 Variables: `CIMENTA_SEMILLA_LB_CODIGO` (por omisión `DEMO-018A`) y `CIMENTA_SEMILLA_LB_CORREO` (por
 omisión `director_proyectos@cimenta.test`, el usuario que siembra `herramientas.semilla_local`). La última
 línea de la salida es `OBRA_ID=<uuid>`, que lee la preparación del E2E.
+
+Con la bandera `--congelar` (TKT-012b, fila B5, TC-80) la semilla congela la línea base que acaba de
+materializar con el caso de uso `congelar_linea_base`: la obra queda `ACTIVA` con su línea base
+`CONGELADA`. Sin la bandera, queda `PLANEACION` con `BORRADOR`, como antes. Si el congelado se niega, la
+semilla sale con `SystemExit` que empieza por «No se pudo congelar» y nombra el código de la obra, sin
+imprimir `OBRA_ID=`; la obra queda `PLANEACION` con su `BORRADOR` (la transacción del congelado no
+escribe nada si falla).
 """
 
+import argparse
 import json
 import os
+import sys
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from typing import Final
 
@@ -26,8 +35,10 @@ from sqlalchemy import text
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import sessionmaker
 
+from cimenta.presupuesto.aplicacion.congelado import congelar_linea_base
 from cimenta.presupuesto.infraestructura.preparacion_json import preparacion_a_json
 from cimenta.presupuesto.interfaz import ContextoPresupuesto, materializar_importacion
+from contrato_error import ErrorContrato
 from herramientas.conexion import crear_motor_aplicacion
 from herramientas.semilla_local import exigir_base_local
 from herramientas.soporte_tkt017 import preparacion_sintetica
@@ -36,6 +47,7 @@ VARIABLE_CODIGO: Final = "CIMENTA_SEMILLA_LB_CODIGO"
 CODIGO_POR_OMISION: Final = "DEMO-018A"
 VARIABLE_CORREO: Final = "CIMENTA_SEMILLA_LB_CORREO"
 CORREO_POR_OMISION: Final = "director_proyectos@cimenta.test"
+MOTIVO_CONGELADO: Final = "Congelado de la obra de demostración para la prueba de humo"
 
 CLAVE_MUROS: Final = "MUROS"
 CLAVE_PLAFON: Final = "PLAFONES_Y_CAJILLOS"
@@ -137,13 +149,19 @@ def _insertar_importacion(
 
 
 def sembrar_linea_base(
-    motor: Engine, *, codigo: str, usuario_id: uuid.UUID, reloj: Callable[[], datetime]
+    motor: Engine,
+    *,
+    codigo: str,
+    usuario_id: uuid.UUID,
+    reloj: Callable[[], datetime],
+    congelar: bool = False,
 ) -> uuid.UUID:
     """Siembra la obra `codigo` en `PLANEACION` y confirma su importación; devuelve el `obra_id`.
 
     La primera transacción prepara las filas y comprueba que el código no exista; si existe, sale con
     `SystemExit` y no escribe nada. La confirmación es un caso de uso propio, con su transacción y su
-    bitácora, así que va fuera de la anterior.
+    bitácora, así que va fuera de la anterior. Con `congelar=True` congela después la línea base
+    materializada, con su propia transacción y su asiento `CONGELAR` (RN-01).
     """
     obra_id = uuid.uuid4()
     importacion_id = uuid.uuid4()
@@ -165,7 +183,7 @@ def sembrar_linea_base(
         fabrica_sesiones=lambda: sessionmaker(bind=motor, expire_on_commit=False),
         reloj=reloj,
     )
-    materializar_importacion(
+    materializada = materializar_importacion(
         contexto,
         importacion_id=importacion_id,
         asignacion_tipos_partida={"MUROS EXTERIORES": muros, "PLAFON": plafon},
@@ -173,7 +191,40 @@ def sembrar_linea_base(
         motivo_reemplazo=None,
         usuario_id=usuario_id,
     )
+    if congelar:
+        _congelar(
+            contexto,
+            codigo=codigo,
+            linea_base_id=materializada.linea_base_id,
+            usuario_id=usuario_id,
+        )
     return obra_id
+
+
+def _congelar(
+    contexto: ContextoPresupuesto,
+    *,
+    codigo: str,
+    linea_base_id: uuid.UUID,
+    usuario_id: uuid.UUID,
+) -> None:
+    """Congela la línea base recién sembrada; un rechazo del caso de uso sale como `SystemExit`.
+
+    El caso de uso decide y escribe en su propia transacción: si se niega, no queda nada a medias y la
+    obra conserva su `PLANEACION` con `BORRADOR`. La semilla no decide nada: solo traduce el rechazo.
+    """
+    try:
+        congelar_linea_base(
+            contexto,
+            linea_base_id=linea_base_id,
+            motivo=MOTIVO_CONGELADO,
+            usuario_id=usuario_id,
+        )
+    except ErrorContrato as error:
+        raise SystemExit(
+            f"No se pudo congelar la obra {codigo}: {error.mensaje} Se queda en PLANEACION con su "
+            "línea base BORRADOR; no se ha congelado nada."
+        ) from None
 
 
 def _usuario_por_correo(motor: Engine, correo: str) -> uuid.UUID:
@@ -186,8 +237,22 @@ def _usuario_por_correo(motor: Engine, correo: str) -> uuid.UUID:
     return uuid.UUID(str(fila[0]))
 
 
-def main() -> int:
+def _argumentos(argv: Sequence[str]) -> argparse.Namespace:
+    analizador = argparse.ArgumentParser(
+        prog="python -m herramientas.semilla_linea_base_local",
+        description="Siembra una obra de demostración con su línea base BORRADOR, solo en la base local.",
+    )
+    analizador.add_argument(
+        "--congelar",
+        action="store_true",
+        help="congela la línea base sembrada: la obra queda ACTIVA con su línea base CONGELADA",
+    )
+    return analizador.parse_args(list(argv))
+
+
+def main(argv: Sequence[str] = ()) -> int:
     """Punto de entrada: niega fuera de la base local, siembra y deja `OBRA_ID=` en la última línea."""
+    congelar = _argumentos(argv).congelar
     try:
         exigir_base_local()
         codigo = os.environ.get(VARIABLE_CODIGO) or CODIGO_POR_OMISION
@@ -202,14 +267,21 @@ def main() -> int:
     try:
         usuario_id = _usuario_por_correo(motor, correo)
         obra_id = sembrar_linea_base(
-            motor, codigo=codigo, usuario_id=usuario_id, reloj=_reloj_del_sistema
+            motor,
+            codigo=codigo,
+            usuario_id=usuario_id,
+            reloj=_reloj_del_sistema,
+            congelar=congelar,
         )
     finally:
         motor.dispose()
-    print(f"Linea base BORRADOR sembrada en la obra {codigo}.")
+    if congelar:
+        print(f"Linea base CONGELADA en la obra {codigo}; la obra queda ACTIVA.")
+    else:
+        print(f"Linea base BORRADOR sembrada en la obra {codigo}.")
     print(f"OBRA_ID={obra_id}")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

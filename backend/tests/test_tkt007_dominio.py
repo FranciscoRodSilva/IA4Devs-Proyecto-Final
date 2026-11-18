@@ -431,7 +431,7 @@ def test_tkt007_ca01_enum_del_dominio_igual_al_borrador() -> None:
     documento = yaml.safe_load(BORRADOR.read_text(encoding="utf-8"))
     verbos_del_borrador = documento["components"]["schemas"]["AccionBitacora"]["enum"]
 
-    assert len(verbos_del_borrador) == 23
+    assert len(verbos_del_borrador) == 24
     assert [miembro.value for miembro in AccionBitacora] == verbos_del_borrador
     assert all(miembro.name == miembro.value for miembro in AccionBitacora)
 

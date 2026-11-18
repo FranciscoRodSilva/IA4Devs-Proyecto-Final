@@ -1,0 +1,601 @@
+F.FFFFFFFFF...........                                                   [100%]
+================================== FAILURES ===================================
+_ test_tkt012b_tc80_ca18_semilla_con_congelar_deja_obra_activa_con_linea_base_congelada _
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_3f30c676e40e)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000021CCA46AF90>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000021CCA46B770>
+base_de_prueba = 'prueba_3f30c676e40e'
+conectar = <function conectar.<locals>._conectar at 0x0000021CCA3C4930>
+
+    def test_tkt012b_tc80_ca18_semilla_con_congelar_deja_obra_activa_con_linea_base_congelada(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-80 · CA-18 · RN-01 — con la opción, la obra queda ACTIVA y su línea base CONGELADA.
+    
+        Es el estado de la obra `M1` del E2E. La línea base es la versión 1 con el mismo importe de venta que
+        deja la semilla sin opción; el congelado la firma con la hora del reloj recibido y con el usuario
+        que siembra, y deja la copia física (`linea_base_concepto`, `explosion_presupuesto`,
+        `presupuesto_control`) y el asiento `CONGELAR` después del asiento `CONFIRMAR`.
+        """
+        usuario_id = datos_presupuesto.usuario()
+        modulo = semilla()
+    
+>       obra_id = modulo.sembrar_linea_base(
+            motor_aplicacion,
+            codigo="DEMO-M1",
+            usuario_id=usuario_id,
+            reloj=reloj_de_prueba,
+            congelar=True,
+        )
+
+tests\test_tkt012b_semilla.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+motor = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_3f30c676e40e)
+codigo = 'DEMO-M1', usuario_id = UUID('a137e8af-b620-4956-b05f-4428c9932dce')
+reloj = <tests.conftest.RelojDePrueba object at 0x0000021CCA46B770>
+congelar = True
+
+    def sembrar_linea_base(
+        motor: Engine,
+        *,
+        codigo: str,
+        usuario_id: uuid.UUID,
+        reloj: Callable[[], datetime],
+        congelar: bool = False,
+    ) -> uuid.UUID:
+        """Siembra la obra `codigo` en `PLANEACION` y confirma su importación; devuelve el `obra_id`.
+    
+        La primera transacción prepara las filas y comprueba que el código no exista; si existe, sale con
+        `SystemExit` y no escribe nada. La confirmación es un caso de uso propio, con su transacción y su
+        bitácora, así que va fuera de la anterior.
+        """
+        if congelar:
+>           raise NotImplementedError(f"B5: esqueleto; congelará con {congelar_linea_base.__name__}")
+E           NotImplementedError: B5: esqueleto; congelará con congelar_linea_base
+
+herramientas\semilla_linea_base_local.py:155: NotImplementedError
+_ test_tkt012b_tc80_ca18_dos_obras_una_congelada_y_otra_borrador_no_se_afectan _
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_7ab69e02363b)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000021CCAF97110>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000021CCB12E350>
+base_de_prueba = 'prueba_7ab69e02363b'
+conectar = <function conectar.<locals>._conectar at 0x0000021CCB117CC0>
+
+    def test_tkt012b_tc80_ca18_dos_obras_una_congelada_y_otra_borrador_no_se_afectan(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-80 · CA-18 · RN-01 — `M1` congelada y `M2` en borrador conviven; congelar `M1` no toca `M2`.
+    
+        Es exactamente lo que siembra `preparacion-global.ts` (fila B5) para el E2E: dos obras con código
+        distinto, y la segunda siembra reutiliza el insumo de mano de obra de la primera (comprobación E-7).
+        """
+        usuario_id = datos_presupuesto.usuario()
+        modulo = semilla()
+    
+        m2 = modulo.sembrar_linea_base(
+            motor_aplicacion, codigo="DEMO-M2", usuario_id=usuario_id, reloj=reloj_de_prueba
+        )
+        with conectar("aplicacion", base_de_prueba) as base:
+            antes_de_m2 = base.execute(
+                "SELECT id, estado, version, importe_venta, congelada_en FROM linea_base "
+                "WHERE obra_id = %s",
+                (m2,),
+            ).fetchall()
+    
+>           m1 = modulo.sembrar_linea_base(
+                motor_aplicacion,
+                codigo="DEMO-M1",
+                usuario_id=usuario_id,
+                reloj=reloj_de_prueba,
+                congelar=True,
+            )
+
+tests\test_tkt012b_semilla.py:225: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+motor = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_7ab69e02363b)
+codigo = 'DEMO-M1', usuario_id = UUID('6382f404-2592-4e3e-b443-dd03850ba1f1')
+reloj = <tests.conftest.RelojDePrueba object at 0x0000021CCB12E350>
+congelar = True
+
+    def sembrar_linea_base(
+        motor: Engine,
+        *,
+        codigo: str,
+        usuario_id: uuid.UUID,
+        reloj: Callable[[], datetime],
+        congelar: bool = False,
+    ) -> uuid.UUID:
+        """Siembra la obra `codigo` en `PLANEACION` y confirma su importación; devuelve el `obra_id`.
+    
+        La primera transacción prepara las filas y comprueba que el código no exista; si existe, sale con
+        `SystemExit` y no escribe nada. La confirmación es un caso de uso propio, con su transacción y su
+        bitácora, así que va fuera de la anterior.
+        """
+        if congelar:
+>           raise NotImplementedError(f"B5: esqueleto; congelará con {congelar_linea_base.__name__}")
+E           NotImplementedError: B5: esqueleto; congelará con congelar_linea_base
+
+herramientas\semilla_linea_base_local.py:155: NotImplementedError
+_ test_tkt012b_tc80_ca18_codigo_de_obra_activa_congelada_se_niega_sin_escribir _
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_953511141165)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000021CCB0928B0>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000021CCB0929E0>
+base_de_prueba = 'prueba_953511141165'
+conectar = <function conectar.<locals>._conectar at 0x0000021CCB1C3950>
+
+    def test_tkt012b_tc80_ca18_codigo_de_obra_activa_congelada_se_niega_sin_escribir(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-80 · CA-18 · RN-01 — rechazo: sembrar con congelar sobre el código de una obra ya ACTIVA se niega.
+    
+        «Ya existe la obra DEMO-M1» con `SystemExit`: no se crea otra línea base ni se congela una segunda
+        vez; el conteo de las ocho tablas que la semilla toca no cambia y la obra existente conserva su
+        línea base `CONGELADA` versión 1 y su estado `ACTIVA`.
+        """
+        usuario_id = datos_presupuesto.usuario()
+        modulo = semilla()
+>       obra_id = modulo.sembrar_linea_base(
+            motor_aplicacion,
+            codigo="DEMO-M1",
+            usuario_id=usuario_id,
+            reloj=reloj_de_prueba,
+            congelar=True,
+        )
+
+tests\test_tkt012b_semilla.py:266: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+motor = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_953511141165)
+codigo = 'DEMO-M1', usuario_id = UUID('03ffb3de-7c4e-4b7d-8248-7eff9ab1230c')
+reloj = <tests.conftest.RelojDePrueba object at 0x0000021CCB0929E0>
+congelar = True
+
+    def sembrar_linea_base(
+        motor: Engine,
+        *,
+        codigo: str,
+        usuario_id: uuid.UUID,
+        reloj: Callable[[], datetime],
+        congelar: bool = False,
+    ) -> uuid.UUID:
+        """Siembra la obra `codigo` en `PLANEACION` y confirma su importación; devuelve el `obra_id`.
+    
+        La primera transacción prepara las filas y comprueba que el código no exista; si existe, sale con
+        `SystemExit` y no escribe nada. La confirmación es un caso de uso propio, con su transacción y su
+        bitácora, así que va fuera de la anterior.
+        """
+        if congelar:
+>           raise NotImplementedError(f"B5: esqueleto; congelará con {congelar_linea_base.__name__}")
+E           NotImplementedError: B5: esqueleto; congelará con congelar_linea_base
+
+herramientas\semilla_linea_base_local.py:155: NotImplementedError
+_ test_tkt012b_tc80_ca18_codigo_de_obra_en_planeacion_no_se_congela_a_posteriori _
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_19b919d90f1f)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000021CCB090E90>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000021CCB090B00>
+base_de_prueba = 'prueba_19b919d90f1f'
+conectar = <function conectar.<locals>._conectar at 0x0000021CCB115A60>
+
+    def test_tkt012b_tc80_ca18_codigo_de_obra_en_planeacion_no_se_congela_a_posteriori(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        base_de_prueba: str,
+        conectar: Conectar,
+    ) -> None:
+        """TC-80 · CA-18 · RN-01 — rechazo: la opción no congela una obra que ya existe en PLANEACION.
+    
+        La semilla solo congela lo que ella misma acaba de sembrar. Con el código de una obra existente en
+        `PLANEACION` con `BORRADOR`, sale con «Ya existe la obra» y la deja intacta: sigue en `PLANEACION`
+        con su `BORRADOR`, sin asiento `CONGELAR` y sin que cambie ninguna tabla.
+        """
+        usuario_id = datos_presupuesto.usuario()
+        modulo = semilla()
+        obra_id = modulo.sembrar_linea_base(
+            motor_aplicacion, codigo="DEMO-M2", usuario_id=usuario_id, reloj=reloj_de_prueba
+        )
+        with conectar("aplicacion", base_de_prueba) as base:
+            antes = filas_por_tabla(base)
+    
+            with pytest.raises(SystemExit) as salida:
+>               modulo.sembrar_linea_base(
+                    motor_aplicacion,
+                    codigo="DEMO-M2",
+                    usuario_id=usuario_id,
+                    reloj=reloj_de_prueba,
+                    congelar=True,
+                )
+
+tests\test_tkt012b_semilla.py:315: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+motor = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_19b919d90f1f)
+codigo = 'DEMO-M2', usuario_id = UUID('94061851-610a-44ee-b736-378b4b7084c6')
+reloj = <tests.conftest.RelojDePrueba object at 0x0000021CCB090B00>
+congelar = True
+
+    def sembrar_linea_base(
+        motor: Engine,
+        *,
+        codigo: str,
+        usuario_id: uuid.UUID,
+        reloj: Callable[[], datetime],
+        congelar: bool = False,
+    ) -> uuid.UUID:
+        """Siembra la obra `codigo` en `PLANEACION` y confirma su importación; devuelve el `obra_id`.
+    
+        La primera transacción prepara las filas y comprueba que el código no exista; si existe, sale con
+        `SystemExit` y no escribe nada. La confirmación es un caso de uso propio, con su transacción y su
+        bitácora, así que va fuera de la anterior.
+        """
+        if congelar:
+>           raise NotImplementedError(f"B5: esqueleto; congelará con {congelar_linea_base.__name__}")
+E           NotImplementedError: B5: esqueleto; congelará con congelar_linea_base
+
+herramientas\semilla_linea_base_local.py:155: NotImplementedError
+__ test_tkt012b_tc80_ca18_si_el_congelado_falla_la_semilla_no_queda_a_medias __
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_06dba2224ec8)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000021CCB169370>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000021CCB169490>
+base_de_prueba = 'prueba_06dba2224ec8'
+conectar = <function conectar.<locals>._conectar at 0x0000021CCB244300>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021CCB093490>
+
+    def test_tkt012b_tc80_ca18_si_el_congelado_falla_la_semilla_no_queda_a_medias(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        base_de_prueba: str,
+        conectar: Conectar,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-80 · CA-18 · RN-01 — rechazo: si el congelado se niega, `SystemExit` y la obra queda consistente.
+    
+        El caso de uso `congelar_linea_base` (que el módulo importa con ese nombre) se sustituye por uno que
+        lanza el `409` `CONFLICTO` `ESTADO_NO_PERMITE_OPERACION` del contrato. La semilla lo traduce a
+        `SystemExit` «No se pudo congelar» con el código de la obra; no lo deja escapar como traza ni lo traga.
+        La obra queda en `PLANEACION` con su `BORRADOR` versión 1 —el estado de la semilla sin opción,
+        nunca una obra `ACTIVA` sin línea base congelada— y sin asiento `CONGELAR`.
+        """
+        usuario_id = datos_presupuesto.usuario()
+        modulo = semilla()
+        llamadas: list[uuid.UUID] = []
+    
+        def congelar_que_se_niega(*_: object, linea_base_id: uuid.UUID, **__: object) -> uuid.UUID:
+            llamadas.append(linea_base_id)
+            raise ConflictoEstado(
+                codigo="ESTADO_NO_PERMITE_OPERACION",
+                mensaje="La obra DEMO-FALLA no admite esta operación.",
+                detalle={"linea_base_id": linea_base_id},
+            )
+    
+        monkeypatch.setattr(modulo, "congelar_linea_base", congelar_que_se_niega)
+    
+        with pytest.raises(SystemExit) as salida:
+>           modulo.sembrar_linea_base(
+                motor_aplicacion,
+                codigo="DEMO-FALLA",
+                usuario_id=usuario_id,
+                reloj=reloj_de_prueba,
+                congelar=True,
+            )
+
+tests\test_tkt012b_semilla.py:362: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+motor = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_06dba2224ec8)
+codigo = 'DEMO-FALLA', usuario_id = UUID('b47204c6-df2f-4f97-a381-b20690c361bb')
+reloj = <tests.conftest.RelojDePrueba object at 0x0000021CCB169490>
+congelar = True
+
+    def sembrar_linea_base(
+        motor: Engine,
+        *,
+        codigo: str,
+        usuario_id: uuid.UUID,
+        reloj: Callable[[], datetime],
+        congelar: bool = False,
+    ) -> uuid.UUID:
+        """Siembra la obra `codigo` en `PLANEACION` y confirma su importación; devuelve el `obra_id`.
+    
+        La primera transacción prepara las filas y comprueba que el código no exista; si existe, sale con
+        `SystemExit` y no escribe nada. La confirmación es un caso de uso propio, con su transacción y su
+        bitácora, así que va fuera de la anterior.
+        """
+        if congelar:
+>           raise NotImplementedError(f"B5: esqueleto; congelará con {congelar_linea_base.__name__}")
+E           NotImplementedError: B5: esqueleto; congelará con congelar_que_se_niega
+
+herramientas\semilla_linea_base_local.py:155: NotImplementedError
+_ test_tkt012b_tc80_ca18_main_con_bandera_congelar_deja_obra_activa_y_su_obra_id _
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_c0439ebeb7ad)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000021CCB136140>
+base_de_prueba = 'prueba_c0439ebeb7ad'
+conectar = <function conectar.<locals>._conectar at 0x0000021CCB244F60>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021CCB093E10>
+capsys = <_pytest.capture.CaptureFixture object at 0x0000021CCAF76A50>
+
+    def test_tkt012b_tc80_ca18_main_con_bandera_congelar_deja_obra_activa_y_su_obra_id(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        base_de_prueba: str,
+        conectar: Conectar,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """TC-80 · CA-18 — `main(["--congelar"])` devuelve 0, congela y la última línea es `OBRA_ID=<uuid>`.
+    
+        Es la invocación de `preparacion-global.ts`. La obra con ese `OBRA_ID` y el código de
+        `CIMENTA_SEMILLA_LB_CODIGO` queda `ACTIVA` con su línea base `CONGELADA`; la misma llamada sin la
+        bandera deja `PLANEACION` con `BORRADOR` (mismo contrato que `COD-3` de TKT-018a).
+        """
+        correo = "director-semilla@cimenta.test"
+        datos_presupuesto.usuario(correo)
+        modulo = entorno_de_main(monkeypatch, motor_aplicacion)
+        monkeypatch.setenv("CIMENTA_SEMILLA_LB_CORREO", correo)
+    
+        monkeypatch.setenv("CIMENTA_SEMILLA_LB_CODIGO", "DEMO-MAIN-M1")
+>       assert modulo.main(["--congelar"]) == 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_semilla.py:439: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+argv = ['--congelar']
+
+    def main(argv: Sequence[str] = ()) -> int:
+        """Punto de entrada: niega fuera de la base local, siembra y deja `OBRA_ID=` en la última línea."""
+        if "--congelar" in argv:
+>           raise NotImplementedError("B5: esqueleto de la bandera --congelar")
+E           NotImplementedError: B5: esqueleto de la bandera --congelar
+
+herramientas\semilla_linea_base_local.py:200: NotImplementedError
+_ test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales[host_remoto] _
+
+variable = 'CIMENTA_DB_HOST', valor = 'db.ejemplo.com'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021CCB169EB0>
+
+    @pytest.mark.parametrize(
+        ("variable", "valor"),
+        [
+            ("CIMENTA_DB_HOST", HOST_REMOTO),
+            ("PGHOSTADDR", "10.0.0.5"),
+            ("PGSERVICE", "produccion"),
+        ],
+        ids=["host_remoto", "pghostaddr", "pgservice"],
+    )
+    def test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales(
+        variable: str, valor: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """TC-80 · CA-18 · RNF-07 — rechazo: la opción de congelar no abre ninguna puerta a una base remota.
+    
+        Con la bandera y un destino que no es local, `main()` termina con `SystemExit` «Negado» que nombra lo
+        negado, y `herramientas.conexion.create_engine` no se llama: no se conectó, así que no se sembró
+        ni se congeló nada.
+        """
+        llamadas: list[tuple[Any, ...]] = []
+    
+        def motor_prohibido(*args: Any, **_: Any) -> Any:
+            llamadas.append(args)
+            raise RuntimeError("La semilla abrió un motor de base de datos cuando debía negarse")
+    
+        for nombre in ("PGHOSTADDR", "PGSERVICE"):
+            monkeypatch.delenv(nombre, raising=False)
+        monkeypatch.setenv("CIMENTA_DB_HOST", HOST_LOCAL)
+        monkeypatch.setenv("CIMENTA_DB_PUERTO", "5432")
+        monkeypatch.setenv("CIMENTA_DB_NOMBRE", "postgres")
+        monkeypatch.setenv("CIMENTA_DB_CONTRASENA_APLICACION", "contrasena-de-prueba")
+        monkeypatch.setenv("CIMENTA_DB_CONTRASENA_MIGRACION", "contrasena-de-prueba")
+        monkeypatch.setattr("herramientas.conexion.create_engine", motor_prohibido)
+        monkeypatch.setenv(variable, valor)
+        modulo = semilla()
+    
+        with pytest.raises(SystemExit) as salida:
+>           modulo.main(["--congelar"])
+
+tests\test_tkt012b_semilla.py:493: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+argv = ['--congelar']
+
+    def main(argv: Sequence[str] = ()) -> int:
+        """Punto de entrada: niega fuera de la base local, siembra y deja `OBRA_ID=` en la última línea."""
+        if "--congelar" in argv:
+>           raise NotImplementedError("B5: esqueleto de la bandera --congelar")
+E           NotImplementedError: B5: esqueleto de la bandera --congelar
+
+herramientas\semilla_linea_base_local.py:200: NotImplementedError
+_ test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales[pghostaddr] _
+
+variable = 'PGHOSTADDR', valor = '10.0.0.5'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021CCB136690>
+
+    @pytest.mark.parametrize(
+        ("variable", "valor"),
+        [
+            ("CIMENTA_DB_HOST", HOST_REMOTO),
+            ("PGHOSTADDR", "10.0.0.5"),
+            ("PGSERVICE", "produccion"),
+        ],
+        ids=["host_remoto", "pghostaddr", "pgservice"],
+    )
+    def test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales(
+        variable: str, valor: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """TC-80 · CA-18 · RNF-07 — rechazo: la opción de congelar no abre ninguna puerta a una base remota.
+    
+        Con la bandera y un destino que no es local, `main()` termina con `SystemExit` «Negado» que nombra lo
+        negado, y `herramientas.conexion.create_engine` no se llama: no se conectó, así que no se sembró
+        ni se congeló nada.
+        """
+        llamadas: list[tuple[Any, ...]] = []
+    
+        def motor_prohibido(*args: Any, **_: Any) -> Any:
+            llamadas.append(args)
+            raise RuntimeError("La semilla abrió un motor de base de datos cuando debía negarse")
+    
+        for nombre in ("PGHOSTADDR", "PGSERVICE"):
+            monkeypatch.delenv(nombre, raising=False)
+        monkeypatch.setenv("CIMENTA_DB_HOST", HOST_LOCAL)
+        monkeypatch.setenv("CIMENTA_DB_PUERTO", "5432")
+        monkeypatch.setenv("CIMENTA_DB_NOMBRE", "postgres")
+        monkeypatch.setenv("CIMENTA_DB_CONTRASENA_APLICACION", "contrasena-de-prueba")
+        monkeypatch.setenv("CIMENTA_DB_CONTRASENA_MIGRACION", "contrasena-de-prueba")
+        monkeypatch.setattr("herramientas.conexion.create_engine", motor_prohibido)
+        monkeypatch.setenv(variable, valor)
+        modulo = semilla()
+    
+        with pytest.raises(SystemExit) as salida:
+>           modulo.main(["--congelar"])
+
+tests\test_tkt012b_semilla.py:493: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+argv = ['--congelar']
+
+    def main(argv: Sequence[str] = ()) -> int:
+        """Punto de entrada: niega fuera de la base local, siembra y deja `OBRA_ID=` en la última línea."""
+        if "--congelar" in argv:
+>           raise NotImplementedError("B5: esqueleto de la bandera --congelar")
+E           NotImplementedError: B5: esqueleto de la bandera --congelar
+
+herramientas\semilla_linea_base_local.py:200: NotImplementedError
+_ test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales[pgservice] _
+
+variable = 'PGSERVICE', valor = 'produccion'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021CCB136AD0>
+
+    @pytest.mark.parametrize(
+        ("variable", "valor"),
+        [
+            ("CIMENTA_DB_HOST", HOST_REMOTO),
+            ("PGHOSTADDR", "10.0.0.5"),
+            ("PGSERVICE", "produccion"),
+        ],
+        ids=["host_remoto", "pghostaddr", "pgservice"],
+    )
+    def test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales(
+        variable: str, valor: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """TC-80 · CA-18 · RNF-07 — rechazo: la opción de congelar no abre ninguna puerta a una base remota.
+    
+        Con la bandera y un destino que no es local, `main()` termina con `SystemExit` «Negado» que nombra lo
+        negado, y `herramientas.conexion.create_engine` no se llama: no se conectó, así que no se sembró
+        ni se congeló nada.
+        """
+        llamadas: list[tuple[Any, ...]] = []
+    
+        def motor_prohibido(*args: Any, **_: Any) -> Any:
+            llamadas.append(args)
+            raise RuntimeError("La semilla abrió un motor de base de datos cuando debía negarse")
+    
+        for nombre in ("PGHOSTADDR", "PGSERVICE"):
+            monkeypatch.delenv(nombre, raising=False)
+        monkeypatch.setenv("CIMENTA_DB_HOST", HOST_LOCAL)
+        monkeypatch.setenv("CIMENTA_DB_PUERTO", "5432")
+        monkeypatch.setenv("CIMENTA_DB_NOMBRE", "postgres")
+        monkeypatch.setenv("CIMENTA_DB_CONTRASENA_APLICACION", "contrasena-de-prueba")
+        monkeypatch.setenv("CIMENTA_DB_CONTRASENA_MIGRACION", "contrasena-de-prueba")
+        monkeypatch.setattr("herramientas.conexion.create_engine", motor_prohibido)
+        monkeypatch.setenv(variable, valor)
+        modulo = semilla()
+    
+        with pytest.raises(SystemExit) as salida:
+>           modulo.main(["--congelar"])
+
+tests\test_tkt012b_semilla.py:493: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+argv = ['--congelar']
+
+    def main(argv: Sequence[str] = ()) -> int:
+        """Punto de entrada: niega fuera de la base local, siembra y deja `OBRA_ID=` en la última línea."""
+        if "--congelar" in argv:
+>           raise NotImplementedError("B5: esqueleto de la bandera --congelar")
+E           NotImplementedError: B5: esqueleto de la bandera --congelar
+
+herramientas\semilla_linea_base_local.py:200: NotImplementedError
+____ test_tkt012b_tc80_ca18_main_si_el_congelado_falla_no_imprime_obra_id _____
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:52880/prueba_af4cff3fde37)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000021CCB136BE0>
+base_de_prueba = 'prueba_af4cff3fde37'
+conectar = <function conectar.<locals>._conectar at 0x0000021CCB247530>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021CCB1E8950>
+capsys = <_pytest.capture.CaptureFixture object at 0x0000021CCAF97750>
+
+    def test_tkt012b_tc80_ca18_main_si_el_congelado_falla_no_imprime_obra_id(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        base_de_prueba: str,
+        conectar: Conectar,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """TC-80 · CA-18 — rechazo: con el congelado fallido `main(["--congelar"])` sale con `SystemExit` y sin `OBRA_ID=`.
+    
+        La preparación del E2E lee la última línea de stdout: si el congelado falla, no debe recibir un
+        `OBRA_ID` de una obra que no está congelada. El mensaje empieza por «No se pudo congelar».
+        """
+        correo = "director-semilla@cimenta.test"
+        datos_presupuesto.usuario(correo)
+        modulo = entorno_de_main(monkeypatch, motor_aplicacion)
+        monkeypatch.setenv("CIMENTA_SEMILLA_LB_CODIGO", "DEMO-MAIN-FALLA")
+        monkeypatch.setenv("CIMENTA_SEMILLA_LB_CORREO", correo)
+    
+        def congelar_que_se_niega(*_: object, linea_base_id: uuid.UUID, **__: object) -> uuid.UUID:
+            raise ConflictoEstado(
+                codigo="ESTADO_NO_PERMITE_OPERACION",
+                mensaje="La obra DEMO-MAIN-FALLA no admite esta operación.",
+                detalle={"linea_base_id": linea_base_id},
+            )
+    
+        monkeypatch.setattr(modulo, "congelar_linea_base", congelar_que_se_niega)
+    
+        with pytest.raises(SystemExit) as salida:
+>           modulo.main(["--congelar"])
+
+tests\test_tkt012b_semilla.py:530: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+argv = ['--congelar']
+
+    def main(argv: Sequence[str] = ()) -> int:
+        """Punto de entrada: niega fuera de la base local, siembra y deja `OBRA_ID=` en la última línea."""
+        if "--congelar" in argv:
+>           raise NotImplementedError("B5: esqueleto de la bandera --congelar")
+E           NotImplementedError: B5: esqueleto de la bandera --congelar
+
+herramientas\semilla_linea_base_local.py:200: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_semilla_con_congelar_deja_obra_activa_con_linea_base_congelada
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_dos_obras_una_congelada_y_otra_borrador_no_se_afectan
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_codigo_de_obra_activa_congelada_se_niega_sin_escribir
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_codigo_de_obra_en_planeacion_no_se_congela_a_posteriori
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_si_el_congelado_falla_la_semilla_no_queda_a_medias
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_main_con_bandera_congelar_deja_obra_activa_y_su_obra_id
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales[host_remoto]
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales[pghostaddr]
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_main_con_bandera_congelar_sigue_negando_bases_que_no_son_locales[pgservice]
+FAILED tests/test_tkt012b_semilla.py::test_tkt012b_tc80_ca18_main_si_el_congelado_falla_no_imprime_obra_id
+10 failed, 12 passed in 7.55s

@@ -305,6 +305,74 @@ export interface paths {
         get: operations["obtener_obra"];
         put?: never;
         post?: never;
+        /**
+         * Eliminar Obra
+         * @description RN-01, HDU-001 esc. 20: borra la obra sin historial; con historial, `409` `OBRA_CON_HISTORIAL`.
+         */
+        delete: operations["eliminar_obra"];
+        options?: never;
+        head?: never;
+        /**
+         * Actualizar Obra
+         * @description RN-25, PA-02, PA-18: edita los campos que trae el cuerpo y devuelve la obra ya guardada.
+         */
+        patch: operations["actualizar_obra"];
+        trace?: never;
+    };
+    "/api/v1/obras/{obra_id}/suspension": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspender Obra
+         * @description D-2: `ACTIVA → SUSPENDIDA`, con motivo obligatorio.
+         */
+        post: operations["suspender_obra"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/obras/{obra_id}/reactivacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reactivar Obra
+         * @description D-2: `SUSPENDIDA → ACTIVA`, con motivo obligatorio.
+         */
+        post: operations["reactivar_obra"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/obras/{obra_id}/cierre": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar Obra
+         * @description D-2: `PLANEACION`, `ACTIVA` o `SUSPENDIDA → CERRADA`, con motivo obligatorio.
+         */
+        post: operations["cerrar_obra"];
         delete?: never;
         options?: never;
         head?: never;
@@ -676,6 +744,28 @@ export interface components {
              * Format: date-time
              */
             actualizado_en?: string;
+        };
+        /**
+         * ObraCambios
+         * @description Cuerpo del `PATCH` de la obra (TKT-012b, CA-1 a CA-3): solo los campos que se editan.
+         *
+         *     Lo que el cuerpo no trae no cambia (`model_fields_set`). Solo `umbral_alerta_pct` admite `null`, que
+         *     borra el umbral; en los demás campos `null` es `FORMATO` señalando ese campo. Un campo fijo o
+         *     desconocido (`codigo`, `estado`…) es `VALOR_NO_PERMITIDO` (`extra="forbid"`).
+         */
+        ObraCambios: {
+            /** Nombre */
+            nombre?: string | null;
+            /** Domicilio */
+            domicilio?: string | null;
+            /** Retencion Destajo Pct */
+            retencion_destajo_pct?: string | null;
+            /** Fondo Garantia Pct */
+            fondo_garantia_pct?: string | null;
+            /** Iva Acreditable */
+            iva_acreditable?: boolean | null;
+            /** Umbral Alerta Pct */
+            umbral_alerta_pct?: string | null;
         };
         /**
          * ObraNueva
@@ -1423,6 +1513,175 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Obra"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    eliminar_obra: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    actualizar_obra: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObraCambios"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Obra"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspender_obra: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Motivo"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Obra"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reactivar_obra: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Motivo"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Obra"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cerrar_obra: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Motivo"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

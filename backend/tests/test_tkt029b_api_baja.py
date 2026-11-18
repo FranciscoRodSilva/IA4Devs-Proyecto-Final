@@ -1411,7 +1411,8 @@ def test_tkt029b_borrador_declara_la_baja_con_su_ticket_sus_respuestas_y_su_409_
     ):
         assert texto in descripcion, f"La descripción de la baja no menciona {texto}"
     verbos = borrador()["components"]["schemas"]["AccionBitacora"]["enum"]
-    assert verbos[-1] == "DAR_BAJA"
+    assert verbos[-1] == "ELIMINAR"
+    assert verbos[-2] == "DAR_BAJA"
 
 
 def test_tkt029b_borrador_la_desactivacion_ya_no_se_admite_siempre() -> None:

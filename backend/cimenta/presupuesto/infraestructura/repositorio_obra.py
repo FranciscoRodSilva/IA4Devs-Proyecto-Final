@@ -12,10 +12,11 @@ el índice parcial `uq_linea_base_obra_id_congelada` garantiza a lo sumo una fil
 from __future__ import annotations
 
 import uuid
+from collections.abc import Mapping
 from datetime import datetime
 from typing import Any, NamedTuple
 
-from sqlalchemy import Row, and_, func, insert, select
+from sqlalchemy import Row, and_, delete, func, insert, select, text, update
 from sqlalchemy.orm import Session
 
 from cimenta.presupuesto.infraestructura.tablas import empresa, linea_base, obra
@@ -184,4 +185,113 @@ def listar_obras(
     return PaginaObras(
         filas=[_fila_obra(fila) for fila in sesion_bd.execute(filas)],
         total=total,
+    )
+
+
+# ---------------------------------------------------------------------------- TKT-012b · fila A3
+
+
+class ConteosHistorialPropio(NamedTuple):
+    """Lo que `presupuesto` cuenta de una obra por su cuenta, tabla por tabla (RN-01, HDU-001 esc. 20).
+
+    `lineas_base` cuenta las filas de `linea_base` de cualquier estado; `linea_base_congelada` es
+    verdadero solo si alguna está `CONGELADA`. El caso de uso suma `niveles`, `conceptos`,
+    `precios_insumo` y `rendimientos_observados` en `filas_propias` al armar el `ConteosHistorial`
+    del dominio, y agrega los `movimientos` de las fuentes inyectadas.
+    """
+
+    lineas_base: int
+    linea_base_congelada: bool
+    importaciones: int
+    niveles: int
+    conceptos: int
+    precios_insumo: int
+    rendimientos_observados: int
+
+
+def bloquear_obra_completa(sesion_bd: Session, obra_id: uuid.UUID) -> FilaObraCompleta | None:
+    """La obra con su línea base vigente, con `SELECT ... FOR UPDATE` sobre `obra`.
+
+    El bloqueo se limita a `obra` (`of=obra`): PostgreSQL rechaza `FOR UPDATE` sobre el lado nulable
+    de un `OUTER JOIN`. Quien inserta una hija de la obra espera a que esta transacción termine.
+    """
+    sentencia = (
+        select(*_COLUMNAS_OBRA)
+        .select_from(_OBRA_CON_VIGENTE)
+        .where(obra.c.id == obra_id)
+        .with_for_update(of=obra)
+    )
+    fila = sesion_bd.execute(sentencia).one_or_none()
+    return None if fila is None else _fila_obra(fila)
+
+
+def _valor_de_columna(valor: object) -> object:
+    """Un `Porcentaje` se guarda cuantizado a la escala de su columna; cualquier otro valor, tal cual."""
+    return valor.cuantizar().valor if isinstance(valor, Porcentaje) else valor
+
+
+def actualizar_obra(
+    sesion_bd: Session,
+    obra_id: uuid.UUID,
+    campos: Mapping[str, object],
+    ahora: datetime,
+    usuario_id: uuid.UUID,
+) -> None:
+    """Escribe solo las columnas de `campos` y sella quién y cuándo. No confirma."""
+    valores = {nombre: _valor_de_columna(valor) for nombre, valor in campos.items()}
+    sesion_bd.execute(
+        update(obra)
+        .where(obra.c.id == obra_id)
+        .values(**valores, actualizado_en=ahora, actualizado_por_id=usuario_id)
+    )
+
+
+def cambiar_estado_obra(
+    sesion_bd: Session,
+    obra_id: uuid.UUID,
+    estado: str,
+    ahora: datetime,
+    usuario_id: uuid.UUID,
+) -> None:
+    """Escribe el estado y sella quién y cuándo. No valida el origen: lo hizo el dominio."""
+    sesion_bd.execute(
+        update(obra)
+        .where(obra.c.id == obra_id)
+        .values(estado=estado, actualizado_en=ahora, actualizado_por_id=usuario_id)
+    )
+
+
+def eliminar_obra(sesion_bd: Session, obra_id: uuid.UUID) -> None:
+    """Borra la fila. Con una hija, el motor responde `23001` y el error sale tal cual."""
+    sesion_bd.execute(delete(obra).where(obra.c.id == obra_id))
+
+
+# `precio_insumo` y `rendimiento_observado` no se mapean en `tablas.py`: solo se cuentan aquí.
+_CONTEO_HISTORIAL = text(
+    """
+    SELECT
+        (SELECT count(*) FROM linea_base WHERE obra_id = :obra_id) AS lineas_base,
+        (SELECT count(*) FROM linea_base
+            WHERE obra_id = :obra_id AND estado = 'CONGELADA') AS congeladas,
+        (SELECT count(*) FROM importacion WHERE obra_id = :obra_id) AS importaciones,
+        (SELECT count(*) FROM nivel WHERE obra_id = :obra_id) AS niveles,
+        (SELECT count(*) FROM concepto WHERE obra_id = :obra_id) AS conceptos,
+        (SELECT count(*) FROM precio_insumo WHERE obra_id = :obra_id) AS precios_insumo,
+        (SELECT count(*) FROM rendimiento_observado
+            WHERE obra_id = :obra_id) AS rendimientos_observados
+    """
+)
+
+
+def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+    """Cuenta, en un solo `SELECT`, lo que cuelga de la obra en las tablas de `presupuesto`."""
+    fila = sesion_bd.execute(_CONTEO_HISTORIAL, {"obra_id": obra_id}).one()
+    return ConteosHistorialPropio(
+        lineas_base=int(fila.lineas_base),
+        linea_base_congelada=int(fila.congeladas) > 0,
+        importaciones=int(fila.importaciones),
+        niveles=int(fila.niveles),
+        conceptos=int(fila.conceptos),
+        precios_insumo=int(fila.precios_insumo),
+        rendimientos_observados=int(fila.rendimientos_observados),
     )

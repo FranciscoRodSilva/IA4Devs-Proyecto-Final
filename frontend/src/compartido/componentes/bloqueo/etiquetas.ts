@@ -131,4 +131,6 @@ export const ETIQUETAS_ACCION: Readonly<Partial<Record<string, string>>> = {
   VER_ENTRADA: "Ver la entrada",
   REINTENTAR: "Reintentar",
   VER_OBRA: "Ver la obra",
+  SUSPENDER_OBRA: "Suspender",
+  CERRAR_OBRA: "Cerrar",
 };

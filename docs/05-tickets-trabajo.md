@@ -631,7 +631,7 @@ Qué depende de cada mitad: TKT-019, TKT-042, TKT-046 y TKT-049 necesitan solo T
 | Ticket | Contenido | Migración | Depende de | Escenarios de HDU-001 |
 |---|---|---|---|---|
 | TKT-012a | `crear_obra`, `listar_obras` y `obtener_obra`, y la pantalla de obras con el formulario de alta y la prueba de extremo a extremo | Ninguna | TKT-011b, TKT-010, TKT-017 y TKT-008 | 1, 2 y 3 (el 14, solo como regresión de CA-R1) |
-| TKT-012b | `actualizar_obra`, `eliminar_obra`, `suspender_obra`, `reactivar_obra` y `cerrar_obra`, con la máquina de estados y la definición de «historial». Antes de diseñarla hay que resolver qué cuenta como «movimientos» en `OBRA_CON_HISTORIAL` y la acción de bitácora del borrado | Posible, si se añade `ELIMINAR` al catálogo de acciones | TKT-012a | 20 |
+| TKT-012b | `actualizar_obra`, `eliminar_obra`, `suspender_obra`, `reactivar_obra` y `cerrar_obra`, con la máquina de estados y la definición de «historial». Resueltos en la spec y el diseño (2026-11-17): la definición de «historial» ([modelo de datos §14](03-modelo-datos.md), `(asumido)`, D-DIS-5) y el verbo `ELIMINAR` ([ADR del 2026-11-17](adr/20261117-verbo-eliminar-y-borrado-fisico-de-la-obra.md)) | `0017`, verbo `ELIMINAR` en `accion_bitacora` | TKT-012a | 20 |
 
 `listar_tipos_partida` y `listar_insumos`, que el borrador asigna a TKT-012, se construyen con su primer consumidor: la captura de requisición y la previsualización de la importación (TKT-018).
 

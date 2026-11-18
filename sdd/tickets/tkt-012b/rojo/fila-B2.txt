@@ -1,0 +1,1254 @@
+
+> cimenta-frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts (31 tests | 31 failed) 19ms
+   ❯ TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) (13)
+     × tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en PLANEACION ofrece la lista de CA-14 5ms
+     × tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en ACTIVA ofrece la lista de CA-14 1ms
+     × tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en SUSPENDIDA ofrece la lista de CA-14 0ms
+     × tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en CERRADA ofrece la lista de CA-14 0ms
+     × tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en PLANEACION ofrece la lista de CA-14 1ms
+     × tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en ACTIVA ofrece la lista de CA-14 0ms
+     × tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en SUSPENDIDA ofrece la lista de CA-14 0ms
+     × tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en CERRADA ofrece la lista de CA-14 0ms
+     × tkt012b_ca14 · TC-65 · D-DIS-1: la obra en PLANEACION ofrece «Cerrar» además de Editar y Eliminar 0ms
+     × tkt012b_ca14 · TC-65 · «Eliminar» solo se ofrece en PLANEACION (CA-18: dos obras) 0ms
+     × tkt012b_ca14 · TC-65 · la obra CERRADA no ofrece ninguna transición ni edición 0ms
+     × tkt012b_ca14 · TC-65 · una persona con varios roles opera si alguno de ellos opera 0ms
+     × tkt012b_ca14 · TC-65 · la lista que devuelve es nueva en cada llamada: quien la cambia no altera la siguiente 0ms
+   ❯ TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) (18)
+     × tkt012b_ca14 · TC-66 · COMPRAS con la obra en PLANEACION no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · COMPRAS con la obra en ACTIVA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · COMPRAS con la obra en SUSPENDIDA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · COMPRAS con la obra en CERRADA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ALMACEN con la obra en PLANEACION no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ALMACEN con la obra en ACTIVA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ALMACEN con la obra en SUSPENDIDA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ALMACEN con la obra en CERRADA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · RESIDENTE con la obra en PLANEACION no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · RESIDENTE con la obra en ACTIVA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · RESIDENTE con la obra en SUSPENDIDA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · RESIDENTE con la obra en CERRADA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en PLANEACION no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en ACTIVA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en SUSPENDIDA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en CERRADA no ofrece ninguna acción 0ms
+     × tkt012b_ca14 · TC-66 · varios roles de consulta juntos tampoco operan 0ms
+     × tkt012b_ca14 · TC-66 · sin roles (sesión sin cargar) la fila no ofrece nada 0ms
+ ❯ |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts (23 tests | 23 failed) 28ms
+   ❯ TKT-012b · editarObra · PATCH /obras/{obra_id} (CA-15, TC-67) (6)
+     × tkt012b_ca15 · TC-67 · envía PATCH a la ruta de la obra con solo los campos cambiados y el token CSRF 8ms
+     × tkt012b_ca15 · TC-67 · los porcentajes viajan como fracción en cadena, sin pasar por number 1ms
+     × tkt012b_ca15 · TC-67 · umbral_alerta_pct en null viaja como null: así se borra el umbral 1ms
+     × tkt012b_ca15 · TC-67 · un cuerpo sin umbral_alerta_pct no lo menciona: ausente es no tocarlo 1ms
+     × tkt012b_ca15 · TC-67 · rechazo: un 422 vuelve como error de validación con su campo, sin lanzar 1ms
+     × tkt012b_ca15 · TC-67 · rechazo: el 409 de la obra CERRADA vuelve con su código y el estado, sin lanzar 1ms
+   ❯ TKT-012b · eliminarObra · DELETE /obras/{obra_id} (CA-16, TC-67) (2)
+     × tkt012b_ca16 · TC-67 · envía DELETE a la ruta de la obra, sin cuerpo y con el token CSRF; el 204 es éxito 1ms
+     × tkt012b_ca16 · TC-67 · rechazo: el 409 OBRA_CON_HISTORIAL conserva mensaje, detalle y las acciones del contrato 1ms
+   ❯ TKT-012b · suspender, reactivar y cerrar · POST con motivo (CA-17, TC-67) (6)
+     × tkt012b_ca17 · TC-67 · suspender envía POST a la ruta de la transición con el motivo y el token CSRF 1ms
+     × tkt012b_ca17 · TC-67 · reactivar envía POST a la ruta de la transición con el motivo y el token CSRF 1ms
+     × tkt012b_ca17 · TC-67 · cerrar envía POST a la ruta de la transición con el motivo y el token CSRF 1ms
+     × tkt012b_ca17 · TC-67 · suspender: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar 1ms
+     × tkt012b_ca17 · TC-67 · reactivar: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar 1ms
+     × tkt012b_ca17 · TC-67 · cerrar: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar 0ms
+   ❯ TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) (9)
+     × tkt012b_ca17 · TC-67 · suspender con el motivo vacío no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · suspender con el motivo de solo espacios no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · suspender con el motivo de solo saltos de línea y tabuladores no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · reactivar con el motivo vacío no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · reactivar con el motivo de solo espacios no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · reactivar con el motivo de solo saltos de línea y tabuladores no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · cerrar con el motivo vacío no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · cerrar con el motivo de solo espacios no envía ninguna petición y devuelve error 0ms
+     × tkt012b_ca17 · TC-67 · cerrar con el motivo de solo saltos de línea y tabuladores no envía ninguna petición y devuelve error 0ms
+ ❯ |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts (36 tests | 32 failed) 42ms
+   ❯ TKT-012b · esquemaEdicionObra · lo que no se edita (CA-2, CA-15, TC-68, rechazo) (5)
+     × tkt012b_ca15 · TC-68 · declara exactamente los seis campos editables 10ms
+     × tkt012b_ca2 · TC-68 · un valor con codigo, tipo_contrato y estado sale solo con los seis campos editables 4ms
+   ❯ TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) (14)
+     × tkt012b_ca15 · TC-68 · los porcentajes tecleados salen como fracción exacta de seis decimales 3ms
+     × tkt012b_ca15 · TC-68 · el umbral tecleado sale como fracción 1ms
+     × tkt012b_ca15 · TC-68 · el umbral vacío sale como null: así se borra el umbral 2ms
+     × tkt012b_ca15 · TC-68 · el umbral de solo espacios sale como null: así se borra el umbral 1ms
+     × tkt012b_ca15 · TC-68 · (asumido) sin la clave del umbral, la salida no la lleva: ausente es no tocarlo 1ms
+     × tkt012b_ca15 · TC-68 · el nombre y el domicilio salen sin espacios en los extremos 1ms
+     × tkt012b_ca15 · TC-68 · la casilla del IVA sale como booleano, marcada o no 1ms
+     × tkt012b_ca15 · TC-68 · rechazo: el nombre vacío o de solo espacios se señala en su campo 1ms
+     × tkt012b_ca15 · TC-68 · rechazo: el domicilio vacío se señala en su campo 1ms
+     × tkt012b_ca15 · TC-68 · rechazo: retencion_destajo_pct con texto que no es un porcentaje se señala en su campo 1ms
+     × tkt012b_ca15 · TC-68 · rechazo: fondo_garantia_pct con texto que no es un porcentaje se señala en su campo 1ms
+     × tkt012b_ca15 · TC-68 · rechazo: umbral_alerta_pct con texto que no es un porcentaje se señala en su campo 0ms
+     × tkt012b_ca15 · TC-68 · rechazo: retencion_destajo_pct vacío se señala en su campo: los dos porcentajes no se pueden borrar 0ms
+     × tkt012b_ca15 · TC-68 · rechazo: fondo_garantia_pct vacío se señala en su campo: los dos porcentajes no se pueden borrar 0ms
+   ❯ TKT-012b · valoresDeEdicion (CA-15, TC-68) (12)
+     × tkt012b_ca15 · TC-68 · la obra de la lista se precarga con los porcentajes como se teclean 1ms
+     × tkt012b_ca15 · TC-68 · el umbral 0.150000 se precarga como 15 0ms
+     × tkt012b_ca15 · TC-68 · el umbral 0.055000 se precarga como 5.5 0ms
+     × tkt012b_ca15 · TC-68 · el umbral 0.000000 se precarga como 0 0ms
+     × tkt012b_ca15 · TC-68 · una obra sin umbral se precarga con el umbral vacío, no con null ni «null» 0ms
+     × tkt012b_ca15 · TC-68 · el IVA no acreditable se precarga sin marcar 0ms
+     × tkt012b_ca2 · TC-68 · rechazo: la precarga no trae codigo 0ms
+     × tkt012b_ca2 · TC-68 · rechazo: la precarga no trae tipo_contrato 0ms
+     × tkt012b_ca2 · TC-68 · rechazo: la precarga no trae estado 0ms
+     × tkt012b_ca15 · TC-68 · ida y vuelta: guardar sin cambios envía el mismo umbral (0.150000) 0ms
+     × tkt012b_ca15 · TC-68 · ida y vuelta: guardar sin cambios envía el mismo umbral (0.055000) 0ms
+     × tkt012b_ca15 · TC-68 · ida y vuelta: guardar sin cambios envía el mismo umbral (null) 0ms
+   ❯ TKT-012b · CAMPOS_EDICION_OBRA (CA-15, TC-68) (5)
+     × tkt012b_ca15 · TC-68 · los campos editables son los seis, en el orden del formulario de alta 1ms
+     × tkt012b_ca15 · TC-68 · las etiquetas son las del alta 1ms
+     × tkt012b_ca15 · TC-68 · el IVA es una casilla y el resto, campos de texto 1ms
+     × tkt012b_ca15 · TC-68 · cada campo de la lista es un campo del esquema: un 422 cae en su campo 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 86 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en PLANEACION ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(PLANEACION, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en ACTIVA ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(ACTIVA, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en SUSPENDIDA ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(SUSPENDIDA, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECTOR_PROYECTOS con la obra en CERRADA ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(CERRADA, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en PLANEACION ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(PLANEACION, [DIRECCION_GENERAL])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en ACTIVA ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(ACTIVA, [DIRECCION_GENERAL])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en SUSPENDIDA ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(SUSPENDIDA, [DIRECCION_GENERAL])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · DIRECCION_GENERAL con la obra en CERRADA ofrece la lista de CA-14
+Error: no implementado: accionesDeFila(CERRADA, [DIRECCION_GENERAL])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:31:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · D-DIS-1: la obra en PLANEACION ofrece «Cerrar» además de Editar y Eliminar
+Error: no implementado: accionesDeFila(PLANEACION, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:36:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · «Eliminar» solo se ofrece en PLANEACION (CA-18: dos obras)
+Error: no implementado: accionesDeFila(PLANEACION, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:40:59
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:40:40
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · la obra CERRADA no ofrece ninguna transición ni edición
+Error: no implementado: accionesDeFila(CERRADA, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:46:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · una persona con varios roles opera si alguno de ellos opera
+Error: no implementado: accionesDeFila(ACTIVA, [COMPRAS,DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien opera (CA-14, TC-65) > tkt012b_ca14 · TC-65 · la lista que devuelve es nueva en cada llamada: quien la cambia no altera la siguiente
+Error: no implementado: accionesDeFila(ACTIVA, [DIRECTOR_PROYECTOS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:55:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · COMPRAS con la obra en PLANEACION no ofrece ninguna acción
+Error: no implementado: accionesDeFila(PLANEACION, [COMPRAS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · COMPRAS con la obra en ACTIVA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(ACTIVA, [COMPRAS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · COMPRAS con la obra en SUSPENDIDA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(SUSPENDIDA, [COMPRAS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · COMPRAS con la obra en CERRADA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(CERRADA, [COMPRAS])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ALMACEN con la obra en PLANEACION no ofrece ninguna acción
+Error: no implementado: accionesDeFila(PLANEACION, [ALMACEN])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ALMACEN con la obra en ACTIVA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(ACTIVA, [ALMACEN])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ALMACEN con la obra en SUSPENDIDA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(SUSPENDIDA, [ALMACEN])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ALMACEN con la obra en CERRADA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(CERRADA, [ALMACEN])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · RESIDENTE con la obra en PLANEACION no ofrece ninguna acción
+Error: no implementado: accionesDeFila(PLANEACION, [RESIDENTE])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · RESIDENTE con la obra en ACTIVA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(ACTIVA, [RESIDENTE])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · RESIDENTE con la obra en SUSPENDIDA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(SUSPENDIDA, [RESIDENTE])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · RESIDENTE con la obra en CERRADA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(CERRADA, [RESIDENTE])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en PLANEACION no ofrece ninguna acción
+Error: no implementado: accionesDeFila(PLANEACION, [ADMINISTRACION])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en ACTIVA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(ACTIVA, [ADMINISTRACION])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en SUSPENDIDA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(SUSPENDIDA, [ADMINISTRACION])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · ADMINISTRACION con la obra en CERRADA no ofrece ninguna acción
+Error: no implementado: accionesDeFila(CERRADA, [ADMINISTRACION])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:66:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · varios roles de consulta juntos tampoco operan
+Error: no implementado: accionesDeFila(PLANEACION, [COMPRAS,ALMACEN,RESIDENTE,ADMINISTRACION])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:72:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.acciones.test.ts > TKT-012b · accionesDeFila · quien solo consulta (CA-14, TC-66, rechazo) > tkt012b_ca14 · TC-66 · sin roles (sesión sin cargar) la fila no ofrece nada
+Error: no implementado: accionesDeFila(PLANEACION, [])
+ ❯ accionesDeFila src/modulos/presupuesto/obras/obras.acciones.ts:9:9
+      7| /** Esqueleto de la fila B2 de TKT-012b (fase roja): la implementación…
+      8| export function accionesDeFila(estado: components["schemas"]["EstadoOb…
+      9|   throw new Error(`no implementado: accionesDeFila(${estado}, [${roles…
+       |         ^
+     10| }
+     11|
+ ❯ src/modulos/presupuesto/obras/obras.acciones.test.ts:78:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que no se edita (CA-2, CA-15, TC-68, rechazo) > tkt012b_ca15 · TC-68 · declara exactamente los seis campos editables
+AssertionError: expected [] to deeply equal [ 'domicilio', …(5) ]
+
+- Expected
++ Received
+
+- [
+-   "domicilio",
+-   "fondo_garantia_pct",
+-   "iva_acreditable",
+-   "nombre",
+-   "retencion_destajo_pct",
+-   "umbral_alerta_pct",
+- ]
++ []
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:44:58
+     42| describe("TKT-012b · esquemaEdicionObra · lo que no se edita (CA-2, CA…
+     43|   test("tkt012b_ca15 · TC-68 · declara exactamente los seis campos edi…
+     44|     expect(Object.keys(esquemaEdicionObra.shape).sort()).toEqual([...C…
+       |                                                          ^
+     45|   });
+     46|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que no se edita (CA-2, CA-15, TC-68, rechazo) > tkt012b_ca2 · TC-68 · un valor con codigo, tipo_contrato y estado sale solo con los seis campos editables
+AssertionError: expected {} to deeply equal { nombre: 'Union Square Fase 2', …(5) }
+
+- Expected
++ Received
+
+- {
+-   "domicilio": "Av. Constituyentes 120, Querétaro",
+-   "fondo_garantia_pct": "0.050000",
+-   "iva_acreditable": true,
+-   "nombre": "Union Square Fase 2",
+-   "retencion_destajo_pct": "0.150000",
+-   "umbral_alerta_pct": null,
+- }
++ {}
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:58:28
+     56|     expect(resultado.success).toBe(true);
+     57|     // Lo que sale es lo que viaja al servidor: ni el código, ni el ti…
+     58|     expect(resultado.data).toEqual({
+       |                            ^
+     59|       nombre: "Union Square Fase 2",
+     60|       domicilio: "Av. Constituyentes 120, Querétaro",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · los porcentajes tecleados salen como fracción exacta de seis decimales
+AssertionError: expected {} to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "fondo_garantia_pct": "0.070000",
+-   "retencion_destajo_pct": "0.125000",
+- }
++ {}
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:74:28
+     72|     const resultado = esquemaEdicionObra.safeParse(escrito({ retencion…
+     73|
+     74|     expect(resultado.data).toMatchObject({ retencion_destajo_pct: "0.1…
+       |                            ^
+     75|   });
+     76|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el umbral tecleado sale como fracción
+AssertionError: expected {} to match object { umbral_alerta_pct: '0.055000' }
+
+- Expected
++ Received
+
+- {
+-   "umbral_alerta_pct": "0.055000",
+- }
++ {}
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:80:28
+     78|     const resultado = esquemaEdicionObra.safeParse(escrito({ umbral_al…
+     79|
+     80|     expect(resultado.data).toMatchObject({ umbral_alerta_pct: "0.05500…
+       |                            ^
+     81|   });
+     82|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el umbral vacío sale como null: así se borra el umbral
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el umbral de solo espacios sale como null: así se borra el umbral
+AssertionError: expected {} to have property "umbral_alerta_pct" with value null
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:91:28
+     89|     expect(resultado.success).toBe(true);
+     90|     // La clave existe y vale null: ausente significaría «no tocarlo».
+     91|     expect(resultado.data).toHaveProperty("umbral_alerta_pct", null);
+       |                            ^
+     92|   });
+     93|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · (asumido) sin la clave del umbral, la salida no la lleva: ausente es no tocarlo
+AssertionError: expected {} to match object { nombre: 'Union Square Fase 2', …(1) }
+
+- Expected
++ Received
+
+- {
+-   "nombre": "Union Square Fase 2",
+-   "retencion_destajo_pct": "0.150000",
+- }
++ {}
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:102:28
+    100|     expect(resultado.success).toBe(true);
+    101|     expect(resultado.data).not.toHaveProperty("umbral_alerta_pct");
+    102|     expect(resultado.data).toMatchObject({ nombre: "Union Square Fase …
+       |                            ^
+    103|   });
+    104|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el nombre y el domicilio salen sin espacios en los extremos
+AssertionError: expected {} to match object { nombre: 'Union Square F2', …(1) }
+
+- Expected
++ Received
+
+- {
+-   "domicilio": "Av. Constituyentes 120",
+-   "nombre": "Union Square F2",
+- }
++ {}
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:108:28
+    106|     const resultado = esquemaEdicionObra.safeParse(escrito({ nombre: "…
+    107|
+    108|     expect(resultado.data).toMatchObject({ nombre: "Union Square F2", …
+       |                            ^
+    109|   });
+    110|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · la casilla del IVA sale como booleano, marcada o no
+AssertionError: expected {} to match object { iva_acreditable: false }
+
+- Expected
++ Received
+
+- {
+-   "iva_acreditable": false,
+- }
++ {}
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:112:84
+    110|
+    111|   test("tkt012b_ca15 · TC-68 · la casilla del IVA sale como booleano, …
+    112|     expect(esquemaEdicionObra.safeParse(escrito({ iva_acreditable: fal…
+       |                                                                                    ^
+    113|     expect(esquemaEdicionObra.safeParse(escrito({ iva_acreditable: tru…
+    114|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · rechazo: el nombre vacío o de solo espacios se señala en su campo
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ mensajesDe src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:38:29
+     36| function mensajesDe(entrada: Record<string, unknown>): Array<{ campo: …
+     37|   const resultado = esquemaEdicionObra.safeParse(entrada);
+     38|   expect(resultado.success).toBe(false);
+       |                             ^
+     39|   return (resultado.error?.issues ?? []).map((asunto) => ({ campo: asu…
+     40| }
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:117:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · rechazo: el domicilio vacío se señala en su campo
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ mensajesDe src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:38:29
+     36| function mensajesDe(entrada: Record<string, unknown>): Array<{ campo: …
+     37|   const resultado = esquemaEdicionObra.safeParse(entrada);
+     38|   expect(resultado.success).toBe(false);
+       |                             ^
+     39|   return (resultado.error?.issues ?? []).map((asunto) => ({ campo: asu…
+     40| }
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:121:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · rechazo: retencion_destajo_pct con texto que no es un porcentaje se señala en su campo
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · rechazo: fondo_garantia_pct con texto que no es un porcentaje se señala en su campo
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · rechazo: umbral_alerta_pct con texto que no es un porcentaje se señala en su campo
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ mensajesDe src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:38:29
+     36| function mensajesDe(entrada: Record<string, unknown>): Array<{ campo: …
+     37|   const resultado = esquemaEdicionObra.safeParse(entrada);
+     38|   expect(resultado.success).toBe(false);
+       |                             ^
+     39|   return (resultado.error?.issues ?? []).map((asunto) => ({ campo: asu…
+     40| }
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:127:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · rechazo: retencion_destajo_pct vacío se señala en su campo: los dos porcentajes no se pueden borrar
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · esquemaEdicionObra · lo que sí se edita (CA-15, TC-68) > tkt012b_ca15 · TC-68 · rechazo: fondo_garantia_pct vacío se señala en su campo: los dos porcentajes no se pueden borrar
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ mensajesDe src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:38:29
+     36| function mensajesDe(entrada: Record<string, unknown>): Array<{ campo: …
+     37|   const resultado = esquemaEdicionObra.safeParse(entrada);
+     38|   expect(resultado.success).toBe(false);
+       |                             ^
+     39|   return (resultado.error?.issues ?? []).map((asunto) => ({ campo: asu…
+     40| }
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:134:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · la obra de la lista se precarga con los porcentajes como se teclean
+Error: no implementado: valoresDeEdicion(AP-058-25)
+ ❯ valoresDeEdicion src/modulos/presupuesto/obras/obras.formulario.ts:83:9
+     81| /** Los valores con que arranca el formulario de edición: los de la ob…
+     82| export function valoresDeEdicion(obra: components["schemas"]["Obra"]):…
+     83|   throw new Error(`no implementado: valoresDeEdicion(${obra.codigo})`);
+       |         ^
+     84| }
+     85|
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:141:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el umbral 0.150000 se precarga como 15
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el umbral 0.055000 se precarga como 5.5
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el umbral 0.000000 se precarga como 0
+Error: no implementado: valoresDeEdicion(AP-058-25)
+ ❯ valoresDeEdicion src/modulos/presupuesto/obras/obras.formulario.ts:83:9
+     81| /** Los valores con que arranca el formulario de edición: los de la ob…
+     82| export function valoresDeEdicion(obra: components["schemas"]["Obra"]):…
+     83|   throw new Error(`no implementado: valoresDeEdicion(${obra.codigo})`);
+       |         ^
+     84| }
+     85|
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:156:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · una obra sin umbral se precarga con el umbral vacío, no con null ni «null»
+Error: no implementado: valoresDeEdicion(AP-058-25)
+ ❯ valoresDeEdicion src/modulos/presupuesto/obras/obras.formulario.ts:83:9
+     81| /** Los valores con que arranca el formulario de edición: los de la ob…
+     82| export function valoresDeEdicion(obra: components["schemas"]["Obra"]):…
+     83|   throw new Error(`no implementado: valoresDeEdicion(${obra.codigo})`);
+       |         ^
+     84| }
+     85|
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:160:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el IVA no acreditable se precarga sin marcar
+Error: no implementado: valoresDeEdicion(AP-058-25)
+ ❯ valoresDeEdicion src/modulos/presupuesto/obras/obras.formulario.ts:83:9
+     81| /** Los valores con que arranca el formulario de edición: los de la ob…
+     82| export function valoresDeEdicion(obra: components["schemas"]["Obra"]):…
+     83|   throw new Error(`no implementado: valoresDeEdicion(${obra.codigo})`);
+       |         ^
+     84| }
+     85|
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:164:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca2 · TC-68 · rechazo: la precarga no trae codigo
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca2 · TC-68 · rechazo: la precarga no trae tipo_contrato
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca2 · TC-68 · rechazo: la precarga no trae estado
+Error: no implementado: valoresDeEdicion(AP-058-25)
+ ❯ valoresDeEdicion src/modulos/presupuesto/obras/obras.formulario.ts:83:9
+     81| /** Los valores con que arranca el formulario de edición: los de la ob…
+     82| export function valoresDeEdicion(obra: components["schemas"]["Obra"]):…
+     83|   throw new Error(`no implementado: valoresDeEdicion(${obra.codigo})`);
+       |         ^
+     84| }
+     85|
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:168:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · ida y vuelta: guardar sin cambios envía el mismo umbral (0.150000)
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · ida y vuelta: guardar sin cambios envía el mismo umbral (0.055000)
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · valoresDeEdicion (CA-15, TC-68) > tkt012b_ca15 · TC-68 · ida y vuelta: guardar sin cambios envía el mismo umbral (null)
+Error: no implementado: valoresDeEdicion(AP-058-25)
+ ❯ valoresDeEdicion src/modulos/presupuesto/obras/obras.formulario.ts:83:9
+     81| /** Los valores con que arranca el formulario de edición: los de la ob…
+     82| export function valoresDeEdicion(obra: components["schemas"]["Obra"]):…
+     83|   throw new Error(`no implementado: valoresDeEdicion(${obra.codigo})`);
+       |         ^
+     84| }
+     85|
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:176:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · CAMPOS_EDICION_OBRA (CA-15, TC-68) > tkt012b_ca15 · TC-68 · los campos editables son los seis, en el orden del formulario de alta
+AssertionError: expected [] to deeply equal [ 'nombre', 'domicilio', …(4) ]
+
+- Expected
++ Received
+
+- [
+-   "nombre",
+-   "domicilio",
+-   "retencion_destajo_pct",
+-   "fondo_garantia_pct",
+-   "umbral_alerta_pct",
+-   "iva_acreditable",
+- ]
++ []
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:193:54
+    191|
+    192|   test("tkt012b_ca15 · TC-68 · los campos editables son los seis, en e…
+    193|     expect(editables().map((campo) => campo.nombre)).toEqual([...CAMPO…
+       |                                                      ^
+    194|   });
+    195|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · CAMPOS_EDICION_OBRA (CA-15, TC-68) > tkt012b_ca15 · TC-68 · las etiquetas son las del alta
+AssertionError: expected [] to have a length of 6 but got +0
+
+- Expected
++ Received
+
+- 6
++ 0
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:199:25
+    197|     const etiquetasDelAlta = new Map(CAMPOS_OBRA.map((campo) => [campo…
+    198|
+    199|     expect(editables()).toHaveLength(CAMPOS_EDITABLES.length);
+       |                         ^
+    200|     for (const campo of editables()) {
+    201|       expect(campo.etiqueta).toBe(etiquetasDelAlta.get(campo.nombre));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · CAMPOS_EDICION_OBRA (CA-15, TC-68) > tkt012b_ca15 · TC-68 · el IVA es una casilla y el resto, campos de texto
+AssertionError: expected {} to deeply equal { nombre: 'text', …(5) }
+
+- Expected
++ Received
+
+- {
+-   "domicilio": "text",
+-   "fondo_garantia_pct": "text",
+-   "iva_acreditable": "casilla",
+-   "nombre": "text",
+-   "retencion_destajo_pct": "text",
+-   "umbral_alerta_pct": "text",
+- }
++ {}
+
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:208:19
+    206|     const tipos = Object.fromEntries(editables().map((campo) => [campo…
+    207|
+    208|     expect(tipos).toEqual({
+       |                   ^
+    209|       nombre: "text",
+    210|       domicilio: "text",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts > TKT-012b · CAMPOS_EDICION_OBRA (CA-15, TC-68) > tkt012b_ca15 · TC-68 · cada campo de la lista es un campo del esquema: un 422 cae en su campo
+AssertionError: expected 0 to be greater than 0
+ ❯ src/modulos/presupuesto/obras/obras.edicion.formulario.test.ts:228:40
+    226|     const nombresDelEsquema = Object.keys(esquemaEdicionObra.shape);
+    227|
+    228|     expect(CAMPOS_EDICION_OBRA.length).toBeGreaterThan(0);
+       |                                        ^
+    229|     for (const campo of CAMPOS_EDICION_OBRA) expect(nombresDelEsquema)…
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · editarObra · PATCH /obras/{obra_id} (CA-15, TC-67) > tkt012b_ca15 · TC-67 · envía PATCH a la ruta de la obra con solo los campos cambiados y el token CSRF
+Error: no implementado: editarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, {"nombre":"Union Square Fase 2"})
+ ❯ editarObra src/modulos/presupuesto/obras/obras.consultas.ts:43:9
+     41| /** `PATCH /obras/{obra_id}`: solo viajan los campos de `cambios`; `um…
+     42| export function editarObra(api: ClienteApi, obraId: string, cambios: O…
+     43|   throw new Error(`no implementado: editarObra(${obraId}, ${JSON.strin…
+       |         ^
+     44| }
+     45|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:75:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · editarObra · PATCH /obras/{obra_id} (CA-15, TC-67) > tkt012b_ca15 · TC-67 · los porcentajes viajan como fracción en cadena, sin pasar por number
+Error: no implementado: editarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, {"retencion_destajo_pct":"0.125000","fondo_garantia_pct":"0.050000"})
+ ❯ editarObra src/modulos/presupuesto/obras/obras.consultas.ts:43:9
+     41| /** `PATCH /obras/{obra_id}`: solo viajan los campos de `cambios`; `um…
+     42| export function editarObra(api: ClienteApi, obraId: string, cambios: O…
+     43|   throw new Error(`no implementado: editarObra(${obraId}, ${JSON.strin…
+       |         ^
+     44| }
+     45|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:89:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · editarObra · PATCH /obras/{obra_id} (CA-15, TC-67) > tkt012b_ca15 · TC-67 · umbral_alerta_pct en null viaja como null: así se borra el umbral
+Error: no implementado: editarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, {"umbral_alerta_pct":null})
+ ❯ editarObra src/modulos/presupuesto/obras/obras.consultas.ts:43:9
+     41| /** `PATCH /obras/{obra_id}`: solo viajan los campos de `cambios`; `um…
+     42| export function editarObra(api: ClienteApi, obraId: string, cambios: O…
+     43|   throw new Error(`no implementado: editarObra(${obraId}, ${JSON.strin…
+       |         ^
+     44| }
+     45|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:98:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · editarObra · PATCH /obras/{obra_id} (CA-15, TC-67) > tkt012b_ca15 · TC-67 · un cuerpo sin umbral_alerta_pct no lo menciona: ausente es no tocarlo
+Error: no implementado: editarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, {"domicilio":"Av. Universidad 300, Querétaro","iva_acreditable":false})
+ ❯ editarObra src/modulos/presupuesto/obras/obras.consultas.ts:43:9
+     41| /** `PATCH /obras/{obra_id}`: solo viajan los campos de `cambios`; `um…
+     42| export function editarObra(api: ClienteApi, obraId: string, cambios: O…
+     43|   throw new Error(`no implementado: editarObra(${obraId}, ${JSON.strin…
+       |         ^
+     44| }
+     45|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:106:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · editarObra · PATCH /obras/{obra_id} (CA-15, TC-67) > tkt012b_ca15 · TC-67 · rechazo: un 422 vuelve como error de validación con su campo, sin lanzar
+Error: no implementado: editarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, {"retencion_destajo_pct":"1.500000"})
+ ❯ editarObra src/modulos/presupuesto/obras/obras.consultas.ts:43:9
+     41| /** `PATCH /obras/{obra_id}`: solo viajan los campos de `cambios`; `um…
+     42| export function editarObra(api: ClienteApi, obraId: string, cambios: O…
+     43|   throw new Error(`no implementado: editarObra(${obraId}, ${JSON.strin…
+       |         ^
+     44| }
+     45|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:121:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · editarObra · PATCH /obras/{obra_id} (CA-15, TC-67) > tkt012b_ca15 · TC-67 · rechazo: el 409 de la obra CERRADA vuelve con su código y el estado, sin lanzar
+Error: no implementado: editarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, {"nombre":"Otro nombre"})
+ ❯ editarObra src/modulos/presupuesto/obras/obras.consultas.ts:43:9
+     41| /** `PATCH /obras/{obra_id}`: solo viajan los campos de `cambios`; `um…
+     42| export function editarObra(api: ClienteApi, obraId: string, cambios: O…
+     43|   throw new Error(`no implementado: editarObra(${obraId}, ${JSON.strin…
+       |         ^
+     44| }
+     45|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:143:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · eliminarObra · DELETE /obras/{obra_id} (CA-16, TC-67) > tkt012b_ca16 · TC-67 · envía DELETE a la ruta de la obra, sin cuerpo y con el token CSRF; el 204 es éxito
+Error: no implementado: eliminarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90)
+ ❯ eliminarObra src/modulos/presupuesto/obras/obras.consultas.ts:48:9
+     46| /** `DELETE /obras/{obra_id}`: responde 204 sin cuerpo. */
+     47| export function eliminarObra(api: ClienteApi, obraId: string): Promise…
+     48|   throw new Error(`no implementado: eliminarObra(${obraId})`);
+       |         ^
+     49| }
+     50|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:160:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · eliminarObra · DELETE /obras/{obra_id} (CA-16, TC-67) > tkt012b_ca16 · TC-67 · rechazo: el 409 OBRA_CON_HISTORIAL conserva mensaje, detalle y las acciones del contrato
+Error: no implementado: eliminarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90)
+ ❯ eliminarObra src/modulos/presupuesto/obras/obras.consultas.ts:48:9
+     46| /** `DELETE /obras/{obra_id}`: responde 204 sin cuerpo. */
+     47| export function eliminarObra(api: ClienteApi, obraId: string): Promise…
+     48|   throw new Error(`no implementado: eliminarObra(${obraId})`);
+       |         ^
+     49| }
+     50|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:186:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · POST con motivo (CA-17, TC-67) > tkt012b_ca17 · TC-67 · suspender envía POST a la ruta de la transición con el motivo y el token CSRF
+Error: no implementado: suspenderObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, Falta de acceso al predio por obra vecina)
+ ❯ suspenderObra src/modulos/presupuesto/obras/obras.consultas.ts:53:9
+     51| /** `POST /obras/{obra_id}/suspension`: el motivo es obligatorio; sin …
+     52| export function suspenderObra(api: ClienteApi, obraId: string, motivo:…
+     53|   throw new Error(`no implementado: suspenderObra(${obraId}, ${motivo}…
+       |         ^
+     54| }
+     55|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:213:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · POST con motivo (CA-17, TC-67) > tkt012b_ca17 · TC-67 · reactivar envía POST a la ruta de la transición con el motivo y el token CSRF
+Error: no implementado: reactivarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, Falta de acceso al predio por obra vecina)
+ ❯ reactivarObra src/modulos/presupuesto/obras/obras.consultas.ts:58:9
+     56| /** `POST /obras/{obra_id}/reactivacion`: el motivo es obligatorio; si…
+     57| export function reactivarObra(api: ClienteApi, obraId: string, motivo:…
+     58|   throw new Error(`no implementado: reactivarObra(${obraId}, ${motivo}…
+       |         ^
+     59| }
+     60|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:213:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · POST con motivo (CA-17, TC-67) > tkt012b_ca17 · TC-67 · cerrar envía POST a la ruta de la transición con el motivo y el token CSRF
+Error: no implementado: cerrarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, Falta de acceso al predio por obra vecina)
+ ❯ cerrarObra src/modulos/presupuesto/obras/obras.consultas.ts:63:9
+     61| /** `POST /obras/{obra_id}/cierre`: el motivo es obligatorio; sin él n…
+     62| export function cerrarObra(api: ClienteApi, obraId: string, motivo: st…
+     63|   throw new Error(`no implementado: cerrarObra(${obraId}, ${motivo})`);
+       |         ^
+     64| }
+     65|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:213:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · POST con motivo (CA-17, TC-67) > tkt012b_ca17 · TC-67 · suspender: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar
+Error: no implementado: suspenderObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, Falta de acceso al predio por obra vecina)
+ ❯ suspenderObra src/modulos/presupuesto/obras/obras.consultas.ts:53:9
+     51| /** `POST /obras/{obra_id}/suspension`: el motivo es obligatorio; sin …
+     52| export function suspenderObra(api: ClienteApi, obraId: string, motivo:…
+     53|   throw new Error(`no implementado: suspenderObra(${obraId}, ${motivo}…
+       |         ^
+     54| }
+     55|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:237:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · POST con motivo (CA-17, TC-67) > tkt012b_ca17 · TC-67 · reactivar: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar
+Error: no implementado: reactivarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, Falta de acceso al predio por obra vecina)
+ ❯ reactivarObra src/modulos/presupuesto/obras/obras.consultas.ts:58:9
+     56| /** `POST /obras/{obra_id}/reactivacion`: el motivo es obligatorio; si…
+     57| export function reactivarObra(api: ClienteApi, obraId: string, motivo:…
+     58|   throw new Error(`no implementado: reactivarObra(${obraId}, ${motivo}…
+       |         ^
+     59| }
+     60|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:237:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · POST con motivo (CA-17, TC-67) > tkt012b_ca17 · TC-67 · cerrar: el 409 ESTADO_NO_PERMITE_OPERACION vuelve con el estado actual, sin lanzar
+Error: no implementado: cerrarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, Falta de acceso al predio por obra vecina)
+ ❯ cerrarObra src/modulos/presupuesto/obras/obras.consultas.ts:63:9
+     61| /** `POST /obras/{obra_id}/cierre`: el motivo es obligatorio; sin él n…
+     62| export function cerrarObra(api: ClienteApi, obraId: string, motivo: st…
+     63|   throw new Error(`no implementado: cerrarObra(${obraId}, ${motivo})`);
+       |         ^
+     64| }
+     65|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:237:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[67/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · suspender con el motivo vacío no envía ninguna petición y devuelve error
+Error: no implementado: suspenderObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, )
+ ❯ suspenderObra src/modulos/presupuesto/obras/obras.consultas.ts:53:9
+     51| /** `POST /obras/{obra_id}/suspension`: el motivo es obligatorio; sin …
+     52| export function suspenderObra(api: ClienteApi, obraId: string, motivo:…
+     53|   throw new Error(`no implementado: suspenderObra(${obraId}, ${motivo}…
+       |         ^
+     54| }
+     55|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[68/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · suspender con el motivo de solo espacios no envía ninguna petición y devuelve error
+Error: no implementado: suspenderObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90,    )
+ ❯ suspenderObra src/modulos/presupuesto/obras/obras.consultas.ts:53:9
+     51| /** `POST /obras/{obra_id}/suspension`: el motivo es obligatorio; sin …
+     52| export function suspenderObra(api: ClienteApi, obraId: string, motivo:…
+     53|   throw new Error(`no implementado: suspenderObra(${obraId}, ${motivo}…
+       |         ^
+     54| }
+     55|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[69/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · suspender con el motivo de solo saltos de línea y tabuladores no envía ninguna petición y devuelve error
+Error: no implementado: suspenderObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, 
+	 
+)
+ ❯ suspenderObra src/modulos/presupuesto/obras/obras.consultas.ts:53:9
+     51| /** `POST /obras/{obra_id}/suspension`: el motivo es obligatorio; sin …
+     52| export function suspenderObra(api: ClienteApi, obraId: string, motivo:…
+     53|   throw new Error(`no implementado: suspenderObra(${obraId}, ${motivo}…
+       |         ^
+     54| }
+     55|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[70/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · reactivar con el motivo vacío no envía ninguna petición y devuelve error
+Error: no implementado: reactivarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, )
+ ❯ reactivarObra src/modulos/presupuesto/obras/obras.consultas.ts:58:9
+     56| /** `POST /obras/{obra_id}/reactivacion`: el motivo es obligatorio; si…
+     57| export function reactivarObra(api: ClienteApi, obraId: string, motivo:…
+     58|   throw new Error(`no implementado: reactivarObra(${obraId}, ${motivo}…
+       |         ^
+     59| }
+     60|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[71/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · reactivar con el motivo de solo espacios no envía ninguna petición y devuelve error
+Error: no implementado: reactivarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90,    )
+ ❯ reactivarObra src/modulos/presupuesto/obras/obras.consultas.ts:58:9
+     56| /** `POST /obras/{obra_id}/reactivacion`: el motivo es obligatorio; si…
+     57| export function reactivarObra(api: ClienteApi, obraId: string, motivo:…
+     58|   throw new Error(`no implementado: reactivarObra(${obraId}, ${motivo}…
+       |         ^
+     59| }
+     60|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[72/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · reactivar con el motivo de solo saltos de línea y tabuladores no envía ninguna petición y devuelve error
+Error: no implementado: reactivarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, 
+	 
+)
+ ❯ reactivarObra src/modulos/presupuesto/obras/obras.consultas.ts:58:9
+     56| /** `POST /obras/{obra_id}/reactivacion`: el motivo es obligatorio; si…
+     57| export function reactivarObra(api: ClienteApi, obraId: string, motivo:…
+     58|   throw new Error(`no implementado: reactivarObra(${obraId}, ${motivo}…
+       |         ^
+     59| }
+     60|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[73/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · cerrar con el motivo vacío no envía ninguna petición y devuelve error
+Error: no implementado: cerrarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, )
+ ❯ cerrarObra src/modulos/presupuesto/obras/obras.consultas.ts:63:9
+     61| /** `POST /obras/{obra_id}/cierre`: el motivo es obligatorio; sin él n…
+     62| export function cerrarObra(api: ClienteApi, obraId: string, motivo: st…
+     63|   throw new Error(`no implementado: cerrarObra(${obraId}, ${motivo})`);
+       |         ^
+     64| }
+     65|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[74/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · cerrar con el motivo de solo espacios no envía ninguna petición y devuelve error
+Error: no implementado: cerrarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90,    )
+ ❯ cerrarObra src/modulos/presupuesto/obras/obras.consultas.ts:63:9
+     61| /** `POST /obras/{obra_id}/cierre`: el motivo es obligatorio; sin él n…
+     62| export function cerrarObra(api: ClienteApi, obraId: string, motivo: st…
+     63|   throw new Error(`no implementado: cerrarObra(${obraId}, ${motivo})`);
+       |         ^
+     64| }
+     65|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[75/86]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/obras.mutaciones.test.ts > TKT-012b · suspender, reactivar y cerrar · sin motivo no sale (CA-17, TC-67, rechazo) > tkt012b_ca17 · TC-67 · cerrar con el motivo de solo saltos de línea y tabuladores no envía ninguna petición y devuelve error
+Error: no implementado: cerrarObra(6a0d3f58-1c7b-4e29-9f44-7b2c8e5a1d90, 
+	 
+)
+ ❯ cerrarObra src/modulos/presupuesto/obras/obras.consultas.ts:63:9
+     61| /** `POST /obras/{obra_id}/cierre`: el motivo es obligatorio; sin él n…
+     62| export function cerrarObra(api: ClienteApi, obraId: string, motivo: st…
+     63|   throw new Error(`no implementado: cerrarObra(${obraId}, ${motivo})`);
+       |         ^
+     64| }
+     65|
+ ❯ src/modulos/presupuesto/obras/obras.mutaciones.test.ts:267:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[76/86]⎯
+
+
+ Test Files  3 failed | 25 passed (28)
+      Tests  86 failed | 483 passed (569)
+   Start at  17:38:14
+   Duration  15.51s (environment 44%, tests 30%, setup 11%, import 10%, transform 5%)
+

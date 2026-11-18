@@ -182,22 +182,24 @@ El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del gr
 
 | | |
 |---|---|
-| **Rol** | Director de Proyectos y Dirección General dan de alta · los seis roles consultan |
-| **Historias** | TKT-012a (alta de obras), sobre HDU-001 esc. 1 a 3 · TKT-018a (columna *Línea base*) |
-| **Endpoints** | `GET /obras` (lista) · `POST /obras` (alta) |
+| **Rol** | Director de Proyectos y Dirección General dan de alta, editan, eliminan, suspenden, reactivan y cierran · los seis roles consultan |
+| **Historias** | TKT-012a (alta de obras), sobre HDU-001 esc. 1 a 3 · TKT-018a (columna *Línea base*) · TKT-012b (columna *Acciones*), sobre HDU-001 esc. 20 |
+| **Endpoints** | `GET /obras` (lista) · `POST /obras` (alta) · `PATCH /obras/{obra_id}` (edición) · `DELETE /obras/{obra_id}` (eliminación) · `POST /obras/{obra_id}/suspension`, `/reactivacion` y `/cierre` (ciclo de vida, cada una con su motivo) |
 
 ```text
-┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Obras                                                                                                       [ + ]  │
-│ (Dar de alta una obra con el botón +: solo Director de Proyectos y Dirección General)                              │
-├──────────────────────────┬───────────────────────────────────────────┬───────────────────┬─────────────────────────┤
-│ Código                   │ Nombre                                    │ Estado            │ Línea base              │
-├──────────────────────────┼───────────────────────────────────────────┼───────────────────┼─────────────────────────┤
-│ AP-058-25                │ Union Square F2                           │ Planeación        │ Línea base              │
-│ AP-061-25                │ Torre Reforma Norte                       │ Suspendida        │ Línea base              │
-├──────────────────────────┴───────────────────────────────────────────┴───────────────────┴─────────────────────────┤
-│ Mostrando 2 de 5 obras                                                                                             │
-└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Obras                                                                                             [ + ]  │
+│ (Dar de alta una obra con el botón +: solo Director de Proyectos y Dirección General)                    │
+├─────────────┬───────────────────────┬──────────────┬──────────────┬──────────────────────────────────────┤
+│ Código      │ Nombre                │ Estado       │ Línea base   │ Acciones                             │
+├─────────────┼───────────────────────┼──────────────┼──────────────┼──────────────────────────────────────┤
+│ AP-058-25   │ Union Square F2       │ Planeación   │ Línea base   │ [ Editar ] [ Eliminar ] [ Cerrar ]   │
+│ AP-061-25   │ Torre Reforma Norte   │ Suspendida   │ Línea base   │ [ Editar ] [ Reactivar ] [ Cerrar ]  │
+│ AP-070-26   │ Plaza Delta           │ Activa       │ Línea base   │ [ Editar ] [ Suspender ] [ Cerrar ]  │
+│ AP-049-24   │ Centro Norte          │ Cerrada      │ Línea base   │ (ninguna · obra terminal)            │
+├─────────────┴───────────────────────┴──────────────┴──────────────┴──────────────────────────────────────┤
+│ Mostrando 4 de 5 obras                                                                                   │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
   Formulario · Alta de obra (se abre con el botón +)
   ┌──────────────────────────────────────────────────────────────────────────┐
@@ -219,9 +221,66 @@ El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del gr
   │ ! Ya existe una obra con el código AP-058-25.        [ Ver la obra ]     │
   │ Obra existente AP-058-25 · Union Square F2                               │
   └──────────────────────────────────────────────────────────────────────────┘
+
+  Formulario · Editar obra (se abre con «Editar» y trae los valores de esa obra)
+  ┌──────────────────────────────────────────────────────────────────────────────────┐
+  │ Código                       [ AP-058-25______________________ ]   solo lectura  │
+  │ Nombre                       [ Union Square F2________________ ]                 │
+  │ Domicilio                    [ Av. Constituyentes 120, Querétaro ]               │
+  │ Tipo de contrato             [ Precio alzado máximo garantizado ]  solo lectura  │
+  │ Retención de destajo (%)     [ 15_____ ]                                         │
+  │ Fondo de garantía (%)        [ 5______ ]                                         │
+  │ Umbral de alerta (%)         [ _______ ]   vacío = sin umbral                    │
+  │ IVA acreditable              [ ]                                                 │
+  │                                                                                  │
+  │                                                           [ Guardar ]            │
+  └──────────────────────────────────────────────────────────────────────────────────┘
+
+  Diálogo de motivo · Suspender, Reactivar y Cerrar comparten la forma
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ Suspender la obra                                                      │
+  │ Obra AP-070-26                                                         │
+  │                                                                        │
+  │ Motivo                                                                 │
+  │ [ Se suspende por falta de acceso al predio.________________ ]         │
+  │                                                                        │
+  │                                [ Cancelar ]   [ Suspender obra ]       │
+  └────────────────────────────────────────────────────────────────────────┘
+
+  Confirmación · Eliminar (sin motivo)
+  ┌────────────────────────────────────────────────────────────────┐
+  │ ¿Eliminar la obra AP-058-25?                                   │
+  │                                                                │
+  │                          [ Cancelar ]   [ Confirmar baja ]     │
+  └────────────────────────────────────────────────────────────────┘
+
+  Bloqueo · eliminar una obra con historial (409 CONFLICTO, OBRA_CON_HISTORIAL)
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ No se puede completar                                                  │
+  │ OBRA_CON_HISTORIAL                                                     │
+  │ La obra AP-058-25 tiene historial y no se puede eliminar.              │
+  │                                                                        │
+  │ linea_base_congelada   false                                           │
+  │ lineas_base            1                                               │
+  │ importaciones          1                                               │
+  │ movimientos            0                                               │
+  │                                                                        │
+  │ [ Cerrar ]                                                             │
+  └────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Datos.** La lista muestra código, nombre y estado (`PLANEACION`, `ACTIVA`, `SUSPENDIDA` o `CERRADA`, rotulados en español). Una obra recién creada nace en `PLANEACION`. Los porcentajes se capturan como número, sin el signo `%`, y viajan como cadena decimal; el formulario propone 15 de retención de destajo y 5 de fondo de garantía, deja el umbral vacío y el IVA sin marcar. El tipo de contrato ofrece una sola opción, *Precio alzado máximo garantizado*.
+
+**Columna *Acciones*.** Para el Director de Proyectos y la Dirección General, cada fila trae una columna *Acciones* con los botones que proceden según el estado de **esa** obra (nombre accesible: «{acción} {código}», por ejemplo «Suspender AP-070-26»):
+
+| Estado de la obra | Acciones de la fila |
+|---|---|
+| `PLANEACION` | *Editar*, *Eliminar*, *Cerrar* |
+| `ACTIVA` | *Editar*, *Suspender*, *Cerrar* |
+| `SUSPENDIDA` | *Editar*, *Reactivar*, *Cerrar* |
+| `CERRADA` | Ninguna: es terminal y tampoco se edita |
+
+La columna, con su encabezado, se dibuja solo si el rol puede operar, no según las filas: Compras y los demás roles ven exactamente *Código*, *Nombre* y *Estado* (más *Línea base* para quien la ve). Que *Suspender* exija una obra `ACTIVA` y que *Eliminar* solo se ofrezca en `PLANEACION` es la razón de que el recorrido de extremo a extremo use dos obras. *Cerrar* se ofrece también en `PLANEACION`: una obra que nunca arrancó se cierra sin eliminarse.
 
 **Acciones.**
 
@@ -229,6 +288,10 @@ El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del gr
 - *Guardar* envía el alta con `POST /obras`; al aceptarse, la obra aparece en la lista. El botón se deshabilita mientras la petición está en vuelo.
 - *Línea base* (nombre accesible: «Línea base de {código}») abre la línea base de esa obra en `/obras/:obraId/linea-base` ([pantalla 4](#4-congelado-y-presupuesto-de-control)). La columna solo la ven Director de Proyectos, Dirección General y Compras (`seccionPermitida("LINEA_BASE")`); a los demás roles no se les dibuja. Ocultarla es cortesía: el control es el `403` del servidor.
 - *Ver la obra* (acción `VER_OBRA` del conflicto) cierra el formulario y deja la lista a la vista; la ficha de obra es un ticket futuro.
+- *Editar* abre el formulario *Editar obra* con los valores de esa obra. El código y el tipo de contrato se muestran **solo de lectura**: no se editan y no viajan. Los porcentajes aparecen como número, igual que en el alta. *Guardar* envía `PATCH /obras/{obra_id}` con lo editable; al aceptarse, el formulario se cierra y la lista muestra el nombre nuevo **sin recargar la página**. Se cierra sin enviar nada con la equis o con `Esc`.
+- *Suspender*, *Reactivar* y *Cerrar* abren un diálogo con el título *Suspender la obra*, *Reactivar la obra* o *Cerrar la obra*, la obra nombrada debajo (*Obra {código}*) y un campo *Motivo*. La confirmación (*Suspender obra*, *Reactivar obra* o *Cerrar obra*) envía `POST /obras/{obra_id}/suspension`, `/reactivacion` o `/cierre`. Al aceptarse, el diálogo se cierra y la fila pasa a *Suspendida* (con *Reactivar* en lugar de *Suspender*), a *Activa* o a *Cerrada* (sin acciones). *Cancelar* cierra sin enviar nada.
+- *Eliminar* abre una confirmación sin motivo cuya pregunta nombra la obra de esa fila: *«¿Eliminar la obra AP-058-25?»*, con *Cancelar* y *Confirmar baja*. Confirmar envía `DELETE /obras/{obra_id}`; el borrado es físico y deja el asiento `ELIMINAR` en la bitácora. Al aceptarse, la obra sale de la lista. *Cancelar* cierra sin enviar nada.
+- Las acciones del bloqueo `OBRA_CON_HISTORIAL` (abajo) abren el mismo diálogo de motivo, sobre la obra que se intentó eliminar.
 
 **Estados.**
 
@@ -244,6 +307,15 @@ El menú se agrupa por grupo, no por el orden de esta tabla: «Obras» es del gr
 - **Valor fuera de rango (`422`, `FUERA_DE_RANGO`).** Un porcentaje fuera de 0 % a 100 % se pinta junto a su campo, por ejemplo *"El porcentaje debe estar entre 0 y 1 (0 % a 100 %)."*
 - **Campo vacío o con forma incorrecta.** Se avisa en línea antes de enviar, como *"Escribe el código de la obra."*
 - **Sin permiso (`403`, `ROL_INSUFICIENTE`).** *"Tu rol no permite esta operación."*, sin ninguna cifra.
+- **Eliminar una obra con historial (`409` `CONFLICTO`, `OBRA_CON_HISTORIAL`)** (HDU-001 esc. 20). La definición de historial está en el [modelo de datos](03-modelo-datos.md); una línea base `BORRADOR` ya cuenta. Tras confirmar, la confirmación se cierra y encima de la lista aparece el **bloqueo en línea** (cabecera *No se puede completar*, el código `OBRA_CON_HISTORIAL`, el mensaje del servidor *"La obra {código} tiene historial y no se puede eliminar."* y el detalle del servidor, que hoy se muestra con el nombre de cada campo: `linea_base_congelada`, `lineas_base`, `importaciones` y `movimientos`). No es un error: no se pinta como alerta roja y no usa el aviso de error de la lista, porque es el sistema funcionando. **La obra sigue en la lista**, en el mismo estado.
+  - **Las acciones las trae el contrato, no la pantalla.** El bloqueo ofrece solo las que el servidor envía para el estado actual de la obra y que el rol puede ejecutar: *Suspender* (`SUSPENDER_OBRA`) y *Cerrar* (`CERRAR_OBRA`). Desde `PLANEACION`, que es donde se ofrece *Eliminar*, el servidor envía únicamente *Cerrar*, porque suspender exige una obra `ACTIVA`; *Suspender* aparece si la obra pasó a `ACTIVA` desde otra sesión después de cargar la lista. Si el servidor no envía una acción, la pantalla no la dibuja.
+  - Pulsar una acción abre el diálogo de motivo sobre **la obra que se intentó eliminar**, no sobre otra fila. Al aceptarse, el bloqueo desaparece y la fila refleja el estado nuevo.
+- **Estado que no admite la operación (`409` `CONFLICTO`, `ESTADO_NO_PERMITE_OPERACION`).** Ocurre cuando otra sesión cambió la obra después de cargar la lista, por ejemplo al reactivar una obra ya `ACTIVA` o al editar una `CERRADA`. En el diálogo de motivo, el mensaje aparece **dentro del diálogo**, sin acciones y con el motivo tecleado intacto; al cerrarlo, la lista se vuelve a pedir. En el formulario de edición, aparece en línea, como el del código duplicado.
+- **Regla de negocio o concurrencia (`409` `REGLA_NEGOCIO` o `CONCURRENCIA`).** Cierra el diálogo o el formulario y se pinta como [pantalla de bloqueo](#6-pantalla-de-bloqueo) en línea, con sus cifras y acciones; `CONCURRENCIA` ofrece reintentar.
+- **Motivo vacío o demasiado largo.** Sin motivo, *Suspender obra*, *Reactivar obra* y *Cerrar obra* no envían nada y el campo señala *"El motivo es obligatorio."*; con más de 2,000 caracteres, *"El motivo admite hasta 2,000 caracteres."*
+- **Edición con un valor inválido (`422`).** El mensaje del servidor se pinta junto a su campo y el formulario conserva lo capturado; lo que no es de ningún campo va en una alerta encima de los campos.
+- **Obra que ya no existe (`404`) o falla inesperada.** Al eliminar o cambiar el estado, un aviso de alerta encima de la lista con el mensaje del servidor, o *"No se pudo eliminar la obra."* / *"No se pudo completar la operación."* si no lo trae, y la *Referencia* cuando el servidor la envía. Al editar, el aviso va en el formulario, con *"No se pudo guardar."* como texto por omisión.
+- **Sin permiso (`403`).** Las acciones de fila son cortesía de navegación: quien llega a ejecutarlas sin rol recibe el `403` del servidor, sin ninguna cifra.
 
 ---
 
@@ -1010,6 +1082,7 @@ Boceto mínimo del indicador, que vivirá en la barra superior del armazón:
 | Pantalla | Ticket que la implementa |
 |---|---|
 | 1 · Inicio de sesión · 2 · Armazón · 6 · Pantalla de bloqueo | TKT-008 |
+| 2b · Obras | TKT-012a (alta y lista) y TKT-012b (acciones de fila) |
 | 3 · Importación | TKT-018b |
 | 4 · Congelado y presupuesto de control | TKT-018a |
 | 5 · Disponible y requisición | TKT-024 |

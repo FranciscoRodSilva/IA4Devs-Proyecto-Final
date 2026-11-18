@@ -22,6 +22,7 @@ from cimenta.archivos.aplicacion.lectura import ArchivoNoLegible, crear_lector_c
 from cimenta.archivos.aplicacion.puertos import AlmacenObjetos
 from cimenta.archivos.dominio.declaracion import LimitesArchivo
 from cimenta.archivos.infraestructura.almacen_s3 import crear_almacen_s3
+from cimenta.archivos.infraestructura.fuente_historial import FuenteHistorialArchivos
 
 __all__ = [
     "AlmacenNoConfigurado",
@@ -30,6 +31,7 @@ __all__ = [
     "ArchivoNoLegible",
     "ConfiguracionArchivos",
     "ContextoArchivos",
+    "FuenteHistorialArchivos",
     "LimitesArchivo",
     "construir_contexto",
     "contexto_de_archivos",

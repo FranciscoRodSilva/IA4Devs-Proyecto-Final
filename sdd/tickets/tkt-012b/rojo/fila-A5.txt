@@ -1,0 +1,1952 @@
+.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF                                   [100%]
+================================== FAILURES ===================================
+_ test_hdu001_esc20_tkt012b_ca1_actualizar_obra_cambia_nombre_y_porcentaje_y_asienta_actualizar _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F8953110>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9534EC0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9535010>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9546980>
+usuario = UUID('4ea9e929-e018-4658-b2b5-760686b3288c')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F95346E0>
+
+    def test_hdu001_esc20_tkt012b_ca1_actualizar_obra_cambia_nombre_y_porcentaje_y_asienta_actualizar(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-21 · CA-1 · RN-25 — feliz: cambia nombre y retención; código, tipo y estado no cambian.
+    
+        El asiento `ACTUALIZAR` lleva solo los dos campos que cambiaron, con el valor anterior y el nuevo,
+        los porcentajes como cadena de escala 6 (`0.1` se guarda y se asienta como `0.100000`), `RN-25`,
+        la obra y el usuario. El reloj avanzado distingue `actualizado_en` de la hora de la base. Ninguna otra
+        obra se toca. El caso de uso no devuelve nada: la ruta relee con `obtener_obra`.
+        """
+        obra_id = fabricar_obra()
+        otra = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+        editor = datos_presupuesto.usuario()
+        antes = _fila_obligatoria(base, obra_id)
+        antes_de_la_otra = _fila_obligatoria(base, otra)
+        reloj_de_prueba.avanzar(timedelta(hours=3))
+        ahora = reloj_de_prueba()
+    
+>       resultado = actualizar_obra(  # type: ignore[func-returns-value]
+            contexto(),
+            obra_id,
+            _cambios(nombre="Union Square F2 (ampliación)", retencion_destajo_pct=Porcentaje("0.1")),
+            usuario_id=editor,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:468: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9546E50>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F95346E0>, fuentes_historial=())
+obra_id = UUID('816b3194-04f1-431a-bc57-996c04594a23')
+cambios = {'nombre': 'Union Square F2 (ampliación)', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.1'))}
+usuario_id = UUID('88720501-aedb-41be-bd8f-d4e6f9e752d4')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_cambia_los_seis_campos_y_el_asiento_los_trae_todos _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9970E00>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F98C3D90>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9971640>
+usuario = UUID('486d0247-5e83-43d3-9cab-6ddfdc0299da')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F98C3C50>
+
+    def test_tkt012b_ca1_actualizar_obra_cambia_los_seis_campos_y_el_asiento_los_trae_todos(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-21 · CA-1 · RN-25 — feliz: nombre, domicilio, los tres porcentajes y el IVA, a la vez.
+    
+        Cada campo cambia a un valor distinto de los otros, para que un intercambio entre columnas no pase.
+        El IVA viaja como booleano en el asiento (no como cadena) y los porcentajes con escala 6.
+        """
+        obra_id = fabricar_obra()
+        ahora = reloj_de_prueba()
+    
+>       actualizar_obra(
+            contexto(),
+            obra_id,
+            _cambios(
+                nombre="Otro nombre",
+                domicilio="Otro domicilio 2",
+                retencion_destajo_pct=Porcentaje("0.2"),
+                fondo_garantia_pct=Porcentaje("0.075"),
+                iva_acreditable=False,
+                umbral_alerta_pct=Porcentaje("0.3"),
+            ),
+            usuario_id=usuario,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:522: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9971850>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F98C3C50>, fuentes_historial=())
+obra_id = UUID('b2716e5f-9ee4-4b75-8af6-0e8722e279ee')
+cambios = {'nombre': 'Otro nombre', 'domicilio': 'Otro domicilio 2', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.2')), 'fondo_garantia_pct': Porcentaje(valor=Decimal('0.075')), ...}
+usuario_id = UUID('486d0247-5e83-43d3-9cab-6ddfdc0299da')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_un_valor_igual_al_actual_no_entra_en_el_asiento _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99724B0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9998B90>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9972CF0>
+usuario = UUID('865dee37-5b02-4172-9142-6740d55d14eb')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F9998A50>
+
+    def test_tkt012b_ca1_actualizar_obra_un_valor_igual_al_actual_no_entra_en_el_asiento(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-21 · CA-1 — feliz: de tres campos enviados, solo el que cambia se escribe y se asienta.
+    
+        `nombre` igual, `retencion_destajo_pct` igual **en valor** (`0.15` frente a `0.150000` de la
+        columna) y `domicilio` distinto: el asiento trae solo `domicilio`, y la retención sigue en `0.150000`.
+        """
+        obra_id = fabricar_obra()
+        ahora = reloj_de_prueba()
+    
+>       actualizar_obra(
+            contexto(),
+            obra_id,
+            _cambios(
+                nombre=NOMBRE_INICIAL,
+                retencion_destajo_pct=Porcentaje("0.15"),
+                domicilio="Domicilio nuevo 7",
+            ),
+            usuario_id=usuario,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:590: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9972F00>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9998A50>, fuentes_historial=())
+obra_id = UUID('359ec1c3-21f3-4447-a837-12941b20231a')
+cambios = {'nombre': 'Obra AP-058-25', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.15')), 'domicilio': 'Domicilio nuevo 7'}
+usuario_id = UUID('865dee37-5b02-4172-9142-6740d55d14eb')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[PLANEACION] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9973D70>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F951B6F0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99A47D0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F951B820>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F951B5C0>
+estado = 'PLANEACION'
+
+    @pytest.mark.parametrize("estado", ["PLANEACION", "ACTIVA", "SUSPENDIDA"])
+    def test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        estado: str,
+    ) -> None:
+        """TC-22 · CA-1 variante · D-3 — feliz: `PLANEACION`, `ACTIVA` y `SUSPENDIDA` admiten la edición.
+    
+        La obra `SUSPENDIDA` se edita sin reactivarla (D-3). Quien edita es otro usuario, el de Dirección
+        General: a este nivel el rol no cuenta (lo comprueba la ruta en A7); lo que se prueba es que el
+        usuario que edita queda en `actualizado_por_id` y en el asiento. El estado no cambia.
+        """
+        obra_id = fabricar_obra(estado=estado)
+        direccion_general = datos_presupuesto.usuario()
+        ahora = reloj_de_prueba()
+    
+>       actualizar_obra(
+            contexto(),
+            obra_id,
+            _cambios(nombre=f"Nombre en {estado}"),
+            usuario_id=direccion_general,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:644: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99A4A90>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F951B5C0>, fuentes_historial=())
+obra_id = UUID('18b977cf-5a82-4e01-abbb-059ac6d645de')
+cambios = {'nombre': 'Nombre en PLANEACION'}
+usuario_id = UUID('4c4525ec-0165-4f7d-a7f4-1725619294fb')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[ACTIVA] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99A56F0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F99BC180>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99A5FE0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F99BC2B0>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F99BC050>
+estado = 'ACTIVA'
+
+    @pytest.mark.parametrize("estado", ["PLANEACION", "ACTIVA", "SUSPENDIDA"])
+    def test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        estado: str,
+    ) -> None:
+        """TC-22 · CA-1 variante · D-3 — feliz: `PLANEACION`, `ACTIVA` y `SUSPENDIDA` admiten la edición.
+    
+        La obra `SUSPENDIDA` se edita sin reactivarla (D-3). Quien edita es otro usuario, el de Dirección
+        General: a este nivel el rol no cuenta (lo comprueba la ruta en A7); lo que se prueba es que el
+        usuario que edita queda en `actualizado_por_id` y en el asiento. El estado no cambia.
+        """
+        obra_id = fabricar_obra(estado=estado)
+        direccion_general = datos_presupuesto.usuario()
+        ahora = reloj_de_prueba()
+    
+>       actualizar_obra(
+            contexto(),
+            obra_id,
+            _cambios(nombre=f"Nombre en {estado}"),
+            usuario_id=direccion_general,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:644: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99A62A0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99BC050>, fuentes_historial=())
+obra_id = UUID('50d846a6-810d-49c0-b38d-ff77e7e1fb20')
+cambios = {'nombre': 'Nombre en ACTIVA'}
+usuario_id = UUID('8be7894c-ba3a-4660-921c-0cb7c3321348')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[SUSPENDIDA] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9971640>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9503BF0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99703B0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9503AD0>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F9503D10>
+estado = 'SUSPENDIDA'
+
+    @pytest.mark.parametrize("estado", ["PLANEACION", "ACTIVA", "SUSPENDIDA"])
+    def test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        datos_presupuesto: DatosPresupuesto,
+        reloj_de_prueba: RelojDePrueba,
+        estado: str,
+    ) -> None:
+        """TC-22 · CA-1 variante · D-3 — feliz: `PLANEACION`, `ACTIVA` y `SUSPENDIDA` admiten la edición.
+    
+        La obra `SUSPENDIDA` se edita sin reactivarla (D-3). Quien edita es otro usuario, el de Dirección
+        General: a este nivel el rol no cuenta (lo comprueba la ruta en A7); lo que se prueba es que el
+        usuario que edita queda en `actualizado_por_id` y en el asiento. El estado no cambia.
+        """
+        obra_id = fabricar_obra(estado=estado)
+        direccion_general = datos_presupuesto.usuario()
+        ahora = reloj_de_prueba()
+    
+>       actualizar_obra(
+            contexto(),
+            obra_id,
+            _cambios(nombre=f"Nombre en {estado}"),
+            usuario_id=direccion_general,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:644: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F8C58CA0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9503D10>, fuentes_historial=())
+obra_id = UUID('0522bc0c-27df-411e-91f1-c883ed299b9e')
+cambios = {'nombre': 'Nombre en SUSPENDIDA'}
+usuario_id = UUID('197f5cae-f61e-4cf8-a0a3-b99e00e4013d')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+___ test_tkt012b_ca1_actualizar_obra_umbral_none_borra_el_umbral_y_asienta ____
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9546400>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F94EF350>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9546AE0>
+usuario = UUID('d7e32c22-0e76-4e50-b2e5-bba04e3f6417')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F94EFAC0>
+
+    def test_tkt012b_ca1_actualizar_obra_umbral_none_borra_el_umbral_y_asienta(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-23 · CA-1 variante · PA-18 — feliz: `umbral_alerta_pct: None` escribe `NULL` y lo asienta.
+    
+        El asiento trae el umbral anterior y `null` después. Ausente no es `None`: la edición de otro campo
+        (el nombre) conserva el umbral, que aquí vale `0.100000` hasta que se borra.
+        """
+        obra_id = fabricar_obra()
+>       actualizar_obra(contexto(), obra_id, _cambios(nombre="Solo el nombre"), usuario_id=usuario)
+
+tests\test_tkt012b_mantenimiento_obras.py:687: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F8BA8D50>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F94EFAC0>, fuentes_historial=())
+obra_id = UUID('4b7c8779-86f4-4855-ae50-2eaa73aab33e')
+cambios = {'nombre': 'Solo el nombre'}
+usuario_id = UUID('d7e32c22-0e76-4e50-b2e5-bba04e3f6417')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_puede_fijar_el_umbral_de_una_obra_que_no_lo_tenia _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F8C307D0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F99B8270>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99A5E80>
+usuario = UUID('cf7e81d9-d173-44de-bbea-f23a9c96e103')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F99B8160>
+
+    def test_tkt012b_ca1_actualizar_obra_puede_fijar_el_umbral_de_una_obra_que_no_lo_tenia(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-23 · CA-1 variante — feliz: del umbral `NULL` a `0.2`, con `null` como valor anterior del asiento."""
+        obra_id = fabricar_obra(umbral=None)
+        ahora = reloj_de_prueba()
+    
+>       actualizar_obra(
+            contexto(), obra_id, _cambios(umbral_alerta_pct=Porcentaje("0.2")), usuario_id=usuario
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:723: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99A6400>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99B8160>, fuentes_historial=())
+obra_id = UUID('8510d081-e3a3-4f77-b62d-cce8ae94de62')
+cambios = {'umbral_alerta_pct': Porcentaje(valor=Decimal('0.2'))}
+usuario_id = UUID('cf7e81d9-d173-44de-bbea-f23a9c96e103')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+__ test_tkt012b_ca1_actualizar_obra_sin_cambios_reales_no_escribe_ni_asienta __
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99A4E00>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F98EC450>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99A4930>
+usuario = UUID('73cb500c-3584-47d6-8a2f-684764368277')
+
+    def test_tkt012b_ca1_actualizar_obra_sin_cambios_reales_no_escribe_ni_asienta(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-24 · CA-1 variante · S-2 — feliz: un cuerpo que no cambia ningún valor no deja rastro.
+    
+        Los seis campos con su valor actual (los porcentajes iguales en valor aunque con otra escala) y
+        después un mapa vacío: la obra queda tal cual, **sin** `actualizado_en` ni `actualizado_por_id`
+        (nadie la tocó) y sin asiento. Un asiento vacío ensuciaría la bitácora.
+        """
+        obra_id = fabricar_obra()
+        antes = _instantanea(base)
+        fila_antes = _fila_obligatoria(base, obra_id)
+        assert fila_antes["actualizado_en"] is None
+        assert fila_antes["actualizado_por_id"] is None
+    
+>       actualizar_obra(
+            contexto(),
+            obra_id,
+            _cambios(
+                nombre=NOMBRE_INICIAL,
+                domicilio=DOMICILIO_INICIAL,
+                retencion_destajo_pct=Porcentaje("0.15"),
+                fondo_garantia_pct=Porcentaje("0.05"),
+                iva_acreditable=True,
+                umbral_alerta_pct=Porcentaje("0.1"),
+            ),
+            usuario_id=usuario,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:765: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99A6F00>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F98EC250>, fuentes_historial=())
+obra_id = UUID('fd935753-a24a-429f-8dff-3bf45e1ffe7f')
+cambios = {'nombre': 'Obra AP-058-25', 'domicilio': 'Calle de prueba 1', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.15')), 'fondo_garantia_pct': Porcentaje(valor=Decimal('0.05')), ...}
+usuario_id = UUID('73cb500c-3584-47d6-8a2f-684764368277')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_umbral_none_sobre_umbral_nulo_no_es_un_cambio _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99A7AB0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9990550>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99A83B0>
+usuario = UUID('2c387b77-441c-4cdd-bab6-69a42c6e41f1')
+
+    def test_tkt012b_ca1_actualizar_obra_umbral_none_sobre_umbral_nulo_no_es_un_cambio(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-24 · CA-1 variante — feliz: borrar un umbral que ya no existe no escribe ni asienta."""
+        obra_id = fabricar_obra(umbral=None)
+        antes = _instantanea(base)
+    
+>       actualizar_obra(contexto(), obra_id, _cambios(umbral_alerta_pct=None), usuario_id=usuario)
+
+tests\test_tkt012b_mantenimiento_obras.py:795: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99A8720>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9990450>, fuentes_historial=())
+obra_id = UUID('6e7ea024-c70c-4a1d-a893-d652bdf5672c')
+cambios = {'umbral_alerta_pct': None}
+usuario_id = UUID('2c387b77-441c-4cdd-bab6-69a42c6e41f1')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca4_actualizar_obra_cerrada_responde_409_estado_no_permite_operacion _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99A92D0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F99B3C50>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99A9B10>
+usuario = UUID('6cfd827f-1a08-4bae-89ef-c2877cfde7af')
+
+    def test_tkt012b_ca4_actualizar_obra_cerrada_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-25 · CA-4 — rechazo: la obra `CERRADA` no se edita; `409` `ESTADO_NO_PERMITE_OPERACION` con el estado.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: la máquina de estados no es una
+        `RN`), `codigo` del catálogo, mensaje con el código de la obra y su estado, detalle con el estado y
+        ninguna acción (una obra cerrada no admite ninguna operación; tampoco para quien no puede operar).
+        El cambio pedido es válido: lo que rechaza es el estado. Obra y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado="CERRADA")
+    
+>       error = _rechazo(
+            base,
+            lambda: actualizar_obra(
+                contexto(), obra_id, _cambios(nombre="Nombre tardío"), usuario_id=usuario
+            ),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:819: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:821: in <lambda>
+    lambda: actualizar_obra(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99A9F30>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99B3980>, fuentes_historial=())
+obra_id = UUID('f46b3cb1-a4ad-4f65-8430-6e20686b466e')
+cambios = {'nombre': 'Nombre tardío'}
+usuario_id = UUID('6cfd827f-1a08-4bae-89ef-c2877cfde7af')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[retencion_destajo_pct--0.010000-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99AAA30>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F99AD310>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99AB270>
+usuario = UUID('35b0aaae-6549-4ddd-a7ba-3f6f5eaaade5')
+campo = 'retencion_destajo_pct', valor = '-0.010000'
+mensaje = 'El porcentaje debe estar entre 0 y 1 (0 % a 100 %).'
+
+    @pytest.mark.parametrize(
+        ("campo", "valor", "mensaje"),
+        [
+            ("retencion_destajo_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("retencion_destajo_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("umbral_alerta_pct", "-0.000001", MENSAJE_UMBRAL_NEGATIVO),
+        ],
+    )
+    def test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        campo: str,
+        valor: str,
+        mensaje: str,
+    ) -> None:
+        """TC-26 · CA-3 · PA-02 · PA-18 — rechazo: `422` `VALIDACION` por campo, sin cambio ni asiento.
+    
+        Junto al porcentaje inválido viaja un cambio válido (el nombre): tampoco ese se escribe, porque el
+        rechazo es de toda la petición. El contrato completo: un `ErrorDeCampo` `FUERA_DE_RANGO` con el
+        mensaje del diseño. Un umbral negativo y un `1.000001` son rechazos del caso de uso, no del motor
+        (`CHECK` `23514`).
+        """
+        obra_id = fabricar_obra()
+    
+>       error = _rechazo(
+            base,
+            lambda: actualizar_obra(
+                contexto(),
+                obra_id,
+                _cambios(nombre="No debe escribirse", **{campo: Porcentaje(valor)}),
+                usuario_id=usuario,
+            ),
+            ValidacionRechazada,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:874: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:876: in <lambda>
+    lambda: actualizar_obra(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99AB8A0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99ACE60>, fuentes_historial=())
+obra_id = UUID('52346cb4-7824-4661-bdfd-c4c7b8d5897c')
+cambios = {'nombre': 'No debe escribirse', 'retencion_destajo_pct': Porcentaje(valor=Decimal('-0.010000'))}
+usuario_id = UUID('35b0aaae-6549-4ddd-a7ba-3f6f5eaaade5')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[retencion_destajo_pct-1.000001-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99B4040>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F94D83D0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99B4880>
+usuario = UUID('4a93a296-724e-418a-a844-539ee89b6e92')
+campo = 'retencion_destajo_pct', valor = '1.000001'
+mensaje = 'El porcentaje debe estar entre 0 y 1 (0 % a 100 %).'
+
+    @pytest.mark.parametrize(
+        ("campo", "valor", "mensaje"),
+        [
+            ("retencion_destajo_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("retencion_destajo_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("umbral_alerta_pct", "-0.000001", MENSAJE_UMBRAL_NEGATIVO),
+        ],
+    )
+    def test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        campo: str,
+        valor: str,
+        mensaje: str,
+    ) -> None:
+        """TC-26 · CA-3 · PA-02 · PA-18 — rechazo: `422` `VALIDACION` por campo, sin cambio ni asiento.
+    
+        Junto al porcentaje inválido viaja un cambio válido (el nombre): tampoco ese se escribe, porque el
+        rechazo es de toda la petición. El contrato completo: un `ErrorDeCampo` `FUERA_DE_RANGO` con el
+        mensaje del diseño. Un umbral negativo y un `1.000001` son rechazos del caso de uso, no del motor
+        (`CHECK` `23514`).
+        """
+        obra_id = fabricar_obra()
+    
+>       error = _rechazo(
+            base,
+            lambda: actualizar_obra(
+                contexto(),
+                obra_id,
+                _cambios(nombre="No debe escribirse", **{campo: Porcentaje(valor)}),
+                usuario_id=usuario,
+            ),
+            ValidacionRechazada,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:874: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:876: in <lambda>
+    lambda: actualizar_obra(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99B4EB0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F952C750>, fuentes_historial=())
+obra_id = UUID('35e206b1-d41f-457b-bb1b-feaa3c27b2a1')
+cambios = {'nombre': 'No debe escribirse', 'retencion_destajo_pct': Porcentaje(valor=Decimal('1.000001'))}
+usuario_id = UUID('4a93a296-724e-418a-a844-539ee89b6e92')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[fondo_garantia_pct--0.010000-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99B5900>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9B4C750>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99B6140>
+usuario = UUID('ef40a4af-5400-4ae1-9df5-52a1af631e27')
+campo = 'fondo_garantia_pct', valor = '-0.010000'
+mensaje = 'El porcentaje debe estar entre 0 y 1 (0 % a 100 %).'
+
+    @pytest.mark.parametrize(
+        ("campo", "valor", "mensaje"),
+        [
+            ("retencion_destajo_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("retencion_destajo_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("umbral_alerta_pct", "-0.000001", MENSAJE_UMBRAL_NEGATIVO),
+        ],
+    )
+    def test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        campo: str,
+        valor: str,
+        mensaje: str,
+    ) -> None:
+        """TC-26 · CA-3 · PA-02 · PA-18 — rechazo: `422` `VALIDACION` por campo, sin cambio ni asiento.
+    
+        Junto al porcentaje inválido viaja un cambio válido (el nombre): tampoco ese se escribe, porque el
+        rechazo es de toda la petición. El contrato completo: un `ErrorDeCampo` `FUERA_DE_RANGO` con el
+        mensaje del diseño. Un umbral negativo y un `1.000001` son rechazos del caso de uso, no del motor
+        (`CHECK` `23514`).
+        """
+        obra_id = fabricar_obra()
+    
+>       error = _rechazo(
+            base,
+            lambda: actualizar_obra(
+                contexto(),
+                obra_id,
+                _cambios(nombre="No debe escribirse", **{campo: Porcentaje(valor)}),
+                usuario_id=usuario,
+            ),
+            ValidacionRechazada,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:874: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:876: in <lambda>
+    lambda: actualizar_obra(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99B6770>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9B4C830>, fuentes_historial=())
+obra_id = UUID('7ac9db13-9d30-4bee-9b56-48c4319b01a9')
+cambios = {'nombre': 'No debe escribirse', 'fondo_garantia_pct': Porcentaje(valor=Decimal('-0.010000'))}
+usuario_id = UUID('ef40a4af-5400-4ae1-9df5-52a1af631e27')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[fondo_garantia_pct-1.000001-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99B7270>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F94E9CC0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99B7AB0>
+usuario = UUID('5eb70f76-4510-4c84-b078-dd4c65d21825')
+campo = 'fondo_garantia_pct', valor = '1.000001'
+mensaje = 'El porcentaje debe estar entre 0 y 1 (0 % a 100 %).'
+
+    @pytest.mark.parametrize(
+        ("campo", "valor", "mensaje"),
+        [
+            ("retencion_destajo_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("retencion_destajo_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("umbral_alerta_pct", "-0.000001", MENSAJE_UMBRAL_NEGATIVO),
+        ],
+    )
+    def test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        campo: str,
+        valor: str,
+        mensaje: str,
+    ) -> None:
+        """TC-26 · CA-3 · PA-02 · PA-18 — rechazo: `422` `VALIDACION` por campo, sin cambio ni asiento.
+    
+        Junto al porcentaje inválido viaja un cambio válido (el nombre): tampoco ese se escribe, porque el
+        rechazo es de toda la petición. El contrato completo: un `ErrorDeCampo` `FUERA_DE_RANGO` con el
+        mensaje del diseño. Un umbral negativo y un `1.000001` son rechazos del caso de uso, no del motor
+        (`CHECK` `23514`).
+        """
+        obra_id = fabricar_obra()
+    
+>       error = _rechazo(
+            base,
+            lambda: actualizar_obra(
+                contexto(),
+                obra_id,
+                _cambios(nombre="No debe escribirse", **{campo: Porcentaje(valor)}),
+                usuario_id=usuario,
+            ),
+            ValidacionRechazada,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:874: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:876: in <lambda>
+    lambda: actualizar_obra(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A08250>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9A84A10>, fuentes_historial=())
+obra_id = UUID('5004ce63-0ec3-49e6-90b4-3c64653f3959')
+cambios = {'nombre': 'No debe escribirse', 'fondo_garantia_pct': Porcentaje(valor=Decimal('1.000001'))}
+usuario_id = UUID('5eb70f76-4510-4c84-b078-dd4c65d21825')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[umbral_alerta_pct--0.000001-El umbral de alerta no puede ser negativo.] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A090C0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F94DEB10>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A09900>
+usuario = UUID('d79caf7c-4d86-46da-bdcd-99ea19cfe567')
+campo = 'umbral_alerta_pct', valor = '-0.000001'
+mensaje = 'El umbral de alerta no puede ser negativo.'
+
+    @pytest.mark.parametrize(
+        ("campo", "valor", "mensaje"),
+        [
+            ("retencion_destajo_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("retencion_destajo_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "-0.010000", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("fondo_garantia_pct", "1.000001", MENSAJE_PORCENTAJE_FUERA_DE_RANGO),
+            ("umbral_alerta_pct", "-0.000001", MENSAJE_UMBRAL_NEGATIVO),
+        ],
+    )
+    def test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        campo: str,
+        valor: str,
+        mensaje: str,
+    ) -> None:
+        """TC-26 · CA-3 · PA-02 · PA-18 — rechazo: `422` `VALIDACION` por campo, sin cambio ni asiento.
+    
+        Junto al porcentaje inválido viaja un cambio válido (el nombre): tampoco ese se escribe, porque el
+        rechazo es de toda la petición. El contrato completo: un `ErrorDeCampo` `FUERA_DE_RANGO` con el
+        mensaje del diseño. Un umbral negativo y un `1.000001` son rechazos del caso de uso, no del motor
+        (`CHECK` `23514`).
+        """
+        obra_id = fabricar_obra()
+    
+>       error = _rechazo(
+            base,
+            lambda: actualizar_obra(
+                contexto(),
+                obra_id,
+                _cambios(nombre="No debe escribirse", **{campo: Porcentaje(valor)}),
+                usuario_id=usuario,
+            ),
+            ValidacionRechazada,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:874: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:876: in <lambda>
+    lambda: actualizar_obra(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A09F30>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F94DE990>, fuentes_historial=())
+obra_id = UUID('01d6b04f-8d3e-40a4-b5d4-a78dfe19b751')
+cambios = {'nombre': 'No debe escribirse', 'umbral_alerta_pct': Porcentaje(valor=Decimal('-0.000001'))}
+usuario_id = UUID('d79caf7c-4d86-46da-bdcd-99ea19cfe567')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+_ test_tkt012b_ca3_actualizar_obra_el_rango_se_valida_antes_de_abrir_la_transaccion _
+
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F94DEBD0>
+
+    def test_tkt012b_ca3_actualizar_obra_el_rango_se_valida_antes_de_abrir_la_transaccion(
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-26 · CA-3 — rechazo: con los tres porcentajes fuera de rango, `422` con tres errores y sin tocar la base.
+    
+        El contexto no tiene motor (pedirlo falla): si el caso de uso abre la transacción antes de validar,
+        la prueba cae con `AssertionError` y no con `ValidacionRechazada`. El orden de los errores es el del
+        alta: retención, fondo, umbral. La obra ni siquiera existe: la forma se rechaza antes que el
+        `404`.
+        """
+        contexto = construir_contexto(proveedor_motor=_sin_motor, reloj=reloj_de_prueba)
+    
+        with pytest.raises(ValidacionRechazada) as rechazo:
+>           actualizar_obra(
+                contexto,
+                uuid.uuid4(),
+                _cambios(
+                    retencion_destajo_pct=Porcentaje("1.5"),
+                    fondo_garantia_pct=Porcentaje("-0.5"),
+                    umbral_alerta_pct=Porcentaje("-1"),
+                ),
+                usuario_id=uuid.uuid4(),
+            )
+
+tests\test_tkt012b_mantenimiento_obras.py:909: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A09380>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F94DEBD0>, fuentes_historial=())
+obra_id = UUID('4567d284-21bf-43ec-9696-29df3acee051')
+cambios = {'retencion_destajo_pct': Porcentaje(valor=Decimal('1.5')), 'fondo_garantia_pct': Porcentaje(valor=Decimal('-0.5')), 'umbral_alerta_pct': Porcentaje(valor=Decimal('-1'))}
+usuario_id = UUID('07953734-3cda-4774-ad42-6cadfd7967d5')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+____ test_tkt012b_ca3_actualizar_obra_los_extremos_cero_y_uno_son_validos _____
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A0B950>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F94DEF90>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99E4250>
+usuario = UUID('1e1f1669-9626-423e-9feb-d1f14ea09109')
+
+    def test_tkt012b_ca3_actualizar_obra_los_extremos_cero_y_uno_son_validos(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-26 · CA-3 · PA-02 · PA-18 — feliz: los bordes `1`, `0` y un umbral `0` se aceptan (rango cerrado)."""
+        obra_id = fabricar_obra()
+    
+>       actualizar_obra(
+            contexto(),
+            obra_id,
+            _cambios(
+                retencion_destajo_pct=Porcentaje("1"),
+                fondo_garantia_pct=Porcentaje("0"),
+                umbral_alerta_pct=Porcentaje("0"),
+            ),
+            usuario_id=usuario,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:953: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99E4510>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9A0B490>, fuentes_historial=())
+obra_id = UUID('b80bcbb8-aa63-4f27-8283-dca5162a80d0')
+cambios = {'retencion_destajo_pct': Porcentaje(valor=Decimal('1')), 'fondo_garantia_pct': Porcentaje(valor=Decimal('0')), 'umbral_alerta_pct': Porcentaje(valor=Decimal('0'))}
+usuario_id = UUID('1e1f1669-9626-423e-9feb-d1f14ea09109')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+__ test_tkt012b_ca1_actualizar_obra_si_falla_el_asiento_se_deshace_el_cambio __
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99E5900>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F99E5D30>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F99E62A0>
+usuario = UUID('2acb4462-556f-4d19-a866-1591111d2d53')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001D1F99BE060>
+
+    def test_tkt012b_ca1_actualizar_obra_si_falla_el_asiento_se_deshace_el_cambio(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-27 · CA-1 · regla 8 — rechazo: la bitácora se escribe en la misma transacción que el cambio.
+    
+        `asentar` se sustituye por uno que, antes de lanzar, comprueba que corre dentro de la transacción
+        del caso de uso y que ve el nombre nuevo todavía sin confirmar. Al lanzar, la transacción se
+        deshace: la obra conserva el nombre y no hay `actualizado_en` ni asiento. Con `asentar` en otra sesión
+        tras confirmar, la obra quedaría cambiada y la prueba cae.
+        """
+        obra_id = fabricar_obra()
+        visto: dict[str, object] = {}
+        monkeypatch.setattr(mantenimiento_obras, "asentar", _asentar_que_falla(visto))
+        antes = _instantanea(base)
+    
+        with pytest.raises(FallaDeBitacora):
+>           mantenimiento_obras.actualizar_obra(
+                contexto(), obra_id, _cambios(nombre="Nombre que se deshace"), usuario_id=usuario
+            )
+
+tests\test_tkt012b_mantenimiento_obras.py:995: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F99E6820>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99E5440>, fuentes_historial=())
+obra_id = UUID('ada5ba96-32d2-4f4d-be61-309865752f41')
+cambios = {'nombre': 'Nombre que se deshace'}
+usuario_id = UUID('2acb4462-556f-4d19-a866-1591111d2d53')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+___ test_tkt012b_ca12_actualizar_obra_inexistente_responde_404_y_no_asienta ___
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F99E78A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F99E7CD0>
+usuario = UUID('13b2b426-dac0-40e3-bb68-1733fc178cdc')
+
+    def test_tkt012b_ca12_actualizar_obra_inexistente_responde_404_y_no_asienta(
+        contexto: Contexto, base: Base, usuario: uuid.UUID
+    ) -> None:
+        """CA-12 · TC-52 a nivel de caso de uso — rechazo: `NO_ENCONTRADO` con `recurso` `obra` y nada escrito."""
+>       error = _rechazo(
+            base,
+            lambda: actualizar_obra(
+                contexto(), uuid.uuid4(), _cambios(nombre="Fantasma"), usuario_id=usuario
+            ),
+            NoEncontrado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1018: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1020: in <lambda>
+    lambda: actualizar_obra(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A243B0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9A91450>, fuentes_historial=())
+obra_id = UUID('ce83b44f-1257-4e47-a00b-4c13048d624d')
+cambios = {'nombre': 'Fantasma'}
+usuario_id = UUID('13b2b426-dac0-40e3-bb68-1733fc178cdc')
+
+    def actualizar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        cambios: Mapping[str, ValorEditable],
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:23: NotImplementedError
+____ test_tkt012b_ca12_eliminar_obra_inexistente_responde_404_y_no_asienta ____
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A254E0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9A93CF0>
+usuario = UUID('afb3f2bc-34df-44c3-8027-37cc886ccab9')
+
+    def test_tkt012b_ca12_eliminar_obra_inexistente_responde_404_y_no_asienta(
+        contexto: Contexto, base: Base, usuario: uuid.UUID
+    ) -> None:
+        """CA-12 · TC-52 a nivel de caso de uso — rechazo: `NO_ENCONTRADO` con `recurso` `obra` y nada escrito."""
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), uuid.uuid4(), usuario_id=usuario),
+            NoEncontrado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1039: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1041: in <lambda>
+    lambda: eliminar_obra(contexto(), uuid.uuid4(), usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A25D20>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9A93110>, fuentes_historial=())
+obra_id = UUID('0bfb524a-8697-412a-bd05-2f3e0632d52c')
+usuario_id = UUID('afb3f2bc-34df-44c3-8027-37cc886ccab9')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_sin_historial_la_borra_y_su_asiento_conserva_la_fotografia _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A26E50>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9AB82D0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9AB85F0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A27690>
+usuario = UUID('a3ffbe26-0c26-40f9-810a-7c109dfc1bc1')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F99A20F0>
+
+    def test_hdu001_esc20_eliminar_obra_sin_historial_la_borra_y_su_asiento_conserva_la_fotografia(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-28 · HDU-001 esc. 20 · CA-5 · RN-01 — feliz: la obra desaparece y el asiento `ELIMINAR` queda.
+    
+        La obra recién dada de alta (`PLANEACION`, sin línea base, importación ni movimientos) se borra. El
+        asiento lleva en `datos_antes` la fotografía de nueve claves (la del `CREAR`), `RN-01`, la obra y el
+        usuario, sin motivo ni `datos_despues`, y sobrevive a la fila (`bitacora.obra_id` no tiene clave
+        foránea). Otra obra, también sin historial, no se toca.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        otra = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+        otra_antes = _fila_obligatoria(base, otra)
+        reloj_de_prueba.avanzar(timedelta(hours=2))
+        ahora = reloj_de_prueba()
+    
+>       resultado = eliminar_obra(contexto(), obra_id, usuario_id=usuario)  # type: ignore[func-returns-value]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_mantenimiento_obras.py:1079: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A27950>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99A20F0>, fuentes_historial=())
+obra_id = UUID('45dab4b1-5af7-4a7b-9330-9e1dbfaff326')
+usuario_id = UUID('a3ffbe26-0c26-40f9-810a-7c109dfc1bc1')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+___ test_hdu001_esc20_eliminar_obra_sin_umbral_asienta_el_umbral_como_nulo ____
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A60BF0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F99A0200>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A61430>
+usuario = UUID('96c6e36f-535c-4396-9429-c14348b184fe')
+
+    def test_hdu001_esc20_eliminar_obra_sin_umbral_asienta_el_umbral_como_nulo(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-28 · CA-5 — feliz: la fotografía distingue «sin umbral» (`null`) de un umbral de cero."""
+        obra_id = fabricar_obra(estado="PLANEACION", umbral=None)
+    
+>       eliminar_obra(contexto(), obra_id, usuario_id=usuario)
+
+tests\test_tkt012b_mantenimiento_obras.py:1121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A616F0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F90AB350>, fuentes_historial=())
+obra_id = UUID('918c1340-2d81-4c08-8073-be3b9294eb5c')
+usuario_id = UUID('96c6e36f-535c-4396-9429-c14348b184fe')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_____ test_hdu001_esc20_eliminar_obra_libera_el_codigo_para_un_alta_nueva _____
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A62610>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9A021D0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A62E50>
+usuario = UUID('969503be-a0d4-4625-ab03-573843cfd05c')
+
+    def test_hdu001_esc20_eliminar_obra_libera_el_codigo_para_un_alta_nueva(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-28 · CA-5 · TC-INV-5 — feliz: tras el borrado físico, el código `AP-058-25` se da de alta otra vez.
+    
+        Con un borrado lógico, `uq_obra_codigo` lo retendría y el alta daría `CODIGO_OBRA_DUPLICADO`. La obra
+        nueva tiene otro id; el asiento del borrado sigue apuntando a la vieja.
+        """
+        vieja = fabricar_obra(estado="PLANEACION")
+>       eliminar_obra(contexto(), vieja, usuario_id=usuario)
+
+tests\test_tkt012b_mantenimiento_obras.py:1141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A63110>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9A7CA50>, fuentes_historial=())
+obra_id = UUID('f034851c-6bde-45ed-9c57-803b210befc7')
+usuario_id = UUID('969503be-a0d4-4625-ab03-573843cfd05c')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_sin_historial_con_fuentes_en_cero_consulta_a_cada_una _
+
+contexto_con = <function contexto_con.<locals>.construir at 0x000001D1F9A341A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9A00450>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A349E0>
+usuario = UUID('1d22ce39-8cf1-4aba-bc3d-05a2e3585fda')
+
+    def test_hdu001_esc20_eliminar_obra_sin_historial_con_fuentes_en_cero_consulta_a_cada_una(
+        contexto_con: Callable[..., ContextoPresupuesto],
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-28 · CA-5 — feliz: con fuentes inyectadas que dicen cero, la obra se borra y se las consultó a todas.
+    
+        Cada fuente se consulta una vez, con la sesión de la transacción y el `obra_id` borrado.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        compras = FuenteDeConteo("compras", 0)
+        almacen = FuenteDeConteo("almacen", 0)
+    
+>       eliminar_obra(contexto_con(compras, almacen), obra_id, usuario_id=usuario)
+
+tests\test_tkt012b_mantenimiento_obras.py:1178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A34D50>, reloj=<tests.conftes...o object at 0x000001D1F9534D70>, <tests.test_tkt012b_mantenimiento_obras.FuenteDeConteo object at 0x000001D1F99F8A50>))
+obra_id = UUID('bdde5d8d-b8a6-46c3-9ce0-cc2e52932e78')
+usuario_id = UUID('1d22ce39-8cf1-4aba-bc3d-05a2e3585fda')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+___ test_tkt012b_ca5_eliminar_obra_si_falla_el_asiento_no_se_borra_la_obra ____
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A35D20>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F98E8520>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A36560>
+usuario = UUID('86e57820-5ae5-486b-ad57-15c5eb178d87')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001D1F99BF230>
+
+    def test_tkt012b_ca5_eliminar_obra_si_falla_el_asiento_no_se_borra_la_obra(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """TC-28 · CA-5 · regla 8 — rechazo: si el asiento falla, la obra sigue ahí y no queda asiento.
+    
+        `asentar` corre en la misma sesión del borrado (anota `in_transaction`) y luego lanza. Con el asiento
+        escrito aparte y el borrado ya confirmado, la obra habría desaparecido sin rastro.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        visto: dict[str, object] = {}
+        monkeypatch.setattr(mantenimiento_obras, "asentar", _asentar_que_falla(visto))
+        antes = _instantanea(base)
+    
+        with pytest.raises(FallaDeBitacora):
+>           mantenimiento_obras.eliminar_obra(contexto(), obra_id, usuario_id=usuario)
+
+tests\test_tkt012b_mantenimiento_obras.py:1204: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A36AE0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F98E14E0>, fuentes_historial=())
+obra_id = UUID('ac2ec014-0b7d-4660-a4b6-ca626ff6b457')
+usuario_id = UUID('86e57820-5ae5-486b-ad57-15c5eb178d87')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_linea_base_congelada_responde_409_obra_con_historial _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A378A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F98E0A60>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F98E0BB0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A0C1A0>
+usuario = UUID('57136336-d90e-4386-91e5-706a167ab04e')
+
+    def test_hdu001_esc20_eliminar_obra_con_linea_base_congelada_responde_409_obra_con_historial(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-29 · HDU-001 esc. 20 · CA-6 · RN-01 — rechazo: la obra con línea base congelada no se elimina.
+    
+        Dos líneas base (una `SUPERSEDIDA` y la `CONGELADA`) y dos importaciones: el detalle trae
+        `linea_base_congelada` verdadero y las cifras reales (2 y 2, distintas de las otras tres para que un
+        cruce no pase). Las acciones de una obra `ACTIVA` son `SUSPENDER_OBRA` y `CERRAR_OBRA`, cada una con
+        método `POST` y la ruta de esa obra; las ve quien puede operar (Director de Proyectos y Dirección
+        General) y no las ve un residente. Nada se borra y no se asienta nada.
+        """
+        obra_id = fabricar_obra(estado="ACTIVA")
+        datos_presupuesto.linea_base(obra_id=obra_id, estado="SUPERSEDIDA", version=1)
+        congelada = datos_presupuesto.linea_base(obra_id=obra_id, estado="CONGELADA", version=2)
+        for _ in range(2):
+            datos_presupuesto.importacion(obra_id=obra_id)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1237: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1239: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A0C5C0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9A822D0>, fuentes_historial=())
+obra_id = UUID('1ec00097-8064-43ee-bea8-65373f7a33f2')
+usuario_id = UUID('57136336-d90e-4386-91e5-706a167ab04e')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_solo_una_importacion_responde_409_sin_linea_base_congelada _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A0D640>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9A501D0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9A50B30>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A0DE80>
+usuario = UUID('bcdba779-35da-4547-9bb6-72be4961144d')
+
+    def test_hdu001_esc20_eliminar_obra_con_solo_una_importacion_responde_409_sin_linea_base_congelada(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-30 · CA-6 ejemplo 2 · RN-01 · D-1 — rechazo: una importación basta; `linea_base_congelada` es falso.
+    
+        Dos importaciones y ninguna línea base. Es el historial «amplio» de D-1: sin mirar `importacion`
+        la obra se borraría y la importación (con su archivo) quedaría sin dueño.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        for _ in range(2):
+            datos_presupuesto.importacion(obra_id=obra_id)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1281: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1283: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9A0E2A0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9A839B0>, fuentes_historial=())
+obra_id = UUID('8643b1fa-7845-44d3-9729-6ce2b4acba96')
+usuario_id = UUID('bcdba779-35da-4547-9bb6-72be4961144d')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_una_linea_base_borrador_tambien_tiene_historial _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9A0F480>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9A50A10>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9A519D0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9A0FCC0>
+usuario = UUID('25c61263-61d0-4f90-9e67-09483a00f925')
+
+    def test_hdu001_esc20_eliminar_obra_con_una_linea_base_borrador_tambien_tiene_historial(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-30 · CA-6 · RN-01 · D-DIS-5 `(asumido)` — rechazo: una línea base `BORRADOR` ya es historial.
+    
+        Es la obra de la prueba E2E (`M2`) y la que el congelado alcanza primero en la carrera de `CA-7`.
+        Si la persona dueña confirma otra lectura de D-DIS-5, cambia esta prueba.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        datos_presupuesto.linea_base(obra_id=obra_id, estado="BORRADOR", version=1)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1310: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1312: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9AAC1A0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99DB660>, fuentes_historial=())
+obra_id = UUID('7dcf8287-a86d-4351-8f47-3d0ac18c910b')
+usuario_id = UUID('25c61263-61d0-4f90-9e67-09483a00f925')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[PLANEACION] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9AAD0C0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9AB23F0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9A52750>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9AAD900>
+usuario = UUID('36f14f47-c183-46f4-a706-9ddf4cf6d9df'), estado = 'PLANEACION'
+
+    @pytest.mark.parametrize("estado", ["PLANEACION", "ACTIVA", "SUSPENDIDA", "CERRADA"])
+    def test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        estado: str,
+    ) -> None:
+        """TC-31 · CA-6 · CA-9 — rechazo: nunca se ofrece una acción que respondería `409`.
+    
+        Desde `PLANEACION` no hay suspensión (`PLANEACION → SUSPENDIDA` está prohibida): solo `CERRAR_OBRA`.
+        Desde `ACTIVA`, las dos. Desde `SUSPENDIDA`, solo `CERRAR_OBRA` (suspender de nuevo se rechazaría; y
+        `REACTIVAR_OBRA` no es de las acciones que declara el borrador para este `409`). Desde `CERRADA`,
+        ninguna. El cuerpo completo se compara contra la lista exacta, con método y ruta.
+        """
+        obra_id = fabricar_obra(estado=estado)
+        datos_presupuesto.importacion(obra_id=obra_id)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1346: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1348: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9AADDD0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F99D8780>, fuentes_historial=())
+obra_id = UUID('899426d3-ec70-45bb-97ec-ca7540b9468a')
+usuario_id = UUID('36f14f47-c183-46f4-a706-9ddf4cf6d9df')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[ACTIVA] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9AAEDA0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9AB0870>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9A53590>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9AAF5E0>
+usuario = UUID('16870e51-20f8-4575-bbe6-b8440418e6fb'), estado = 'ACTIVA'
+
+    @pytest.mark.parametrize("estado", ["PLANEACION", "ACTIVA", "SUSPENDIDA", "CERRADA"])
+    def test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        estado: str,
+    ) -> None:
+        """TC-31 · CA-6 · CA-9 — rechazo: nunca se ofrece una acción que respondería `409`.
+    
+        Desde `PLANEACION` no hay suspensión (`PLANEACION → SUSPENDIDA` está prohibida): solo `CERRAR_OBRA`.
+        Desde `ACTIVA`, las dos. Desde `SUSPENDIDA`, solo `CERRAR_OBRA` (suspender de nuevo se rechazaría; y
+        `REACTIVAR_OBRA` no es de las acciones que declara el borrador para este `409`). Desde `CERRADA`,
+        ninguna. El cuerpo completo se compara contra la lista exacta, con método y ruta.
+        """
+        obra_id = fabricar_obra(estado=estado)
+        datos_presupuesto.importacion(obra_id=obra_id)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1346: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1348: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9AAFAB0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9AB0A50>, fuentes_historial=())
+obra_id = UUID('ed998538-2dbe-435d-9ee5-2a61e15665ed')
+usuario_id = UUID('16870e51-20f8-4575-bbe6-b8440418e6fb')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[SUSPENDIDA] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9B94B40>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9AB3520>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9B916D0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9B95380>
+usuario = UUID('4b043aba-9a8b-4c0a-b7d0-ab303a5c3e63'), estado = 'SUSPENDIDA'
+
+    @pytest.mark.parametrize("estado", ["PLANEACION", "ACTIVA", "SUSPENDIDA", "CERRADA"])
+    def test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        estado: str,
+    ) -> None:
+        """TC-31 · CA-6 · CA-9 — rechazo: nunca se ofrece una acción que respondería `409`.
+    
+        Desde `PLANEACION` no hay suspensión (`PLANEACION → SUSPENDIDA` está prohibida): solo `CERRAR_OBRA`.
+        Desde `ACTIVA`, las dos. Desde `SUSPENDIDA`, solo `CERRAR_OBRA` (suspender de nuevo se rechazaría; y
+        `REACTIVAR_OBRA` no es de las acciones que declara el borrador para este `409`). Desde `CERRADA`,
+        ninguna. El cuerpo completo se compara contra la lista exacta, con método y ruta.
+        """
+        obra_id = fabricar_obra(estado=estado)
+        datos_presupuesto.importacion(obra_id=obra_id)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1346: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1348: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9B95850>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9AB28A0>, fuentes_historial=())
+obra_id = UUID('a865cf98-ec9d-4035-8c5f-1099857f33f7')
+usuario_id = UUID('4b043aba-9a8b-4c0a-b7d0-ab303a5c3e63')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[CERRADA] _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9B96820>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9AB1720>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9B90B30>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9B97060>
+usuario = UUID('b0888c5d-afb4-4599-9268-3c08f76b3bee'), estado = 'CERRADA'
+
+    @pytest.mark.parametrize("estado", ["PLANEACION", "ACTIVA", "SUSPENDIDA", "CERRADA"])
+    def test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        estado: str,
+    ) -> None:
+        """TC-31 · CA-6 · CA-9 — rechazo: nunca se ofrece una acción que respondería `409`.
+    
+        Desde `PLANEACION` no hay suspensión (`PLANEACION → SUSPENDIDA` está prohibida): solo `CERRAR_OBRA`.
+        Desde `ACTIVA`, las dos. Desde `SUSPENDIDA`, solo `CERRAR_OBRA` (suspender de nuevo se rechazaría; y
+        `REACTIVAR_OBRA` no es de las acciones que declara el borrador para este `409`). Desde `CERRADA`,
+        ninguna. El cuerpo completo se compara contra la lista exacta, con método y ruta.
+        """
+        obra_id = fabricar_obra(estado=estado)
+        datos_presupuesto.importacion(obra_id=obra_id)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1346: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1348: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9B975E0>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9AB0820>, fuentes_historial=())
+obra_id = UUID('9f090fc2-4642-464a-a163-f78fb3b3c631')
+usuario_id = UUID('b0888c5d-afb4-4599-9268-3c08f76b3bee')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_una_fila_de_otro_modulo_traduce_el_23001_a_obra_con_historial _
+
+contexto = <functools._lru_cache_wrapper object at 0x000001D1F9B0C5C0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9B5DC70>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001D1F9B921B0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9B0CE00>
+usuario = UUID('70ecee09-cb0b-4914-8529-9b45e805139f')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x000001D1F9B5DE50>
+
+    def test_hdu001_esc20_eliminar_obra_con_una_fila_de_otro_modulo_traduce_el_23001_a_obra_con_historial(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-32 · CA-6 · D-DIS-4 · RN-01 — rechazo: sin fuente inyectada, la clave foránea es la última barrera.
+    
+        Una requisición (`BORRADOR`) insertada por SQL cuelga de la obra y ninguna fuente la cuenta: el
+        conteo da cero y el `DELETE` choca con `fk_requisicion_obra_id` (`23001`, `ON DELETE RESTRICT`).
+        El caso de uso lo traduce a `409` `CONFLICTO` `OBRA_CON_HISTORIAL` (no al genérico
+        `ESTADO_NO_PERMITE_OPERACION` de `traducir_error_del_motor`), con la restricción en el detalle y
+        sin inventar un conteo, y con las acciones del estado (`PLANEACION`: solo `CERRAR_OBRA`). La
+        transacción se deshace entera: ni obra borrada ni asiento `ELIMINAR`.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        requisicion = _insertar_requisicion(
+            base, datos_presupuesto, obra_id=obra_id, solicitante_id=usuario, ahora=reloj_de_prueba()
+        )
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1386: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1388: in <lambda>
+    lambda: eliminar_obra(contexto(), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9B0D380>, reloj=<tests.conftest.RelojDePrueba object at 0x000001D1F9B5DE50>, fuentes_historial=())
+obra_id = UUID('4b44cb4f-4393-41a6-821e-18987c4bf0dc')
+usuario_id = UUID('70ecee09-cb0b-4914-8529-9b45e805139f')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_con_movimientos_de_las_fuentes_responde_409_con_su_suma _
+
+contexto_con = <function contexto_con.<locals>.construir at 0x000001D1F9B0E2A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9B5E210>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9B0EAE0>
+usuario = UUID('39f106eb-1228-4323-895c-616041b98348')
+
+    def test_hdu001_esc20_eliminar_obra_con_movimientos_de_las_fuentes_responde_409_con_su_suma(
+        contexto_con: Callable[..., ContextoPresupuesto],
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-19/TC-29 integrados · CA-6 · RN-01 — rechazo: una fuente inyectada con movimientos impide el borrado.
+    
+        Sin nada propio (ni línea base ni importación), dos fuentes dicen 3 y 4 movimientos: el detalle trae
+        `movimientos` 7 y el resto en cero. Sin sumar las fuentes (`hay_historial` ignorando `movimientos`)
+        la obra se borraría.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        compras = FuenteDeConteo("compras", 3)
+        almacen = FuenteDeConteo("almacen", 4)
+    
+>       error = _rechazo(
+            base,
+            lambda: eliminar_obra(contexto_con(compras, almacen), obra_id, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_mantenimiento_obras.py:1422: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_mantenimiento_obras.py:324: in _rechazo
+    llamada()
+tests\test_tkt012b_mantenimiento_obras.py:1424: in <lambda>
+    lambda: eliminar_obra(contexto_con(compras, almacen), obra_id, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9B0EF00>, reloj=<tests.conftes...o object at 0x000001D1F99FB390>, <tests.test_tkt012b_mantenimiento_obras.FuenteDeConteo object at 0x000001D1F9B049D0>))
+obra_id = UUID('8b4f6cd8-89bc-4af5-9e36-6b82090ddd22')
+usuario_id = UUID('39f106eb-1228-4323-895c-616041b98348')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_cuenta_el_historial_con_la_obra_ya_bloqueada _
+
+contexto_con = <function contexto_con.<locals>.construir at 0x000001D1F9AFC0F0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9B5E8F0>
+lector = <psycopg.Connection [IDLE] (host=localhost port=58529 user=cimenta_aplicacion database=prueba_7fd1b4e026b4) at 0x1d1f9bb6990>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9AFCA90>
+usuario = UUID('4154a995-9f22-4a76-aecc-94d5bd13ff0f')
+
+    def test_hdu001_esc20_eliminar_obra_cuenta_el_historial_con_la_obra_ya_bloqueada(
+        contexto_con: Callable[..., ContextoPresupuesto],
+        base: Base,
+        lector: Any,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-14/TC-39 en el caso de uso · CA-7 — concurrencia: al contar, otra conexión no puede bloquear la obra.
+    
+        La fuente intenta `SELECT … FOR UPDATE NOWAIT` sobre la obra desde otra conexión mientras cuenta: el
+        intento debe fallar con `LockNotAvailable`, porque el caso de uso ya tomó su `FOR UPDATE` y sigue en
+        su transacción. Si cuenta antes de bloquear, el intento sale bien y la prueba cae. Es lo que cierra
+        la carrera con el congelado y con una escritura de otro módulo (las pruebas de carrera real son de A9).
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        fuente = FuenteQueMiraElBloqueo("compras", 0, lector)
+    
+>       eliminar_obra(contexto_con(fuente), obra_id, usuario_id=usuario)
+
+tests\test_tkt012b_mantenimiento_obras.py:1454: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9AFCD50>, reloj=<tests.conftes...70>, fuentes_historial=(<tests.test_tkt012b_mantenimiento_obras.FuenteQueMiraElBloqueo object at 0x000001D1F9535D30>,))
+obra_id = UUID('8a951871-eff0-48e2-8d45-76090a6bdac3')
+usuario_id = UUID('4154a995-9f22-4a76-aecc-94d5bd13ff0f')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+_ test_hdu001_esc20_eliminar_obra_si_una_fuente_falla_el_error_sale_y_la_obra_no_se_borra _
+
+contexto_con = <function contexto_con.<locals>.construir at 0x000001D1F9AFDDD0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x000001D1F9B3D6D0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x000001D1F9AFE610>
+usuario = UUID('48244c61-58f1-435c-9a0c-5baea3d60272')
+
+    def test_hdu001_esc20_eliminar_obra_si_una_fuente_falla_el_error_sale_y_la_obra_no_se_borra(
+        contexto_con: Callable[..., ContextoPresupuesto],
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-20 en el caso de uso · CA-6 · RN-01 — rechazo: una fuente caída no se lee como «cero movimientos».
+    
+        El error de la fuente sale tal cual (no es un error de contrato: es un fallo del servidor), la obra
+        no se borra y no se asienta nada. La obra no tiene historial propio: sin el fallo, sí se borraría.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        error = FalloDeFuente("la base de compras no responde")
+        caida = FuenteCaida("compras", error)
+        antes = _instantanea(base)
+    
+        with pytest.raises(FalloDeFuente) as salido:
+>           eliminar_obra(
+                contexto_con(FuenteDeConteo("almacen", 0), caida), obra_id, usuario_id=usuario
+            )
+
+tests\test_tkt012b_mantenimiento_obras.py:1482: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x000001D1F9AFE980>, reloj=<tests.conftes...nteo object at 0x000001D1F9B04FC0>, <tests.test_tkt012b_mantenimiento_obras.FuenteCaida object at 0x000001D1F9535E80>))
+obra_id = UUID('c51d5a2a-7c88-4a52-afbc-edb9070acb66')
+usuario_id = UUID('48244c61-58f1-435c-9a0c-5baea3d60272')
+
+    def eliminar_obra(
+        contexto: ContextoPresupuesto,
+        obra_id: uuid.UUID,
+        usuario_id: uuid.UUID,
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\mantenimiento_obras.py:31: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_tkt012b_ca1_actualizar_obra_cambia_nombre_y_porcentaje_y_asienta_actualizar
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_cambia_los_seis_campos_y_el_asiento_los_trae_todos
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_un_valor_igual_al_actual_no_entra_en_el_asiento
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[PLANEACION]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[ACTIVA]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[SUSPENDIDA]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_umbral_none_borra_el_umbral_y_asienta
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_puede_fijar_el_umbral_de_una_obra_que_no_lo_tenia
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_sin_cambios_reales_no_escribe_ni_asienta
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_umbral_none_sobre_umbral_nulo_no_es_un_cambio
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca4_actualizar_obra_cerrada_responde_409_estado_no_permite_operacion
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[retencion_destajo_pct--0.010000-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[retencion_destajo_pct-1.000001-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[fondo_garantia_pct--0.010000-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[fondo_garantia_pct-1.000001-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[umbral_alerta_pct--0.000001-El umbral de alerta no puede ser negativo.]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_el_rango_se_valida_antes_de_abrir_la_transaccion
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_los_extremos_cero_y_uno_son_validos
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_si_falla_el_asiento_se_deshace_el_cambio
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca12_actualizar_obra_inexistente_responde_404_y_no_asienta
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca12_eliminar_obra_inexistente_responde_404_y_no_asienta
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_sin_historial_la_borra_y_su_asiento_conserva_la_fotografia
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_sin_umbral_asienta_el_umbral_como_nulo
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_libera_el_codigo_para_un_alta_nueva
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_sin_historial_con_fuentes_en_cero_consulta_a_cada_una
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca5_eliminar_obra_si_falla_el_asiento_no_se_borra_la_obra
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_linea_base_congelada_responde_409_obra_con_historial
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_solo_una_importacion_responde_409_sin_linea_base_congelada
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_una_linea_base_borrador_tambien_tiene_historial
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[PLANEACION]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[ACTIVA]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[SUSPENDIDA]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[CERRADA]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_una_fila_de_otro_modulo_traduce_el_23001_a_obra_con_historial
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_movimientos_de_las_fuentes_responde_409_con_su_suma
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_cuenta_el_historial_con_la_obra_ya_bloqueada
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_si_una_fuente_falla_el_error_sale_y_la_obra_no_se_borra
+37 failed, 1 passed in 14.55s

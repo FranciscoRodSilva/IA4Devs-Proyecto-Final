@@ -244,7 +244,7 @@ def test_tkt007_ca08_funciones_desde_la_interfaz() -> None:
     assert callable(asentar_denegacion)
     assert AccionBitacora is del_dominio
     assert AccionBitacora.DENEGAR.value == "DENEGAR"
-    assert len(AccionBitacora) == 23
+    assert len(AccionBitacora) == 24
 
 
 # --------------------------------------------------------------------------- TC-44 y TC-45

@@ -10,9 +10,13 @@ import functools
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
+
+if TYPE_CHECKING:
+    from cimenta.presupuesto.aplicacion.historial_obra import FuenteHistorialObra
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,6 +25,7 @@ class ContextoPresupuesto:
 
     fabrica_sesiones: Callable[[], sessionmaker[Session]]
     reloj: Callable[[], datetime]
+    fuentes_historial: tuple[FuenteHistorialObra, ...] = ()
 
 
 def _reloj_del_sistema() -> datetime:
@@ -28,7 +33,10 @@ def _reloj_del_sistema() -> datetime:
 
 
 def construir_contexto(
-    *, proveedor_motor: Callable[[], Engine], reloj: Callable[[], datetime] | None = None
+    *,
+    proveedor_motor: Callable[[], Engine],
+    reloj: Callable[[], datetime] | None = None,
+    fuentes_historial: tuple[FuenteHistorialObra, ...] = (),
 ) -> ContextoPresupuesto:
     """La fábrica de sesiones pide el motor una sola vez, al primer uso."""
 
@@ -39,4 +47,5 @@ def construir_contexto(
     return ContextoPresupuesto(
         fabrica_sesiones=fabrica,
         reloj=reloj if reloj is not None else _reloj_del_sistema,
+        fuentes_historial=fuentes_historial,
     )

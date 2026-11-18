@@ -234,6 +234,8 @@ El grafo lo resuelve solo. `avance → personal` ya existe, así que si `avance`
 
 **`CatalogoProveedores` resuelve el mismo problema en la otra dirección.** La emisión de una orden tiene que comprobar que el proveedor existe y está activo, pero `proveedores → compras` ya existe para la v1.1, y su primer uso real es de lectura: la baja de TKT-029b pide a la interfaz publicada de `compras` las órdenes pendientes del proveedor. `compras` declara el puerto, `proveedores` lo implementa (TKT-030), y `orden_compra.proveedor_id` es un identificador lógico, sin clave foránea ([modelo de datos §2](03-modelo-datos.md#2-convenciones)).
 
+**`FuenteHistorialObra` resuelve el borrado de una obra.** Eliminar una obra exige saber si tiene historial en los módulos posteriores, pero `presupuesto` es el núcleo y no puede importarlos. `presupuesto` declara el puerto (`FuenteHistorialObra`, en `aplicacion/historial_obra.py`), la raíz de composición de `servidor/` lo rellena con las interfaces publicadas de los módulos que lo publiquen, y el caso de uso suma los movimientos que cada fuente reporta. Hoy ninguna lo publica y la lista va vacía; la clave foránea `ON DELETE RESTRICT` de cada tabla hija queda como última barrera. Por qué esta forma: [ADR del 2026-11-17](adr/20261117-historial-de-obra-por-puerto-inyectado.md).
+
 ### El módulo que no existe
 
 No hay un módulo `costos` ni un `motor de reglas` central. **Cada regla vive en el módulo dueño del concepto que regula.** RN-03 (bloqueo por presupuesto) vive en `compras` y consulta a `presupuesto`; no vive en un servicio genérico de reglas.

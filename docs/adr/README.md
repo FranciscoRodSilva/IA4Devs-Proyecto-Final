@@ -65,6 +65,8 @@ Si la respuesta es sí, hay un ADR pendiente. No se documentan todas las decisio
 | 2026-11-11 | [La confirmación de un archivo no descarga el objeto: verifica una suma firmada en la subida y lee el tipo por rangos acotados](20261111-confirmacion-de-archivos-sin-descargar-el-objeto.md) | Aceptado | archivos · TKT-059 · concreta [el almacenamiento de objetos](20261001-almacenamiento-de-objetos.md) y respeta [SQLAlchemy síncrono](20260919-sqlalchemy-sincrono.md) |
 | 2026-11-15 | [Una requisición solo se borra en borrador: dos disparadores con `IN002` y no la revocación de `DELETE`](20261115-disparadores-de-borrado-en-compras.md) | Aceptado | compras · TKT-019 |
 | 2026-11-16 | [El verbo `DAR_BAJA` de la bitácora entra con `ADD VALUE` y su bajada recrea el tipo tras una guarda](20261116-verbo-dar-baja-y-bajada-recreando-el-tipo.md) | Aceptado | auditoría · TKT-029b |
+| 2026-11-17 | [El borrado de una obra sin historial es físico y se asienta con un verbo nuevo, `ELIMINAR`](20261117-verbo-eliminar-y-borrado-fisico-de-la-obra.md) | Aceptado | auditoría · presupuesto · TKT-012b |
+| 2026-11-17 | [El historial de la obra se cuenta por un puerto que los módulos posteriores implementan](20261117-historial-de-obra-por-puerto-inyectado.md) | Aceptado | presupuesto, compras, almacén · TKT-012b |
 
 ## Plantilla
 

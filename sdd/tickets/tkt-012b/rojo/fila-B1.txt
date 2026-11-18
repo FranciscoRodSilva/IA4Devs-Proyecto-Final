@@ -1,0 +1,597 @@
+
+> cimenta-frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/compartido/dinero/dinero.fraccion.test.ts (34 tests | 34 failed) 25ms
+   ❯ TKT-012b · fraccionAPorcentaje (34)
+     × tkt012b_ca15 · TC-63 · 0.150000 se muestra como 15 5ms
+     × tkt012b_ca15 · TC-63 · 0.055000 se muestra como 5.5 1ms
+     × tkt012b_ca15 · TC-63 · 0 se muestra como 0 0ms
+     × tkt012b_ca15 · TC-63 · 1 se muestra como 100 0ms
+     × tkt012b_ca15 · TC-63 · 1.000000 se muestra como 100 0ms
+     × tkt012b_ca15 · TC-63 · 0.000000 se muestra como 0 0ms
+     × tkt012b_ca15 · TC-63 · 0.125000 se muestra como 12.5 0ms
+     × tkt012b_ca15 · TC-63 · 0.123456 se muestra como 12.3456 0ms
+     × tkt012b_ca15 · TC-63 · sin pasar por number: 0.070000 es exactamente 7 0ms
+     × tkt012b_ca15 · TC-63 · sin pasar por number: 0.290000 es exactamente 29 0ms
+     × tkt012b_ca15 · TC-63 · sin pasar por number: 0.570000 es exactamente 57 0ms
+     × tkt012b_ca15 · TC-63 · sin pasar por number: 0.001100 es exactamente 0.11 0ms
+     × tkt012b_ca15 · TC-63 · el resultado no arrastra ceros de relleno ni signo de más 0ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 15 → fracción → porcentaje 2ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 5.5 → fracción → porcentaje 1ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 0 → fracción → porcentaje 1ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 100 → fracción → porcentaje 0ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 12.5 → fracción → porcentaje 0ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 12.3456 → fracción → porcentaje 0ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 7 → fracción → porcentaje 0ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 29 → fracción → porcentaje 0ms
+     × tkt012b_ca15 · TC-63 · ida y vuelta: 0.0001 → fracción → porcentaje 0ms
+     × tkt012b_ca15 · TC-63 · vuelta e ida: 0.150000 → porcentaje → 0.150000 0ms
+     × tkt012b_ca15 · TC-63 · vuelta e ida: 0.055000 → porcentaje → 0.055000 0ms
+     × tkt012b_ca15 · TC-63 · vuelta e ida: 0 → porcentaje → 0.000000 0ms
+     × tkt012b_ca15 · TC-63 · vuelta e ida: 1 → porcentaje → 1.000000 0ms
+     × tkt012b_ca15 · TC-63 · vuelta e ida: 0.123456 → porcentaje → 0.123456 0ms
+     × tkt012b_ca15 · TC-63 · rechazo: "" no es una fracción 0ms
+     × tkt012b_ca15 · TC-63 · rechazo: "abc" no es una fracción 0ms
+     × tkt012b_ca15 · TC-63 · rechazo: "1e-1" no es una fracción 0ms
+     × tkt012b_ca15 · TC-63 · rechazo: "0.15.0" no es una fracción 0ms
+     × tkt012b_ca15 · TC-63 · rechazo: "-0.150000" no es una fracción 0ms
+     × tkt012b_ca15 · TC-63 · rechazo: "Infinity" no es una fracción 0ms
+     × tkt012b_ca15 · TC-63 · rechazo: "NaN" no es una fracción 0ms
+ ❯ |cliente| src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx (7 tests | 5 failed) 865ms
+   ❯ TKT-012b · FormularioCatalogo · campos de solo lectura (7)
+     × tkt012b_ca15 · TC-64 · un campo soloLectura se muestra con su valor y no es editable 200ms
+     × tkt012b_ca15 · TC-64 · rechazo: teclear en un campo soloLectura no cambia su valor 108ms
+     × tkt012b_ca15 · TC-64 · un campo soloLectura no viaja al alGuardar aunque se intente editarlo 209ms
+     × tkt012b_ca15 · TC-64 · un desplegable soloLectura muestra su opción, no cambia y no viaja 55ms
+     × tkt012b_ca15 · TC-64 · los dos campos soloLectura a la vez salen del envío y el resto viaja 68ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 39 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx > TKT-012b · FormularioCatalogo · campos de solo lectura > tkt012b_ca15 · TC-64 · un campo soloLectura se muestra con su valor y no es editable
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx:124:41
+    122|     expect(campoCodigo()).toHaveValue(CODIGO);
+    123|     // …y el campo se presenta como no editable a quien lo lee con tec…
+    124|     expect(noEsEditable(campoCodigo())).toBe(true);
+       |                                         ^
+    125|     // Los demás campos siguen siendo editables.
+    126|     expect(noEsEditable(campoNombre())).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/39]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx > TKT-012b · FormularioCatalogo · campos de solo lectura > tkt012b_ca15 · TC-64 · rechazo: teclear en un campo soloLectura no cambia su valor
+Error: [2mexpect([22m[31melement[39m[2m).toHaveValue([22m[32mAP-058-25[39m[2m)[22m
+
+Expected the element to have value:
+[32m  AP-058-25[39m
+Received:
+[31m[39m
+ ❯ src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx:136:27
+    134|     await usuario.clear(campoCodigo());
+    135|
+    136|     expect(campoCodigo()).toHaveValue(CODIGO);
+       |                           ^
+    137|   });
+    138|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/39]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx > TKT-012b · FormularioCatalogo · campos de solo lectura > tkt012b_ca15 · TC-64 · un campo soloLectura no viaja al alGuardar aunque se intente editarlo
+AssertionError: expected { codigo: 'AP-058-25XYZ-999', …(2) } to not have property "codigo"
+
+- Expected:
+undefined
+
++ Received:
+"AP-058-25XYZ-999"
+
+ ❯ src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx:151:26
+    149|     const enviados = valoresEnviados(alGuardar);
+    150|     // La clave no está: no basta con que valga `undefined`, el servid…
+    151|     expect(enviados).not.toHaveProperty("codigo");
+       |                          ^
+    152|     // Lo editable sí viaja, y con lo escrito.
+    153|     expect(enviados).toHaveProperty("nombre", NOMBRE_NUEVO);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/39]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx > TKT-012b · FormularioCatalogo · campos de solo lectura > tkt012b_ca15 · TC-64 · un desplegable soloLectura muestra su opción, no cambia y no viaja
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx:162:44
+    160|     // Se muestra la etiqueta de la opción que trae el registro, no un…
+    161|     expect(campoModalidad()).toHaveDisplayValue("Opción beta");
+    162|     expect(noEsEditable(campoModalidad())).toBe(true);
+       |                                            ^
+    163|
+    164|     await usuario.selectOptions(campoModalidad(), "Opción alfa");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/39]⎯
+
+ FAIL  |cliente| src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx > TKT-012b · FormularioCatalogo · campos de solo lectura > tkt012b_ca15 · TC-64 · los dos campos soloLectura a la vez salen del envío y el resto viaja
+AssertionError: expected { codigo: 'AP-058-25', …(2) } to deeply equal { nombre: 'Union Square F2' }
+
+- Expected
++ Received
+
+  {
++   "codigo": "AP-058-25",
++   "modalidad": "BETA",
+    "nombre": "Union Square F2",
+  }
+
+ ❯ src/compartido/formularios/FormularioCatalogo.sololectura.test.tsx:180:40
+    178|
+    179|     await waitFor(() => expect(alGuardar).toHaveBeenCalledTimes(1));
+    180|     expect(valoresEnviados(alGuardar)).toEqual({ nombre: NOMBRE });
+       |                                        ^
+    181|   });
+    182|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 0.150000 se muestra como 15
+Error: no implementado: fraccionAPorcentaje("0.150000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 0.055000 se muestra como 5.5
+Error: no implementado: fraccionAPorcentaje("0.055000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 0 se muestra como 0
+Error: no implementado: fraccionAPorcentaje("0")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 1 se muestra como 100
+Error: no implementado: fraccionAPorcentaje("1")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 1.000000 se muestra como 100
+Error: no implementado: fraccionAPorcentaje("1.000000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 0.000000 se muestra como 0
+Error: no implementado: fraccionAPorcentaje("0.000000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 0.125000 se muestra como 12.5
+Error: no implementado: fraccionAPorcentaje("0.125000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · 0.123456 se muestra como 12.3456
+Error: no implementado: fraccionAPorcentaje("0.123456")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:21:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · sin pasar por number: 0.070000 es exactamente 7
+Error: no implementado: fraccionAPorcentaje("0.070000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:35:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · sin pasar por number: 0.290000 es exactamente 29
+Error: no implementado: fraccionAPorcentaje("0.290000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:35:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · sin pasar por number: 0.570000 es exactamente 57
+Error: no implementado: fraccionAPorcentaje("0.570000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:35:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · sin pasar por number: 0.001100 es exactamente 0.11
+Error: no implementado: fraccionAPorcentaje("0.001100")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:35:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · el resultado no arrastra ceros de relleno ni signo de más
+Error: no implementado: fraccionAPorcentaje("0.100000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:40:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 15 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.150000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 5.5 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.055000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 0 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.000000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 100 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("1.000000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 12.5 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.125000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 12.3456 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.123456")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 7 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.070000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 29 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.290000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · ida y vuelta: 0.0001 → fracción → porcentaje
+Error: no implementado: fraccionAPorcentaje("0.000001")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:51:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · vuelta e ida: 0.150000 → porcentaje → 0.150000
+Error: no implementado: fraccionAPorcentaje("0.150000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:64:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · vuelta e ida: 0.055000 → porcentaje → 0.055000
+Error: no implementado: fraccionAPorcentaje("0.055000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:64:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · vuelta e ida: 0 → porcentaje → 0.000000
+Error: no implementado: fraccionAPorcentaje("0")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:64:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · vuelta e ida: 1 → porcentaje → 1.000000
+Error: no implementado: fraccionAPorcentaje("1")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:64:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · vuelta e ida: 0.123456 → porcentaje → 0.123456
+Error: no implementado: fraccionAPorcentaje("0.123456")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:64:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · rechazo: "" no es una fracción
+Error: no implementado: fraccionAPorcentaje("")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · rechazo: "abc" no es una fracción
+Error: no implementado: fraccionAPorcentaje("abc")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · rechazo: "1e-1" no es una fracción
+Error: no implementado: fraccionAPorcentaje("1e-1")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · rechazo: "0.15.0" no es una fracción
+Error: no implementado: fraccionAPorcentaje("0.15.0")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · rechazo: "-0.150000" no es una fracción
+Error: no implementado: fraccionAPorcentaje("-0.150000")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · rechazo: "Infinity" no es una fracción
+Error: no implementado: fraccionAPorcentaje("Infinity")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/39]⎯
+
+ FAIL  |cliente| src/compartido/dinero/dinero.fraccion.test.ts > TKT-012b · fraccionAPorcentaje > tkt012b_ca15 · TC-63 · rechazo: "NaN" no es una fracción
+Error: no implementado: fraccionAPorcentaje("NaN")
+ ❯ fraccionAPorcentaje src/compartido/dinero/dinero.ts:50:9
+     48| /** Esqueleto de la fila B1 de TKT-012b (fase roja): la implementación…
+     49| export function fraccionAPorcentaje(fraccion: string): string | null {
+     50|   throw new Error(`no implementado: fraccionAPorcentaje(${JSON.stringi…
+       |         ^
+     51| }
+     52|
+ ❯ src/compartido/dinero/dinero.fraccion.test.ts:75:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/39]⎯
+
+
+ Test Files  2 failed | 23 passed (25)
+      Tests  39 failed | 440 passed (479)
+   Start at  17:30:01
+   Duration  15.37s (environment 44%, tests 31%, import 12%, setup 11%, transform 2%)
+
