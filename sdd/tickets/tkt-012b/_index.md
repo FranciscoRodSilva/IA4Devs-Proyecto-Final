@@ -4,7 +4,7 @@
 
 ## Estado
 
-PENDIENTE FUSIÓN · delta escrito, auditorías en `APROBADO`; el PR único del ticket (entregas a y b) espera la aprobación de la persona dueña. Decisiones abiertas que no bloquean: F002b, F003, F004 y la migración `0018` (ver `delta.md`, «Deuda que queda abierta»).
+ARCHIVADO · las dos entregas (a: backend; b: pantalla y E2E) se fusionaron juntas en el PR #80. La planificación queda archivada. El PR se fusionó con una excepción aprobada por la persona dueña: la comprobación de dependencias estaba en rojo por avisos nuevos de `picomatch`, ajenos al ticket.
 
 ## Ficha
 
@@ -30,6 +30,7 @@ PENDIENTE FUSIÓN · delta escrito, auditorías en `APROBADO`; el PR único del 
 | Design | [design.md](design.md) | `/sdd-disenar` | Escrito y aprobado el 2026-11-17 |
 | Impl | [impl.md](impl.md) | `/sdd-ejecutar` | Escrito el 2026-11-17 |
 | Delta | [delta.md](delta.md) | `/sdd-completar` | Escrito el 2026-11-17 |
+| PR | [#80](https://github.com/FranciscoRodSilva/IA4Devs-Proyecto-Final/pull/80) | `/sdd-completar` | Fusionado el 2026-11-17 |
 
 ## Log de estados
 
@@ -40,6 +41,7 @@ PENDIENTE FUSIÓN · delta escrito, auditorías en `APROBADO`; el PR único del 
 | 2026-11-17 | `LISTO PARA EJECUTAR` | `EN REVISIÓN` | `/sdd-ejecutar` | Entregas a (A1–A9) y b (B1–B6) ejecutadas con TDD en una sola rama. Suite del backend `4184 passed, 26 skipped`; Vitest `625 passed`; E2E de humo `8 passed`; 23 mutantes de A9 muertos. `auditor-sql`: un hallazgo menor (índices por `obra_id`), declarado como deuda. `auditor-arquitectura`: F001 (fuente de historial de `archivos`) y F002a (cita de `RN-25` en la bitácora) corregidos por orden de la persona dueña y reauditados `APROBADO`; quedan abiertos F002b, F003, F004 y F005. Nada commiteado: el commit y el PR son de `/sdd-completar` |
 | 2026-11-17 | `EN REVISIÓN` | `LISTO PARA PR` | `/sdd-revisar` | Revisión de las entregas a y b: suite del backend `4206 passed, 26 skipped`, Vitest `625 passed`, linters y `tipos:verificar` limpios. Dos ciclos de corrección: el primero aplicó `auditor-arquitectura F001` (fuente de historial de `archivos`) y `F002a` (cita de `RN-25`); el segundo, `auditor-seguridad F001` (el `409` por clave foránea ya no publica el nombre de la restricción), `auditor-codigo F001` a `F006` y `F008`, y tres Mayores de `auditor-docs` (`llms.txt`, `docs/05`, `spec.md` CA-16). Cinco auditores en `APROBADO`; `auditor-sql` con la condición de formalizar la deuda de índices en `delta.md`. El PR toca `docs/api/openapi.yaml`: señalarlo. Diferido por la persona dueña: F007 y observaciones. El E2E se repitió tras el ciclo 2: `8 passed` |
 | 2026-11-17 | `LISTO PARA PR` | `PENDIENTE FUSIÓN` | `/sdd-completar` | Delta escrito (`auditor-docs` en `APROBADO` tras corregir un Mayor y cuatro Menores del propio delta), seis observaciones de proceso en `_evolucion.md` con la revisión de `meta-sdd` (seis propuestas sin aplicar), deuda de índices declarada con su alcance completo. Se abre el único PR del ticket |
+| 2026-11-17 | `PENDIENTE FUSIÓN` | `ARCHIVADO` | `/sdd-completar TKT-012b` | PR #80 fusionado en `Produccion` (commit `03e2135`) con nueve de las diez comprobaciones requeridas en verde sobre `cb068b5`; la de «Dependencias · auditoría de vulnerabilidades» estaba en rojo por avisos nuevos de `picomatch` sin versión parcheada, ajenos al PR, y la persona dueña aprobó fusionar con esa excepción (fusión manual y sin `--admin`, porque `Produccion` no tiene protección de rama). La planificación queda archivada; el número del PR consta en el comentario de registro |
 | 2026-11-17 | `DISEÑO PENDIENTE REVISIÓN` | `LISTO PARA EJECUTAR` | `/sdd-disenar` | La persona dueña aprobó el diseño completo en la conversación principal: todas las recomendaciones de D-DIS-1 a D-DIS-7 |
 
 ## Decisiones registradas
