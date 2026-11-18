@@ -171,14 +171,18 @@ rm -rf "$AUDITORIA"
 
 `pip-audit` termina en 1 cuando encuentra vulnerabilidades, por eso su línea lleva `|| true`: quien decide es el script, que sale con 0 si ningún hallazgo falla, con 1 si alguno es `ALTA`, `CRÍTICA` o `DESCONOCIDA`, y con 2 si el informe no existe o OSV no responde. Sin el `|| true`, la auditoría se cortaría antes de llegar al script. La versión de `uv` en uso también escribe el contenido del `req.txt` por la salida estándar; si estorba, añade `> /dev/null` a la línea de `uv export`.
 
-Desde la raíz del repositorio, el frontend y el lock de `mermaid-cli` se auditan con la opción nativa de `npm`:
+Desde la raíz del repositorio, el frontend se audita con el mismo patrón: `npm audit --json` escribe el informe y `tools/severidad_npm_audit.py` decide. El lock de `mermaid-cli` se audita con la opción nativa de `npm`:
 
 ```bash
-(cd frontend && npm audit --audit-level=high)
+AUDITORIA="$(mktemp -d)"
+(cd frontend && npm audit --json > "$AUDITORIA/npm-audit.json" || true)
+python tools/severidad_npm_audit.py "$AUDITORIA/npm-audit.json"
+echo $?
+rm -rf "$AUDITORIA"
 (cd .github/mermaid && npm audit --audit-level=high)
 ```
 
-Cada comando sale con 0 mientras no haya avisos `high` ni `critical`; los `moderate` y `low` se listan y no fallan. Necesita acceso al registro de npm.
+`npm audit` termina en 1 cuando encuentra vulnerabilidades, por eso su línea lleva `|| true`: quien decide es el script, que sale con 0 si nada falla, con 1 si algún aviso es `high`, `critical` o de severidad desconocida y no está aceptado, y con 2 si el informe no existe o no se puede leer (por ejemplo, el informe de error que npm escribe sin red). El aviso de `picomatch` (`GHSA-fc5q-39xc-vjpf`) está aceptado hasta el 2026-12-18; la tabla `EXCEPCIONES` del script explica por qué. El comando de `mermaid-cli` sale con 0 mientras no haya avisos `high` ni `critical`; los `moderate` y `low` se listan y no fallan. Los dos necesitan acceso al registro de npm.
 
 ### Calidad de la documentación en local
 
