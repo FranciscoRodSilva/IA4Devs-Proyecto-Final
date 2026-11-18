@@ -1,0 +1,21 @@
+
+> cimenta-frontend@0.0.0 e2e
+> playwright test
+
+[WebServer] INFO:     Started server process [43976]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+
+Running 8 tests using 1 worker
+
+  ok 1 [chromium] › e2e\humo.spec.ts:44:1 › tkt008_ca14_esc01 · entrar y salir (891ms)
+  ok 2 [chromium] › e2e\humo.spec.ts:57:1 › tkt008_ca14_esc02 · credenciales incorrectas (653ms)
+  ok 3 [chromium] › e2e\humo.spec.ts:68:3 › teléfono › tkt008_ca07_esc08 · teléfono (599ms)
+  ok 4 [chromium] › e2e\linea-base.spec.ts:50:1 › hdu001_esc14 · congelar como DP y capturar como DG (2.1s)
+  ok 5 [chromium] › e2e\obras.spec.ts:59:1 › hdu001_esc02 · alta de obra de punta a punta (1.2s)
+  ok 6 [chromium] › e2e\obras.spec.ts:72:1 › hdu001_esc03 · el mismo código otra vez (1.7s)
+  ok 7 [chromium] › e2e\obras.spec.ts:117:1 › hdu001_esc20 · ca18 · editar el nombre, suspender y reactivar una obra activa (2.1s)
+  ok 8 [chromium] › e2e\obras.spec.ts:167:1 › hdu001_esc20 · ca18 · eliminar una obra con historial queda bloqueado y la obra sigue en la lista (1.4s)
+
+  8 passed (20.2s)

@@ -9,17 +9,20 @@ import re
 import uuid
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Literal, Self, get_args
 
 from pydantic import (
     AfterValidator,
     BaseModel,
+    ConfigDict,
     Field,
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
     StrictBool,
     StringConstraints,
     WithJsonSchema,
+    field_validator,
+    model_validator,
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import core_schema
@@ -33,6 +36,7 @@ from cimenta.presupuesto.aplicacion.consulta_linea_base import (
     TipoPartidaConsultado,
 )
 from cimenta.presupuesto.aplicacion.obras import ObrasConsultadas
+from cimenta.presupuesto.dominio.ciclo_vida_obra import ValorEditable
 from cimenta.presupuesto.infraestructura.repositorio_obra import FilaObraCompleta
 from tipos_base import Dinero, Porcentaje
 
@@ -321,6 +325,52 @@ class ObraNueva(BaseModel):
     fondo_garantia_pct: PorcentajeEntrada
     iva_acreditable: StrictBool
     umbral_alerta_pct: PorcentajeEntrada | None = None
+
+
+class ObraCambios(BaseModel):
+    """Cuerpo del `PATCH` de la obra (TKT-012b, CA-1 a CA-3): solo los campos que se editan.
+
+    Lo que el cuerpo no trae no cambia (`model_fields_set`). Solo `umbral_alerta_pct` admite `null`, que
+    borra el umbral; en los demás campos `null` es `FORMATO` señalando ese campo. Un campo fijo o
+    desconocido (`codigo`, `estado`…) es `VALOR_NO_PERMITIDO` (`extra="forbid"`).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    nombre: NombreObra | None = None
+    domicilio: DomicilioObra | None = None
+    retencion_destajo_pct: PorcentajeEntrada | None = None
+    fondo_garantia_pct: PorcentajeEntrada | None = None
+    iva_acreditable: StrictBool | None = None
+    umbral_alerta_pct: PorcentajeEntrada | None = None
+
+    @field_validator(
+        "nombre",
+        "domicilio",
+        "retencion_destajo_pct",
+        "fondo_garantia_pct",
+        "iva_acreditable",
+        mode="before",
+    )
+    @classmethod
+    def no_admite_null(cls, valor: object) -> object:
+        if valor is None:
+            raise ValueError("El campo no admite null.")
+        return valor
+
+    @model_validator(mode="after")
+    def al_menos_un_campo(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("El cuerpo no trae ningún campo a cambiar.")
+        return self
+
+    def cambios(self) -> dict[str, ValorEditable]:
+        """Los campos que el cuerpo trae, en el orden del modelo; un `null` solo llega en el umbral."""
+        return {
+            campo: getattr(self, campo)
+            for campo in type(self).model_fields
+            if campo in self.model_fields_set
+        }
 
 
 PorcentajeTexto = Annotated[str, Field(json_schema_extra={"format": "decimal"})]

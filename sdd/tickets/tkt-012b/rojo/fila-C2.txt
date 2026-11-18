@@ -1,0 +1,76 @@
+F.......F..........F.FFFFF                                               [100%]
+================================== FAILURES ===================================
+_ test_tkt012b_ca6_api_delete_con_una_fila_de_otro_modulo_responde_409_y_no_500 _
+tests\test_tkt012b_api_obras.py:1316: in test_tkt012b_ca6_api_delete_con_una_fila_de_otro_modulo_responde_409_y_no_500
+    _exigir_con_historial(
+tests\test_tkt012b_api_obras.py:388: in _exigir_con_historial
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:176: in exigir_error
+    assert cuerpo == {**esperado, "correlacion_id": respuesta.headers[CABECERA_CORRELACION]}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError
+_ test_tkt012b_ca6_api_ningun_rechazo_publica_estructura_interna[delete_409_fila_de_otro_modulo_23001] _
+tests\test_tkt012b_api_obras.py:1992: in test_tkt012b_ca6_api_ningun_rechazo_publica_estructura_interna
+    assert "fk_" not in texto, respuesta.text
+E   AssertionError: {"tipo":"CONFLICTO","mensaje":"La obra AP-058-25 tiene historial y no se puede eliminar.","codigo":"OBRA_CON_HISTORIAL","detalle":{"restriccion":"fk_requisicion_obra_id"},"acciones":[{"clave":"SUSPENDER_OBRA","metodo":"POST","ruta":"/api/v1/obras/f04f96b7-920f-4f22-afc5-54dda2b09cdc/suspension"},{"clave":"CERRAR_OBRA","metodo":"POST","ruta":"/api/v1/obras/f04f96b7-920f-4f22-afc5-54dda2b09cdc/cierre"}],"correlacion_id":"f18faccf-0e63-426c-81bd-e65aa6afca45"}
+E   assert 'fk_' not in '{"tipo":"co...5aa6afca45"}'
+E     
+E     'fk_' is contained here:
+E       riccion":"fk_requisicion_obra_id"},"acciones":[{"clave":"suspender_obra","metodo":"post","ruta":"/api/v1/obras/f04f96b7-920f-4f22-afc5-54dda2b09cdc/suspension"},{"clave":"cerrar_obra","metodo":"post","ruta":"/api/v1/obras/f04f96b7-920f-4f22-afc5-54dda2b09cdc/cierre"}],"correlacion_id":"f18faccf-0e63-426c-81bd-e65aa6afca45"}
+E     ?           +++
+_ test_tkt012b_ca7_escritura_ajena_en_curso_el_borrado_espera_y_responde_409[requisicion] _
+tests\test_tkt012b_concurrencia.py:690: in test_tkt012b_ca7_escritura_ajena_en_curso_el_borrado_espera_y_responde_409
+    assert rechazo.cuerpo(ROLES_DP, CORRELACION) == _cuerpo_con_historial(
+E   AssertionError: assert {'tipo': 'CON...bra_id'}, ...} == {'tipo': 'CON...tos': 1}, ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'restriccion': 'fk_requisicion_obra_id'}} != {'detalle': {'linea_base_congelada': False, 'lineas_base': 0, 'importaciones': 0, 'movimientos': 1}}
+E     Use -v to get more diff
+_ test_tkt012b_ca13_f005_actualizar_obra_fecha_con_el_instante_en_que_obtiene_el_bloqueo _
+tests\test_tkt012b_concurrencia.py:1417: in test_tkt012b_ca13_f005_actualizar_obra_fecha_con_el_instante_en_que_obtiene_el_bloqueo
+    assert _ocurrido_en(base, obra_id, "ACTUALIZAR", domicilio="Domicilio de la espera") == [
+E   AssertionError: assert [datetime.dat...y='Etc/UTC'))] == [datetime.dat...timezone.utc)]
+E     
+E     At index 0 diff: datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')) != datetime.datetime(2026, 10, 21, 9, 5, tzinfo=datetime.timezone.utc)
+E     Use -v to get more diff
+_ test_tkt012b_ca13_f005_transicion_fecha_con_el_instante_en_que_obtiene_el_bloqueo[reactivar] _
+tests\test_tkt012b_concurrencia.py:1464: in test_tkt012b_ca13_f005_transicion_fecha_con_el_instante_en_que_obtiene_el_bloqueo
+    assert _ocurrido_en(base, obra_id, verbo) == [instante_de_b]
+E   AssertionError: assert [datetime.dat...y='Etc/UTC'))] == [datetime.dat...timezone.utc)]
+E     
+E     At index 0 diff: datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')) != datetime.datetime(2026, 10, 21, 9, 5, tzinfo=datetime.timezone.utc)
+E     Use -v to get more diff
+_ test_tkt012b_ca13_f005_transicion_fecha_con_el_instante_en_que_obtiene_el_bloqueo[cerrar] _
+tests\test_tkt012b_concurrencia.py:1464: in test_tkt012b_ca13_f005_transicion_fecha_con_el_instante_en_que_obtiene_el_bloqueo
+    assert _ocurrido_en(base, obra_id, verbo) == [instante_de_b]
+E   AssertionError: assert [datetime.dat...y='Etc/UTC'))] == [datetime.dat...timezone.utc)]
+E     
+E     At index 0 diff: datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')) != datetime.datetime(2026, 10, 21, 9, 5, tzinfo=datetime.timezone.utc)
+E     Use -v to get more diff
+_ test_tkt012b_ca13_f005_eliminar_obra_fecha_su_asiento_con_el_instante_del_bloqueo _
+tests\test_tkt012b_concurrencia.py:1499: in test_tkt012b_ca13_f005_eliminar_obra_fecha_su_asiento_con_el_instante_del_bloqueo
+    assert _ocurrido_en(base, obra_id, "ELIMINAR") == [instante_de_b]
+E   AssertionError: assert [datetime.dat...y='Etc/UTC'))] == [datetime.dat...timezone.utc)]
+E     
+E     At index 0 diff: datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')) != datetime.datetime(2026, 10, 21, 9, 5, tzinfo=datetime.timezone.utc)
+E     Use -v to get more diff
+_ test_hdu001_esc20_eliminar_obra_con_una_fila_de_otro_modulo_traduce_el_23001_a_obra_con_historial _
+tests\test_tkt012b_mantenimiento_obras.py:1395: in test_hdu001_esc20_eliminar_obra_con_una_fila_de_otro_modulo_traduce_el_23001_a_obra_con_historial
+    assert error.cuerpo(ROLES_DP, CORRELACION) == _cuerpo_con_historial(
+E   AssertionError: assert {'tipo': 'CON...bra_id'}, ...} == {'tipo': 'CON...tos': 1}, ...}
+E     
+E     Omitting 5 identical items, use -vv to show
+E     Differing items:
+E     {'detalle': {'restriccion': 'fk_requisicion_obra_id'}} != {'detalle': {'linea_base_congelada': False, 'lineas_base': 0, 'importaciones': 0, 'movimientos': 1}}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_api_obras.py::test_tkt012b_ca6_api_delete_con_una_fila_de_otro_modulo_responde_409_y_no_500
+FAILED tests/test_tkt012b_api_obras.py::test_tkt012b_ca6_api_ningun_rechazo_publica_estructura_interna[delete_409_fila_de_otro_modulo_23001]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca7_escritura_ajena_en_curso_el_borrado_espera_y_responde_409[requisicion]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_f005_actualizar_obra_fecha_con_el_instante_en_que_obtiene_el_bloqueo
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_f005_transicion_fecha_con_el_instante_en_que_obtiene_el_bloqueo[reactivar]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_f005_transicion_fecha_con_el_instante_en_que_obtiene_el_bloqueo[cerrar]
+FAILED tests/test_tkt012b_concurrencia.py::test_tkt012b_ca13_f005_eliminar_obra_fecha_su_asiento_con_el_instante_del_bloqueo
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_una_fila_de_otro_modulo_traduce_el_23001_a_obra_con_historial
+8 failed, 18 passed, 266 deselected in 18.55s

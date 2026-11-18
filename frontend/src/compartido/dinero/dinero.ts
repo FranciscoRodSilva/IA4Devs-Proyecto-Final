@@ -7,6 +7,7 @@ export type Decimal = InstanceType<typeof Decimal>;
 const DECIMAL_PLANO = /^-?\d+(\.\d+)?$/;
 const ENTERO_NO_NEGATIVO = /^\d{1,9}$/;
 const PORCENTAJE_TECLEADO = /^\d{1,3}(\.\d{1,4})?$/;
+const FRACCION_PLANA = /^\d{1,3}(\.\d{1,6})?$/;
 const FORMATO_IMPORTE = new Intl.NumberFormat("es-MX", {
   style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2,
 });
@@ -43,6 +44,12 @@ export function formatearCantidad(valor: string | Decimal, unidad?: string): str
 export function porcentajeAFraccion(texto: string): string | null {
   const limpio = texto.trim();
   return PORCENTAJE_TECLEADO.test(limpio) ? new Decimal(limpio).div(100).toFixed(6) : null;
+}
+
+/** "0.150000" → "15"; "0.055000" → "5.5". Lo que no es una fracción plana de hasta seis decimales → null. Vuelta de porcentajeAFraccion (TKT-012b CA-15). */
+export function fraccionAPorcentaje(fraccion: string): string | null {
+  const limpio = fraccion.trim();
+  return FRACCION_PLANA.test(limpio) ? new Decimal(limpio).times(100).toFixed() : null;
 }
 
 /** Cabecera Retry-After en segundos → entero; cualquier otra forma → null. Vive aquí porque este

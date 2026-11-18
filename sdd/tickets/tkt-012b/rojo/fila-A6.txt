@@ -1,0 +1,1468 @@
+.FFFFFFFFFFFFFFFFFFFFFFFFFF                                              [100%]
+================================== FAILURES ===================================
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-SUSPENDER] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEF41DD0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEF4C980>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000230DEF4CAD0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEF42610>
+usuario = UUID('bbe1a0ba-c4ef-4d3d-8a24-191df24807ac')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEB0FE00>
+origen = 'ACTIVA', operacion = <function suspender_obra at 0x00000230DE062B90>
+destino = 'SUSPENDIDA', verbo = 'SUSPENDER'
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino", "verbo"),
+        [caso for caso in ADMITIDAS if caso[0] != "PLANEACION"],
+        ids=[ident for ident in IDS_ADMITIDAS if not ident.startswith("PLANEACION")],
+    )
+    def test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-33 · HDU-001 esc. 20 · CA-8 · RN-25 — feliz: cada transición admitida cambia el estado y se asienta.
+    
+        El asiento lleva el verbo, el estado anterior y el nuevo, el motivo, la obra y el usuario, y `RN-25`.
+        Un solo asiento por transición. `actualizado_en` toma el reloj inyectado (avanzado, para distinguirlo
+        de la hora de la base) y `actualizado_por_id` al usuario; ninguna otra columna cambia, y otra obra, del
+        mismo estado, no se toca. La función no devuelve nada: la ruta relee con `obtener_obra`.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila(base, obra_id)
+        antes_de_la_otra = _fila(base, otra)
+        reloj_de_prueba.avanzar(timedelta(hours=3))
+        ahora = reloj_de_prueba()
+    
+>       resultado = operacion(  # type: ignore[func-returns-value]
+            contexto(), obra_id, MOTIVO, usuario_id=usuario
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:356: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEF42F00>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB0FE00>, fuentes_historial=())
+obra_id = UUID('05484762-b09b-4441-9abf-c1bd356bcc02')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('bbe1a0ba-c4ef-4d3d-8a24-191df24807ac')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-REACTIVAR] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEFE4CA0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEF23390>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000230DEF234D0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEFE57A0>
+usuario = UUID('f24f1097-27e2-439f-9947-2aecdd1d1f7a')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEF23250>
+origen = 'SUSPENDIDA'
+operacion = <function reactivar_obra at 0x00000230DE295380>, destino = 'ACTIVA'
+verbo = 'REACTIVAR'
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino", "verbo"),
+        [caso for caso in ADMITIDAS if caso[0] != "PLANEACION"],
+        ids=[ident for ident in IDS_ADMITIDAS if not ident.startswith("PLANEACION")],
+    )
+    def test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-33 · HDU-001 esc. 20 · CA-8 · RN-25 — feliz: cada transición admitida cambia el estado y se asienta.
+    
+        El asiento lleva el verbo, el estado anterior y el nuevo, el motivo, la obra y el usuario, y `RN-25`.
+        Un solo asiento por transición. `actualizado_en` toma el reloj inyectado (avanzado, para distinguirlo
+        de la hora de la base) y `actualizado_por_id` al usuario; ninguna otra columna cambia, y otra obra, del
+        mismo estado, no se toca. La función no devuelve nada: la ruta relee con `obtener_obra`.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila(base, obra_id)
+        antes_de_la_otra = _fila(base, otra)
+        reloj_de_prueba.avanzar(timedelta(hours=3))
+        ahora = reloj_de_prueba()
+    
+>       resultado = operacion(  # type: ignore[func-returns-value]
+            contexto(), obra_id, MOTIVO, usuario_id=usuario
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:356: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEFE5BC0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEF23250>, fuentes_historial=())
+obra_id = UUID('7c9d9bda-6971-4376-8b2f-aa1e43eabfd3')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('f24f1097-27e2-439f-9947-2aecdd1d1f7a')
+
+    def reactivar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:25: NotImplementedError
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-CERRAR] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEFE64B0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DF014190>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000230DF0142D0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEFE6E50>
+usuario = UUID('e8a17bcd-f392-4eb1-8597-7d8820a47f8a')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DF014050>
+origen = 'ACTIVA', operacion = <function cerrar_obra at 0x00000230DE2954E0>
+destino = 'CERRADA', verbo = 'CERRAR'
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino", "verbo"),
+        [caso for caso in ADMITIDAS if caso[0] != "PLANEACION"],
+        ids=[ident for ident in IDS_ADMITIDAS if not ident.startswith("PLANEACION")],
+    )
+    def test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-33 · HDU-001 esc. 20 · CA-8 · RN-25 — feliz: cada transición admitida cambia el estado y se asienta.
+    
+        El asiento lleva el verbo, el estado anterior y el nuevo, el motivo, la obra y el usuario, y `RN-25`.
+        Un solo asiento por transición. `actualizado_en` toma el reloj inyectado (avanzado, para distinguirlo
+        de la hora de la base) y `actualizado_por_id` al usuario; ninguna otra columna cambia, y otra obra, del
+        mismo estado, no se toca. La función no devuelve nada: la ruta relee con `obtener_obra`.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila(base, obra_id)
+        antes_de_la_otra = _fila(base, otra)
+        reloj_de_prueba.avanzar(timedelta(hours=3))
+        ahora = reloj_de_prueba()
+    
+>       resultado = operacion(  # type: ignore[func-returns-value]
+            contexto(), obra_id, MOTIVO, usuario_id=usuario
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:356: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEFE7320>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DF014050>, fuentes_historial=())
+obra_id = UUID('bb640ea1-0df9-46ba-a1c0-f97cd241c42e')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('e8a17bcd-f392-4eb1-8597-7d8820a47f8a')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-CERRAR] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB4E560>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB42780>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000230DEB41940>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEB4D7A0>
+usuario = UUID('b6db0607-c703-4702-af4b-be96b702c5e4')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEB42520>
+origen = 'SUSPENDIDA', operacion = <function cerrar_obra at 0x00000230DE2954E0>
+destino = 'CERRADA', verbo = 'CERRAR'
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino", "verbo"),
+        [caso for caso in ADMITIDAS if caso[0] != "PLANEACION"],
+        ids=[ident for ident in IDS_ADMITIDAS if not ident.startswith("PLANEACION")],
+    )
+    def test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-33 · HDU-001 esc. 20 · CA-8 · RN-25 — feliz: cada transición admitida cambia el estado y se asienta.
+    
+        El asiento lleva el verbo, el estado anterior y el nuevo, el motivo, la obra y el usuario, y `RN-25`.
+        Un solo asiento por transición. `actualizado_en` toma el reloj inyectado (avanzado, para distinguirlo
+        de la hora de la base) y `actualizado_por_id` al usuario; ninguna otra columna cambia, y otra obra, del
+        mismo estado, no se toca. La función no devuelve nada: la ruta relee con `obtener_obra`.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila(base, obra_id)
+        antes_de_la_otra = _fila(base, otra)
+        reloj_de_prueba.avanzar(timedelta(hours=3))
+        ahora = reloj_de_prueba()
+    
+>       resultado = operacion(  # type: ignore[func-returns-value]
+            contexto(), obra_id, MOTIVO, usuario_id=usuario
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:356: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEB4D6F0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB42520>, fuentes_historial=())
+obra_id = UUID('c53e5e6b-a241-48e2-91d5-ff7e5eade917')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('b6db0607-c703-4702-af4b-be96b702c5e4')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+_ test_hdu001_esc20_tkt012b_ca8_cerrar_una_obra_en_planeacion_asienta_cerrar __
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB4CCA0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB40510>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEB4C0F0>
+usuario = UUID('a6b88fb4-99ff-4ec7-a348-44ef6bea95d1')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEB40770>
+
+    def test_hdu001_esc20_tkt012b_ca8_cerrar_una_obra_en_planeacion_asienta_cerrar(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-37 · CA-8 ejemplo añadido · D-2 · D-DIS-6 · RN-25 — feliz: `PLANEACION → CERRADA` está admitida.
+    
+        Una obra que nunca se activó se cierra con motivo. Es la transición que se probaría rota si el
+        dominio exigiera pasar por `ACTIVA`. El asiento trae `PLANEACION` como estado anterior.
+        """
+        obra_id = fabricar_obra(estado="PLANEACION")
+        ahora = reloj_de_prueba()
+    
+>       cerrar_obra(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:399: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEAFC040>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB40770>, fuentes_historial=())
+obra_id = UUID('e5bbca90-cf53-4d23-a4a4-89837f1386da')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('a6b88fb4-99ff-4ec7-a348-44ef6bea95d1')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+_ test_hdu001_esc20_tkt012b_ca8_direccion_general_opera_igual_en_toda_la_cadena _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEAFF8A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB3E210>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000230DEB3E7B0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEFE6140>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEB3EB10>
+
+    def test_hdu001_esc20_tkt012b_ca8_direccion_general_opera_igual_en_toda_la_cadena(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-34 · CA-8 variante — feliz: otro usuario (el de Dirección General) suspende, reactiva y cierra.
+    
+        A este nivel el rol no cuenta (lo comprueba la ruta en A7); lo que se prueba es que quien opera
+        queda en `actualizado_por_id` y en los tres asientos, distintos del creador de la obra, y que la
+        cadena `ACTIVA → SUSPENDIDA → ACTIVA → CERRADA` es admitida de punta a punta. El reloj avanza entre
+        pasos para que el orden de los asientos sea el de la operación.
+        """
+        obra_id = fabricar_obra(estado="ACTIVA")
+        direccion_general = datos_presupuesto.usuario()
+        cadena: list[tuple[Transicion, str, str, str]] = [
+            (suspender_obra, "SUSPENDER", "ACTIVA", "SUSPENDIDA"),
+            (reactivar_obra, "REACTIVAR", "SUSPENDIDA", "ACTIVA"),
+            (cerrar_obra, "CERRAR", "ACTIVA", "CERRADA"),
+        ]
+        esperados = []
+    
+        for operacion, verbo, origen, destino in cadena:
+            reloj_de_prueba.avanzar(timedelta(minutes=10))
+            ahora = reloj_de_prueba()
+>           operacion(contexto(), obra_id, MOTIVO, usuario_id=direccion_general)
+
+tests\test_tkt012b_ciclo_vida_obra.py:443: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEFE6AE0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB3EB10>, fuentes_historial=())
+obra_id = UUID('3ff1a2d5-1bcd-4e31-8f24-3eef46a3d748')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('115c4f77-8e00-4e38-93a6-2653a9c64da8')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[PLANEACION-suspender_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEFE7AB0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB86030>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEFE5380>
+usuario = UUID('ad299f36-a080-4043-abf9-9d64dff35fc3'), origen = 'PLANEACION'
+operacion = <function suspender_obra at 0x00000230DE062B90>
+
+    @pytest.mark.parametrize(("origen", "operacion"), NO_ADMITIDAS, ids=IDS_NO_ADMITIDAS)
+    def test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        origen: str,
+        operacion: Transicion,
+    ) -> None:
+        """TC-35 · CA-9 · D-2 — rechazo: las siete combinaciones que la máquina no admite.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: no hay `RN` de la máquina de estados),
+        `codigo` del catálogo, mensaje con el código de la obra y su estado, y detalle con el estado actual y
+        las operaciones que **sí** admite (la tabla D-2, no la solicitada). Las acciones son una por operación
+        admitida, con método y ruta reales de la obra, y nunca incluyen la que se acaba de rechazar. Las ven
+        el Director de Proyectos y Dirección General; el residente recibe el mismo cuerpo sin acciones. Obra
+        y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado=origen)
+    
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:484: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:486: in <lambda>
+    lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEFE4D50>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB85F20>, fuentes_historial=())
+obra_id = UUID('e1bc2cf0-62a4-41f4-bd78-e1b84d9aa748')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('ad299f36-a080-4043-abf9-9d64dff35fc3')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[PLANEACION-reactivar_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEF422A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB845A0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEF42560>
+usuario = UUID('ea95ceec-bd21-440e-8dc7-af7f35518566'), origen = 'PLANEACION'
+operacion = <function reactivar_obra at 0x00000230DE295380>
+
+    @pytest.mark.parametrize(("origen", "operacion"), NO_ADMITIDAS, ids=IDS_NO_ADMITIDAS)
+    def test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        origen: str,
+        operacion: Transicion,
+    ) -> None:
+        """TC-35 · CA-9 · D-2 — rechazo: las siete combinaciones que la máquina no admite.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: no hay `RN` de la máquina de estados),
+        `codigo` del catálogo, mensaje con el código de la obra y su estado, y detalle con el estado actual y
+        las operaciones que **sí** admite (la tabla D-2, no la solicitada). Las acciones son una por operación
+        admitida, con método y ruta reales de la obra, y nunca incluyen la que se acaba de rechazar. Las ven
+        el Director de Proyectos y Dirección General; el residente recibe el mismo cuerpo sin acciones. Obra
+        y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado=origen)
+    
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:484: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:486: in <lambda>
+    lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEF416F0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB846B0>, fuentes_historial=())
+obra_id = UUID('6d392314-7533-4e28-9507-e46337b7dfb6')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('ea95ceec-bd21-440e-8dc7-af7f35518566')
+
+    def reactivar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:25: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[ACTIVA-reactivar_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEF41FE0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB35550>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEAC3110>
+usuario = UUID('ad06838d-a4ed-4119-8277-ed0a3fb9d3fb'), origen = 'ACTIVA'
+operacion = <function reactivar_obra at 0x00000230DE295380>
+
+    @pytest.mark.parametrize(("origen", "operacion"), NO_ADMITIDAS, ids=IDS_NO_ADMITIDAS)
+    def test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        origen: str,
+        operacion: Transicion,
+    ) -> None:
+        """TC-35 · CA-9 · D-2 — rechazo: las siete combinaciones que la máquina no admite.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: no hay `RN` de la máquina de estados),
+        `codigo` del catálogo, mensaje con el código de la obra y su estado, y detalle con el estado actual y
+        las operaciones que **sí** admite (la tabla D-2, no la solicitada). Las acciones son una por operación
+        admitida, con método y ruta reales de la obra, y nunca incluyen la que se acaba de rechazar. Las ven
+        el Director de Proyectos y Dirección General; el residente recibe el mismo cuerpo sin acciones. Obra
+        y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado=origen)
+    
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:484: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:486: in <lambda>
+    lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEAC2CF0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEBAC150>, fuentes_historial=())
+obra_id = UUID('903e2c5e-2bb0-42e1-960e-4ecc2c69f9c4')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('ad06838d-a4ed-4119-8277-ed0a3fb9d3fb')
+
+    def reactivar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:25: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[SUSPENDIDA-suspender_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEAC1380>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEBAD250>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DE1996F0>
+usuario = UUID('1aac7ba8-d611-4367-9255-1f069dff38be'), origen = 'SUSPENDIDA'
+operacion = <function suspender_obra at 0x00000230DE062B90>
+
+    @pytest.mark.parametrize(("origen", "operacion"), NO_ADMITIDAS, ids=IDS_NO_ADMITIDAS)
+    def test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        origen: str,
+        operacion: Transicion,
+    ) -> None:
+        """TC-35 · CA-9 · D-2 — rechazo: las siete combinaciones que la máquina no admite.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: no hay `RN` de la máquina de estados),
+        `codigo` del catálogo, mensaje con el código de la obra y su estado, y detalle con el estado actual y
+        las operaciones que **sí** admite (la tabla D-2, no la solicitada). Las acciones son una por operación
+        admitida, con método y ruta reales de la obra, y nunca incluyen la que se acaba de rechazar. Las ven
+        el Director de Proyectos y Dirección General; el residente recibe el mismo cuerpo sin acciones. Obra
+        y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado=origen)
+    
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:484: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:486: in <lambda>
+    lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DE186820>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEBAD150>, fuentes_historial=())
+obra_id = UUID('651da4bb-11e7-44e6-8592-8db215557893')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('1aac7ba8-d611-4367-9255-1f069dff38be')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-suspender_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DE13DBC0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB759A0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DE1475E0>
+usuario = UUID('0e04116c-15fd-473e-bd67-93aaa92160ce'), origen = 'CERRADA'
+operacion = <function suspender_obra at 0x00000230DE062B90>
+
+    @pytest.mark.parametrize(("origen", "operacion"), NO_ADMITIDAS, ids=IDS_NO_ADMITIDAS)
+    def test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        origen: str,
+        operacion: Transicion,
+    ) -> None:
+        """TC-35 · CA-9 · D-2 — rechazo: las siete combinaciones que la máquina no admite.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: no hay `RN` de la máquina de estados),
+        `codigo` del catálogo, mensaje con el código de la obra y su estado, y detalle con el estado actual y
+        las operaciones que **sí** admite (la tabla D-2, no la solicitada). Las acciones son una por operación
+        admitida, con método y ruta reales de la obra, y nunca incluyen la que se acaba de rechazar. Las ven
+        el Director de Proyectos y Dirección General; el residente recibe el mismo cuerpo sin acciones. Obra
+        y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado=origen)
+    
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:484: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:486: in <lambda>
+    lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DE146770>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB756D0>, fuentes_historial=())
+obra_id = UUID('edb8a72d-0bad-4087-baf1-39c296a4499f')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('0e04116c-15fd-473e-bd67-93aaa92160ce')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-reactivar_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB98460>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB76F30>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEB98CA0>
+usuario = UUID('9cb32e82-359d-4f22-b35e-9a663214ad04'), origen = 'CERRADA'
+operacion = <function reactivar_obra at 0x00000230DE295380>
+
+    @pytest.mark.parametrize(("origen", "operacion"), NO_ADMITIDAS, ids=IDS_NO_ADMITIDAS)
+    def test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        origen: str,
+        operacion: Transicion,
+    ) -> None:
+        """TC-35 · CA-9 · D-2 — rechazo: las siete combinaciones que la máquina no admite.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: no hay `RN` de la máquina de estados),
+        `codigo` del catálogo, mensaje con el código de la obra y su estado, y detalle con el estado actual y
+        las operaciones que **sí** admite (la tabla D-2, no la solicitada). Las acciones son una por operación
+        admitida, con método y ruta reales de la obra, y nunca incluyen la que se acaba de rechazar. Las ven
+        el Director de Proyectos y Dirección General; el residente recibe el mismo cuerpo sin acciones. Obra
+        y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado=origen)
+    
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:484: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:486: in <lambda>
+    lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEB99220>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB76C60>, fuentes_historial=())
+obra_id = UUID('ecc888d6-41ac-4cdc-9101-35547e0ddaf8')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('9cb32e82-359d-4f22-b35e-9a663214ad04')
+
+    def reactivar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:25: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-cerrar_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB9A1F0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB57AF0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEB9AB90>
+usuario = UUID('57718e61-d32d-46aa-a169-8616d3b360b9'), origen = 'CERRADA'
+operacion = <function cerrar_obra at 0x00000230DE2954E0>
+
+    @pytest.mark.parametrize(("origen", "operacion"), NO_ADMITIDAS, ids=IDS_NO_ADMITIDAS)
+    def test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        origen: str,
+        operacion: Transicion,
+    ) -> None:
+        """TC-35 · CA-9 · D-2 — rechazo: las siete combinaciones que la máquina no admite.
+    
+        El contrato completo: `tipo` `CONFLICTO` (nunca `REGLA_NEGOCIO`: no hay `RN` de la máquina de estados),
+        `codigo` del catálogo, mensaje con el código de la obra y su estado, y detalle con el estado actual y
+        las operaciones que **sí** admite (la tabla D-2, no la solicitada). Las acciones son una por operación
+        admitida, con método y ruta reales de la obra, y nunca incluyen la que se acaba de rechazar. Las ven
+        el Director de Proyectos y Dirección General; el residente recibe el mismo cuerpo sin acciones. Obra
+        y bitácora quedan intactas.
+        """
+        obra_id = fabricar_obra(estado=origen)
+    
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ConflictoEstado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:484: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:486: in <lambda>
+    lambda: operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEB9B1C0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB57A10>, fuentes_historial=())
+obra_id = UUID('c7a06687-acc2-4077-a5ac-60db96f13935')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('57718e61-d32d-46aa-a169-8616d3b360b9')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+__ test_tkt012b_ca9_ninguna_transicion_ofrece_una_accion_que_responderia_409 __
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB98300>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB574D0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DE13D010>
+usuario = UUID('f24ba264-e29a-44db-ac85-f4c0e5ae47a1')
+
+    def test_tkt012b_ca9_ninguna_transicion_ofrece_una_accion_que_responderia_409(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+    ) -> None:
+        """TC-35 · CA-9 · objeción 5 de la spec — rechazo: cada acción ofrecida es una transición que se admite.
+    
+        Para cada combinación no admitida, la clave de cada acción corresponde a una operación del estado
+        actual: se comprueba contra la tabla D-2 literal, sin pasar por el helper de cuerpos. Desde `CERRADA`
+        no hay ninguna.
+        """
+        claves_por_estado = {
+            "PLANEACION": ["CERRAR_OBRA"],
+            "ACTIVA": ["SUSPENDER_OBRA", "CERRAR_OBRA"],
+            "SUSPENDIDA": ["REACTIVAR_OBRA", "CERRAR_OBRA"],
+            "CERRADA": [],
+        }
+        # `codigo` es único: cada combinación lleva su propia obra, con un código distinto.
+        for indice, (origen, operacion) in enumerate(NO_ADMITIDAS):
+            obra_id = fabricar_obra(codigo=f"AP-{indice:03d}-26", estado=origen)
+            with pytest.raises(ConflictoEstado) as rechazo:
+>               operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:524: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DE13DBC0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB54910>, fuentes_historial=())
+obra_id = UUID('896156f1-9160-46b0-a542-3879d4cf7e55')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('f24ba264-e29a-44db-ac85-f4c0e5ae47a1')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[suspender_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB9B110>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB29F30>
+usuario = UUID('347058ae-56c7-4d15-ae0a-ef2359789bdb')
+operacion = <function suspender_obra at 0x00000230DE062B90>
+
+    @pytest.mark.parametrize("operacion", TRES_FUNCIONES, ids=IDS_TRES_FUNCIONES)
+    def test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta(
+        contexto: Contexto, base: Base, usuario: uuid.UUID, operacion: Transicion
+    ) -> None:
+        """CA-12 a nivel de caso de uso — rechazo: `NO_ENCONTRADO` con `recurso` `obra` y nada escrito."""
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), uuid.uuid4(), MOTIVO, usuario_id=usuario),
+            NoEncontrado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:539: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:541: in <lambda>
+    lambda: operacion(contexto(), uuid.uuid4(), MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEAC10C0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB28940>, fuentes_historial=())
+obra_id = UUID('22109e95-bbaa-4643-9b18-a4357a785d27')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('347058ae-56c7-4d15-ae0a-ef2359789bdb')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[reactivar_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEAC3740>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB8C410>
+usuario = UUID('e7d55b3b-fd04-4bc8-8808-971a3bdbe5de')
+operacion = <function reactivar_obra at 0x00000230DE295380>
+
+    @pytest.mark.parametrize("operacion", TRES_FUNCIONES, ids=IDS_TRES_FUNCIONES)
+    def test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta(
+        contexto: Contexto, base: Base, usuario: uuid.UUID, operacion: Transicion
+    ) -> None:
+        """CA-12 a nivel de caso de uso — rechazo: `NO_ENCONTRADO` con `recurso` `obra` y nada escrito."""
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), uuid.uuid4(), MOTIVO, usuario_id=usuario),
+            NoEncontrado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:539: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:541: in <lambda>
+    lambda: operacion(contexto(), uuid.uuid4(), MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEF40040>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB8CA10>, fuentes_historial=())
+obra_id = UUID('83ada0c6-7463-4fd2-a717-b8a5606aea61')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('e7d55b3b-fd04-4bc8-8808-971a3bdbe5de')
+
+    def reactivar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:25: NotImplementedError
+_ test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[cerrar_obra] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB983B0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB8CD10>
+usuario = UUID('34eb92e4-7e01-438f-8c5d-8268f18c3f46')
+operacion = <function cerrar_obra at 0x00000230DE2954E0>
+
+    @pytest.mark.parametrize("operacion", TRES_FUNCIONES, ids=IDS_TRES_FUNCIONES)
+    def test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta(
+        contexto: Contexto, base: Base, usuario: uuid.UUID, operacion: Transicion
+    ) -> None:
+        """CA-12 a nivel de caso de uso — rechazo: `NO_ENCONTRADO` con `recurso` `obra` y nada escrito."""
+>       error = _rechazo(
+            base,
+            lambda: operacion(contexto(), uuid.uuid4(), MOTIVO, usuario_id=usuario),
+            NoEncontrado,
+        )
+
+tests\test_tkt012b_ciclo_vida_obra.py:539: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_ciclo_vida_obra.py:244: in _rechazo
+    llamada()
+tests\test_tkt012b_ciclo_vida_obra.py:541: in <lambda>
+    lambda: operacion(contexto(), uuid.uuid4(), MOTIVO, usuario_id=usuario),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEFE7AB0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEB8C4D0>, fuentes_historial=())
+obra_id = UUID('57871927-06ae-4bec-8093-2c2fd99bcc05')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('34eb92e4-7e01-438f-8c5d-8268f18c3f46')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+_ test_tkt012b_ca8_ca_r4_las_transiciones_no_tocan_la_linea_base_ni_el_control _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEF41170>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEAFDE90>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x00000230DEAFE200>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEAFC040>
+usuario = UUID('ccc1e1d3-e0d9-4b45-a6da-7c5800a075e8')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEF42BA0>
+
+    def test_tkt012b_ca8_ca_r4_las_transiciones_no_tocan_la_linea_base_ni_el_control(
+        contexto: Contexto,
+        base: Base,
+        datos_presupuesto: DatosPresupuesto,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+    ) -> None:
+        """TC-38 · CA-8 · CA-R4 · RN-01 — regresión: suspender, reactivar y cerrar no pierden ningún dato histórico.
+    
+        Una obra `ACTIVA` con su jerarquía (nivel y concepto), una línea base `CONGELADA` con un renglón de
+        explosión y un control presupuestal, y una importación. Tras recorrer `ACTIVA → SUSPENDIDA → ACTIVA →
+        CERRADA`, esas filas están **idénticas, columna por columna**, y la obra solo cambió de estado y de
+        quién y cuándo la tocó. La línea base sigue `CONGELADA` (el cierre no la supersede ni la borra).
+        """
+        obra_id = fabricar_obra(estado="ACTIVA")
+        linea_base = datos_presupuesto.linea_base(estado="BORRADOR", obra_id=obra_id)
+        muros = datos_presupuesto.tipo_partida(clave="MUROS")
+        datos_presupuesto.nivel(obra_id=obra_id)
+        datos_presupuesto.concepto(obra_id=obra_id)
+        datos_presupuesto.renglon_explosion(linea_base_id=linea_base, tipo_partida_id=muros)
+        datos_presupuesto.control(linea_base_id=linea_base, tipo_partida_id=muros)
+        datos_presupuesto.congelar(linea_base)
+        datos_presupuesto.importacion(obra_id=obra_id)
+    
+        def historia() -> dict[str, object]:
+            return {
+                "jerarquia": base.volcado_de_obra(obra_id),
+                "explosion": base.filas("SELECT * FROM explosion_presupuesto ORDER BY id"),
+                "control": base.filas("SELECT * FROM presupuesto_control ORDER BY id"),
+                "importaciones": base.filas("SELECT * FROM importacion ORDER BY id"),
+            }
+    
+        historia_antes = historia()
+        obra_antes = _fila(base, obra_id)
+        assert base.filas("SELECT estado FROM linea_base WHERE id = %s", linea_base) == [("CONGELADA",)]
+    
+        for operacion in (suspender_obra, reactivar_obra, cerrar_obra):
+            reloj_de_prueba.avanzar(timedelta(minutes=10))  # el orden de los asientos es el del reloj
+>           operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:596: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEB4C720>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEF42BA0>, fuentes_historial=())
+obra_id = UUID('61873a5f-b8c9-4179-8ade-449756aef75c')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('ccc1e1d3-e0d9-4b45-a6da-7c5800a075e8')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[suspender-tras-cierre] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEB4DA60>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB4E150>
+base_de_prueba = 'prueba_86272b9ff30c'
+conectar = <function conectar.<locals>._conectar at 0x00000230DEB4E090>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEB4D640>
+usuario = UUID('c186fef8-1cbd-4cb0-9453-1c6a1c047df6')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEB4CD60>
+estado_que_deja_la_ganadora = 'CERRADA'
+operacion = <function suspender_obra at 0x00000230DE062B90>, verbo = 'SUSPENDER'
+destino = None, operaciones_admitidas = []
+
+    @pytest.mark.parametrize(
+        ("estado_que_deja_la_ganadora", "operacion", "verbo", "destino", "operaciones_admitidas"),
+        [
+            ("CERRADA", suspender_obra, "SUSPENDER", None, []),
+            ("SUSPENDIDA", suspender_obra, "SUSPENDER", None, ["REACTIVAR", "CERRAR"]),
+            ("SUSPENDIDA", reactivar_obra, "REACTIVAR", "ACTIVA", None),
+        ],
+        ids=["suspender-tras-cierre", "suspender-tras-suspension", "reactivar-tras-suspension"],
+    )
+    def test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo(
+        contexto: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+        estado_que_deja_la_ganadora: str,
+        operacion: Transicion,
+        verbo: str,
+        destino: str | None,
+        operaciones_admitidas: list[str] | None,
+    ) -> None:
+        """TC-39 · CA-13 · D-2 — concurrencia: el estado se lee tras el `FOR UPDATE`, no antes.
+    
+        La obra está `ACTIVA`. Una conexión propia (la «ganadora») toma `FOR UPDATE` y cambia el estado sin
+        confirmar; el hilo `B` llama a la transición y se detiene en el bloqueo (se comprueba en
+        `pg_stat_activity`, sin dormir). Al confirmar la ganadora, `B` despierta:
+    
+        - Si leyó el estado antes del bloqueo, vería `ACTIVA` y haría lo que `ACTIVA` admite: suspender una
+          obra ya `CERRADA` (o ya `SUSPENDIDA`) o rechazar una reactivación que ahora es legítima.
+        - Si lo lee después, evalúa contra el estado nuevo: `suspender` tras un cierre o una suspensión se
+          rechaza con el estado nuevo y sus operaciones, y `reactivar` tras una suspensión se admite.
+    
+        Nunca `500`: el resultado es un rechazo del contrato o un éxito, y la obra queda en el estado que la
+        máquina impone.
+        """
+        obra_id = fabricar_obra(estado="ACTIVA")
+        ctx = contexto()
+        ganadora = conectar("aplicacion", base_de_prueba, autocommit=False)
+        ganadora.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+        ganadora.execute(
+            "UPDATE obra SET estado = %s WHERE id = %s", (estado_que_deja_la_ganadora, obra_id)
+        )
+        ahora = reloj_de_prueba()
+    
+        hilo = Hilo("B", lambda: operacion(ctx, obra_id, MOTIVO, usuario_id=usuario))
+        hilo.start()
+        esperar_hasta(lambda: not hilo.is_alive() or _alguien_espera_la_obra(base), LIMITE_DE_HILO)
+>       assert hilo.is_alive(), f"B debía esperar el bloqueo de la obra y terminó con {hilo.error!r}"
+E       AssertionError: B debía esperar el bloqueo de la obra y terminó con NotImplementedError()
+E       assert False
+E        +  where False = is_alive()
+E        +    where is_alive = <Hilo(B, stopped daemon 41380)>.is_alive
+
+tests\test_tkt012b_ciclo_vida_obra.py:672: AssertionError
+_ test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[suspender-tras-suspension] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DF004A90>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEB27930>
+base_de_prueba = 'prueba_806c33a2155c'
+conectar = <function conectar.<locals>._conectar at 0x00000230DF004CA0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DF0054E0>
+usuario = UUID('81cd1598-ca59-4741-9b01-4ef2692ac5f0')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DEB26F30>
+estado_que_deja_la_ganadora = 'SUSPENDIDA'
+operacion = <function suspender_obra at 0x00000230DE062B90>, verbo = 'SUSPENDER'
+destino = None, operaciones_admitidas = ['REACTIVAR', 'CERRAR']
+
+    @pytest.mark.parametrize(
+        ("estado_que_deja_la_ganadora", "operacion", "verbo", "destino", "operaciones_admitidas"),
+        [
+            ("CERRADA", suspender_obra, "SUSPENDER", None, []),
+            ("SUSPENDIDA", suspender_obra, "SUSPENDER", None, ["REACTIVAR", "CERRAR"]),
+            ("SUSPENDIDA", reactivar_obra, "REACTIVAR", "ACTIVA", None),
+        ],
+        ids=["suspender-tras-cierre", "suspender-tras-suspension", "reactivar-tras-suspension"],
+    )
+    def test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo(
+        contexto: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+        estado_que_deja_la_ganadora: str,
+        operacion: Transicion,
+        verbo: str,
+        destino: str | None,
+        operaciones_admitidas: list[str] | None,
+    ) -> None:
+        """TC-39 · CA-13 · D-2 — concurrencia: el estado se lee tras el `FOR UPDATE`, no antes.
+    
+        La obra está `ACTIVA`. Una conexión propia (la «ganadora») toma `FOR UPDATE` y cambia el estado sin
+        confirmar; el hilo `B` llama a la transición y se detiene en el bloqueo (se comprueba en
+        `pg_stat_activity`, sin dormir). Al confirmar la ganadora, `B` despierta:
+    
+        - Si leyó el estado antes del bloqueo, vería `ACTIVA` y haría lo que `ACTIVA` admite: suspender una
+          obra ya `CERRADA` (o ya `SUSPENDIDA`) o rechazar una reactivación que ahora es legítima.
+        - Si lo lee después, evalúa contra el estado nuevo: `suspender` tras un cierre o una suspensión se
+          rechaza con el estado nuevo y sus operaciones, y `reactivar` tras una suspensión se admite.
+    
+        Nunca `500`: el resultado es un rechazo del contrato o un éxito, y la obra queda en el estado que la
+        máquina impone.
+        """
+        obra_id = fabricar_obra(estado="ACTIVA")
+        ctx = contexto()
+        ganadora = conectar("aplicacion", base_de_prueba, autocommit=False)
+        ganadora.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+        ganadora.execute(
+            "UPDATE obra SET estado = %s WHERE id = %s", (estado_que_deja_la_ganadora, obra_id)
+        )
+        ahora = reloj_de_prueba()
+    
+        hilo = Hilo("B", lambda: operacion(ctx, obra_id, MOTIVO, usuario_id=usuario))
+        hilo.start()
+        esperar_hasta(lambda: not hilo.is_alive() or _alguien_espera_la_obra(base), LIMITE_DE_HILO)
+>       assert hilo.is_alive(), f"B debía esperar el bloqueo de la obra y terminó con {hilo.error!r}"
+E       AssertionError: B debía esperar el bloqueo de la obra y terminó con NotImplementedError()
+E       assert False
+E        +  where False = is_alive()
+E        +    where is_alive = <Hilo(B, stopped daemon 41728)>.is_alive
+
+tests\test_tkt012b_ciclo_vida_obra.py:672: AssertionError
+_ test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[reactivar-tras-suspension] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DF006560>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DF008B90>
+base_de_prueba = 'prueba_11b5e8b142b5'
+conectar = <function conectar.<locals>._conectar at 0x00000230DF006770>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DF006FB0>
+usuario = UUID('67f0313b-12ef-421f-a0de-fb1e74b7df64')
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x00000230DF00BD90>
+estado_que_deja_la_ganadora = 'SUSPENDIDA'
+operacion = <function reactivar_obra at 0x00000230DE295380>, verbo = 'REACTIVAR'
+destino = 'ACTIVA', operaciones_admitidas = None
+
+    @pytest.mark.parametrize(
+        ("estado_que_deja_la_ganadora", "operacion", "verbo", "destino", "operaciones_admitidas"),
+        [
+            ("CERRADA", suspender_obra, "SUSPENDER", None, []),
+            ("SUSPENDIDA", suspender_obra, "SUSPENDER", None, ["REACTIVAR", "CERRAR"]),
+            ("SUSPENDIDA", reactivar_obra, "REACTIVAR", "ACTIVA", None),
+        ],
+        ids=["suspender-tras-cierre", "suspender-tras-suspension", "reactivar-tras-suspension"],
+    )
+    def test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo(
+        contexto: Contexto,
+        base: Base,
+        base_de_prueba: str,
+        conectar: Conectar,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        reloj_de_prueba: RelojDePrueba,
+        estado_que_deja_la_ganadora: str,
+        operacion: Transicion,
+        verbo: str,
+        destino: str | None,
+        operaciones_admitidas: list[str] | None,
+    ) -> None:
+        """TC-39 · CA-13 · D-2 — concurrencia: el estado se lee tras el `FOR UPDATE`, no antes.
+    
+        La obra está `ACTIVA`. Una conexión propia (la «ganadora») toma `FOR UPDATE` y cambia el estado sin
+        confirmar; el hilo `B` llama a la transición y se detiene en el bloqueo (se comprueba en
+        `pg_stat_activity`, sin dormir). Al confirmar la ganadora, `B` despierta:
+    
+        - Si leyó el estado antes del bloqueo, vería `ACTIVA` y haría lo que `ACTIVA` admite: suspender una
+          obra ya `CERRADA` (o ya `SUSPENDIDA`) o rechazar una reactivación que ahora es legítima.
+        - Si lo lee después, evalúa contra el estado nuevo: `suspender` tras un cierre o una suspensión se
+          rechaza con el estado nuevo y sus operaciones, y `reactivar` tras una suspensión se admite.
+    
+        Nunca `500`: el resultado es un rechazo del contrato o un éxito, y la obra queda en el estado que la
+        máquina impone.
+        """
+        obra_id = fabricar_obra(estado="ACTIVA")
+        ctx = contexto()
+        ganadora = conectar("aplicacion", base_de_prueba, autocommit=False)
+        ganadora.execute("SELECT id FROM obra WHERE id = %s FOR UPDATE", (obra_id,))
+        ganadora.execute(
+            "UPDATE obra SET estado = %s WHERE id = %s", (estado_que_deja_la_ganadora, obra_id)
+        )
+        ahora = reloj_de_prueba()
+    
+        hilo = Hilo("B", lambda: operacion(ctx, obra_id, MOTIVO, usuario_id=usuario))
+        hilo.start()
+        esperar_hasta(lambda: not hilo.is_alive() or _alguien_espera_la_obra(base), LIMITE_DE_HILO)
+>       assert hilo.is_alive(), f"B debía esperar el bloqueo de la obra y terminó con {hilo.error!r}"
+E       AssertionError: B debía esperar el bloqueo de la obra y terminó con NotImplementedError()
+E       assert False
+E        +  where False = is_alive()
+E        +    where is_alive = <Hilo(B, stopped daemon 23420)>.is_alive
+
+tests\test_tkt012b_ciclo_vida_obra.py:672: AssertionError
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-SUSPENDER] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEF3C3B0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DE06C560>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEF3CBF0>
+usuario = UUID('14c50001-ad65-468d-8253-0badbe37c6b3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230DEB41940>
+origen = 'ACTIVA', operacion = <function suspender_obra at 0x00000230DE062B90>
+destino = 'SUSPENDIDA', verbo = 'SUSPENDER'
+
+    @pytest.mark.parametrize(("origen", "operacion", "destino", "verbo"), ADMITIDAS, ids=IDS_ADMITIDAS)
+    def test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-40 · CA-8 · regla 8 de CLAUDE.md — rechazo: la bitácora se escribe en la misma transacción.
+    
+        `asentar` se sustituye por uno que, antes de lanzar, anota con qué lo llamaron: dentro de la
+        transacción del caso de uso, con el verbo, `RN-25`, el motivo, la obra, los estados antes y después, y
+        viendo el estado nuevo todavía sin confirmar. Al lanzar, la transacción se deshace: la obra conserva
+        el estado de origen, sin `actualizado_en`, y no hay asiento. Con `asentar` en otra sesión tras confirmar,
+        la obra quedaría transicionada y la prueba cae.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        visto: dict[str, object] = {}
+        monkeypatch.setattr(ciclo_vida_obra, "asentar", _asentar_que_falla(visto))
+        antes = _instantanea(base)
+    
+        with pytest.raises(FallaDeBitacora):
+>           operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:754: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEF3D380>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DE06C050>, fuentes_historial=())
+obra_id = UUID('00fc2461-c277-4c2a-be59-3967c580b6b4')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('14c50001-ad65-468d-8253-0badbe37c6b3')
+
+    def suspender_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:19: NotImplementedError
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-REACTIVAR] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEF3DD20>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DDFFCB50>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DEF3E8D0>
+usuario = UUID('f61eb1e3-0577-4e6f-9c68-ad323e23bf48')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230DEB41BA0>
+origen = 'SUSPENDIDA'
+operacion = <function reactivar_obra at 0x00000230DE295380>, destino = 'ACTIVA'
+verbo = 'REACTIVAR'
+
+    @pytest.mark.parametrize(("origen", "operacion", "destino", "verbo"), ADMITIDAS, ids=IDS_ADMITIDAS)
+    def test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-40 · CA-8 · regla 8 de CLAUDE.md — rechazo: la bitácora se escribe en la misma transacción.
+    
+        `asentar` se sustituye por uno que, antes de lanzar, anota con qué lo llamaron: dentro de la
+        transacción del caso de uso, con el verbo, `RN-25`, el motivo, la obra, los estados antes y después, y
+        viendo el estado nuevo todavía sin confirmar. Al lanzar, la transacción se deshace: la obra conserva
+        el estado de origen, sin `actualizado_en`, y no hay asiento. Con `asentar` en otra sesión tras confirmar,
+        la obra quedaría transicionada y la prueba cae.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        visto: dict[str, object] = {}
+        monkeypatch.setattr(ciclo_vida_obra, "asentar", _asentar_que_falla(visto))
+        antes = _instantanea(base)
+    
+        with pytest.raises(FallaDeBitacora):
+>           operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:754: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DEF3F060>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DDFC09D0>, fuentes_historial=())
+obra_id = UUID('ec9decc6-e2be-4ab7-b1cc-5386b02eef44')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('f61eb1e3-0577-4e6f-9c68-ad323e23bf48')
+
+    def reactivar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:25: NotImplementedError
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-CERRAR] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DEF3FC10>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DDFFD8D0>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DF030670>
+usuario = UUID('5a6a99fd-8b35-400e-9103-b0d59a16be90')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230DEB3F2F0>
+origen = 'ACTIVA', operacion = <function cerrar_obra at 0x00000230DE2954E0>
+destino = 'CERRADA', verbo = 'CERRAR'
+
+    @pytest.mark.parametrize(("origen", "operacion", "destino", "verbo"), ADMITIDAS, ids=IDS_ADMITIDAS)
+    def test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-40 · CA-8 · regla 8 de CLAUDE.md — rechazo: la bitácora se escribe en la misma transacción.
+    
+        `asentar` se sustituye por uno que, antes de lanzar, anota con qué lo llamaron: dentro de la
+        transacción del caso de uso, con el verbo, `RN-25`, el motivo, la obra, los estados antes y después, y
+        viendo el estado nuevo todavía sin confirmar. Al lanzar, la transacción se deshace: la obra conserva
+        el estado de origen, sin `actualizado_en`, y no hay asiento. Con `asentar` en otra sesión tras confirmar,
+        la obra quedaría transicionada y la prueba cae.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        visto: dict[str, object] = {}
+        monkeypatch.setattr(ciclo_vida_obra, "asentar", _asentar_que_falla(visto))
+        antes = _instantanea(base)
+    
+        with pytest.raises(FallaDeBitacora):
+>           operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:754: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DF030E00>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEF2D1D0>, fuentes_historial=())
+obra_id = UUID('28db7c02-e409-4df4-bb28-dbd34af3044b')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('5a6a99fd-8b35-400e-9103-b0d59a16be90')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-CERRAR] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DF0317A0>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEF49320>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DF032350>
+usuario = UUID('02c9e883-bf0f-4710-98f1-2ef6d4e4d829')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230DEB84C00>
+origen = 'SUSPENDIDA', operacion = <function cerrar_obra at 0x00000230DE2954E0>
+destino = 'CERRADA', verbo = 'CERRAR'
+
+    @pytest.mark.parametrize(("origen", "operacion", "destino", "verbo"), ADMITIDAS, ids=IDS_ADMITIDAS)
+    def test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-40 · CA-8 · regla 8 de CLAUDE.md — rechazo: la bitácora se escribe en la misma transacción.
+    
+        `asentar` se sustituye por uno que, antes de lanzar, anota con qué lo llamaron: dentro de la
+        transacción del caso de uso, con el verbo, `RN-25`, el motivo, la obra, los estados antes y después, y
+        viendo el estado nuevo todavía sin confirmar. Al lanzar, la transacción se deshace: la obra conserva
+        el estado de origen, sin `actualizado_en`, y no hay asiento. Con `asentar` en otra sesión tras confirmar,
+        la obra quedaría transicionada y la prueba cae.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        visto: dict[str, object] = {}
+        monkeypatch.setattr(ciclo_vida_obra, "asentar", _asentar_que_falla(visto))
+        antes = _instantanea(base)
+    
+        with pytest.raises(FallaDeBitacora):
+>           operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:754: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DF032AE0>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEBD20B0>, fuentes_historial=())
+obra_id = UUID('e4427f14-71a7-4c61-8bc7-70cce3e48d7e')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('02c9e883-bf0f-4710-98f1-2ef6d4e4d829')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[PLANEACION-CERRAR] _
+
+contexto = <functools._lru_cache_wrapper object at 0x00000230DF033480>
+base = <herramientas.soporte_tkt017_entorno.Base object at 0x00000230DEBD2820>
+fabricar_obra = <function fabricar_obra.<locals>.fabricar at 0x00000230DF0280F0>
+usuario = UUID('ebe327f3-8788-4a81-8105-70a825128c64')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000230DEB85F20>
+origen = 'PLANEACION', operacion = <function cerrar_obra at 0x00000230DE2954E0>
+destino = 'CERRADA', verbo = 'CERRAR'
+
+    @pytest.mark.parametrize(("origen", "operacion", "destino", "verbo"), ADMITIDAS, ids=IDS_ADMITIDAS)
+    def test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion(
+        contexto: Contexto,
+        base: Base,
+        fabricar_obra: Callable[..., uuid.UUID],
+        usuario: uuid.UUID,
+        monkeypatch: pytest.MonkeyPatch,
+        origen: str,
+        operacion: Transicion,
+        destino: str,
+        verbo: str,
+    ) -> None:
+        """TC-40 · CA-8 · regla 8 de CLAUDE.md — rechazo: la bitácora se escribe en la misma transacción.
+    
+        `asentar` se sustituye por uno que, antes de lanzar, anota con qué lo llamaron: dentro de la
+        transacción del caso de uso, con el verbo, `RN-25`, el motivo, la obra, los estados antes y después, y
+        viendo el estado nuevo todavía sin confirmar. Al lanzar, la transacción se deshace: la obra conserva
+        el estado de origen, sin `actualizado_en`, y no hay asiento. Con `asentar` en otra sesión tras confirmar,
+        la obra quedaría transicionada y la prueba cae.
+        """
+        obra_id = fabricar_obra(estado=origen)
+        visto: dict[str, object] = {}
+        monkeypatch.setattr(ciclo_vida_obra, "asentar", _asentar_que_falla(visto))
+        antes = _instantanea(base)
+    
+        with pytest.raises(FallaDeBitacora):
+>           operacion(contexto(), obra_id, MOTIVO, usuario_id=usuario)
+
+tests\test_tkt012b_ciclo_vida_obra.py:754: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x00000230DF028880>, reloj=<tests.conftest.RelojDePrueba object at 0x00000230DEBD1DA0>, fuentes_historial=())
+obra_id = UUID('d5d6cbb2-47f7-4467-a7a6-20ad95e681b6')
+motivo = 'Falta de anticipo del cliente; se detiene la obra'
+usuario_id = UUID('ebe327f3-8788-4a81-8105-70a825128c64')
+
+    def cerrar_obra(
+        contexto: ContextoPresupuesto, obra_id: uuid.UUID, motivo: str, usuario_id: uuid.UUID
+    ) -> None:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\aplicacion\ciclo_vida_obra.py:31: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-SUSPENDER]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-REACTIVAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_cerrar_una_obra_en_planeacion_asienta_cerrar
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_direccion_general_opera_igual_en_toda_la_cadena
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[PLANEACION-suspender_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[PLANEACION-reactivar_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[ACTIVA-reactivar_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[SUSPENDIDA-suspender_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-suspender_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-reactivar_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-cerrar_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_ninguna_transicion_ofrece_una_accion_que_responderia_409
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[suspender_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[reactivar_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[cerrar_obra]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_ca_r4_las_transiciones_no_tocan_la_linea_base_ni_el_control
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[suspender-tras-cierre]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[suspender-tras-suspension]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[reactivar-tras-suspension]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-SUSPENDER]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-REACTIVAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[PLANEACION-CERRAR]
+26 failed, 1 passed in 7.40s

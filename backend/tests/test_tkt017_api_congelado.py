@@ -137,6 +137,13 @@ IMPLEMENTADAS_DE_PRESUPUESTO = frozenset(
         "crear_obra",
         "listar_obras",
         "obtener_obra",
+        # TKT-012b, fila A7: las cinco operaciones de mantenimiento y ciclo de vida de la obra. Ampliación
+        # declarada del contrato de este test; sus `x-tickets` las reconoce el filtro de TC-B19 (TKT-012b).
+        "actualizar_obra",
+        "eliminar_obra",
+        "suspender_obra",
+        "reactivar_obra",
+        "cerrar_obra",
     }
 )
 
@@ -1105,6 +1112,7 @@ def test_tkt017_operation_id_de_las_rutas_de_presupuesto(
         and (
             "TKT-017" in operacion.get("x-tickets", [])
             or "TKT-012" in operacion.get("x-tickets", [])
+            or "TKT-012b" in operacion.get("x-tickets", [])
         )
         and operacion["operationId"] in IMPLEMENTADAS_DE_PRESUPUESTO
     }

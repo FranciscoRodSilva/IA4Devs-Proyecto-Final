@@ -1,0 +1,13 @@
+
+> cimenta-frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+
+ Test Files  29 passed (29)
+      Tests  589 passed (589)
+   Start at  17:51:49
+   Duration  15.45s (environment 45%, tests 31%, import 12%, setup 11%, transform 1%)
+

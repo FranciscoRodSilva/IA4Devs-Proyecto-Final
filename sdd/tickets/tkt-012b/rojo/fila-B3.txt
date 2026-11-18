@@ -1,0 +1,1419 @@
+
+> cimenta-frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 D:/Documentos/LIDR/Proyecto Final/frontend
+
+ ❯ |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx (20 tests | 16 failed) 1783ms
+   ❯ TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) (13)
+     × tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en PLANEACION: la fila ofrece lo de CA-14, en su orden 291ms
+     × tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en ACTIVA: la fila ofrece lo de CA-14, en su orden 85ms
+     × tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en SUSPENDIDA: la fila ofrece lo de CA-14, en su orden 83ms
+     × tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en CERRADA: la fila ofrece lo de CA-14, en su orden 83ms
+     × tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en PLANEACION: la fila ofrece lo de CA-14, en su orden 85ms
+     × tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en ACTIVA: la fila ofrece lo de CA-14, en su orden 80ms
+     × tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en SUSPENDIDA: la fila ofrece lo de CA-14, en su orden 79ms
+     × tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en CERRADA: la fila ofrece lo de CA-14, en su orden 81ms
+     × tkt012b_ca14 · TC-69 · con las cuatro obras en la lista, cada fila ofrece lo suyo y no lo de otra 93ms
+   ❯ TKT-012b · TC-70 · Editar abre el formulario con la obra y guarda sin recargar (CA-15) (5)
+     × tkt012b_ca15 · TC-70 · obra PLANEACION: el formulario se abre con los valores de la obra, y el código y el tipo de contrato solo de lectura 68ms
+     × tkt012b_ca15 · TC-70 · obra ACTIVA: el formulario se abre con los valores de la obra, y el código y el tipo de contrato solo de lectura 68ms
+     × tkt012b_ca15 · TC-70 · obra SUSPENDIDA: el formulario se abre con los valores de la obra, y el código y el tipo de contrato solo de lectura 68ms
+     × tkt012b_ca15 · TC-70 · una obra sin umbral abre con el umbral vacío 67ms
+     × tkt012b_ca15 · TC-70 · guardar envía solo los campos editables a la obra de la fila, cierra el formulario y la lista muestra el nombre nuevo sin recargar 72ms
+   ❯ TKT-012b · TC-71 · un 422 al editar cae junto a su campo (CA-15, rechazo) (1)
+     × tkt012b_ca15 · TC-71 · el mensaje del servidor se pinta junto al campo, el formulario sigue abierto con lo escrito y la lista no se vuelve a pedir 69ms
+   ❯ TKT-012b · TC-72 · editar una obra que otra pestaña cerró (CA-4, rechazo) (1)
+     × tkt012b_ca04 · TC-72 · el 409 ESTADO_NO_PERMITE_OPERACION se pinta en línea con su mensaje y el estado, como conflicto y no como error 68ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en PLANEACION: la fila ofrece lo de CA-14, en su orden
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en PLANEACION: la fila ofrece lo de CA-14, en su orden
+TestingLibraryElementError: Unable to find an accessible element with the role "columnheader" and name "Acciones"
+
+Here are the accessible roles:
+
+  rowgroup:
+
+  Name "":
+  [36m<thead />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "Código Nombre Estado Línea base":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b text-left"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  columnheader:
+
+  Name "Código":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Nombre":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Estado":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Línea base":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  --------------------------------------------------rowgroup:
+
+  Name "":
+  [36m<tbody />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "AP-058-25 Obra AP-058-25 Planeación Línea base de AP-058-25":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  cell:
+
+  Name "AP-058-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Obra AP-058-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Planeación":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Línea base de AP-058-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-058-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-058-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/9a1f2b3c-4d5e-4f60-8a71-b2c3d4e5f607/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<table[39m
+  [33mclass[39m=[32m"w-full text-sm"[39m
+[36m>[39m
+  [36m<thead>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b text-left"[39m
+    [36m>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mCódigo[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mNombre[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mEstado[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mLínea base[0m
+      [36m</th>[39m
+    [36m</tr>[39m
+  [36m</thead>[39m
+  [36m<tbody>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b"[39m
+    [36m>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mAP-058-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mObra AP-058-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mPlaneación[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Línea base de AP-058-25"[39m
+          [33mclass[39m=[32m"underline"[39m
+          [33mdata-discover[39m=[32m"true"[39m
+          [33mhref[39m=[32m"/obras/9a1f2b3c-4d5e-4f60-8a71-b2c3d4e5f607/linea-base"[39m
+        [36m>[39m
+          [0mLínea base[0m
+        [36m</a>[39m
+      [36m</td>[39m
+    [36m</tr>[39m
+  [36m</tbody>[39m
+[36m</table>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:177:26
+    175|
+    176|     const tabla = screen.getByRole("table");
+    177|     expect(within(tabla).getByRole("columnheader", { name: ENCABEZADO_…
+       |                          ^
+    178|     expect(accionesDe(filaDe(CODIGO_POR_ESTADO[estado]))).toEqual(ACCI…
+    179|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en ACTIVA: la fila ofrece lo de CA-14, en su orden
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en ACTIVA: la fila ofrece lo de CA-14, en su orden
+TestingLibraryElementError: Unable to find an accessible element with the role "columnheader" and name "Acciones"
+
+Here are the accessible roles:
+
+  rowgroup:
+
+  Name "":
+  [36m<thead />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "Código Nombre Estado Línea base":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b text-left"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  columnheader:
+
+  Name "Código":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Nombre":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Estado":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Línea base":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  --------------------------------------------------rowgroup:
+
+  Name "":
+  [36m<tbody />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "AP-061-25 Obra AP-061-25 Activa Línea base de AP-061-25":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  cell:
+
+  Name "AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Obra AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Activa":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Línea base de AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-061-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<table[39m
+  [33mclass[39m=[32m"w-full text-sm"[39m
+[36m>[39m
+  [36m<thead>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b text-left"[39m
+    [36m>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mCódigo[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mNombre[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mEstado[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mLínea base[0m
+      [36m</th>[39m
+    [36m</tr>[39m
+  [36m</thead>[39m
+  [36m<tbody>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b"[39m
+    [36m>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mAP-061-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mObra AP-061-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mActiva[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+          [33mclass[39m=[32m"underline"[39m
+          [33mdata-discover[39m=[32m"true"[39m
+          [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+        [36m>[39m
+          [0mLínea base[0m
+        [36m</a>[39m
+      [36m</td>[39m
+    [36m</tr>[39m
+  [36m</tbody>[39m
+[36m</table>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:177:26
+    175|
+    176|     const tabla = screen.getByRole("table");
+    177|     expect(within(tabla).getByRole("columnheader", { name: ENCABEZADO_…
+       |                          ^
+    178|     expect(accionesDe(filaDe(CODIGO_POR_ESTADO[estado]))).toEqual(ACCI…
+    179|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en SUSPENDIDA: la fila ofrece lo de CA-14, en su orden
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en SUSPENDIDA: la fila ofrece lo de CA-14, en su orden
+TestingLibraryElementError: Unable to find an accessible element with the role "columnheader" and name "Acciones"
+
+Here are the accessible roles:
+
+  rowgroup:
+
+  Name "":
+  [36m<thead />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "Código Nombre Estado Línea base":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b text-left"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  columnheader:
+
+  Name "Código":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Nombre":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Estado":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Línea base":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  --------------------------------------------------rowgroup:
+
+  Name "":
+  [36m<tbody />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "AP-062-25 Obra AP-062-25 Suspendida Línea base de AP-062-25":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  cell:
+
+  Name "AP-062-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Obra AP-062-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Suspendida":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Línea base de AP-062-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-062-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-062-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/6e7f8091-a2b3-4c4d-95e6-f70819203142/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<table[39m
+  [33mclass[39m=[32m"w-full text-sm"[39m
+[36m>[39m
+  [36m<thead>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b text-left"[39m
+    [36m>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mCódigo[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mNombre[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mEstado[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mLínea base[0m
+      [36m</th>[39m
+    [36m</tr>[39m
+  [36m</thead>[39m
+  [36m<tbody>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b"[39m
+    [36m>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mAP-062-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mObra AP-062-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mSuspendida[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Línea base de AP-062-25"[39m
+          [33mclass[39m=[32m"underline"[39m
+          [33mdata-discover[39m=[32m"true"[39m
+          [33mhref[39m=[32m"/obras/6e7f8091-a2b3-4c4d-95e6-f70819203142/linea-base"[39m
+        [36m>[39m
+          [0mLínea base[0m
+        [36m</a>[39m
+      [36m</td>[39m
+    [36m</tr>[39m
+  [36m</tbody>[39m
+[36m</table>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:177:26
+    175|
+    176|     const tabla = screen.getByRole("table");
+    177|     expect(within(tabla).getByRole("columnheader", { name: ENCABEZADO_…
+       |                          ^
+    178|     expect(accionesDe(filaDe(CODIGO_POR_ESTADO[estado]))).toEqual(ACCI…
+    179|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECTOR_PROYECTOS con la obra en CERRADA: la fila ofrece lo de CA-14, en su orden
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · DIRECCION_GENERAL con la obra en CERRADA: la fila ofrece lo de CA-14, en su orden
+TestingLibraryElementError: Unable to find an accessible element with the role "columnheader" and name "Acciones"
+
+Here are the accessible roles:
+
+  rowgroup:
+
+  Name "":
+  [36m<thead />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "Código Nombre Estado Línea base":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b text-left"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  columnheader:
+
+  Name "Código":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Nombre":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Estado":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  Name "Línea base":
+  [36m<th[39m
+    [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+    [33mscope[39m=[32m"col"[39m
+  [36m/>[39m
+
+  --------------------------------------------------rowgroup:
+
+  Name "":
+  [36m<tbody />[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "AP-063-25 Obra AP-063-25 Cerrada Línea base de AP-063-25":
+  [36m<tr[39m
+    [33mclass[39m=[32m"border-b"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  cell:
+
+  Name "AP-063-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Obra AP-063-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Cerrada":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  Name "Línea base de AP-063-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-063-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-063-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/7f8091a2-b3c4-4d5e-a6f7-081920314253/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<table[39m
+  [33mclass[39m=[32m"w-full text-sm"[39m
+[36m>[39m
+  [36m<thead>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b text-left"[39m
+    [36m>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mCódigo[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mNombre[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mEstado[0m
+      [36m</th>[39m
+      [36m<th[39m
+        [33mclass[39m=[32m"px-3 py-2 font-medium"[39m
+        [33mscope[39m=[32m"col"[39m
+      [36m>[39m
+        [0mLínea base[0m
+      [36m</th>[39m
+    [36m</tr>[39m
+  [36m</thead>[39m
+  [36m<tbody>[39m
+    [36m<tr[39m
+      [33mclass[39m=[32m"border-b"[39m
+    [36m>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mAP-063-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mObra AP-063-25[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [0mCerrada[0m
+      [36m</td>[39m
+      [36m<td[39m
+        [33mclass[39m=[32m"px-3 py-2"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Línea base de AP-063-25"[39m
+          [33mclass[39m=[32m"underline"[39m
+          [33mdata-discover[39m=[32m"true"[39m
+          [33mhref[39m=[32m"/obras/7f8091a2-b3c4-4d5e-a6f7-081920314253/linea-base"[39m
+        [36m>[39m
+          [0mLínea base[0m
+        [36m</a>[39m
+      [36m</td>[39m
+    [36m</tr>[39m
+  [36m</tbody>[39m
+[36m</table>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:177:26
+    175|
+    176|     const tabla = screen.getByRole("table");
+    177|     expect(within(tabla).getByRole("columnheader", { name: ENCABEZADO_…
+       |                          ^
+    178|     expect(accionesDe(filaDe(CODIGO_POR_ESTADO[estado]))).toEqual(ACCI…
+    179|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-69 · la fila ofrece las acciones que proceden según estado y rol (CA-14) > tkt012b_ca14 · TC-69 · con las cuatro obras en la lista, cada fila ofrece lo suyo y no lo de otra
+AssertionError: expected [] to deeply equal [ 'Editar', 'Eliminar', 'Cerrar' ]
+
+- Expected
++ Received
+
+- [
+-   "Editar",
+-   "Eliminar",
+-   "Cerrar",
+- ]
++ []
+
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:185:61
+    183|
+    184|     for (const estado of ESTADOS) {
+    185|       expect(accionesDe(filaDe(CODIGO_POR_ESTADO[estado]))).toEqual(AC…
+       |                                                             ^
+    186|     }
+    187|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-70 · Editar abre el formulario con la obra y guarda sin recargar (CA-15) > tkt012b_ca15 · TC-70 · obra PLANEACION: el formulario se abre con los valores de la obra, y el código y el tipo de contrato solo de lectura
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/^Editar\b/`
+
+Here are the accessible roles:
+
+  cell:
+
+  Name "AP-058-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Obra AP-058-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Planeación":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Línea base de AP-058-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-058-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-058-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/9a1f2b3c-4d5e-4f60-8a71-b2c3d4e5f607/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<tr[39m
+  [33mclass[39m=[32m"border-b"[39m
+[36m>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mAP-058-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mObra AP-058-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mPlaneación[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [36m<a[39m
+      [33maria-label[39m=[32m"Línea base de AP-058-25"[39m
+      [33mclass[39m=[32m"underline"[39m
+      [33mdata-discover[39m=[32m"true"[39m
+      [33mhref[39m=[32m"/obras/9a1f2b3c-4d5e-4f60-8a71-b2c3d4e5f607/linea-base"[39m
+    [36m>[39m
+      [0mLínea base[0m
+    [36m</a>[39m
+  [36m</td>[39m
+[36m</tr>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ abrirEdicion src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:144:46
+    142|
+    143| async function abrirEdicion(usuario: ReturnType<typeof renderizarAplic…
+    144|   await usuario.click(within(filaDe(codigo)).getByRole("button", { nam…
+       |                                              ^
+    145|   return screen.findByRole("dialog", { name: TITULO_EDICION });
+    146| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:219:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-70 · Editar abre el formulario con la obra y guarda sin recargar (CA-15) > tkt012b_ca15 · TC-70 · obra ACTIVA: el formulario se abre con los valores de la obra, y el código y el tipo de contrato solo de lectura
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/^Editar\b/`
+
+Here are the accessible roles:
+
+  cell:
+
+  Name "AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Obra AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Activa":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Línea base de AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-061-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<tr[39m
+  [33mclass[39m=[32m"border-b"[39m
+[36m>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mAP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mObra AP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mActiva[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [36m<a[39m
+      [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+      [33mclass[39m=[32m"underline"[39m
+      [33mdata-discover[39m=[32m"true"[39m
+      [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+    [36m>[39m
+      [0mLínea base[0m
+    [36m</a>[39m
+  [36m</td>[39m
+[36m</tr>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ abrirEdicion src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:144:46
+    142|
+    143| async function abrirEdicion(usuario: ReturnType<typeof renderizarAplic…
+    144|   await usuario.click(within(filaDe(codigo)).getByRole("button", { nam…
+       |                                              ^
+    145|   return screen.findByRole("dialog", { name: TITULO_EDICION });
+    146| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:219:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-70 · Editar abre el formulario con la obra y guarda sin recargar (CA-15) > tkt012b_ca15 · TC-70 · obra SUSPENDIDA: el formulario se abre con los valores de la obra, y el código y el tipo de contrato solo de lectura
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/^Editar\b/`
+
+Here are the accessible roles:
+
+  cell:
+
+  Name "AP-062-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Obra AP-062-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Suspendida":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Línea base de AP-062-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-062-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-062-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/6e7f8091-a2b3-4c4d-95e6-f70819203142/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<tr[39m
+  [33mclass[39m=[32m"border-b"[39m
+[36m>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mAP-062-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mObra AP-062-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mSuspendida[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [36m<a[39m
+      [33maria-label[39m=[32m"Línea base de AP-062-25"[39m
+      [33mclass[39m=[32m"underline"[39m
+      [33mdata-discover[39m=[32m"true"[39m
+      [33mhref[39m=[32m"/obras/6e7f8091-a2b3-4c4d-95e6-f70819203142/linea-base"[39m
+    [36m>[39m
+      [0mLínea base[0m
+    [36m</a>[39m
+  [36m</td>[39m
+[36m</tr>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ abrirEdicion src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:144:46
+    142|
+    143| async function abrirEdicion(usuario: ReturnType<typeof renderizarAplic…
+    144|   await usuario.click(within(filaDe(codigo)).getByRole("button", { nam…
+       |                                              ^
+    145|   return screen.findByRole("dialog", { name: TITULO_EDICION });
+    146| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:219:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-70 · Editar abre el formulario con la obra y guarda sin recargar (CA-15) > tkt012b_ca15 · TC-70 · una obra sin umbral abre con el umbral vacío
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/^Editar\b/`
+
+Here are the accessible roles:
+
+  cell:
+
+  Name "AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Obra AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Activa":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Línea base de AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-061-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<tr[39m
+  [33mclass[39m=[32m"border-b"[39m
+[36m>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mAP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mObra AP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mActiva[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [36m<a[39m
+      [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+      [33mclass[39m=[32m"underline"[39m
+      [33mdata-discover[39m=[32m"true"[39m
+      [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+    [36m>[39m
+      [0mLínea base[0m
+    [36m</a>[39m
+  [36m</td>[39m
+[36m</tr>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ abrirEdicion src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:144:46
+    142|
+    143| async function abrirEdicion(usuario: ReturnType<typeof renderizarAplic…
+    144|   await usuario.click(within(filaDe(codigo)).getByRole("button", { nam…
+       |                                              ^
+    145|   return screen.findByRole("dialog", { name: TITULO_EDICION });
+    146| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:243:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-70 · Editar abre el formulario con la obra y guarda sin recargar (CA-15) > tkt012b_ca15 · TC-70 · guardar envía solo los campos editables a la obra de la fila, cierra el formulario y la lista muestra el nombre nuevo sin recargar
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/^Editar\b/`
+
+Here are the accessible roles:
+
+  cell:
+
+  Name "AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Obra AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Activa":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Línea base de AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-061-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<tr[39m
+  [33mclass[39m=[32m"border-b"[39m
+[36m>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mAP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mObra AP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mActiva[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [36m<a[39m
+      [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+      [33mclass[39m=[32m"underline"[39m
+      [33mdata-discover[39m=[32m"true"[39m
+      [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+    [36m>[39m
+      [0mLínea base[0m
+    [36m</a>[39m
+  [36m</td>[39m
+[36m</tr>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ abrirEdicion src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:144:46
+    142|
+    143| async function abrirEdicion(usuario: ReturnType<typeof renderizarAplic…
+    144|   await usuario.click(within(filaDe(codigo)).getByRole("button", { nam…
+       |                                              ^
+    145|   return screen.findByRole("dialog", { name: TITULO_EDICION });
+    146| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:262:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-71 · un 422 al editar cae junto a su campo (CA-15, rechazo) > tkt012b_ca15 · TC-71 · el mensaje del servidor se pinta junto al campo, el formulario sigue abierto con lo escrito y la lista no se vuelve a pedir
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/^Editar\b/`
+
+Here are the accessible roles:
+
+  cell:
+
+  Name "AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Obra AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Activa":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Línea base de AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-061-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<tr[39m
+  [33mclass[39m=[32m"border-b"[39m
+[36m>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mAP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mObra AP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mActiva[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [36m<a[39m
+      [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+      [33mclass[39m=[32m"underline"[39m
+      [33mdata-discover[39m=[32m"true"[39m
+      [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+    [36m>[39m
+      [0mLínea base[0m
+    [36m</a>[39m
+  [36m</td>[39m
+[36m</tr>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ abrirEdicion src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:144:46
+    142|
+    143| async function abrirEdicion(usuario: ReturnType<typeof renderizarAplic…
+    144|   await usuario.click(within(filaDe(codigo)).getByRole("button", { nam…
+       |                                              ^
+    145|   return screen.findByRole("dialog", { name: TITULO_EDICION });
+    146| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:305:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/16]⎯
+
+ FAIL  |cliente| src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx > TKT-012b · TC-72 · editar una obra que otra pestaña cerró (CA-4, rechazo) > tkt012b_ca04 · TC-72 · el 409 ESTADO_NO_PERMITE_OPERACION se pinta en línea con su mensaje y el estado, como conflicto y no como error
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/^Editar\b/`
+
+Here are the accessible roles:
+
+  cell:
+
+  Name "AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Obra AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Activa":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------cell:
+
+  Name "Línea base de AP-061-25":
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Línea base de AP-061-25":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+    [33mclass[39m=[32m"underline"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<tr[39m
+  [33mclass[39m=[32m"border-b"[39m
+[36m>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mAP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mObra AP-061-25[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [0mActiva[0m
+  [36m</td>[39m
+  [36m<td[39m
+    [33mclass[39m=[32m"px-3 py-2"[39m
+  [36m>[39m
+    [36m<a[39m
+      [33maria-label[39m=[32m"Línea base de AP-061-25"[39m
+      [33mclass[39m=[32m"underline"[39m
+      [33mdata-discover[39m=[32m"true"[39m
+      [33mhref[39m=[32m"/obras/5d6e7f80-91a2-4b3c-84d5-e6f708192031/linea-base"[39m
+    [36m>[39m
+      [0mLínea base[0m
+    [36m</a>[39m
+  [36m</td>[39m
+[36m</tr>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ abrirEdicion src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:144:46
+    142|
+    143| async function abrirEdicion(usuario: ReturnType<typeof renderizarAplic…
+    144|   await usuario.click(within(filaDe(codigo)).getByRole("button", { nam…
+       |                                              ^
+    145|   return screen.findByRole("dialog", { name: TITULO_EDICION });
+    146| }
+ ❯ src/modulos/presupuesto/obras/PantallaObras.acciones.test.tsx:340:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯
+
+
+ Test Files  1 failed | 28 passed (29)
+      Tests  16 failed | 573 passed (589)
+   Start at  17:45:27
+   Duration  15.47s (environment 44%, tests 32%, import 13%, setup 11%, transform 1%)
+

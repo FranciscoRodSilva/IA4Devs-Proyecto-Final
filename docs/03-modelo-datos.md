@@ -1009,9 +1009,9 @@ La tabla se protege a nivel de motor: el rol de aplicación tiene permiso de `IN
 
 **`bitacora.obra_id` es un identificador lógico, sin clave foránea.** `auditoria` es transversal y no depende de nadie ([arquitectura §5](02-arquitectura.md#5-contextos-delimitados)); una clave hacia `obra` la haría depender de `presupuesto`. La obra la copia el caso de uso que asienta, igual que `entidad_tipo` + `entidad_id`.
 
-**El enum `accion` es cerrado y es el mismo que el borrador de la API declara en `AccionBitacora`.** Veintitrés verbos: `CREAR`, `ACTUALIZAR`, `EVALUAR`, `BLOQUEAR`, `AUTORIZAR`, `RECHAZAR`, `CANCELAR`, `EMITIR`, `AJUSTAR`, `REPROGRAMAR`, `CONGELAR`, `RECAPTURAR`, `DESCARTAR`, `CONFIRMAR`, `ANULAR`, `SUSPENDER`, `REACTIVAR`, `CERRAR`, `DESACTIVAR`, `LIBERAR`, `VALIDAR`, `DENEGAR` y `DAR_BAJA`. Un verbo nuevo es una migración del enum y un cambio del borrador en el mismo PR.
+**El enum `accion` es cerrado y es el mismo que el borrador de la API declara en `AccionBitacora`.** Veinticuatro verbos: `CREAR`, `ACTUALIZAR`, `EVALUAR`, `BLOQUEAR`, `AUTORIZAR`, `RECHAZAR`, `CANCELAR`, `EMITIR`, `AJUSTAR`, `REPROGRAMAR`, `CONGELAR`, `RECAPTURAR`, `DESCARTAR`, `CONFIRMAR`, `ANULAR`, `SUSPENDER`, `REACTIVAR`, `CERRAR`, `DESACTIVAR`, `LIBERAR`, `VALIDAR`, `DENEGAR`, `DAR_BAJA` y `ELIMINAR`. Un verbo nuevo es una migración del enum y un cambio del borrador en el mismo PR.
 
-El verbo entra con `ALTER TYPE … ADD VALUE`, sin `BEFORE` ni `AFTER`, así que queda al final de la lista. PostgreSQL no deja usar un valor nuevo de un `ENUM` hasta confirmar la transacción que lo añadió, y las migraciones de este proyecto corren todas en una sola transacción: ninguna migración posterior puede usar el verbo en el mismo `upgrade head`. PostgreSQL tampoco sabe quitar un valor de un `ENUM`. Por eso la bajada de la migración `0016` recrea el tipo, y antes se niega si la bitácora tiene asientos `DAR_BAJA`, porque la bitácora es permanente (RN-04). Sin asientos con el verbo, la bajada no pierde nada.
+El verbo entra con `ALTER TYPE … ADD VALUE`, sin `BEFORE` ni `AFTER`, así que queda al final de la lista. PostgreSQL no deja usar un valor nuevo de un `ENUM` hasta confirmar la transacción que lo añadió, y las migraciones de este proyecto corren todas en una sola transacción: ninguna migración posterior puede usar el verbo en el mismo `upgrade head`. PostgreSQL tampoco sabe quitar un valor de un `ENUM`. Por eso la bajada de la migración `0016` recrea el tipo, y antes se niega si la bitácora tiene asientos `DAR_BAJA`, porque la bitácora es permanente (RN-04). Sin asientos con el verbo, la bajada no pierde nada. La migración `0017` repite el molde con `ELIMINAR`: su bajada se niega si hay asientos `ELIMINAR`.
 
 **Un `403` se asienta como `DENEGAR`, en una transacción propia.** Es la única escritura en la bitácora que no acompaña a un cambio —no hay cambio que acompañar—, así que no puede ir "en la misma transacción". Siempre lleva usuario autenticado: `usuario_id` sigue siendo `NOT NULL`. Las denegaciones **anónimas** —una prueba de origen CSRF ausente, unas credenciales erróneas al iniciar sesión— no tienen a quién atribuirse y no van a la bitácora: van a `intento_acceso` y al registro técnico. Un `403` sin recurso se atribuye a quien se le denegó: `entidad_tipo = 'usuario'` y `entidad_id = usuario_id`. Ni el identificador de la sesión —es la credencial de la cookie, y el rol de lectura lee la bitácora— ni la correlación de la petición —va al registro técnico ([API §2.7](07-especificacion-api.md#27-correlación))— entran en el asiento (TKT-007).
 
@@ -1355,6 +1355,36 @@ stateDiagram-v2
 ```
 
 `CADUCADO` y `ANULADO` son finales y distintos: el primero lo pone el sistema, ya sea el barrido de arranque o la confirmación de una subida que llega después de vencido el plazo (`PA-T59.13`), cuando una subida no llegó a confirmarse a tiempo, y no tiene autor; el segundo lo pone una persona y exige motivo (invariante 24). Ninguno borra la fila.
+
+### Obra
+
+```mermaid
+stateDiagram-v2
+    [*] --> PLANEACION: alta
+    PLANEACION --> ACTIVA: se congela la línea base
+    PLANEACION --> CERRADA: cierre con motivo
+    ACTIVA --> SUSPENDIDA: suspensión con motivo
+    SUSPENDIDA --> ACTIVA: reactivación con motivo
+    ACTIVA --> CERRADA: cierre con motivo
+    SUSPENDIDA --> CERRADA: cierre con motivo
+    PLANEACION --> [*]: se elimina sin historial · RN-01
+    CERRADA --> [*]: se elimina sin historial · RN-01
+```
+
+`PLANEACION → ACTIVA` ocurre solo por el congelado, que crea la línea base y su control en la misma transacción (§4.2). Ninguna de las tres operaciones de mantenimiento la recorre. Las tres transiciones de mantenimiento admiten solo las aristas de esta tabla:
+
+| Estado actual | Suspender | Reactivar | Cerrar |
+|---|---|---|---|
+| `PLANEACION` | no | no | sí |
+| `ACTIVA` | sí | no | sí |
+| `SUSPENDIDA` | no | sí | sí |
+| `CERRADA` | no | no | no |
+
+El dominio evalúa cada transición con la fila de la obra bloqueada (`SELECT … FOR UPDATE`) y rechaza lo que no figura con `ESTADO_NO_PERMITE_OPERACION`, que lleva el estado actual y las operaciones que sí admite. `CERRADA` es terminal. Solo `CERRADA` bloquea la edición de los datos de la obra: una obra `SUSPENDIDA` se edita. El esquema no tiene disparador de transiciones: un `UPDATE` escrito a mano podría saltarse esta tabla, y se acepta como riesgo mientras el único camino de escritura pase por el dominio (R-3 de TKT-012b).
+
+**Historial de la obra (RN-01).** Una obra tiene historial si tiene al menos una línea base en cualquier estado, una importación, un nivel, un concepto, un precio de insumo o un rendimiento observado, o un movimiento de un módulo posterior que la cite. La línea base se cuenta por existencia de fila y no por sus filas hijas: ninguna ruta crea una línea base vacía, así que ambas formas coinciden hoy. `(asumido)`, pendiente de confirmar por la persona dueña (D-DIS-5 de TKT-012b).
+
+Sin historial, la obra **se borra físicamente**: la fila desaparece, el código queda libre para `uq_obra_codigo` y el asiento `ELIMINAR` conserva el código y el nombre en `datos_antes`, porque `bitacora.obra_id` no tiene clave foránea. Con historial, el borrado no procede: el sistema responde `OBRA_CON_HISTORIAL` y ofrece suspender o cerrar, según el estado. Ningún dato histórico se pierde.
 
 ### Línea base
 

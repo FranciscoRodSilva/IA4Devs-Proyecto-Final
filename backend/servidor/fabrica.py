@@ -39,6 +39,7 @@ from cimenta.archivos.interfaz import (
     AlmacenNoConfigurado,
     AlmacenObjetos,
     ConfiguracionArchivos,
+    FuenteHistorialArchivos,
     LimitesArchivo,
     crear_almacen_s3,
     crear_lector_contenido,
@@ -188,6 +189,11 @@ def crear_aplicacion(
         configuracion=configuracion_archivos,
         reloj=reloj,
     )
-    montar_presupuesto(aplicacion, proveedor_motor=proveedor_motor, reloj=reloj)
+    montar_presupuesto(
+        aplicacion,
+        proveedor_motor=proveedor_motor,
+        reloj=reloj,
+        fuentes_historial=(FuenteHistorialArchivos(),),
+    )
     montar_proveedores(aplicacion, proveedor_motor=proveedor_motor, reloj=reloj)
     return aplicacion

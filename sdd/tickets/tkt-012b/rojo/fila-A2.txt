@@ -1,0 +1,1605 @@
+FFFFFFFFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFFFFFF....FFFFFFFFFFFFF              [100%]
+================================== FAILURES ===================================
+_ test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[activa-suspender] _
+
+origen = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+destino = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino"),
+        [
+            pytest.param(ACTIVA, SUSPENDER, SUSPENDIDA, id="activa-suspender"),
+            pytest.param(SUSPENDIDA, REACTIVAR, ACTIVA, id="suspendida-reactivar"),
+            pytest.param(ACTIVA, CERRAR, CERRADA, id="activa-cerrar"),
+            pytest.param(SUSPENDIDA, CERRAR, CERRADA, id="suspendida-cerrar"),
+        ],
+    )
+    def test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla(
+        origen: EstadoObraDominio, operacion: OperacionObra, destino: EstadoObraDominio
+    ) -> None:
+        """TC-05 · CA-8 · RN-25 — las cuatro transiciones de D-2 desde `ACTIVA` y `SUSPENDIDA` se admiten."""
+>       assert evaluar_transicion(origen, operacion) == TransicionAdmitida(estado_destino=destino)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[suspendida-reactivar] _
+
+origen = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+destino = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino"),
+        [
+            pytest.param(ACTIVA, SUSPENDER, SUSPENDIDA, id="activa-suspender"),
+            pytest.param(SUSPENDIDA, REACTIVAR, ACTIVA, id="suspendida-reactivar"),
+            pytest.param(ACTIVA, CERRAR, CERRADA, id="activa-cerrar"),
+            pytest.param(SUSPENDIDA, CERRAR, CERRADA, id="suspendida-cerrar"),
+        ],
+    )
+    def test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla(
+        origen: EstadoObraDominio, operacion: OperacionObra, destino: EstadoObraDominio
+    ) -> None:
+        """TC-05 · CA-8 · RN-25 — las cuatro transiciones de D-2 desde `ACTIVA` y `SUSPENDIDA` se admiten."""
+>       assert evaluar_transicion(origen, operacion) == TransicionAdmitida(estado_destino=destino)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[activa-cerrar] _
+
+origen = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+operacion = <OperacionObra.CERRAR: 'CERRAR'>
+destino = <EstadoObraDominio.CERRADA: 'CERRADA'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino"),
+        [
+            pytest.param(ACTIVA, SUSPENDER, SUSPENDIDA, id="activa-suspender"),
+            pytest.param(SUSPENDIDA, REACTIVAR, ACTIVA, id="suspendida-reactivar"),
+            pytest.param(ACTIVA, CERRAR, CERRADA, id="activa-cerrar"),
+            pytest.param(SUSPENDIDA, CERRAR, CERRADA, id="suspendida-cerrar"),
+        ],
+    )
+    def test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla(
+        origen: EstadoObraDominio, operacion: OperacionObra, destino: EstadoObraDominio
+    ) -> None:
+        """TC-05 · CA-8 · RN-25 — las cuatro transiciones de D-2 desde `ACTIVA` y `SUSPENDIDA` se admiten."""
+>       assert evaluar_transicion(origen, operacion) == TransicionAdmitida(estado_destino=destino)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+operacion = <OperacionObra.CERRAR: 'CERRAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[suspendida-cerrar] _
+
+origen = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+operacion = <OperacionObra.CERRAR: 'CERRAR'>
+destino = <EstadoObraDominio.CERRADA: 'CERRADA'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion", "destino"),
+        [
+            pytest.param(ACTIVA, SUSPENDER, SUSPENDIDA, id="activa-suspender"),
+            pytest.param(SUSPENDIDA, REACTIVAR, ACTIVA, id="suspendida-reactivar"),
+            pytest.param(ACTIVA, CERRAR, CERRADA, id="activa-cerrar"),
+            pytest.param(SUSPENDIDA, CERRAR, CERRADA, id="suspendida-cerrar"),
+        ],
+    )
+    def test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla(
+        origen: EstadoObraDominio, operacion: OperacionObra, destino: EstadoObraDominio
+    ) -> None:
+        """TC-05 · CA-8 · RN-25 — las cuatro transiciones de D-2 desde `ACTIVA` y `SUSPENDIDA` se admiten."""
+>       assert evaluar_transicion(origen, operacion) == TransicionAdmitida(estado_destino=destino)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+operacion = <OperacionObra.CERRAR: 'CERRAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_______ test_hdu001_esc20_planeacion_cerrar_se_admite_y_lleva_a_cerrada _______
+
+    def test_hdu001_esc20_planeacion_cerrar_se_admite_y_lleva_a_cerrada() -> None:
+        """TC-06 · CA-8 (ejemplo añadido, D-DIS-6) — una obra que nunca arrancó se cierra sin eliminarse."""
+>       assert evaluar_transicion(PLANEACION, CERRAR) == TransicionAdmitida(estado_destino=CERRADA)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.CERRAR: 'CERRAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+____ test_hdu001_esc20_solo_las_cinco_transiciones_de_la_tabla_se_admiten _____
+
+    def test_hdu001_esc20_solo_las_cinco_transiciones_de_la_tabla_se_admiten() -> None:
+        """TC-05 · CA-8, CA-9 — de las doce combinaciones estado x operación, admite exactamente las cinco."""
+        admitidas = {
+            (estado, operacion)
+            for estado in EstadoObraDominio
+            for operacion in OperacionObra
+>           if isinstance(evaluar_transicion(estado, operacion), TransicionAdmitida)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        }
+
+tests\test_tkt012b_dominio_ciclo_vida.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca8_planeacion_a_activa_no_es_una_operacion_del_ciclo_de_vida __
+
+    def test_tkt012b_ca8_planeacion_a_activa_no_es_una_operacion_del_ciclo_de_vida() -> None:
+        """CA-8, CA-R1 — `PLANEACION -> ACTIVA` solo ocurre por el congelado: ninguna operación lo logra."""
+        destinos_desde_planeacion = {
+            resultado.estado_destino
+            for operacion in OperacionObra
+>           if isinstance(resultado := evaluar_transicion(PLANEACION, operacion), TransicionAdmitida)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        }
+
+tests\test_tkt012b_dominio_ciclo_vida.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[planeacion-suspender] _
+
+origen = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion"),
+        [
+            pytest.param(origen, operacion, id=f"{origen.value.lower()}-{operacion.value.lower()}")
+            for origen, operacion in PROHIBIDAS
+        ],
+    )
+    def test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas(
+        origen: EstadoObraDominio, operacion: OperacionObra
+    ) -> None:
+        """TC-07 · CA-9 · RN-25 — el rechazo trae el estado actual y las operaciones que sí admite (el dato)."""
+>       rechazo = _rechazo(evaluar_transicion(origen, operacion))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[planeacion-reactivar] _
+
+origen = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion"),
+        [
+            pytest.param(origen, operacion, id=f"{origen.value.lower()}-{operacion.value.lower()}")
+            for origen, operacion in PROHIBIDAS
+        ],
+    )
+    def test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas(
+        origen: EstadoObraDominio, operacion: OperacionObra
+    ) -> None:
+        """TC-07 · CA-9 · RN-25 — el rechazo trae el estado actual y las operaciones que sí admite (el dato)."""
+>       rechazo = _rechazo(evaluar_transicion(origen, operacion))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[activa-reactivar] _
+
+origen = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion"),
+        [
+            pytest.param(origen, operacion, id=f"{origen.value.lower()}-{operacion.value.lower()}")
+            for origen, operacion in PROHIBIDAS
+        ],
+    )
+    def test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas(
+        origen: EstadoObraDominio, operacion: OperacionObra
+    ) -> None:
+        """TC-07 · CA-9 · RN-25 — el rechazo trae el estado actual y las operaciones que sí admite (el dato)."""
+>       rechazo = _rechazo(evaluar_transicion(origen, operacion))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[suspendida-suspender] _
+
+origen = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion"),
+        [
+            pytest.param(origen, operacion, id=f"{origen.value.lower()}-{operacion.value.lower()}")
+            for origen, operacion in PROHIBIDAS
+        ],
+    )
+    def test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas(
+        origen: EstadoObraDominio, operacion: OperacionObra
+    ) -> None:
+        """TC-07 · CA-9 · RN-25 — el rechazo trae el estado actual y las operaciones que sí admite (el dato)."""
+>       rechazo = _rechazo(evaluar_transicion(origen, operacion))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[cerrada-suspender] _
+
+origen = <EstadoObraDominio.CERRADA: 'CERRADA'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion"),
+        [
+            pytest.param(origen, operacion, id=f"{origen.value.lower()}-{operacion.value.lower()}")
+            for origen, operacion in PROHIBIDAS
+        ],
+    )
+    def test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas(
+        origen: EstadoObraDominio, operacion: OperacionObra
+    ) -> None:
+        """TC-07 · CA-9 · RN-25 — el rechazo trae el estado actual y las operaciones que sí admite (el dato)."""
+>       rechazo = _rechazo(evaluar_transicion(origen, operacion))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.CERRADA: 'CERRADA'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[cerrada-reactivar] _
+
+origen = <EstadoObraDominio.CERRADA: 'CERRADA'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion"),
+        [
+            pytest.param(origen, operacion, id=f"{origen.value.lower()}-{operacion.value.lower()}")
+            for origen, operacion in PROHIBIDAS
+        ],
+    )
+    def test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas(
+        origen: EstadoObraDominio, operacion: OperacionObra
+    ) -> None:
+        """TC-07 · CA-9 · RN-25 — el rechazo trae el estado actual y las operaciones que sí admite (el dato)."""
+>       rechazo = _rechazo(evaluar_transicion(origen, operacion))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.CERRADA: 'CERRADA'>
+operacion = <OperacionObra.REACTIVAR: 'REACTIVAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[cerrada-cerrar] _
+
+origen = <EstadoObraDominio.CERRADA: 'CERRADA'>
+operacion = <OperacionObra.CERRAR: 'CERRAR'>
+
+    @pytest.mark.parametrize(
+        ("origen", "operacion"),
+        [
+            pytest.param(origen, operacion, id=f"{origen.value.lower()}-{operacion.value.lower()}")
+            for origen, operacion in PROHIBIDAS
+        ],
+    )
+    def test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas(
+        origen: EstadoObraDominio, operacion: OperacionObra
+    ) -> None:
+        """TC-07 · CA-9 · RN-25 — el rechazo trae el estado actual y las operaciones que sí admite (el dato)."""
+>       rechazo = _rechazo(evaluar_transicion(origen, operacion))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.CERRADA: 'CERRADA'>
+operacion = <OperacionObra.CERRAR: 'CERRAR'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_las_siete_combinaciones_prohibidas_son_las_unicas_que_rechazan _
+
+    def test_tkt012b_ca9_las_siete_combinaciones_prohibidas_son_las_unicas_que_rechazan() -> None:
+        """TC-07 · CA-9 — el conjunto que rechaza es exactamente el de las siete combinaciones de CA-9."""
+        rechazadas = {
+            (estado, operacion)
+            for estado in EstadoObraDominio
+            for operacion in OperacionObra
+>           if isinstance(evaluar_transicion(estado, operacion), TransicionRechazada)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        }
+
+tests\test_tkt012b_dominio_ciclo_vida.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+_ test_tkt012b_ca9_cerrada_es_terminal_y_su_rechazo_no_ofrece_ninguna_operacion _
+
+    def test_tkt012b_ca9_cerrada_es_terminal_y_su_rechazo_no_ofrece_ninguna_operacion() -> None:
+        """TC-07 · CA-9 — desde `CERRADA` ninguna operación se admite y la lista que ofrece está vacía."""
+        for operacion in OperacionObra:
+>           rechazo = _rechazo(evaluar_transicion(CERRADA, operacion))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.CERRADA: 'CERRADA'>
+operacion = <OperacionObra.SUSPENDER: 'SUSPENDER'>
+
+    def evaluar_transicion(estado: EstadoObraDominio, operacion: OperacionObra) -> ResultadoTransicion:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:62: NotImplementedError
+________ test_tkt012b_ca6_operaciones_admitidas_por_estado[planeacion] ________
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+esperadas = (<OperacionObra.CERRAR: 'CERRAR'>,)
+
+    @pytest.mark.parametrize(
+        ("estado", "esperadas"),
+        [
+            pytest.param(estado, esperadas, id=estado.value.lower())
+            for estado, esperadas in ADMITIDAS_POR_ESTADO.items()
+        ],
+    )
+    def test_tkt012b_ca6_operaciones_admitidas_por_estado(
+        estado: EstadoObraDominio, esperadas: tuple[OperacionObra, ...]
+    ) -> None:
+        """TC-07 · CA-6, CA-9 — por estado: `PLANEACION` solo cierra (nunca ofrece suspender, objeción 5)."""
+>       assert operaciones_admitidas(estado) == esperadas
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+
+    def operaciones_admitidas(estado: EstadoObraDominio) -> tuple[OperacionObra, ...]:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:66: NotImplementedError
+__________ test_tkt012b_ca6_operaciones_admitidas_por_estado[activa] __________
+
+estado = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+esperadas = (<OperacionObra.SUSPENDER: 'SUSPENDER'>, <OperacionObra.CERRAR: 'CERRAR'>)
+
+    @pytest.mark.parametrize(
+        ("estado", "esperadas"),
+        [
+            pytest.param(estado, esperadas, id=estado.value.lower())
+            for estado, esperadas in ADMITIDAS_POR_ESTADO.items()
+        ],
+    )
+    def test_tkt012b_ca6_operaciones_admitidas_por_estado(
+        estado: EstadoObraDominio, esperadas: tuple[OperacionObra, ...]
+    ) -> None:
+        """TC-07 · CA-6, CA-9 — por estado: `PLANEACION` solo cierra (nunca ofrece suspender, objeción 5)."""
+>       assert operaciones_admitidas(estado) == esperadas
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+
+    def operaciones_admitidas(estado: EstadoObraDominio) -> tuple[OperacionObra, ...]:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:66: NotImplementedError
+________ test_tkt012b_ca6_operaciones_admitidas_por_estado[suspendida] ________
+
+estado = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+esperadas = (<OperacionObra.REACTIVAR: 'REACTIVAR'>, <OperacionObra.CERRAR: 'CERRAR'>)
+
+    @pytest.mark.parametrize(
+        ("estado", "esperadas"),
+        [
+            pytest.param(estado, esperadas, id=estado.value.lower())
+            for estado, esperadas in ADMITIDAS_POR_ESTADO.items()
+        ],
+    )
+    def test_tkt012b_ca6_operaciones_admitidas_por_estado(
+        estado: EstadoObraDominio, esperadas: tuple[OperacionObra, ...]
+    ) -> None:
+        """TC-07 · CA-6, CA-9 — por estado: `PLANEACION` solo cierra (nunca ofrece suspender, objeción 5)."""
+>       assert operaciones_admitidas(estado) == esperadas
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+
+    def operaciones_admitidas(estado: EstadoObraDominio) -> tuple[OperacionObra, ...]:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:66: NotImplementedError
+_________ test_tkt012b_ca6_operaciones_admitidas_por_estado[cerrada] __________
+
+estado = <EstadoObraDominio.CERRADA: 'CERRADA'>, esperadas = ()
+
+    @pytest.mark.parametrize(
+        ("estado", "esperadas"),
+        [
+            pytest.param(estado, esperadas, id=estado.value.lower())
+            for estado, esperadas in ADMITIDAS_POR_ESTADO.items()
+        ],
+    )
+    def test_tkt012b_ca6_operaciones_admitidas_por_estado(
+        estado: EstadoObraDominio, esperadas: tuple[OperacionObra, ...]
+    ) -> None:
+        """TC-07 · CA-6, CA-9 — por estado: `PLANEACION` solo cierra (nunca ofrece suspender, objeción 5)."""
+>       assert operaciones_admitidas(estado) == esperadas
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.CERRADA: 'CERRADA'>
+
+    def operaciones_admitidas(estado: EstadoObraDominio) -> tuple[OperacionObra, ...]:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:66: NotImplementedError
+_ test_tkt012b_ca6_operaciones_admitidas_coincide_con_lo_que_evaluar_transicion_admite _
+
+    def test_tkt012b_ca6_operaciones_admitidas_coincide_con_lo_que_evaluar_transicion_admite() -> None:
+        """TC-07 · CA-6, CA-9 — una fuente, dos funciones: lo que se ofrece es lo que no daría `409`."""
+        for estado in EstadoObraDominio:
+>           ofrecidas = set(operaciones_admitidas(estado))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:197: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+
+    def operaciones_admitidas(estado: EstadoObraDominio) -> tuple[OperacionObra, ...]:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:66: NotImplementedError
+_ test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida[PLANEACION] _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+
+    @pytest.mark.parametrize("estado", [PLANEACION, ACTIVA, SUSPENDIDA])
+    def test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida(
+        estado: EstadoObraDominio,
+    ) -> None:
+        """TC-08 · CA-1, D-3 — una obra `SUSPENDIDA` sí se edita (la edición no exige reactivar antes)."""
+>       assert admite_edicion(estado) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:225: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.PLANEACION: 'PLANEACION'>
+
+    def admite_edicion(estado: EstadoObraDominio) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:70: NotImplementedError
+__ test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida[ACTIVA] __
+
+estado = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+
+    @pytest.mark.parametrize("estado", [PLANEACION, ACTIVA, SUSPENDIDA])
+    def test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida(
+        estado: EstadoObraDominio,
+    ) -> None:
+        """TC-08 · CA-1, D-3 — una obra `SUSPENDIDA` sí se edita (la edición no exige reactivar antes)."""
+>       assert admite_edicion(estado) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:225: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.ACTIVA: 'ACTIVA'>
+
+    def admite_edicion(estado: EstadoObraDominio) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:70: NotImplementedError
+_ test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida[SUSPENDIDA] _
+
+estado = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+
+    @pytest.mark.parametrize("estado", [PLANEACION, ACTIVA, SUSPENDIDA])
+    def test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida(
+        estado: EstadoObraDominio,
+    ) -> None:
+        """TC-08 · CA-1, D-3 — una obra `SUSPENDIDA` sí se edita (la edición no exige reactivar antes)."""
+>       assert admite_edicion(estado) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:225: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.SUSPENDIDA: 'SUSPENDIDA'>
+
+    def admite_edicion(estado: EstadoObraDominio) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:70: NotImplementedError
+_________________ test_tkt012b_ca4_cerrada_no_admite_edicion __________________
+
+    def test_tkt012b_ca4_cerrada_no_admite_edicion() -> None:
+        """TC-08 · CA-4 · RN-25 — solo `CERRADA` bloquea la edición."""
+>       assert admite_edicion(CERRADA) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:230: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+estado = <EstadoObraDominio.CERRADA: 'CERRADA'>
+
+    def admite_edicion(estado: EstadoObraDominio) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:70: NotImplementedError
+_ test_tkt012b_ca1_cambios_efectivos_trae_antes_y_despues_solo_de_los_campos_que_cambian _
+
+    def test_tkt012b_ca1_cambios_efectivos_trae_antes_y_despues_solo_de_los_campos_que_cambian() -> (
+        None
+    ):
+        """TC-09 · CA-1 · RN-25 — un valor igual al actual no cuenta; antes y después traen solo lo cambiado."""
+>       resultado = cambios_efectivos(
+            _obra_actual(),
+            {
+                "nombre": "Union Square F2 (ampliación)",
+                "domicilio": "Av. Reforma 100, CDMX",  # igual: no cuenta
+                "retencion_destajo_pct": Porcentaje("0.100000"),
+                "fondo_garantia_pct": Porcentaje("0.05"),  # igual por valor aunque con otra escala
+                "iva_acreditable": True,  # igual: no cuenta
+            },
+        )
+
+tests\test_tkt012b_dominio_ciclo_vida.py:254: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'nombre': 'Union Square F2 (ampliación)', 'domicilio': 'Av. Reforma 100, CDMX', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.100000')), 'fondo_garantia_pct': Porcentaje(valor=Decimal('0.05')), ...}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+___ test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[nombre] ____
+
+campo = 'nombre', nuevo = 'Otro nombre', anterior = 'Union Square F2'
+
+    @pytest.mark.parametrize(
+        ("campo", "nuevo", "anterior"),
+        [
+            pytest.param("nombre", "Otro nombre", "Union Square F2", id="nombre"),
+            pytest.param("domicilio", "Calle Nueva 5", "Av. Reforma 100, CDMX", id="domicilio"),
+            pytest.param(
+                "retencion_destajo_pct", Porcentaje("0.07"), Porcentaje("0.05"), id="retencion"
+            ),
+            pytest.param("fondo_garantia_pct", Porcentaje("0.09"), Porcentaje("0.05"), id="fondo"),
+            pytest.param("iva_acreditable", False, True, id="iva-a-falso"),
+            pytest.param("umbral_alerta_pct", Porcentaje("0.30"), Porcentaje("0.20"), id="umbral"),
+        ],
+    )
+    def test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio(
+        campo: str, nuevo: object, anterior: object
+    ) -> None:
+        """TC-09 · CA-1 — cada uno de los seis campos, solo, produce exactamente su par antes/después.
+    
+        `iva_acreditable` a `False` cubre el valor falso: no es «ausente».
+        """
+>       resultado = cambios_efectivos(_obra_actual(), {campo: nuevo})  # type: ignore[dict-item]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'nombre': 'Otro nombre'}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+__ test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[domicilio] __
+
+campo = 'domicilio', nuevo = 'Calle Nueva 5', anterior = 'Av. Reforma 100, CDMX'
+
+    @pytest.mark.parametrize(
+        ("campo", "nuevo", "anterior"),
+        [
+            pytest.param("nombre", "Otro nombre", "Union Square F2", id="nombre"),
+            pytest.param("domicilio", "Calle Nueva 5", "Av. Reforma 100, CDMX", id="domicilio"),
+            pytest.param(
+                "retencion_destajo_pct", Porcentaje("0.07"), Porcentaje("0.05"), id="retencion"
+            ),
+            pytest.param("fondo_garantia_pct", Porcentaje("0.09"), Porcentaje("0.05"), id="fondo"),
+            pytest.param("iva_acreditable", False, True, id="iva-a-falso"),
+            pytest.param("umbral_alerta_pct", Porcentaje("0.30"), Porcentaje("0.20"), id="umbral"),
+        ],
+    )
+    def test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio(
+        campo: str, nuevo: object, anterior: object
+    ) -> None:
+        """TC-09 · CA-1 — cada uno de los seis campos, solo, produce exactamente su par antes/después.
+    
+        `iva_acreditable` a `False` cubre el valor falso: no es «ausente».
+        """
+>       resultado = cambios_efectivos(_obra_actual(), {campo: nuevo})  # type: ignore[dict-item]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'domicilio': 'Calle Nueva 5'}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+__ test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[retencion] __
+
+campo = 'retencion_destajo_pct', nuevo = Porcentaje(valor=Decimal('0.07'))
+anterior = Porcentaje(valor=Decimal('0.05'))
+
+    @pytest.mark.parametrize(
+        ("campo", "nuevo", "anterior"),
+        [
+            pytest.param("nombre", "Otro nombre", "Union Square F2", id="nombre"),
+            pytest.param("domicilio", "Calle Nueva 5", "Av. Reforma 100, CDMX", id="domicilio"),
+            pytest.param(
+                "retencion_destajo_pct", Porcentaje("0.07"), Porcentaje("0.05"), id="retencion"
+            ),
+            pytest.param("fondo_garantia_pct", Porcentaje("0.09"), Porcentaje("0.05"), id="fondo"),
+            pytest.param("iva_acreditable", False, True, id="iva-a-falso"),
+            pytest.param("umbral_alerta_pct", Porcentaje("0.30"), Porcentaje("0.20"), id="umbral"),
+        ],
+    )
+    def test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio(
+        campo: str, nuevo: object, anterior: object
+    ) -> None:
+        """TC-09 · CA-1 — cada uno de los seis campos, solo, produce exactamente su par antes/después.
+    
+        `iva_acreditable` a `False` cubre el valor falso: no es «ausente».
+        """
+>       resultado = cambios_efectivos(_obra_actual(), {campo: nuevo})  # type: ignore[dict-item]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'retencion_destajo_pct': Porcentaje(valor=Decimal('0.07'))}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+____ test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[fondo] ____
+
+campo = 'fondo_garantia_pct', nuevo = Porcentaje(valor=Decimal('0.09'))
+anterior = Porcentaje(valor=Decimal('0.05'))
+
+    @pytest.mark.parametrize(
+        ("campo", "nuevo", "anterior"),
+        [
+            pytest.param("nombre", "Otro nombre", "Union Square F2", id="nombre"),
+            pytest.param("domicilio", "Calle Nueva 5", "Av. Reforma 100, CDMX", id="domicilio"),
+            pytest.param(
+                "retencion_destajo_pct", Porcentaje("0.07"), Porcentaje("0.05"), id="retencion"
+            ),
+            pytest.param("fondo_garantia_pct", Porcentaje("0.09"), Porcentaje("0.05"), id="fondo"),
+            pytest.param("iva_acreditable", False, True, id="iva-a-falso"),
+            pytest.param("umbral_alerta_pct", Porcentaje("0.30"), Porcentaje("0.20"), id="umbral"),
+        ],
+    )
+    def test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio(
+        campo: str, nuevo: object, anterior: object
+    ) -> None:
+        """TC-09 · CA-1 — cada uno de los seis campos, solo, produce exactamente su par antes/después.
+    
+        `iva_acreditable` a `False` cubre el valor falso: no es «ausente».
+        """
+>       resultado = cambios_efectivos(_obra_actual(), {campo: nuevo})  # type: ignore[dict-item]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'fondo_garantia_pct': Porcentaje(valor=Decimal('0.09'))}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+_ test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[iva-a-falso] _
+
+campo = 'iva_acreditable', nuevo = False, anterior = True
+
+    @pytest.mark.parametrize(
+        ("campo", "nuevo", "anterior"),
+        [
+            pytest.param("nombre", "Otro nombre", "Union Square F2", id="nombre"),
+            pytest.param("domicilio", "Calle Nueva 5", "Av. Reforma 100, CDMX", id="domicilio"),
+            pytest.param(
+                "retencion_destajo_pct", Porcentaje("0.07"), Porcentaje("0.05"), id="retencion"
+            ),
+            pytest.param("fondo_garantia_pct", Porcentaje("0.09"), Porcentaje("0.05"), id="fondo"),
+            pytest.param("iva_acreditable", False, True, id="iva-a-falso"),
+            pytest.param("umbral_alerta_pct", Porcentaje("0.30"), Porcentaje("0.20"), id="umbral"),
+        ],
+    )
+    def test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio(
+        campo: str, nuevo: object, anterior: object
+    ) -> None:
+        """TC-09 · CA-1 — cada uno de los seis campos, solo, produce exactamente su par antes/después.
+    
+        `iva_acreditable` a `False` cubre el valor falso: no es «ausente».
+        """
+>       resultado = cambios_efectivos(_obra_actual(), {campo: nuevo})  # type: ignore[dict-item]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'iva_acreditable': False}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+___ test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[umbral] ____
+
+campo = 'umbral_alerta_pct', nuevo = Porcentaje(valor=Decimal('0.30'))
+anterior = Porcentaje(valor=Decimal('0.20'))
+
+    @pytest.mark.parametrize(
+        ("campo", "nuevo", "anterior"),
+        [
+            pytest.param("nombre", "Otro nombre", "Union Square F2", id="nombre"),
+            pytest.param("domicilio", "Calle Nueva 5", "Av. Reforma 100, CDMX", id="domicilio"),
+            pytest.param(
+                "retencion_destajo_pct", Porcentaje("0.07"), Porcentaje("0.05"), id="retencion"
+            ),
+            pytest.param("fondo_garantia_pct", Porcentaje("0.09"), Porcentaje("0.05"), id="fondo"),
+            pytest.param("iva_acreditable", False, True, id="iva-a-falso"),
+            pytest.param("umbral_alerta_pct", Porcentaje("0.30"), Porcentaje("0.20"), id="umbral"),
+        ],
+    )
+    def test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio(
+        campo: str, nuevo: object, anterior: object
+    ) -> None:
+        """TC-09 · CA-1 — cada uno de los seis campos, solo, produce exactamente su par antes/después.
+    
+        `iva_acreditable` a `False` cubre el valor falso: no es «ausente».
+        """
+>       resultado = cambios_efectivos(_obra_actual(), {campo: nuevo})  # type: ignore[dict-item]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:296: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'umbral_alerta_pct': Porcentaje(valor=Decimal('0.30'))}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+______ test_tkt012b_ca1_cambios_efectivos_no_modifica_los_datos_actuales ______
+
+    def test_tkt012b_ca1_cambios_efectivos_no_modifica_los_datos_actuales() -> None:
+        """TC-09 · CA-1 — los actuales son inmutables: la función devuelve el cambio y no lo aplica."""
+        actuales = _obra_actual()
+    
+>       cambios_efectivos(actuales, {"nombre": "Otro nombre"})
+
+tests\test_tkt012b_dominio_ciclo_vida.py:306: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'nombre': 'Otro nombre'}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+_____________ test_tkt012b_ca1_sin_cambios_reales_devuelve_vacio ______________
+
+    def test_tkt012b_ca1_sin_cambios_reales_devuelve_vacio() -> None:
+        """TC-10 · CA-1 variante — todos los valores propuestos iguales a los actuales: ni antes ni después."""
+>       resultado = cambios_efectivos(
+            _obra_actual(),
+            {
+                "nombre": "Union Square F2",
+                "domicilio": "Av. Reforma 100, CDMX",
+                "retencion_destajo_pct": Porcentaje("0.05"),
+                "fondo_garantia_pct": Porcentaje("0.05"),
+                "iva_acreditable": True,
+                "umbral_alerta_pct": Porcentaje("0.2"),
+            },
+        )
+
+tests\test_tkt012b_dominio_ciclo_vida.py:313: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'nombre': 'Union Square F2', 'domicilio': 'Av. Reforma 100, CDMX', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.05')), 'fondo_garantia_pct': Porcentaje(valor=Decimal('0.05')), ...}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+_______________ test_tkt012b_ca1_sin_propuestos_devuelve_vacio ________________
+
+    def test_tkt012b_ca1_sin_propuestos_devuelve_vacio() -> None:
+        """TC-10 · CA-1 variante — un mapa de propuestos sin claves no cambia nada (todo ausente)."""
+>       resultado = cambios_efectivos(_obra_actual(), {})
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:331: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+___________ test_tkt012b_ca1_umbral_none_explicito_borra_el_umbral ____________
+
+    def test_tkt012b_ca1_umbral_none_explicito_borra_el_umbral() -> None:
+        """TC-11 · CA-1 variante — `umbral_alerta_pct: None` propuesto sobre un umbral existente es un borrado."""
+>       resultado = cambios_efectivos(_obra_actual(), {"umbral_alerta_pct": None})
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:339: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'umbral_alerta_pct': None}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+_____________ test_tkt012b_ca1_umbral_ausente_conserva_el_umbral ______________
+
+    def test_tkt012b_ca1_umbral_ausente_conserva_el_umbral() -> None:
+        """TC-11 · CA-1 variante — sin la clave `umbral_alerta_pct`, el umbral no aparece en el cambio."""
+>       resultado = cambios_efectivos(_obra_actual(), {"nombre": "Otro nombre"})
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:347: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'nombre': 'Otro nombre'}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+_______ test_tkt012b_ca1_umbral_none_sobre_umbral_ya_vacio_no_es_cambio _______
+
+    def test_tkt012b_ca1_umbral_none_sobre_umbral_ya_vacio_no_es_cambio() -> None:
+        """TC-11 · CA-1 variante — borrar un umbral que ya no existe no cuenta (sin asiento, S-2)."""
+>       resultado = cambios_efectivos(_obra_actual(umbral_alerta_pct=None), {"umbral_alerta_pct": None})
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:356: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...l('0.050000')), fondo_garantia_pct=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=None)
+propuestos = {'umbral_alerta_pct': None}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+____ test_tkt012b_ca1_umbral_nuevo_sobre_umbral_vacio_es_cambio_desde_none ____
+
+    def test_tkt012b_ca1_umbral_nuevo_sobre_umbral_vacio_es_cambio_desde_none() -> None:
+        """TC-11 · CA-1 variante — fijar un umbral donde no había: el antes es `None`, no una clave ausente."""
+>       resultado = cambios_efectivos(
+            _obra_actual(umbral_alerta_pct=None), {"umbral_alerta_pct": Porcentaje("0.15")}
+        )
+
+tests\test_tkt012b_dominio_ciclo_vida.py:364: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...l('0.050000')), fondo_garantia_pct=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=None)
+propuestos = {'umbral_alerta_pct': Porcentaje(valor=Decimal('0.15'))}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+________ test_tkt012b_ca1_umbral_cero_no_es_lo_mismo_que_ningun_umbral ________
+
+    def test_tkt012b_ca1_umbral_cero_no_es_lo_mismo_que_ningun_umbral() -> None:
+        """TC-11 · CA-1 variante — `0` y `None` difieren: pasar de `0` a `None` es un cambio (no se compara por verdad)."""
+>       resultado = cambios_efectivos(
+            _obra_actual(umbral_alerta_pct=Porcentaje("0")), {"umbral_alerta_pct": None}
+        )
+
+tests\test_tkt012b_dominio_ciclo_vida.py:374: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...ntia_pct=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0')))
+propuestos = {'umbral_alerta_pct': None}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+_ test_tkt012b_ca1_porcentaje_cero_propuesto_sobre_cinco_por_ciento_es_cambio _
+
+    def test_tkt012b_ca1_porcentaje_cero_propuesto_sobre_cinco_por_ciento_es_cambio() -> None:
+        """TC-09 · CA-1 — un porcentaje propuesto en `0` es un valor, no «ausente» ni «sin cambio»."""
+>       resultado = cambios_efectivos(_obra_actual(), {"retencion_destajo_pct": Porcentaje("0")})
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_ciclo_vida.py:384: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+actuales = DatosObraEditables(nombre='Union Square F2', domicilio='Av. Reforma 100, CDMX', retencion_destajo_pct=Porcentaje(valor...t=Porcentaje(valor=Decimal('0.050000')), iva_acreditable=True, umbral_alerta_pct=Porcentaje(valor=Decimal('0.200000')))
+propuestos = {'retencion_destajo_pct': Porcentaje(valor=Decimal('0'))}
+
+    def cambios_efectivos(
+        actuales: DatosObraEditables, propuestos: Mapping[str, ValorEditable]
+    ) -> CambiosEfectivos:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\ciclo_vida_obra.py:76: NotImplementedError
+________ test_hdu001_esc20_obra_recien_dada_de_alta_no_tiene_historial ________
+
+    def test_hdu001_esc20_obra_recien_dada_de_alta_no_tiene_historial() -> None:
+        """TC-12 · CA-5 · RN-01 — todo en cero (obra recién creada): no hay historial y se puede borrar."""
+>       assert hay_historial(_conteos()) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[lineas_base-borrador] _
+
+conteos = ConteosHistorial(lineas_base=1, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=0)
+
+    @pytest.mark.parametrize(
+        "conteos",
+        [
+            pytest.param(_conteos(lineas_base=1), id="lineas_base-borrador"),
+            pytest.param(
+                _conteos(lineas_base=1, linea_base_congelada=True), id="lineas_base-congelada"
+            ),
+            pytest.param(_conteos(lineas_base=3, linea_base_congelada=True), id="lineas_base-varias"),
+            pytest.param(_conteos(importaciones=1), id="importaciones"),
+            pytest.param(_conteos(filas_propias=1), id="filas_propias"),
+            pytest.param(_conteos(movimientos=1), id="movimientos-externos"),
+            pytest.param(_conteos(movimientos=12), id="movimientos-externos-varios"),
+        ],
+    )
+    def test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial(
+        conteos: ConteosHistorial,
+    ) -> None:
+        """TC-12 · CA-6 · RN-01 — con una sola fuente en uno y el resto en cero ya hay historial.
+    
+        Cubre la línea base de cualquier estado (D-DIS-5, asumido), la importación sin línea base
+        congelada (CA-6 ejemplo 2), las filas propias y los movimientos de módulos posteriores.
+        """
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=1, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[lineas_base-congelada] _
+
+conteos = ConteosHistorial(lineas_base=1, linea_base_congelada=True, importaciones=0, filas_propias=0, movimientos=0)
+
+    @pytest.mark.parametrize(
+        "conteos",
+        [
+            pytest.param(_conteos(lineas_base=1), id="lineas_base-borrador"),
+            pytest.param(
+                _conteos(lineas_base=1, linea_base_congelada=True), id="lineas_base-congelada"
+            ),
+            pytest.param(_conteos(lineas_base=3, linea_base_congelada=True), id="lineas_base-varias"),
+            pytest.param(_conteos(importaciones=1), id="importaciones"),
+            pytest.param(_conteos(filas_propias=1), id="filas_propias"),
+            pytest.param(_conteos(movimientos=1), id="movimientos-externos"),
+            pytest.param(_conteos(movimientos=12), id="movimientos-externos-varios"),
+        ],
+    )
+    def test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial(
+        conteos: ConteosHistorial,
+    ) -> None:
+        """TC-12 · CA-6 · RN-01 — con una sola fuente en uno y el resto en cero ya hay historial.
+    
+        Cubre la línea base de cualquier estado (D-DIS-5, asumido), la importación sin línea base
+        congelada (CA-6 ejemplo 2), las filas propias y los movimientos de módulos posteriores.
+        """
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=1, linea_base_congelada=True, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[lineas_base-varias] _
+
+conteos = ConteosHistorial(lineas_base=3, linea_base_congelada=True, importaciones=0, filas_propias=0, movimientos=0)
+
+    @pytest.mark.parametrize(
+        "conteos",
+        [
+            pytest.param(_conteos(lineas_base=1), id="lineas_base-borrador"),
+            pytest.param(
+                _conteos(lineas_base=1, linea_base_congelada=True), id="lineas_base-congelada"
+            ),
+            pytest.param(_conteos(lineas_base=3, linea_base_congelada=True), id="lineas_base-varias"),
+            pytest.param(_conteos(importaciones=1), id="importaciones"),
+            pytest.param(_conteos(filas_propias=1), id="filas_propias"),
+            pytest.param(_conteos(movimientos=1), id="movimientos-externos"),
+            pytest.param(_conteos(movimientos=12), id="movimientos-externos-varios"),
+        ],
+    )
+    def test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial(
+        conteos: ConteosHistorial,
+    ) -> None:
+        """TC-12 · CA-6 · RN-01 — con una sola fuente en uno y el resto en cero ya hay historial.
+    
+        Cubre la línea base de cualquier estado (D-DIS-5, asumido), la importación sin línea base
+        congelada (CA-6 ejemplo 2), las filas propias y los movimientos de módulos posteriores.
+        """
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=3, linea_base_congelada=True, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[importaciones] _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=1, filas_propias=0, movimientos=0)
+
+    @pytest.mark.parametrize(
+        "conteos",
+        [
+            pytest.param(_conteos(lineas_base=1), id="lineas_base-borrador"),
+            pytest.param(
+                _conteos(lineas_base=1, linea_base_congelada=True), id="lineas_base-congelada"
+            ),
+            pytest.param(_conteos(lineas_base=3, linea_base_congelada=True), id="lineas_base-varias"),
+            pytest.param(_conteos(importaciones=1), id="importaciones"),
+            pytest.param(_conteos(filas_propias=1), id="filas_propias"),
+            pytest.param(_conteos(movimientos=1), id="movimientos-externos"),
+            pytest.param(_conteos(movimientos=12), id="movimientos-externos-varios"),
+        ],
+    )
+    def test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial(
+        conteos: ConteosHistorial,
+    ) -> None:
+        """TC-12 · CA-6 · RN-01 — con una sola fuente en uno y el resto en cero ya hay historial.
+    
+        Cubre la línea base de cualquier estado (D-DIS-5, asumido), la importación sin línea base
+        congelada (CA-6 ejemplo 2), las filas propias y los movimientos de módulos posteriores.
+        """
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=1, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[filas_propias] _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=1, movimientos=0)
+
+    @pytest.mark.parametrize(
+        "conteos",
+        [
+            pytest.param(_conteos(lineas_base=1), id="lineas_base-borrador"),
+            pytest.param(
+                _conteos(lineas_base=1, linea_base_congelada=True), id="lineas_base-congelada"
+            ),
+            pytest.param(_conteos(lineas_base=3, linea_base_congelada=True), id="lineas_base-varias"),
+            pytest.param(_conteos(importaciones=1), id="importaciones"),
+            pytest.param(_conteos(filas_propias=1), id="filas_propias"),
+            pytest.param(_conteos(movimientos=1), id="movimientos-externos"),
+            pytest.param(_conteos(movimientos=12), id="movimientos-externos-varios"),
+        ],
+    )
+    def test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial(
+        conteos: ConteosHistorial,
+    ) -> None:
+        """TC-12 · CA-6 · RN-01 — con una sola fuente en uno y el resto en cero ya hay historial.
+    
+        Cubre la línea base de cualquier estado (D-DIS-5, asumido), la importación sin línea base
+        congelada (CA-6 ejemplo 2), las filas propias y los movimientos de módulos posteriores.
+        """
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=1, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[movimientos-externos] _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=1)
+
+    @pytest.mark.parametrize(
+        "conteos",
+        [
+            pytest.param(_conteos(lineas_base=1), id="lineas_base-borrador"),
+            pytest.param(
+                _conteos(lineas_base=1, linea_base_congelada=True), id="lineas_base-congelada"
+            ),
+            pytest.param(_conteos(lineas_base=3, linea_base_congelada=True), id="lineas_base-varias"),
+            pytest.param(_conteos(importaciones=1), id="importaciones"),
+            pytest.param(_conteos(filas_propias=1), id="filas_propias"),
+            pytest.param(_conteos(movimientos=1), id="movimientos-externos"),
+            pytest.param(_conteos(movimientos=12), id="movimientos-externos-varios"),
+        ],
+    )
+    def test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial(
+        conteos: ConteosHistorial,
+    ) -> None:
+        """TC-12 · CA-6 · RN-01 — con una sola fuente en uno y el resto en cero ya hay historial.
+    
+        Cubre la línea base de cualquier estado (D-DIS-5, asumido), la importación sin línea base
+        congelada (CA-6 ejemplo 2), las filas propias y los movimientos de módulos posteriores.
+        """
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=1)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[movimientos-externos-varios] _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=12)
+
+    @pytest.mark.parametrize(
+        "conteos",
+        [
+            pytest.param(_conteos(lineas_base=1), id="lineas_base-borrador"),
+            pytest.param(
+                _conteos(lineas_base=1, linea_base_congelada=True), id="lineas_base-congelada"
+            ),
+            pytest.param(_conteos(lineas_base=3, linea_base_congelada=True), id="lineas_base-varias"),
+            pytest.param(_conteos(importaciones=1), id="importaciones"),
+            pytest.param(_conteos(filas_propias=1), id="filas_propias"),
+            pytest.param(_conteos(movimientos=1), id="movimientos-externos"),
+            pytest.param(_conteos(movimientos=12), id="movimientos-externos-varios"),
+        ],
+    )
+    def test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial(
+        conteos: ConteosHistorial,
+    ) -> None:
+        """TC-12 · CA-6 · RN-01 — con una sola fuente en uno y el resto en cero ya hay historial.
+    
+        Cubre la línea base de cualquier estado (D-DIS-5, asumido), la importación sin línea base
+        congelada (CA-6 ejemplo 2), las filas propias y los movimientos de módulos posteriores.
+        """
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=12)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+________ test_tkt012b_ca6_todas_las_fuentes_a_la_vez_tienen_historial _________
+
+    def test_tkt012b_ca6_todas_las_fuentes_a_la_vez_tienen_historial() -> None:
+        """TC-12 · CA-6 — el caso de HDU-001 esc. 20: congelada, importaciones, filas propias y movimientos."""
+        conteos = _conteos(
+            lineas_base=2,
+            linea_base_congelada=True,
+            importaciones=4,
+            filas_propias=300,
+            movimientos=7,
+        )
+    
+>       assert hay_historial(conteos) is True
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=2, linea_base_congelada=True, importaciones=4, filas_propias=300, movimientos=7)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[lineas_base] _
+
+campo = 'lineas_base'
+
+    @pytest.mark.parametrize("campo", ["lineas_base", "importaciones", "filas_propias", "movimientos"])
+    def test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras(campo: str) -> None:
+        """TC-12 · CA-5, CA-6 — poner en uno cualquiera de los cuatro conteos cambia el resultado de falso a verdadero.
+    
+        Mutantes que mata: ignorar una fuente, o exigir dos a la vez.
+        """
+        sin_historial = _conteos()
+        con_historial = _conteos(**{campo: 1})
+    
+>       assert hay_historial(sin_historial) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[importaciones] _
+
+campo = 'importaciones'
+
+    @pytest.mark.parametrize("campo", ["lineas_base", "importaciones", "filas_propias", "movimientos"])
+    def test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras(campo: str) -> None:
+        """TC-12 · CA-5, CA-6 — poner en uno cualquiera de los cuatro conteos cambia el resultado de falso a verdadero.
+    
+        Mutantes que mata: ignorar una fuente, o exigir dos a la vez.
+        """
+        sin_historial = _conteos()
+        con_historial = _conteos(**{campo: 1})
+    
+>       assert hay_historial(sin_historial) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[filas_propias] _
+
+campo = 'filas_propias'
+
+    @pytest.mark.parametrize("campo", ["lineas_base", "importaciones", "filas_propias", "movimientos"])
+    def test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras(campo: str) -> None:
+        """TC-12 · CA-5, CA-6 — poner en uno cualquiera de los cuatro conteos cambia el resultado de falso a verdadero.
+    
+        Mutantes que mata: ignorar una fuente, o exigir dos a la vez.
+        """
+        sin_historial = _conteos()
+        con_historial = _conteos(**{campo: 1})
+    
+>       assert hay_historial(sin_historial) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+_ test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[movimientos] _
+
+campo = 'movimientos'
+
+    @pytest.mark.parametrize("campo", ["lineas_base", "importaciones", "filas_propias", "movimientos"])
+    def test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras(campo: str) -> None:
+        """TC-12 · CA-5, CA-6 — poner en uno cualquiera de los cuatro conteos cambia el resultado de falso a verdadero.
+    
+        Mutantes que mata: ignorar una fuente, o exigir dos a la vez.
+        """
+        sin_historial = _conteos()
+        con_historial = _conteos(**{campo: 1})
+    
+>       assert hay_historial(sin_historial) is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_dominio_historial.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+conteos = ConteosHistorial(lineas_base=0, linea_base_congelada=False, importaciones=0, filas_propias=0, movimientos=0)
+
+    def hay_historial(conteos: ConteosHistorial) -> bool:
+>       raise NotImplementedError
+E       NotImplementedError
+
+cimenta\presupuesto\dominio\historial_obra.py:22: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[activa-suspender]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[suspendida-reactivar]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[activa-cerrar]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_hdu001_esc20_transicion_admitida_lleva_al_estado_de_la_tabla[suspendida-cerrar]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_hdu001_esc20_planeacion_cerrar_se_admite_y_lleva_a_cerrada
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_hdu001_esc20_solo_las_cinco_transiciones_de_la_tabla_se_admiten
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca8_planeacion_a_activa_no_es_una_operacion_del_ciclo_de_vida
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[planeacion-suspender]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[planeacion-reactivar]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[activa-reactivar]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[suspendida-suspender]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[cerrada-suspender]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[cerrada-reactivar]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_transicion_no_admitida_rechaza_con_estado_y_operaciones_admitidas[cerrada-cerrar]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_las_siete_combinaciones_prohibidas_son_las_unicas_que_rechazan
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca9_cerrada_es_terminal_y_su_rechazo_no_ofrece_ninguna_operacion
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca6_operaciones_admitidas_por_estado[planeacion]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca6_operaciones_admitidas_por_estado[activa]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca6_operaciones_admitidas_por_estado[suspendida]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca6_operaciones_admitidas_por_estado[cerrada]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca6_operaciones_admitidas_coincide_con_lo_que_evaluar_transicion_admite
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida[PLANEACION]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida[ACTIVA]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_admite_edicion_en_planeacion_activa_y_suspendida[SUSPENDIDA]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca4_cerrada_no_admite_edicion
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cambios_efectivos_trae_antes_y_despues_solo_de_los_campos_que_cambian
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[nombre]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[domicilio]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[retencion]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[fondo]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[iva-a-falso]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cada_campo_editable_por_separado_es_un_cambio[umbral]
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_cambios_efectivos_no_modifica_los_datos_actuales
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_sin_cambios_reales_devuelve_vacio
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_sin_propuestos_devuelve_vacio
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_umbral_none_explicito_borra_el_umbral
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_umbral_ausente_conserva_el_umbral
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_umbral_none_sobre_umbral_ya_vacio_no_es_cambio
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_umbral_nuevo_sobre_umbral_vacio_es_cambio_desde_none
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_umbral_cero_no_es_lo_mismo_que_ningun_umbral
+FAILED tests/test_tkt012b_dominio_ciclo_vida.py::test_tkt012b_ca1_porcentaje_cero_propuesto_sobre_cinco_por_ciento_es_cambio
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_obra_recien_dada_de_alta_no_tiene_historial
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[lineas_base-borrador]
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[lineas_base-congelada]
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[lineas_base-varias]
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[importaciones]
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[filas_propias]
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[movimientos-externos]
+FAILED tests/test_tkt012b_dominio_historial.py::test_hdu001_esc20_cada_fuente_por_separado_basta_para_tener_historial[movimientos-externos-varios]
+FAILED tests/test_tkt012b_dominio_historial.py::test_tkt012b_ca6_todas_las_fuentes_a_la_vez_tienen_historial
+FAILED tests/test_tkt012b_dominio_historial.py::test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[lineas_base]
+FAILED tests/test_tkt012b_dominio_historial.py::test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[importaciones]
+FAILED tests/test_tkt012b_dominio_historial.py::test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[filas_propias]
+FAILED tests/test_tkt012b_dominio_historial.py::test_tkt012b_ca5_ninguna_fuente_se_ignora_ni_depende_de_las_otras[movimientos]
+54 failed, 5 passed in 0.46s

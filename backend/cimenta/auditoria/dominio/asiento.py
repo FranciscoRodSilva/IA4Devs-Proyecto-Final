@@ -12,7 +12,7 @@ _REGLA = re.compile(r"RN-[0-9]{2}")
 MENSAJE_OBLIGATORIO = "El campo es obligatorio."
 MENSAJE_TEXTO = "El valor es un texto."
 MENSAJE_UUID = "El valor no es un identificador UUID."
-MENSAJE_ACCION = "La acción no es uno de los 23 verbos de la bitácora."
+MENSAJE_ACCION = "La acción no es uno de los 24 verbos de la bitácora."
 MENSAJE_REGLA = "La regla de negocio tiene la forma RN-NN, como RN-03."
 MENSAJE_DATOS_NO_OBJETO = "Los datos son un objeto JSON."
 MENSAJE_CLAVE_NO_CADENA = "Las claves de los datos son cadenas."
@@ -24,7 +24,7 @@ MENSAJE_NUL = "El texto contiene el carácter U+0000, que PostgreSQL no admite e
 
 
 class AccionBitacora(StrEnum):
-    """Los 23 verbos de bitacora.accion: modelo de datos §10 y AccionBitacora del borrador, en ese orden."""
+    """Los 24 verbos de bitacora.accion: modelo de datos §10 y AccionBitacora del borrador, en ese orden."""
 
     CREAR = "CREAR"
     ACTUALIZAR = "ACTUALIZAR"
@@ -49,6 +49,7 @@ class AccionBitacora(StrEnum):
     VALIDAR = "VALIDAR"
     DENEGAR = "DENEGAR"
     DAR_BAJA = "DAR_BAJA"
+    ELIMINAR = "ELIMINAR"
 
 
 @dataclass(frozen=True, slots=True)

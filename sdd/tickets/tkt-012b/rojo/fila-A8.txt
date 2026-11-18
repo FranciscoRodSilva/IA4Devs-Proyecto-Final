@@ -1,0 +1,405 @@
+...........F...FFFFF..F.FFFFF.FFFF                                       [100%]
+================================== FAILURES ===================================
+_ test_tkt012b_tc53_el_borrador_declara_los_codigos_de_respuesta_que_publica_el_servidor[eliminar_obra] _
+
+identificador = 'eliminar_obra', metodo = 'delete', sufijo = '', exito = '204'
+contrato = {'openapi': '3.1.0', 'info': {'title': 'CIMENTA', 'version': '0.1.0'}, 'paths': {'/api/v1/sesion/csrf': {'get': {'tags...ey', 'in': 'header', 'name': 'X-CSRF-Token'}, 'sesion': {'type': 'apiKey', 'in': 'cookie', 'name': 'cimenta_sesion'}}}}
+
+    @pytest.mark.parametrize(("identificador", "metodo", "sufijo", "exito"), OPERACIONES)
+    def test_tkt012b_tc53_el_borrador_declara_los_codigos_de_respuesta_que_publica_el_servidor(
+        identificador: str, metodo: str, sufijo: str, exito: str, contrato: dict[str, Any]
+    ) -> None:
+        """TC-53 · DoD — el borrador declara el conjunto exacto de códigos de la tabla «API», y entre ellos todo lo que el servidor publica.
+    
+        `eliminar_obra` debe declarar también el `422` del `obra_id` que no es UUID: el servidor lo publica
+        (TC-52) y el borrador de TKT-012 no lo tenía.
+        """
+        declarados = set(borrador()["paths"][f"{RUTA_OBRA}{sufijo}"][metodo]["responses"])
+        publicados = set(contrato["paths"][f"/api/v1{RUTA_OBRA}{sufijo}"][metodo]["responses"])
+    
+>       assert publicados <= declarados, (
+            f"El servidor publica {sorted(publicados - declarados)} sin que el borrador lo declare"
+        )
+E       AssertionError: El servidor publica ['422'] sin que el borrador lo declare
+E       assert {'204', '422'} <= {'204', '401'... '404', '409'}
+E         
+E         Extra items in the left set:
+E         '422'
+
+tests\test_tkt012b_contrato.py:234: AssertionError
+_ test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[actualizar_obra] _
+
+identificador = 'actualizar_obra', metodo = 'patch', sufijo = '', exito = '200'
+
+    @pytest.mark.parametrize(("identificador", "metodo", "sufijo", "exito"), OPERACIONES)
+    def test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b(
+        identificador: str, metodo: str, sufijo: str, exito: str
+    ) -> None:
+        """TC-53 · D-DIS-7 — `x-tickets` de las cinco operaciones pasa de `[TKT-012]` a `[TKT-012b]`.
+    
+        Es lo que reconocen los filtros de `test_tkt017_api_congelado.py` (TC-B19) para el conjunto de
+        operaciones de `presupuesto`; el borrador no puede conservar `TKT-012` en estas cinco.
+        """
+        operacion = borrador()["paths"][f"{RUTA_OBRA}{sufijo}"][metodo]
+    
+>       assert operacion["x-tickets"] == [TICKET]
+E       AssertionError: assert ['TKT-012'] == ['TKT-012b']
+E         
+E         At index 0 diff: 'TKT-012' != 'TKT-012b'
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:251: AssertionError
+_ test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[eliminar_obra] _
+
+identificador = 'eliminar_obra', metodo = 'delete', sufijo = '', exito = '204'
+
+    @pytest.mark.parametrize(("identificador", "metodo", "sufijo", "exito"), OPERACIONES)
+    def test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b(
+        identificador: str, metodo: str, sufijo: str, exito: str
+    ) -> None:
+        """TC-53 · D-DIS-7 — `x-tickets` de las cinco operaciones pasa de `[TKT-012]` a `[TKT-012b]`.
+    
+        Es lo que reconocen los filtros de `test_tkt017_api_congelado.py` (TC-B19) para el conjunto de
+        operaciones de `presupuesto`; el borrador no puede conservar `TKT-012` en estas cinco.
+        """
+        operacion = borrador()["paths"][f"{RUTA_OBRA}{sufijo}"][metodo]
+    
+>       assert operacion["x-tickets"] == [TICKET]
+E       AssertionError: assert ['TKT-012'] == ['TKT-012b']
+E         
+E         At index 0 diff: 'TKT-012' != 'TKT-012b'
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:251: AssertionError
+_ test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[suspender_obra] _
+
+identificador = 'suspender_obra', metodo = 'post', sufijo = '/suspension'
+exito = '200'
+
+    @pytest.mark.parametrize(("identificador", "metodo", "sufijo", "exito"), OPERACIONES)
+    def test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b(
+        identificador: str, metodo: str, sufijo: str, exito: str
+    ) -> None:
+        """TC-53 · D-DIS-7 — `x-tickets` de las cinco operaciones pasa de `[TKT-012]` a `[TKT-012b]`.
+    
+        Es lo que reconocen los filtros de `test_tkt017_api_congelado.py` (TC-B19) para el conjunto de
+        operaciones de `presupuesto`; el borrador no puede conservar `TKT-012` en estas cinco.
+        """
+        operacion = borrador()["paths"][f"{RUTA_OBRA}{sufijo}"][metodo]
+    
+>       assert operacion["x-tickets"] == [TICKET]
+E       AssertionError: assert ['TKT-012'] == ['TKT-012b']
+E         
+E         At index 0 diff: 'TKT-012' != 'TKT-012b'
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:251: AssertionError
+_ test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[reactivar_obra] _
+
+identificador = 'reactivar_obra', metodo = 'post', sufijo = '/reactivacion'
+exito = '200'
+
+    @pytest.mark.parametrize(("identificador", "metodo", "sufijo", "exito"), OPERACIONES)
+    def test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b(
+        identificador: str, metodo: str, sufijo: str, exito: str
+    ) -> None:
+        """TC-53 · D-DIS-7 — `x-tickets` de las cinco operaciones pasa de `[TKT-012]` a `[TKT-012b]`.
+    
+        Es lo que reconocen los filtros de `test_tkt017_api_congelado.py` (TC-B19) para el conjunto de
+        operaciones de `presupuesto`; el borrador no puede conservar `TKT-012` en estas cinco.
+        """
+        operacion = borrador()["paths"][f"{RUTA_OBRA}{sufijo}"][metodo]
+    
+>       assert operacion["x-tickets"] == [TICKET]
+E       AssertionError: assert ['TKT-012'] == ['TKT-012b']
+E         
+E         At index 0 diff: 'TKT-012' != 'TKT-012b'
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:251: AssertionError
+_ test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[cerrar_obra] _
+
+identificador = 'cerrar_obra', metodo = 'post', sufijo = '/cierre'
+exito = '200'
+
+    @pytest.mark.parametrize(("identificador", "metodo", "sufijo", "exito"), OPERACIONES)
+    def test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b(
+        identificador: str, metodo: str, sufijo: str, exito: str
+    ) -> None:
+        """TC-53 · D-DIS-7 — `x-tickets` de las cinco operaciones pasa de `[TKT-012]` a `[TKT-012b]`.
+    
+        Es lo que reconocen los filtros de `test_tkt017_api_congelado.py` (TC-B19) para el conjunto de
+        operaciones de `presupuesto`; el borrador no puede conservar `TKT-012` en estas cinco.
+        """
+        operacion = borrador()["paths"][f"{RUTA_OBRA}{sufijo}"][metodo]
+    
+>       assert operacion["x-tickets"] == [TICKET]
+E       AssertionError: assert ['TKT-012'] == ['TKT-012b']
+E         
+E         At index 0 diff: 'TKT-012' != 'TKT-012b'
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:251: AssertionError
+_ test_tkt012b_tc53_obra_cambios_del_borrador_cierra_los_campos_desconocidos __
+
+    def test_tkt012b_tc53_obra_cambios_del_borrador_cierra_los_campos_desconocidos() -> None:
+        """TC-53 · CA-2 — `ObraCambios` declara `additionalProperties: false`: `codigo`, `tipo_contrato` y `estado` no se aceptan.
+    
+        El servidor ya lo publica así (A7); el borrador debe decir lo mismo para que el cliente generado y la
+        documentación no sugieran que el `PATCH` acepta cualquier campo.
+        """
+        cambios = borrador()["components"]["schemas"]["ObraCambios"]
+    
+>       assert cambios.get("additionalProperties") is False
+E       AssertionError: assert None is False
+E        +  where None = <built-in method get of dict object at 0x000001DD27245580>('additionalProperties')
+E        +    where <built-in method get of dict object at 0x000001DD27245580> = {'type': 'object', 'minProperties': 1, 'properties': {'nombre': {'type': 'string', 'minLength': 1}, 'domicilio': {'typ...: {'$ref': '#/components/schemas/Porcentaje'}, 'fondo_garantia_pct': {'$ref': '#/components/schemas/Porcentaje'}, ...}}.get
+
+tests\test_tkt012b_contrato.py:292: AssertionError
+__________ test_tkt012b_tc53_reactivar_obra_ya_no_se_declara_asumido __________
+
+    def test_tkt012b_tc53_reactivar_obra_ya_no_se_declara_asumido() -> None:
+        """TC-53 · D-2 — la descripción de `reactivar_obra` pierde el `(asumido)` y el «Pendiente de confirmar»: la persona dueña confirmó la vuelta de `SUSPENDIDA` a `ACTIVA` el 2026-11-17."""
+        operacion = _operacion_del_borrador("reactivar_obra")
+        descripcion = operacion.get("description", "")
+    
+>       assert "(asumido)" not in descripcion
+E       AssertionError: assert '(asumido)' not in '(asumido) L...e confirmar.'
+E         
+E         '(asumido)' is contained here:
+E           (asumido) La máquina de estados de TKT-012 no declara la vuelta de `SUSPENDIDA` a `ACTIVA`; se incluye porque una suspensión sin salida sería un cierre con otro nombre. Pendiente de confirmar.
+E         ? +++++++++
+
+tests\test_tkt012b_contrato.py:323: AssertionError
+_ test_tkt012b_tc53_actualizar_obra_documenta_que_un_cuerpo_con_campos_fijos_es_422 _
+
+    def test_tkt012b_tc53_actualizar_obra_documenta_que_un_cuerpo_con_campos_fijos_es_422() -> None:
+        """TC-53 · CA-2 — la descripción de `actualizar_obra` dice que `codigo`, `tipo_contrato` o `estado` en el cuerpo responden `422`."""
+        descripcion = _operacion_del_borrador("actualizar_obra")["description"]
+    
+>       assert "422" in descripcion
+E       AssertionError: assert '422' in '(asumido) El `codigo` y el `tipo_contrato` no se modifican: son la identidad de la obra y lo que otras pantallas cita...las transiciones `suspension`, `reactivacion` y `cierre`. Todo cambio se asienta en la bitácora con el valor anterior.'
+
+tests\test_tkt012b_contrato.py:334: AssertionError
+_ test_tkt012b_tc53_actualizar_obra_documenta_que_umbral_alerta_pct_null_borra_el_umbral _
+
+    def test_tkt012b_tc53_actualizar_obra_documenta_que_umbral_alerta_pct_null_borra_el_umbral() -> (
+        None
+    ):
+        """TC-53 · CA-1 variante — en la operación o en el campo de `ObraCambios` consta que `umbral_alerta_pct: null` borra el umbral."""
+        operacion = _operacion_del_borrador("actualizar_obra")
+        umbral = borrador()["components"]["schemas"]["ObraCambios"]["properties"]["umbral_alerta_pct"]
+    
+        texto = _texto(operacion.get("description"), umbral.get("description"))
+    
+        assert "null" in texto
+>       assert re.search(r"\bborra", texto, re.IGNORECASE), texto
+E       AssertionError: (asumido) El `codigo` y el `tipo_contrato` no se modifican: son la identidad de la obra y lo que otras pantallas citan. El estado tampoco: se cambia con las transiciones `suspension`, `reactivacion` y `cierre`. Todo cambio se asienta en la bitácora con el valor anterior.
+E         Umbral de desviación relativa que separa `AMARILLO` de `ROJO` en el semáforo; la alerta (F7.3) sale con `ROJO` (`PA-18`). `null`: toda desviación positiva es `ROJO`.
+E       assert None
+E        +  where None = <function search at 0x000001DD1CC1F3D0>('\\bborra', '(asumido) El `codigo` y el `tipo_contrato` no se modifican: son la identidad de la obra y lo que otras pantallas cita...LLO` de `ROJO` en el semáforo; la alerta (F7.3) sale con `ROJO` (`PA-18`). `null`: toda desviación positiva es `ROJO`.', re.IGNORECASE)
+E        +    where <function search at 0x000001DD1CC1F3D0> = re.search
+E        +    and   re.IGNORECASE = re.IGNORECASE
+
+tests\test_tkt012b_contrato.py:349: AssertionError
+_ test_tkt012b_tc53_actualizar_obra_documenta_el_409_estado_no_permite_operacion _
+
+    def test_tkt012b_tc53_actualizar_obra_documenta_el_409_estado_no_permite_operacion() -> None:
+        """TC-53 · CA-4 — el `409` de `actualizar_obra` es `ESTADO_NO_PERMITE_OPERACION` con la obra `CERRADA`, `detalle {estado}` y sin acciones.
+    
+        La edición solo se bloquea en `CERRADA` (D-3), y una obra cerrada no admite ninguna operación: por eso
+        el ejemplo no ofrece acciones. El mensaje es el que produce el servidor.
+        """
+>       ejemplos = _ejemplos_409("actualizar_obra")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_contrato.py:358: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identificador = 'actualizar_obra'
+
+    def _ejemplos_409(identificador: str) -> list[dict[str, Any]]:
+        """Los ejemplos del `409` de una operación; vacío si el borrador la deja como `$ref` genérico."""
+        respuesta = _respuesta_409(identificador)
+        esquema = respuesta.get("content", {}).get("application/json", {}).get("schema")
+>       assert esquema == {"$ref": "#/components/schemas/ErrorConflictoEstado"}, (
+            f"{identificador}: el 409 debe declarar el esquema ErrorConflictoEstado, no {esquema!r}"
+        )
+E       AssertionError: actualizar_obra: el 409 debe declarar el esquema ErrorConflictoEstado, no {'$ref': '#/components/schemas/ErrorConflicto'}
+E       assert {'$ref': '#/c...rorConflicto'} == {'$ref': '#/c...flictoEstado'}
+E         
+E         Differing items:
+E         {'$ref': '#/components/schemas/ErrorConflicto'} != {'$ref': '#/components/schemas/ErrorConflictoEstado'}
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:162: AssertionError
+_ test_tkt012b_tc53_eliminar_obra_documenta_el_409_obra_con_historial_con_su_detalle _
+
+    def test_tkt012b_tc53_eliminar_obra_documenta_el_409_obra_con_historial_con_su_detalle() -> None:
+        """HDU-001 esc. 20 · TC-53 · CA-6 · RN-01 — el ejemplo del `409` es `OBRA_CON_HISTORIAL` con el mensaje del servidor y `detalle {linea_base_congelada, lineas_base, importaciones, movimientos}`.
+    
+        Un booleano y tres enteros no negativos. Una línea base congelada implica al menos una línea base.
+        """
+        ejemplos = _ejemplos_409("eliminar_obra")
+    
+        for ejemplo in ejemplos:
+            assert ejemplo["tipo"] == "CONFLICTO"
+            assert ejemplo["codigo"] == "OBRA_CON_HISTORIAL"
+>           assert MENSAJE_CON_HISTORIAL.match(ejemplo["mensaje"]), ejemplo["mensaje"]
+E           AssertionError: La obra AP-058-25 tiene línea base congelada y movimientos; se suspende o se cierra, no se elimina.
+E           assert None
+E            +  where None = <built-in method match of re.Pattern object at 0x000001DD21E45510>('La obra AP-058-25 tiene línea base congelada y movimientos; se suspende o se cierra, no se elimina.')
+E            +    where <built-in method match of re.Pattern object at 0x000001DD21E45510> = re.compile('^La obra \\S+ tiene historial y no se puede eliminar\\.$').match
+
+tests\test_tkt012b_contrato.py:383: AssertionError
+_ test_tkt012b_tc53_eliminar_obra_declara_que_sus_acciones_dependen_del_estado _
+
+    def test_tkt012b_tc53_eliminar_obra_declara_que_sus_acciones_dependen_del_estado() -> None:
+        """TC-53 · CA-6 — la operación o su `409` dicen que las acciones dependen del estado de la obra y nombran `SUSPENDER_OBRA` y `CERRAR_OBRA`.
+    
+        Solo cuentan las descripciones, no el ejemplo: el ejemplo muestra un caso y el texto explica la regla
+        (desde `PLANEACION` y `SUSPENDIDA`, solo cerrar; desde `CERRADA`, ninguna).
+        """
+        operacion = _operacion_del_borrador("eliminar_obra")
+    
+        texto = _texto(operacion.get("description"), _respuesta_409("eliminar_obra").get("description"))
+    
+>       assert "SUSPENDER_OBRA" in texto
+E       AssertionError: assert 'SUSPENDER_OBRA' in 'Solo procede si la obra no tiene línea base congelada ni movimientos. Con historial responde `409` y ofrece suspenderla o cerrarla: ningún dato histórico se pierde (HDU-001 esc. 20).\nLa obra tiene historial y no se elimina.'
+
+tests\test_tkt012b_contrato.py:427: AssertionError
+_ test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas[suspender_obra] _
+
+identificador = 'suspender_obra', operacion = 'SUSPENDER'
+
+    @pytest.mark.parametrize(("identificador", "operacion"), TRANSICIONES)
+    def test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas(
+        identificador: str, operacion: str
+    ) -> None:
+        """HDU-001 esc. 20 · TC-53 · CA-9 — el `409` es `ESTADO_NO_PERMITE_OPERACION` con `detalle {estado, operaciones_admitidas}` y una acción `POST` por operación admitida.
+    
+        Cada ejemplo es coherente con la máquina de estados de D-2: `operaciones_admitidas` es lo que admite el
+        `estado` del detalle, el mensaje cita ese mismo estado, y las acciones siguen ese orden con su clave y
+        su ruta (`SUSPENDER_OBRA` a `/suspension`, `REACTIVAR_OBRA` a `/reactivacion`, `CERRAR_OBRA` a
+        `/cierre`) sobre una misma obra. Al menos un ejemplo es un rechazo real de **esta** operación: el estado
+        no la admite.
+        """
+>       ejemplos = _ejemplos_409(identificador)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_contrato.py:447: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identificador = 'suspender_obra'
+
+    def _ejemplos_409(identificador: str) -> list[dict[str, Any]]:
+        """Los ejemplos del `409` de una operación; vacío si el borrador la deja como `$ref` genérico."""
+        respuesta = _respuesta_409(identificador)
+        esquema = respuesta.get("content", {}).get("application/json", {}).get("schema")
+>       assert esquema == {"$ref": "#/components/schemas/ErrorConflictoEstado"}, (
+            f"{identificador}: el 409 debe declarar el esquema ErrorConflictoEstado, no {esquema!r}"
+        )
+E       AssertionError: suspender_obra: el 409 debe declarar el esquema ErrorConflictoEstado, no {'$ref': '#/components/schemas/ErrorConflicto'}
+E       assert {'$ref': '#/c...rorConflicto'} == {'$ref': '#/c...flictoEstado'}
+E         
+E         Differing items:
+E         {'$ref': '#/components/schemas/ErrorConflicto'} != {'$ref': '#/components/schemas/ErrorConflictoEstado'}
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:162: AssertionError
+_ test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas[reactivar_obra] _
+
+identificador = 'reactivar_obra', operacion = 'REACTIVAR'
+
+    @pytest.mark.parametrize(("identificador", "operacion"), TRANSICIONES)
+    def test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas(
+        identificador: str, operacion: str
+    ) -> None:
+        """HDU-001 esc. 20 · TC-53 · CA-9 — el `409` es `ESTADO_NO_PERMITE_OPERACION` con `detalle {estado, operaciones_admitidas}` y una acción `POST` por operación admitida.
+    
+        Cada ejemplo es coherente con la máquina de estados de D-2: `operaciones_admitidas` es lo que admite el
+        `estado` del detalle, el mensaje cita ese mismo estado, y las acciones siguen ese orden con su clave y
+        su ruta (`SUSPENDER_OBRA` a `/suspension`, `REACTIVAR_OBRA` a `/reactivacion`, `CERRAR_OBRA` a
+        `/cierre`) sobre una misma obra. Al menos un ejemplo es un rechazo real de **esta** operación: el estado
+        no la admite.
+        """
+>       ejemplos = _ejemplos_409(identificador)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_contrato.py:447: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identificador = 'reactivar_obra'
+
+    def _ejemplos_409(identificador: str) -> list[dict[str, Any]]:
+        """Los ejemplos del `409` de una operación; vacío si el borrador la deja como `$ref` genérico."""
+        respuesta = _respuesta_409(identificador)
+        esquema = respuesta.get("content", {}).get("application/json", {}).get("schema")
+>       assert esquema == {"$ref": "#/components/schemas/ErrorConflictoEstado"}, (
+            f"{identificador}: el 409 debe declarar el esquema ErrorConflictoEstado, no {esquema!r}"
+        )
+E       AssertionError: reactivar_obra: el 409 debe declarar el esquema ErrorConflictoEstado, no {'$ref': '#/components/schemas/ErrorConflicto'}
+E       assert {'$ref': '#/c...rorConflicto'} == {'$ref': '#/c...flictoEstado'}
+E         
+E         Differing items:
+E         {'$ref': '#/components/schemas/ErrorConflicto'} != {'$ref': '#/components/schemas/ErrorConflictoEstado'}
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:162: AssertionError
+_ test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas[cerrar_obra] _
+
+identificador = 'cerrar_obra', operacion = 'CERRAR'
+
+    @pytest.mark.parametrize(("identificador", "operacion"), TRANSICIONES)
+    def test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas(
+        identificador: str, operacion: str
+    ) -> None:
+        """HDU-001 esc. 20 · TC-53 · CA-9 — el `409` es `ESTADO_NO_PERMITE_OPERACION` con `detalle {estado, operaciones_admitidas}` y una acción `POST` por operación admitida.
+    
+        Cada ejemplo es coherente con la máquina de estados de D-2: `operaciones_admitidas` es lo que admite el
+        `estado` del detalle, el mensaje cita ese mismo estado, y las acciones siguen ese orden con su clave y
+        su ruta (`SUSPENDER_OBRA` a `/suspension`, `REACTIVAR_OBRA` a `/reactivacion`, `CERRAR_OBRA` a
+        `/cierre`) sobre una misma obra. Al menos un ejemplo es un rechazo real de **esta** operación: el estado
+        no la admite.
+        """
+>       ejemplos = _ejemplos_409(identificador)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_contrato.py:447: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identificador = 'cerrar_obra'
+
+    def _ejemplos_409(identificador: str) -> list[dict[str, Any]]:
+        """Los ejemplos del `409` de una operación; vacío si el borrador la deja como `$ref` genérico."""
+        respuesta = _respuesta_409(identificador)
+        esquema = respuesta.get("content", {}).get("application/json", {}).get("schema")
+>       assert esquema == {"$ref": "#/components/schemas/ErrorConflictoEstado"}, (
+            f"{identificador}: el 409 debe declarar el esquema ErrorConflictoEstado, no {esquema!r}"
+        )
+E       AssertionError: cerrar_obra: el 409 debe declarar el esquema ErrorConflictoEstado, no {'$ref': '#/components/schemas/ErrorConflicto'}
+E       assert {'$ref': '#/c...rorConflicto'} == {'$ref': '#/c...flictoEstado'}
+E         
+E         Differing items:
+E         {'$ref': '#/components/schemas/ErrorConflicto'} != {'$ref': '#/components/schemas/ErrorConflictoEstado'}
+E         Use -v to get more diff
+
+tests\test_tkt012b_contrato.py:162: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_el_borrador_declara_los_codigos_de_respuesta_que_publica_el_servidor[eliminar_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[actualizar_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[eliminar_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[suspender_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[reactivar_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_x_tickets_de_la_operacion_es_exactamente_tkt_012b[cerrar_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_obra_cambios_del_borrador_cierra_los_campos_desconocidos
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_reactivar_obra_ya_no_se_declara_asumido
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_actualizar_obra_documenta_que_un_cuerpo_con_campos_fijos_es_422
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_actualizar_obra_documenta_que_umbral_alerta_pct_null_borra_el_umbral
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_actualizar_obra_documenta_el_409_estado_no_permite_operacion
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_eliminar_obra_documenta_el_409_obra_con_historial_con_su_detalle
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_eliminar_obra_declara_que_sus_acciones_dependen_del_estado
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas[suspender_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas[reactivar_obra]
+FAILED tests/test_tkt012b_contrato.py::test_tkt012b_tc53_la_transicion_documenta_el_409_con_estado_y_operaciones_admitidas[cerrar_obra]
+16 failed, 18 passed in 1.29s

@@ -12,8 +12,14 @@ import { fileURLToPath } from "node:url";
  *   y congela la línea base en `linea-base.spec.ts`.
  * - DIRECCION_GENERAL (TKT-018a D-9): `humo.direccion@cimenta.test`, la que captura el tope en `linea-base.spec.ts`.
  *
- * Después siembra, con `herramientas.semilla_linea_base_local`, una obra nueva `E2E-LB-<8 hex>` con línea base
- * BORRADOR, y deja su identificador en `CIMENTA_HUMO_LB_OBRA_ID`.
+ * Después siembra, con `herramientas.semilla_linea_base_local`, tres obras:
+ *
+ * - `E2E-LB-<8 hex>`: línea base BORRADOR, para `linea-base.spec.ts` (`CIMENTA_HUMO_LB_OBRA_ID`).
+ * - Dos obras de mantenimiento (TKT-012b, fila B5), con códigos distintos:
+ *   - M1, `E2E-M1-<8 hex>`: sembrada con `--congelar`, queda ACTIVA con su línea base CONGELADA
+ *     (`CIMENTA_HUMO_MANT_M1_CODIGO` y `CIMENTA_HUMO_MANT_M1_OBRA_ID`).
+ *   - M2, `E2E-M2-<8 hex>`: sin congelar, queda PLANEACION con su línea base BORRADOR
+ *     (`CIMENTA_HUMO_MANT_M2_CODIGO` y `CIMENTA_HUMO_MANT_M2_OBRA_ID`).
  *
  * El script es idempotente: los correos son fijos y se reutilizan (D-4), así que la contraseña cambia en
  * cada corrida y ningún secreto vive en el repositorio. Las contraseñas se dejan en el entorno del proceso
@@ -29,6 +35,11 @@ const BACKEND = fileURLToPath(new URL("../../backend", import.meta.url));
 interface UsuarioDeHumo {
   correo: string;
   contrasena: string;
+}
+
+interface ObraDeHumo {
+  codigo: string;
+  obraId: string;
 }
 
 /** Ejecuta `uv run --locked --env-file ../.env python …` en `backend/` y devuelve el resultado sin lanzar. */
@@ -72,21 +83,26 @@ function sembrarUsuarioDeHumo(correo: string, rol: string, nombre: string): Usua
 }
 
 /**
- * Crea la obra `E2E-LB-<8 hex>` con su línea base BORRADOR y devuelve su identificador, que el script deja
- * como última línea de salida (`OBRA_ID=<uuid>`). Un código nuevo en cada corrida evita chocar con la obra
- * de la corrida anterior.
+ * Siembra la obra `<prefijo>-<8 hex>` con `herramientas.semilla_linea_base_local` y devuelve su código y su
+ * identificador, que el script deja como última línea de salida (`OBRA_ID=<uuid>`). Con `congelar`, la
+ * semilla congela la línea base y la obra queda ACTIVA; si el congelado se niega, la semilla sale con error
+ * y esta función lanza, sin devolver un identificador de una obra que no está congelada.
+ *
+ * Un código nuevo en cada corrida evita chocar con la obra de la corrida anterior: la base de humo acumula
+ * obras y la semilla se niega a sembrar un código que ya existe.
  */
-function sembrarLineaBaseDeHumo(correoDirector: string): string {
-  const codigo = `E2E-LB-${randomBytes(4).toString("hex").toUpperCase()}`;
+function sembrarObraDeHumo(prefijo: string, correoDirector: string, congelar: boolean): ObraDeHumo {
+  const codigo = `${prefijo}-${randomBytes(4).toString("hex").toUpperCase()}`;
+  const argumentos = ["-m", "herramientas.semilla_linea_base_local", ...(congelar ? ["--congelar"] : [])];
 
-  const resultado = ejecutarEnBackend(["-m", "herramientas.semilla_linea_base_local"], {
+  const resultado = ejecutarEnBackend(argumentos, {
     CIMENTA_SEMILLA_LB_CODIGO: codigo,
     CIMENTA_SEMILLA_LB_CORREO: correoDirector,
   });
 
   const errorDeSiembra = (): Error =>
     new Error(
-      `No se pudo sembrar la línea base de humo (${codigo}). ¿Corre \`docker compose up -d db\` y está migrada la base?\n${detalleDelFallo(resultado)}`,
+      `No se pudo sembrar la obra de humo ${codigo}${congelar ? " (con línea base congelada)" : ""}. ¿Corre \`docker compose up -d db\` y está migrada la base?\n${detalleDelFallo(resultado)}`,
     );
 
   if (resultado.error !== undefined || resultado.status !== 0) {
@@ -104,7 +120,7 @@ function sembrarLineaBaseDeHumo(correoDirector: string): string {
     throw errorDeSiembra();
   }
 
-  return obraId;
+  return { codigo, obraId };
 }
 
 export default function preparacionGlobal(): void {
@@ -120,5 +136,13 @@ export default function preparacionGlobal(): void {
   process.env.CIMENTA_HUMO_DG_CORREO = direccion.correo;
   process.env.CIMENTA_HUMO_DG_CONTRASENA = direccion.contrasena;
 
-  process.env.CIMENTA_HUMO_LB_OBRA_ID = sembrarLineaBaseDeHumo(director.correo);
+  process.env.CIMENTA_HUMO_LB_OBRA_ID = sembrarObraDeHumo("E2E-LB", director.correo, false).obraId;
+
+  const m1 = sembrarObraDeHumo("E2E-M1", director.correo, true);
+  process.env.CIMENTA_HUMO_MANT_M1_CODIGO = m1.codigo;
+  process.env.CIMENTA_HUMO_MANT_M1_OBRA_ID = m1.obraId;
+
+  const m2 = sembrarObraDeHumo("E2E-M2", director.correo, false);
+  process.env.CIMENTA_HUMO_MANT_M2_CODIGO = m2.codigo;
+  process.env.CIMENTA_HUMO_MANT_M2_OBRA_ID = m2.obraId;
 }

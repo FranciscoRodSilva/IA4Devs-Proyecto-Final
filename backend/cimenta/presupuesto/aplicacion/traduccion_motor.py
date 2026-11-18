@@ -88,6 +88,31 @@ def traducir_error_del_motor(
     return None
 
 
+def traducir_fallo_de_obra(
+    error: DBAPIError,
+    *,
+    ruta_reintento: str,
+    metodo_reintento: str,
+    roles_reintento: tuple[str, ...],
+) -> ErrorContrato | None:
+    """Traduce el fallo de una operación sobre la obra; su rechazo vigente es `ESTADO_NO_PERMITE_OPERACION`."""
+    return traducir_error_del_motor(
+        error,
+        ruta_reintento=ruta_reintento,
+        metodo_reintento=metodo_reintento,
+        roles_reintento=roles_reintento,
+        rechazo_vigente=_rechazo_vigente_de_obra,
+    )
+
+
+def _rechazo_vigente_de_obra() -> ErrorContrato:
+    return ConflictoEstado(
+        codigo="ESTADO_NO_PERMITE_OPERACION",
+        mensaje=_MENSAJE_CONFLICTO,
+        detalle={},
+    )
+
+
 def _concurrencia(
     codigo: str, mensaje: str, espera_maxima_ms: int, reintentar: Accion
 ) -> ConcurrenciaVencida:

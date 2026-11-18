@@ -267,7 +267,7 @@ def test_tkt029b_car1_ca14_el_tipo_gana_dar_baja_al_final_y_el_rol_de_aplicacion
     """
     exigir_revision(REVISION_NUEVA)
     with conectar("migracion", base_de_prueba) as administrador:
-        assert verbos_de_la_base(administrador) == VERBOS_0016
+        assert verbos_de_la_base(administrador) == [*VERBOS_0016, "ELIMINAR"]
         assert privilegio_de_tabla(administrador, "UPDATE") is False
         assert privilegio_de_tabla(administrador, "DELETE") is False
         assert privilegio_de_tabla(administrador, "TRUNCATE") is False

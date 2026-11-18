@@ -1324,6 +1324,28 @@ CUERPOS_VALIDOS: dict[str, PeticionValida] = {
         {"motivo": "Cerró su negocio 2026-11-15"},
         ruta="/api/v1/proveedores/3f8a2c1e-9b4d-4e7a-8c5f-2d6b1a0e9c3f/baja",
     ),
+    # TKT-012b, fila A7: las cinco operaciones de obra que mutan. Ampliación declarada del contrato de este test
+    # (la fila lo prevé). `verificar_origen` va antes que `exigir_rol` y que cualquier consulta, así que el `403`
+    # sale sin tocar la base y el identificador de la obra puede ser cualquiera.
+    "PATCH /api/v1/obras/{obra_id}": PeticionValida(
+        {"nombre": "Nombre corregido de la obra"},
+        ruta="/api/v1/obras/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e",
+    ),
+    "DELETE /api/v1/obras/{obra_id}": PeticionValida(
+        ruta="/api/v1/obras/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e",
+    ),
+    "POST /api/v1/obras/{obra_id}/suspension": PeticionValida(
+        {"motivo": "Falta de anticipo 2026-11-16"},
+        ruta="/api/v1/obras/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e/suspension",
+    ),
+    "POST /api/v1/obras/{obra_id}/reactivacion": PeticionValida(
+        {"motivo": "Anticipo recibido 2026-11-18"},
+        ruta="/api/v1/obras/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e/reactivacion",
+    ),
+    "POST /api/v1/obras/{obra_id}/cierre": PeticionValida(
+        {"motivo": "Entrega de la obra 2026-11-30"},
+        ruta="/api/v1/obras/7b1e4c2a-5d3f-4a8b-9c6e-1f2a3b4c5d6e/cierre",
+    ),
 }
 
 

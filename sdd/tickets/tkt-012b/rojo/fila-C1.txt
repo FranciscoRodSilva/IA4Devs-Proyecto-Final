@@ -1,0 +1,441 @@
+.FFFFFFFFFFFF..FFF...FFFF.FFF.FFFFFFFF..........F...................FFFF [ 76%]
+FF..............FFFFFF                                                   [100%]
+================================== FAILURES ===================================
+_____________ test_tkt012b_f001_una_obra_sin_archivos_cuenta_cero _____________
+tests\test_tkt012b_fuente_archivos.py:249: in test_tkt012b_f001_una_obra_sin_archivos_cuenta_cero
+    cuenta = FuenteHistorialArchivos().contar(sesion_bd, obra_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\archivos\infraestructura\fuente_historial.py:19: in contar
+    raise NotImplementedError("TKT-012b F001: contar las filas de `archivo` de la obra")
+E   NotImplementedError: TKT-012b F001: contar las filas de `archivo` de la obra
+___________ test_tkt012b_f001_la_fuente_cuenta_el_estado[PENDIENTE] ___________
+tests\test_tkt012b_fuente_archivos.py:272: in test_tkt012b_f001_la_fuente_cuenta_el_estado
+    cuenta = FuenteHistorialArchivos().contar(sesion_bd, obra_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\archivos\infraestructura\fuente_historial.py:19: in contar
+    raise NotImplementedError("TKT-012b F001: contar las filas de `archivo` de la obra")
+E   NotImplementedError: TKT-012b F001: contar las filas de `archivo` de la obra
+__________ test_tkt012b_f001_la_fuente_cuenta_el_estado[DISPONIBLE] ___________
+tests\test_tkt012b_fuente_archivos.py:272: in test_tkt012b_f001_la_fuente_cuenta_el_estado
+    cuenta = FuenteHistorialArchivos().contar(sesion_bd, obra_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\archivos\infraestructura\fuente_historial.py:19: in contar
+    raise NotImplementedError("TKT-012b F001: contar las filas de `archivo` de la obra")
+E   NotImplementedError: TKT-012b F001: contar las filas de `archivo` de la obra
+___________ test_tkt012b_f001_la_fuente_cuenta_el_estado[CADUCADO] ____________
+tests\test_tkt012b_fuente_archivos.py:272: in test_tkt012b_f001_la_fuente_cuenta_el_estado
+    cuenta = FuenteHistorialArchivos().contar(sesion_bd, obra_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\archivos\infraestructura\fuente_historial.py:19: in contar
+    raise NotImplementedError("TKT-012b F001: contar las filas de `archivo` de la obra")
+E   NotImplementedError: TKT-012b F001: contar las filas de `archivo` de la obra
+____________ test_tkt012b_f001_la_fuente_cuenta_el_estado[ANULADO] ____________
+tests\test_tkt012b_fuente_archivos.py:272: in test_tkt012b_f001_la_fuente_cuenta_el_estado
+    cuenta = FuenteHistorialArchivos().contar(sesion_bd, obra_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\archivos\infraestructura\fuente_historial.py:19: in contar
+    raise NotImplementedError("TKT-012b F001: contar las filas de `archivo` de la obra")
+E   NotImplementedError: TKT-012b F001: contar las filas de `archivo` de la obra
+_____ test_tkt012b_f001_la_fuente_cuenta_n_archivos_y_solo_los_de_su_obra _____
+tests\test_tkt012b_fuente_archivos.py:299: in test_tkt012b_f001_la_fuente_cuenta_n_archivos_y_solo_los_de_su_obra
+    assert fuente.contar(sesion_bd, obra_a) == 4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\archivos\infraestructura\fuente_historial.py:19: in contar
+    raise NotImplementedError("TKT-012b F001: contar las filas de `archivo` de la obra")
+E   NotImplementedError: TKT-012b F001: contar las filas de `archivo` de la obra
+__ test_tkt012b_f001_la_fuente_usa_la_transaccion_del_llamador_y_no_confirma __
+tests\test_tkt012b_fuente_archivos.py:341: in test_tkt012b_f001_la_fuente_usa_la_transaccion_del_llamador_y_no_confirma
+    cuenta = FuenteHistorialArchivos().contar(sesion_bd, obra_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cimenta\archivos\infraestructura\fuente_historial.py:19: in contar
+    raise NotImplementedError("TKT-012b F001: contar las filas de `archivo` de la obra")
+E   NotImplementedError: TKT-012b F001: contar las filas de `archivo` de la obra
+_ test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[un_pendiente] _
+tests\test_tkt012b_fuente_archivos.py:394: in test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra
+    _exigir_con_historial(
+tests\test_tkt012b_fuente_archivos.py:196: in _exigir_con_historial
+    assert respuesta.status_code == 409, (
+E   AssertionError: La obra con historial debía responder 409 y responde 204: si es 204, se borró con archivos que quedan huérfanos
+E   assert 204 == 409
+E    +  where 204 = <Response [204 No Content]>.status_code
+_ test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[un_disponible] _
+tests\test_tkt012b_fuente_archivos.py:394: in test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra
+    _exigir_con_historial(
+tests\test_tkt012b_fuente_archivos.py:196: in _exigir_con_historial
+    assert respuesta.status_code == 409, (
+E   AssertionError: La obra con historial debía responder 409 y responde 204: si es 204, se borró con archivos que quedan huérfanos
+E   assert 204 == 409
+E    +  where 204 = <Response [204 No Content]>.status_code
+_ test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[solo_un_anulado] _
+tests\test_tkt012b_fuente_archivos.py:394: in test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra
+    _exigir_con_historial(
+tests\test_tkt012b_fuente_archivos.py:196: in _exigir_con_historial
+    assert respuesta.status_code == 409, (
+E   AssertionError: La obra con historial debía responder 409 y responde 204: si es 204, se borró con archivos que quedan huérfanos
+E   assert 204 == 409
+E    +  where 204 = <Response [204 No Content]>.status_code
+_ test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[los_cuatro_estados] _
+tests\test_tkt012b_fuente_archivos.py:394: in test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra
+    _exigir_con_historial(
+tests\test_tkt012b_fuente_archivos.py:196: in _exigir_con_historial
+    assert respuesta.status_code == 409, (
+E   AssertionError: La obra con historial debía responder 409 y responde 204: si es 204, se borró con archivos que quedan huérfanos
+E   assert 204 == 409
+E    +  where 204 = <Response [204 No Content]>.status_code
+_____ test_hdu001_esc20_api_delete_suma_los_archivos_al_historial_propio ______
+tests\test_tkt012b_fuente_archivos.py:425: in test_hdu001_esc20_api_delete_suma_los_archivos_al_historial_propio
+    _exigir_con_historial(
+tests\test_tkt012b_fuente_archivos.py:200: in _exigir_con_historial
+    cuerpo = exigir_error(
+herramientas\soporte_tkt017_api.py:176: in exigir_error
+    assert cuerpo == {**esperado, "correlacion_id": respuesta.headers[CABECERA_CORRELACION]}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError
+_ test_tkt012b_f001_la_fabrica_pasa_la_fuente_de_archivos_al_contexto_de_presupuesto _
+tests\test_tkt012b_fuente_archivos.py:496: in test_tkt012b_f001_la_fabrica_pasa_la_fuente_de_archivos_al_contexto_de_presupuesto
+    assert [fuente.nombre for fuente in fuentes] == ["archivos"]
+E   AssertionError: assert [] == ['archivos']
+E     
+E     Right contains one more item: 'archivos'
+E     Use -v to get more diff
+______ test_tkt012b_f001_archivos_publica_la_fuente_solo_por_su_interfaz ______
+tests\test_tkt012b_fuente_archivos.py:528: in test_tkt012b_f001_archivos_publica_la_fuente_solo_por_su_interfaz
+    assert de_donde == {"cimenta.archivos.interfaz"}, (
+E   AssertionError: La fábrica debe importar la fuente solo de la interfaz de archivos y la importa de set()
+E   assert set() == {'cimenta.archivos.interfaz'}
+E     
+E     Extra items in the right set:
+E     'cimenta.archivos.interfaz'
+E     Use -v to get more diff
+_ test_tkt012b_f001_la_fabrica_la_pasa_en_fuentes_historial_a_montar_presupuesto _
+tests\test_tkt012b_fuente_archivos.py:549: in test_tkt012b_f001_la_fabrica_la_pasa_en_fuentes_historial_a_montar_presupuesto
+    assert "fuentes_historial" in argumentos, "La fábrica no pasa `fuentes_historial` a presupuesto"
+E   AssertionError: La fábrica no pasa `fuentes_historial` a presupuesto
+E   assert 'fuentes_historial' in {'proveedor_motor': Name(id='proveedor_motor', ctx=Load()), 'reloj': Name(id='reloj', ctx=Load())}
+_ test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[ACTUALIZAR] _
+tests\test_tkt012b_regla_bitacora_obra.py:186: in test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde
+    assert base.filas(
+E   AssertionError: El asiento ACTUALIZAR de obra cita una regla que no corresponde
+E   assert [('RN-25',)] == [(None,)]
+E     
+E     At index 0 diff: ('RN-25',) != (None,)
+E     Use -v to get more diff
+_ test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[SUSPENDER] _
+tests\test_tkt012b_regla_bitacora_obra.py:186: in test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde
+    assert base.filas(
+E   AssertionError: El asiento SUSPENDER de obra cita una regla que no corresponde
+E   assert [('RN-25',)] == [(None,)]
+E     
+E     At index 0 diff: ('RN-25',) != (None,)
+E     Use -v to get more diff
+_ test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[REACTIVAR] _
+tests\test_tkt012b_regla_bitacora_obra.py:186: in test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde
+    assert base.filas(
+E   AssertionError: El asiento REACTIVAR de obra cita una regla que no corresponde
+E   assert [('RN-25',)] == [(None,)]
+E     
+E     At index 0 diff: ('RN-25',) != (None,)
+E     Use -v to get more diff
+_ test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[CERRAR] _
+tests\test_tkt012b_regla_bitacora_obra.py:186: in test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde
+    assert base.filas(
+E   AssertionError: El asiento CERRAR de obra cita una regla que no corresponde
+E   assert [('RN-25',)] == [(None,)]
+E     
+E     At index 0 diff: ('RN-25',) != (None,)
+E     Use -v to get more diff
+_ test_tkt012b_f002a_ningun_asiento_de_obra_cita_una_regla_que_el_prd_no_respalda _
+tests\test_tkt012b_regla_bitacora_obra.py:219: in test_tkt012b_f002a_ningun_asiento_de_obra_cita_una_regla_que_el_prd_no_respalda
+    assert REGLA_QUE_NO_RESPALDA not in citadas
+E   AssertionError: assert 'RN-25' not in {'RN-01', 'RN-25'}
+_ test_tkt012b_f002a_el_codigo_de_obra_no_trae_el_literal_rn_25[mantenimiento_obras.py] _
+tests\test_tkt012b_regla_bitacora_obra.py:253: in test_tkt012b_f002a_el_codigo_de_obra_no_trae_el_literal_rn_25
+    assert literales == [], f"{ruta.name} cita {REGLA_QUE_NO_RESPALDA} en las líneas {literales}"
+E   AssertionError: mantenimiento_obras.py cita RN-25 en las líneas [102]
+E   assert [102] == []
+E     
+E     Left contains one more item: 102
+E     Use -v to get more diff
+_ test_tkt012b_f002a_el_codigo_de_obra_no_trae_el_literal_rn_25[ciclo_vida_obra.py] _
+tests\test_tkt012b_regla_bitacora_obra.py:253: in test_tkt012b_f002a_el_codigo_de_obra_no_trae_el_literal_rn_25
+    assert literales == [], f"{ruta.name} cita {REGLA_QUE_NO_RESPALDA} en las líneas {literales}"
+E   AssertionError: ciclo_vida_obra.py cita RN-25 en las líneas [32]
+E   assert [32] == []
+E     
+E     Left contains one more item: 32
+E     Use -v to get more diff
+_ test_hdu001_esc20_tkt012b_ca1_actualizar_obra_cambia_nombre_y_porcentaje_y_asienta_actualizar _
+tests\test_tkt012b_mantenimiento_obras.py:491: in test_hdu001_esc20_tkt012b_ca1_actualizar_obra_cambia_nombre_y_porcentaje_y_asienta_actualizar
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('ACTUALIZAR...'RN-25', ...)] == [('ACTUALIZAR...), None, ...)]
+E     
+E     At index 0 diff: ('ACTUALIZAR', 'obra', UUID('94e14dbd-d77d-49e4-b135-71db41f12deb'), UUID('094db5ed-453b-4670-92a1-91c055108a1c'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', None, UUID('94e14dbd-d77d-49e4-b135-71db41f12deb'), {'nombre': 'Obra AP-058-25', 'retencion_destajo_pct': '0.150000'}, {'nombre': 'Union Square F2 (ampliación)', 'retencion_destajo_pct': '0.100000'}) != ('ACTUALIZAR', 'obra', UUID('94e14dbd-d77d-49e4-b135-71db41f12deb'), UUID('094db5ed-453b-4670-92a1-91c055108a1c'), datetime.datetime(2026, 10, 21, 12, ...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_tkt012b_ca1_actualizar_obra_cambia_los_seis_campos_y_el_asiento_los_trae_todos _
+tests\test_tkt012b_mantenimiento_obras.py:546: in test_tkt012b_ca1_actualizar_obra_cambia_los_seis_campos_y_el_asiento_los_trae_todos
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('ACTUALIZAR...'RN-25', ...)] == [('ACTUALIZAR...), None, ...)]
+E     
+E     At index 0 diff: ('ACTUALIZAR', 'obra', UUID('0f2bf50b-8f82-4f41-b2ff-b1dc27d45088'), UUID('20367a97-699f-4341-b210-300e48756459'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', None, UUID('0f2bf50b-8f82-4f41-b2ff-b1dc27d45088'), {'nombre': 'Obra AP-058-25', 'domicilio': 'Calle de prueba 1', 'iva_acreditable': True, 'umbral_alerta_pct': '0.100000', 'fondo_garantia_pct': '0.050000', 'retencion_destajo_pct': '0.150000'}, {'nombre': 'Otro nombre', 'domicilio': 'Otro domicilio 2', 'iva_acreditable': False, 'umbral_alerta_pct': '0.3...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_tkt012b_ca1_actualizar_obra_un_valor_igual_al_actual_no_entra_en_el_asiento _
+tests\test_tkt012b_mantenimiento_obras.py:607: in test_tkt012b_ca1_actualizar_obra_un_valor_igual_al_actual_no_entra_en_el_asiento
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('ACTUALIZAR...'RN-25', ...)] == [('ACTUALIZAR...), None, ...)]
+E     
+E     At index 0 diff: ('ACTUALIZAR', 'obra', UUID('a396f4da-322a-4ad1-a8fa-bbf430405f4d'), UUID('fcb96eea-9b7f-484e-a260-1d9c0d19d4d4'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', None, UUID('a396f4da-322a-4ad1-a8fa-bbf430405f4d'), {'domicilio': 'Calle de prueba 1'}, {'domicilio': 'Domicilio nuevo 7'}) != ('ACTUALIZAR', 'obra', UUID('a396f4da-322a-4ad1-a8fa-bbf430405f4d'), UUID('fcb96eea-9b7f-484e-a260-1d9c0d19d4d4'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), None, None, UUID('a396f4da-322a-4ad1-a8fa-bb...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[PLANEACION] _
+tests\test_tkt012b_mantenimiento_obras.py:656: in test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('ACTUALIZAR...'RN-25', ...)] == [('ACTUALIZAR...), None, ...)]
+E     
+E     At index 0 diff: ('ACTUALIZAR', 'obra', UUID('df43f565-cf0c-460e-9606-07b6bb8db5f9'), UUID('2d3e006b-c0df-44fb-ac4f-6dfd358fd30c'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', None, UUID('df43f565-cf0c-460e-9606-07b6bb8db5f9'), {'nombre': 'Obra AP-058-25'}, {'nombre': 'Nombre en PLANEACION'}) != ('ACTUALIZAR', 'obra', UUID('df43f565-cf0c-460e-9606-07b6bb8db5f9'), UUID('2d3e006b-c0df-44fb-ac4f-6dfd358fd30c'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), None, None, UUID('df43f565-cf0c-460e-9606-07b6bb8d...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[ACTIVA] _
+tests\test_tkt012b_mantenimiento_obras.py:656: in test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('ACTUALIZAR...'RN-25', ...)] == [('ACTUALIZAR...), None, ...)]
+E     
+E     At index 0 diff: ('ACTUALIZAR', 'obra', UUID('1c4502b8-8f00-49c5-96ff-1150a543e3f9'), UUID('1aee8a8f-a042-40ca-9d5b-8eaa5ae3e662'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', None, UUID('1c4502b8-8f00-49c5-96ff-1150a543e3f9'), {'nombre': 'Obra AP-058-25'}, {'nombre': 'Nombre en ACTIVA'}) != ('ACTUALIZAR', 'obra', UUID('1c4502b8-8f00-49c5-96ff-1150a543e3f9'), UUID('1aee8a8f-a042-40ca-9d5b-8eaa5ae3e662'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), None, None, UUID('1c4502b8-8f00-49c5-96ff-1150a543e3f9...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[SUSPENDIDA] _
+tests\test_tkt012b_mantenimiento_obras.py:656: in test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('ACTUALIZAR...'RN-25', ...)] == [('ACTUALIZAR...), None, ...)]
+E     
+E     At index 0 diff: ('ACTUALIZAR', 'obra', UUID('38d184a2-1dd5-4134-8258-5fa4d4089be2'), UUID('5e1e30a3-9933-4066-9fce-149c58483df4'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', None, UUID('38d184a2-1dd5-4134-8258-5fa4d4089be2'), {'nombre': 'Obra AP-058-25'}, {'nombre': 'Nombre en SUSPENDIDA'}) != ('ACTUALIZAR', 'obra', UUID('38d184a2-1dd5-4134-8258-5fa4d4089be2'), UUID('5e1e30a3-9933-4066-9fce-149c58483df4'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), None, None, UUID('38d184a2-1dd5-4134-8258-5fa4d408...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+___ test_tkt012b_ca1_actualizar_obra_umbral_none_borra_el_umbral_y_asienta ____
+tests\test_tkt012b_mantenimiento_obras.py:698: in test_tkt012b_ca1_actualizar_obra_umbral_none_borra_el_umbral_y_asienta
+    assert _asientos(base, obra_id)[-1] == (
+E   AssertionError: assert ('ACTUALIZAR'... 'RN-25', ...) == ('ACTUALIZAR'...c), None, ...)
+E     
+E     At index 5 diff: 'RN-25' != None
+E     Use -v to get more diff
+_ test_tkt012b_ca1_actualizar_obra_puede_fijar_el_umbral_de_una_obra_que_no_lo_tenia _
+tests\test_tkt012b_mantenimiento_obras.py:729: in test_tkt012b_ca1_actualizar_obra_puede_fijar_el_umbral_de_una_obra_que_no_lo_tenia
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('ACTUALIZAR...'RN-25', ...)] == [('ACTUALIZAR...), None, ...)]
+E     
+E     At index 0 diff: ('ACTUALIZAR', 'obra', UUID('a71d1917-1511-4464-84ae-c0fe56e50941'), UUID('be365302-d92c-49ec-91b1-b562dbff0cc0'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', None, UUID('a71d1917-1511-4464-84ae-c0fe56e50941'), {'umbral_alerta_pct': None}, {'umbral_alerta_pct': '0.200000'}) != ('ACTUALIZAR', 'obra', UUID('a71d1917-1511-4464-84ae-c0fe56e50941'), UUID('be365302-d92c-49ec-91b1-b562dbff0cc0'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), None, None, UUID('a71d1917-1511-4464-84ae-c0fe56e509...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+__ test_tkt012b_ca1_actualizar_obra_si_falla_el_asiento_se_deshace_el_cambio __
+tests\test_tkt012b_mantenimiento_obras.py:1000: in test_tkt012b_ca1_actualizar_obra_si_falla_el_asiento_se_deshace_el_cambio
+    assert visto == {
+E   AssertionError: asentar debe correr en la misma sesión, con el cambio hecho y sin confirmar
+E   assert {'en_transacc...e se deshace'} == {'en_transacc...e se deshace'}
+E     
+E     Omitting 3 identical items, use -vv to show
+E     Differing items:
+E     {'regla_negocio': 'RN-25'} != {'regla_negocio': None}
+E     Use -v to get more diff
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-SUSPENDER] _
+tests\test_tkt012b_ciclo_vida_obra.py:370: in test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('SUSPENDER'...'RN-25', ...)] == [('SUSPENDER'...), None, ...)]
+E     
+E     At index 0 diff: ('SUSPENDER', 'obra', UUID('c33c4515-f546-4a28-a9e1-49d41bca2ed7'), UUID('7af8ff6d-4da0-46d9-9730-0251dc121ba8'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', 'Falta de anticipo del cliente; se detiene la obra', UUID('c33c4515-f546-4a28-a9e1-49d41bca2ed7'), {'estado': 'ACTIVA'}, {'estado': 'SUSPENDIDA'}) != ('SUSPENDER', 'obra', UUID('c33c4515-f546-4a28-a9e1-49d41bca2ed7'), UUID('7af8ff6d-4da0-46d9-9730-0251dc121ba8'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=datetime.timezone.utc), None, 'Falta de antic...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-REACTIVAR] _
+tests\test_tkt012b_ciclo_vida_obra.py:370: in test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('REACTIVAR'...'RN-25', ...)] == [('REACTIVAR'...), None, ...)]
+E     
+E     At index 0 diff: ('REACTIVAR', 'obra', UUID('da939fd3-228b-41d9-aea0-e34737b2a0fe'), UUID('cbe4caa8-9fd1-47df-9572-427311ab4674'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', 'Falta de anticipo del cliente; se detiene la obra', UUID('da939fd3-228b-41d9-aea0-e34737b2a0fe'), {'estado': 'SUSPENDIDA'}, {'estado': 'ACTIVA'}) != ('REACTIVAR', 'obra', UUID('da939fd3-228b-41d9-aea0-e34737b2a0fe'), UUID('cbe4caa8-9fd1-47df-9572-427311ab4674'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=datetime.timezone.utc), None, 'Falta de antic...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-CERRAR] _
+tests\test_tkt012b_ciclo_vida_obra.py:370: in test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('CERRAR', '...'RN-25', ...)] == [('CERRAR', '...), None, ...)]
+E     
+E     At index 0 diff: ('CERRAR', 'obra', UUID('dd32fe48-da05-4acf-a141-f219061527da'), UUID('80cb59a4-22b8-4a2d-98bb-e31505040141'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', 'Falta de anticipo del cliente; se detiene la obra', UUID('dd32fe48-da05-4acf-a141-f219061527da'), {'estado': 'ACTIVA'}, {'estado': 'CERRADA'}) != ('CERRAR', 'obra', UUID('dd32fe48-da05-4acf-a141-f219061527da'), UUID('80cb59a4-22b8-4a2d-98bb-e31505040141'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=datetime.timezone.utc), None, 'Falta de anticipo del c...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-CERRAR] _
+tests\test_tkt012b_ciclo_vida_obra.py:370: in test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('CERRAR', '...'RN-25', ...)] == [('CERRAR', '...), None, ...)]
+E     
+E     At index 0 diff: ('CERRAR', 'obra', UUID('0ff02dae-e891-42a5-9d25-40dfc022acad'), UUID('5677a9cc-f156-47fc-ac9a-69d5f400038d'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', 'Falta de anticipo del cliente; se detiene la obra', UUID('0ff02dae-e891-42a5-9d25-40dfc022acad'), {'estado': 'SUSPENDIDA'}, {'estado': 'CERRADA'}) != ('CERRAR', 'obra', UUID('0ff02dae-e891-42a5-9d25-40dfc022acad'), UUID('5677a9cc-f156-47fc-ac9a-69d5f400038d'), datetime.datetime(2026, 10, 21, 12, 0, tzinfo=datetime.timezone.utc), None, 'Falta de anticipo d...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_hdu001_esc20_tkt012b_ca8_cerrar_una_obra_en_planeacion_asienta_cerrar __
+tests\test_tkt012b_ciclo_vida_obra.py:404: in test_hdu001_esc20_tkt012b_ca8_cerrar_una_obra_en_planeacion_asienta_cerrar
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('CERRAR', '...'RN-25', ...)] == [('CERRAR', '...), None, ...)]
+E     
+E     At index 0 diff: ('CERRAR', 'obra', UUID('b07f40bb-54a8-4193-878a-2f77da647802'), UUID('b7a3af89-a4fc-4e2f-a47f-1709cf8f37d9'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', 'Falta de anticipo del cliente; se detiene la obra', UUID('b07f40bb-54a8-4193-878a-2f77da647802'), {'estado': 'PLANEACION'}, {'estado': 'CERRADA'}) != ('CERRAR', 'obra', UUID('b07f40bb-54a8-4193-878a-2f77da647802'), UUID('b7a3af89-a4fc-4e2f-a47f-1709cf8f37d9'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), None, 'Falta de anticipo del...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_hdu001_esc20_tkt012b_ca8_direccion_general_opera_igual_en_toda_la_cadena _
+tests\test_tkt012b_ciclo_vida_obra.py:460: in test_hdu001_esc20_tkt012b_ca8_direccion_general_opera_igual_en_toda_la_cadena
+    assert _asientos(base, obra_id) == esperados
+E   AssertionError: assert [('SUSPENDER'...'RN-25', ...)] == [('SUSPENDER'...), None, ...)]
+E     
+E     At index 0 diff: ('SUSPENDER', 'obra', UUID('fbeec494-3591-4928-9a71-ef135e4d33c2'), UUID('b60dd318-ecfd-45a9-a611-4cfce91ba447'), datetime.datetime(2026, 10, 21, 9, 10, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', 'Falta de anticipo del cliente; se detiene la obra', UUID('fbeec494-3591-4928-9a71-ef135e4d33c2'), {'estado': 'ACTIVA'}, {'estado': 'SUSPENDIDA'}) != ('SUSPENDER', 'obra', UUID('fbeec494-3591-4928-9a71-ef135e4d33c2'), UUID('b60dd318-ecfd-45a9-a611-4cfce91ba447'), datetime.datetime(2026, 10, 21, 9, 10, tzinfo=datetime.timezone.utc), None, 'Falta de antic...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[reactivar-tras-suspension] _
+tests\test_tkt012b_ciclo_vida_obra.py:695: in test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo
+    assert _asientos(base, obra_id) == [
+E   AssertionError: assert [('REACTIVAR'...'RN-25', ...)] == [('REACTIVAR'...), None, ...)]
+E     
+E     At index 0 diff: ('REACTIVAR', 'obra', UUID('ae436517-bcba-4ca8-83a4-ca4e3b6e013b'), UUID('f259702a-8a96-4dbc-acbf-575fa62f0b74'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), 'RN-25', 'Falta de anticipo del cliente; se detiene la obra', UUID('ae436517-bcba-4ca8-83a4-ca4e3b6e013b'), {'estado': 'SUSPENDIDA'}, {'estado': 'ACTIVA'}) != ('REACTIVAR', 'obra', UUID('ae436517-bcba-4ca8-83a4-ca4e3b6e013b'), UUID('f259702a-8a96-4dbc-acbf-575fa62f0b74'), datetime.datetime(2026, 10, 21, 9, 0, tzinfo=datetime.timezone.utc), None, 'Falta de anticip...
+E     
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-SUSPENDER] _
+tests\test_tkt012b_ciclo_vida_obra.py:758: in test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion
+    assert visto == {
+E   AssertionError: asentar debe correr en la misma sesión, con la transición hecha y sin confirmar
+E   assert {'en_transacc...la obra', ...} == {'en_transacc...la obra', ...}
+E     
+E     Omitting 7 identical items, use -vv to show
+E     Differing items:
+E     {'regla_negocio': 'RN-25'} != {'regla_negocio': None}
+E     Use -v to get more diff
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-REACTIVAR] _
+tests\test_tkt012b_ciclo_vida_obra.py:758: in test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion
+    assert visto == {
+E   AssertionError: asentar debe correr en la misma sesión, con la transición hecha y sin confirmar
+E   assert {'en_transacc...la obra', ...} == {'en_transacc...la obra', ...}
+E     
+E     Omitting 7 identical items, use -vv to show
+E     Differing items:
+E     {'regla_negocio': 'RN-25'} != {'regla_negocio': None}
+E     Use -v to get more diff
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-CERRAR] _
+tests\test_tkt012b_ciclo_vida_obra.py:758: in test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion
+    assert visto == {
+E   AssertionError: asentar debe correr en la misma sesión, con la transición hecha y sin confirmar
+E   assert {'en_transacc...la obra', ...} == {'en_transacc...la obra', ...}
+E     
+E     Omitting 7 identical items, use -vv to show
+E     Differing items:
+E     {'regla_negocio': 'RN-25'} != {'regla_negocio': None}
+E     Use -v to get more diff
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-CERRAR] _
+tests\test_tkt012b_ciclo_vida_obra.py:758: in test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion
+    assert visto == {
+E   AssertionError: asentar debe correr en la misma sesión, con la transición hecha y sin confirmar
+E   assert {'en_transacc...la obra', ...} == {'en_transacc...la obra', ...}
+E     
+E     Omitting 7 identical items, use -vv to show
+E     Differing items:
+E     {'regla_negocio': 'RN-25'} != {'regla_negocio': None}
+E     Use -v to get more diff
+_ test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[PLANEACION-CERRAR] _
+tests\test_tkt012b_ciclo_vida_obra.py:758: in test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion
+    assert visto == {
+E   AssertionError: asentar debe correr en la misma sesión, con la transición hecha y sin confirmar
+E   assert {'en_transacc...la obra', ...} == {'en_transacc...la obra', ...}
+E     
+E     Omitting 7 identical items, use -vv to show
+E     Differing items:
+E     {'regla_negocio': 'RN-25'} != {'regla_negocio': None}
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_una_obra_sin_archivos_cuenta_cero
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fuente_cuenta_el_estado[PENDIENTE]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fuente_cuenta_el_estado[DISPONIBLE]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fuente_cuenta_el_estado[CADUCADO]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fuente_cuenta_el_estado[ANULADO]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fuente_cuenta_n_archivos_y_solo_los_de_su_obra
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fuente_usa_la_transaccion_del_llamador_y_no_confirma
+FAILED tests/test_tkt012b_fuente_archivos.py::test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[un_pendiente]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[un_disponible]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[solo_un_anulado]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_hdu001_esc20_api_delete_de_obra_con_archivos_responde_409_y_no_la_borra[los_cuatro_estados]
+FAILED tests/test_tkt012b_fuente_archivos.py::test_hdu001_esc20_api_delete_suma_los_archivos_al_historial_propio
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fabrica_pasa_la_fuente_de_archivos_al_contexto_de_presupuesto
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_archivos_publica_la_fuente_solo_por_su_interfaz
+FAILED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fabrica_la_pasa_en_fuentes_historial_a_montar_presupuesto
+FAILED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[ACTUALIZAR]
+FAILED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[SUSPENDER]
+FAILED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[REACTIVAR]
+FAILED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[CERRAR]
+FAILED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_ningun_asiento_de_obra_cita_una_regla_que_el_prd_no_respalda
+FAILED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_codigo_de_obra_no_trae_el_literal_rn_25[mantenimiento_obras.py]
+FAILED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_codigo_de_obra_no_trae_el_literal_rn_25[ciclo_vida_obra.py]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_tkt012b_ca1_actualizar_obra_cambia_nombre_y_porcentaje_y_asienta_actualizar
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_cambia_los_seis_campos_y_el_asiento_los_trae_todos
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_un_valor_igual_al_actual_no_entra_en_el_asiento
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[PLANEACION]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[ACTIVA]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_se_edita_en_todo_estado_salvo_cerrada[SUSPENDIDA]
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_umbral_none_borra_el_umbral_y_asienta
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_puede_fijar_el_umbral_de_una_obra_que_no_lo_tenia
+FAILED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_si_falla_el_asiento_se_deshace_el_cambio
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-SUSPENDER]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-REACTIVAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[ACTIVA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_transicion_admitida_cambia_el_estado_y_asienta_el_verbo[SUSPENDIDA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_cerrar_una_obra_en_planeacion_asienta_cerrar
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_hdu001_esc20_tkt012b_ca8_direccion_general_opera_igual_en_toda_la_cadena
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[reactivar-tras-suspension]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-SUSPENDER]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-REACTIVAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[ACTIVA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[SUSPENDIDA-CERRAR]
+FAILED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_si_falla_el_asiento_se_deshace_la_transicion[PLANEACION-CERRAR]
+PASSED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_la_fuente_se_llama_archivos_y_cumple_la_firma_del_puerto
+PASSED tests/test_tkt012b_fuente_archivos.py::test_hdu001_esc20_api_delete_de_obra_sin_archivos_pero_con_vecina_con_archivos_responde_204
+PASSED tests/test_tkt012b_fuente_archivos.py::test_hdu001_esc20_api_delete_de_obra_sin_archivos_responde_204
+PASSED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_presupuesto_no_importa_archivos_ni_archivos_a_presupuesto
+PASSED tests/test_tkt012b_fuente_archivos.py::test_tkt012b_f001_lint_imports_sigue_limpio
+PASSED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[CREAR]
+PASSED tests/test_tkt012b_regla_bitacora_obra.py::test_tkt012b_f002a_el_asiento_de_cada_verbo_de_obra_cita_la_regla_que_le_corresponde[ELIMINAR]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_a5_las_firmas_son_las_del_diseno
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_sin_cambios_reales_no_escribe_ni_asienta
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca1_actualizar_obra_umbral_none_sobre_umbral_nulo_no_es_un_cambio
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca4_actualizar_obra_cerrada_responde_409_estado_no_permite_operacion
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[retencion_destajo_pct--0.010000-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[retencion_destajo_pct-1.000001-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[fondo_garantia_pct--0.010000-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[fondo_garantia_pct-1.000001-El porcentaje debe estar entre 0 y 1 (0 % a 100 %).]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_porcentaje_fuera_de_rango_responde_422_sin_cambio_ni_asiento[umbral_alerta_pct--0.000001-El umbral de alerta no puede ser negativo.]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_el_rango_se_valida_antes_de_abrir_la_transaccion
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca3_actualizar_obra_los_extremos_cero_y_uno_son_validos
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca12_actualizar_obra_inexistente_responde_404_y_no_asienta
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca12_eliminar_obra_inexistente_responde_404_y_no_asienta
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_sin_historial_la_borra_y_su_asiento_conserva_la_fotografia
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_sin_umbral_asienta_el_umbral_como_nulo
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_libera_el_codigo_para_un_alta_nueva
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_sin_historial_con_fuentes_en_cero_consulta_a_cada_una
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_tkt012b_ca5_eliminar_obra_si_falla_el_asiento_no_se_borra_la_obra
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_linea_base_congelada_responde_409_obra_con_historial
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_solo_una_importacion_responde_409_sin_linea_base_congelada
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_una_linea_base_borrador_tambien_tiene_historial
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[PLANEACION]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[ACTIVA]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[SUSPENDIDA]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_historial_ofrece_solo_las_acciones_que_el_estado_admite[CERRADA]
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_una_fila_de_otro_modulo_traduce_el_23001_a_obra_con_historial
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_con_movimientos_de_las_fuentes_responde_409_con_su_suma
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_cuenta_el_historial_con_la_obra_ya_bloqueada
+PASSED tests/test_tkt012b_mantenimiento_obras.py::test_hdu001_esc20_eliminar_obra_si_una_fuente_falla_el_error_sale_y_la_obra_no_se_borra
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_a6_las_firmas_son_las_del_diseno
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[PLANEACION-suspender_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[PLANEACION-reactivar_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[ACTIVA-reactivar_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[SUSPENDIDA-suspender_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-suspender_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-reactivar_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_transicion_no_admitida_responde_409_estado_no_permite_operacion[CERRADA-cerrar_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca9_ninguna_transicion_ofrece_una_accion_que_responderia_409
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[suspender_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[reactivar_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca12_transicion_de_obra_inexistente_responde_404_y_no_asienta[cerrar_obra]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca8_ca_r4_las_transiciones_no_tocan_la_linea_base_ni_el_control
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[suspender-tras-cierre]
+PASSED tests/test_tkt012b_ciclo_vida_obra.py::test_tkt012b_ca13_la_transicion_que_espero_el_bloqueo_se_evalua_contra_el_estado_nuevo[suspender-tras-suspension]
+43 failed, 51 passed in 17.87s

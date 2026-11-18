@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, type RefObject, useEffect, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { ResultadoApi } from "@/api/cliente";
 import type { ErrorApi } from "@/api/errores";
@@ -25,11 +25,13 @@ export interface PropsCapturaMotivo {
   alHecho: () => void;
   alRechazo: (error: ErrorApi) => void;                               // 409 y demás: los pinta la pantalla
   alCancelar: () => void;
+  /** (TKT-012b B4) Aviso en línea dentro del diálogo, p. ej. un 409 de estado. Si se omite, no se pinta nada. */
+  avisoEnLinea?: ReactNode;
 }
 
 type PropsFormularioMotivo = Pick<
   PropsCapturaMotivo,
-  "etiquetaConfirmar" | "etiquetaCancelar" | "alConfirmar" | "alHecho" | "alRechazo" | "alCancelar"
+  "etiquetaConfirmar" | "etiquetaCancelar" | "alConfirmar" | "alHecho" | "alRechazo" | "alCancelar" | "avisoEnLinea"
 > & {
   campoRef: RefObject<HTMLTextAreaElement | null>;
   /** Avisa al diálogo de si hay un envío en vuelo, para que no se cierre mientras tanto. */
@@ -49,6 +51,7 @@ function FormularioMotivo({
   alHecho,
   alRechazo,
   alCancelar,
+  avisoEnLinea,
 }: PropsFormularioMotivo) {
   const idCampo = useId();
   const idError = useId();
@@ -114,6 +117,8 @@ function FormularioMotivo({
         )}
       </div>
 
+      {avisoEnLinea === undefined ? null : <div aria-live="polite">{avisoEnLinea}</div>}
+
       {alertaGeneral !== null && (
         <div role="alert" className="text-sm text-destructive">
           <p>{alertaGeneral}</p>
@@ -143,6 +148,7 @@ export function CapturaMotivo({
   alHecho,
   alRechazo,
   alCancelar,
+  avisoEnLinea,
 }: PropsCapturaMotivo) {
   const campoRef = useRef<HTMLTextAreaElement>(null);
   const [enviando, setEnviando] = useState(false);
@@ -168,6 +174,7 @@ export function CapturaMotivo({
           alHecho={alHecho}
           alRechazo={alRechazo}
           alCancelar={alCancelar}
+          avisoEnLinea={avisoEnLinea}
         />
       </DialogContent>
     </Dialog>

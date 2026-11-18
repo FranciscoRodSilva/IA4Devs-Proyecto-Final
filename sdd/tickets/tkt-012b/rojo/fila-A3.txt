@@ -1,0 +1,1589 @@
+FFF..FFFFFFFFFFFFFFFFFFFFFFF.........FF                                  [100%]
+================================== FAILURES ===================================
+_ test_tkt012b_ca12_bloquear_obra_completa_de_un_id_inexistente_devuelve_none _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB9A6E40>
+
+    def test_tkt012b_ca12_bloquear_obra_completa_de_un_id_inexistente_devuelve_none(
+        sesion_bd: Session,
+    ) -> None:
+        """TC-14 · CA-12 — rechazo: sin fila, `None` (el caso de uso lanza `NoEncontrado`)."""
+        with sesion_bd.begin():
+>           assert bloquear_obra_completa(sesion_bd, uuid.uuid4()) is None
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB9A6E40>
+obra_id = UUID('6fb15901-d335-44b4-ab65-61d04d072109')
+
+    def bloquear_obra_completa(sesion_bd: Session, obra_id: uuid.UUID) -> FilaObraCompleta | None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: bloquear_obra_completa")
+E       NotImplementedError: TKT-012b A3: bloquear_obra_completa
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:217: NotImplementedError
+_ test_tkt012b_ca1_bloquear_obra_completa_devuelve_la_obra_con_su_linea_base_vigente _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB9A2AD0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB9A70E0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+obra_conocida = UUID('b2e53451-b129-4fda-a7c0-f6633d36bfd7')
+
+    def test_tkt012b_ca1_bloquear_obra_completa_devuelve_la_obra_con_su_linea_base_vigente(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-14 · CA-1 — feliz: la misma fila que `leer_obra_completa`, con y sin línea base vigente.
+    
+        Con la línea base `CONGELADA` la consulta pasa por un `OUTER JOIN`: un `FOR UPDATE` sin limitarlo a
+        `obra` lo rechaza el motor.
+        """
+        vigente = datos_presupuesto.linea_base(obra_id=obra_conocida, estado="CONGELADA", version=1)
+        sin_vigente = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+    
+        with sesion_bd.begin():
+>           fila = bloquear_obra_completa(sesion_bd, obra_conocida)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:192: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB9A2AD0>
+obra_id = UUID('b2e53451-b129-4fda-a7c0-f6633d36bfd7')
+
+    def bloquear_obra_completa(sesion_bd: Session, obra_id: uuid.UUID) -> FilaObraCompleta | None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: bloquear_obra_completa")
+E       NotImplementedError: TKT-012b A3: bloquear_obra_completa
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:217: NotImplementedError
+_ test_tkt012b_ca13_bloquear_obra_completa_toma_for_update_y_la_segunda_sesion_espera _
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:62893/prueba_db8c46518a8f)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB9A34D0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_db8c46518a8f) at 0x1b8bb8a57c0>
+
+    def test_tkt012b_ca13_bloquear_obra_completa_toma_for_update_y_la_segunda_sesion_espera(
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-14 · CA-13 — concurrencia: la segunda sesión espera hasta que la primera confirma.
+    
+        La primera toma el bloqueo, lanza a la segunda y comprueba, con `pg_blocking_pids`, que quedó
+        detenida en el `SELECT ... FROM obra ... FOR UPDATE`; mientras tanto cambia el estado por SQL y
+        confirma. La segunda, ya liberada, lee el estado nuevo: lo que se decide tras el bloqueo es lo
+        vigente. Sin sleeps: cada espera sondea una condición con un tope.
+        """
+        obra_id = datos_presupuesto.obra(
+            codigo="AP-058-25", empresa_id=empresa_de_la_migracion, estado="ACTIVA"
+        )
+        adquirido = threading.Event()
+        resultado: dict[str, Any] = {}
+    
+        def segunda_sesion() -> None:
+            try:
+                with Session(motor_aplicacion) as sesion_b, sesion_b.begin():
+                    fila = bloquear_obra_completa(sesion_b, obra_id)
+                    resultado["estado"] = None if fila is None else fila.estado
+                    adquirido.set()
+            except BaseException as error:  # noqa: BLE001 - se informa al hilo principal
+                resultado["error"] = error
+    
+        hilo = threading.Thread(target=segunda_sesion, daemon=True)
+        try:
+            with Session(motor_aplicacion) as primera, primera.begin():
+>               fila = bloquear_obra_completa(primera, obra_id)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:246: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB9A3890>
+obra_id = UUID('e343805a-61d1-40d9-a70d-7147afd36c3b')
+
+    def bloquear_obra_completa(sesion_bd: Session, obra_id: uuid.UUID) -> FilaObraCompleta | None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: bloquear_obra_completa")
+E       NotImplementedError: TKT-012b A3: bloquear_obra_completa
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:217: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_escribe_solo_lo_indicado_y_sella_quien_y_cuando _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB884B90>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BBA33E10>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+obra_conocida = UUID('e76c841d-cd3a-4d89-adee-d4cabd9bbd8a')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_4d5a7c5b4ea7) at 0x1b8bb8c4c80>
+
+    def test_tkt012b_ca1_actualizar_obra_escribe_solo_lo_indicado_y_sella_quien_y_cuando(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-15 · CA-1 · RN-25 — feliz: solo cambian las columnas indicadas más quién y cuándo.
+    
+        Ninguna otra columna de la obra ni ninguna otra obra se toca (un `UPDATE` sin `WHERE` lo delataría),
+        y la función no confirma: desde otra conexión el cambio no se ve hasta que el caso de uso confirma.
+        """
+        editor = datos_presupuesto.usuario()
+        otra = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+        antes = _fila_obligatoria(lector, obra_conocida)
+        antes_de_la_otra = _fila_obligatoria(lector, otra)
+    
+        with sesion_bd.begin():
+>           actualizar_obra(
+                sesion_bd,
+                obra_conocida,
+                {
+                    "nombre": "Union Square F2 (ampliación)",
+                    "retencion_destajo_pct": Porcentaje("0.100000"),
+                },
+                AHORA,
+                editor,
+            )
+
+tests\test_tkt012b_repositorio_obra.py:366: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB884B90>
+obra_id = UUID('e76c841d-cd3a-4d89-adee-d4cabd9bbd8a')
+campos = {'nombre': 'Union Square F2 (ampliación)', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.100000'))}
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('c1d838c1-4132-4632-bc92-a46c03421b52')
+
+    def actualizar_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        campos: Mapping[str, object],
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: actualizar_obra")
+E       NotImplementedError: TKT-012b A3: actualizar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:228: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_con_todos_los_campos_cuantiza_con_half_up __
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BBA0F240>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB885010>
+obra_conocida = UUID('85a21d4f-d708-4c19-8ee1-314c346cbec2')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_1dc3c1f9cdc0) at 0x1b8bb8c5b80>
+
+    def test_tkt012b_ca1_actualizar_obra_con_todos_los_campos_cuantiza_con_half_up(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-15 · CA-1 — feliz: cada clave llega a su columna y los porcentajes se cuantizan HALF_UP.
+    
+        Tres valores distintos, con más de 6 decimales: `0.1234565` queda `0.123457` (mitad hacia arriba).
+        PostgreSQL redondea igual al guardar un `NUMERIC(9,6)`, así que esta prueba fija el resultado, no
+        distingue si `cuantizar()` se llamó o no. El código, el tipo de contrato y el estado no se mueven.
+        """
+        antes = _fila_obligatoria(lector, obra_conocida)
+    
+        with sesion_bd.begin():
+>           actualizar_obra(
+                sesion_bd,
+                obra_conocida,
+                {
+                    "nombre": "Nombre nuevo",
+                    "domicilio": "Domicilio nuevo 22",
+                    "retencion_destajo_pct": Porcentaje("0.1234565"),
+                    "fondo_garantia_pct": Porcentaje("0.0555555"),
+                    "umbral_alerta_pct": Porcentaje("0.2000004"),
+                    "iva_acreditable": False,
+                },
+                AHORA,
+                datos_presupuesto.usuario(),
+            )
+
+tests\test_tkt012b_repositorio_obra.py:409: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BBA0F240>
+obra_id = UUID('85a21d4f-d708-4c19-8ee1-314c346cbec2')
+campos = {'nombre': 'Nombre nuevo', 'domicilio': 'Domicilio nuevo 22', 'retencion_destajo_pct': Porcentaje(valor=Decimal('0.1234565')), 'fondo_garantia_pct': Porcentaje(valor=Decimal('0.0555555')), ...}
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('6f3276f0-dc95-4f02-848e-ef706ead563b')
+
+    def actualizar_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        campos: Mapping[str, object],
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: actualizar_obra")
+E       NotImplementedError: TKT-012b A3: actualizar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:228: NotImplementedError
+_ test_tkt012b_ca1_actualizar_obra_con_umbral_none_lo_borra_y_un_campo_ausente_lo_conserva _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BBA0F570>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BBA0F680>
+obra_conocida = UUID('f1d9130e-320a-4d10-9089-c13deb55c66b')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_f7d69f018a5d) at 0x1b8bb8c6a80>
+
+    def test_tkt012b_ca1_actualizar_obra_con_umbral_none_lo_borra_y_un_campo_ausente_lo_conserva(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-15 · CA-1 variante — `umbral_alerta_pct: None` escribe `NULL`; sin la clave se conserva."""
+        editor = datos_presupuesto.usuario()
+    
+        with sesion_bd.begin():
+>           actualizar_obra(sesion_bd, obra_conocida, {"nombre": "Solo el nombre"}, AHORA, editor)
+
+tests\test_tkt012b_repositorio_obra.py:452: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BBA0F570>
+obra_id = UUID('f1d9130e-320a-4d10-9089-c13deb55c66b')
+campos = {'nombre': 'Solo el nombre'}
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('7f65c29a-6811-4808-9646-1cd6d77b219e')
+
+    def actualizar_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        campos: Mapping[str, object],
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: actualizar_obra")
+E       NotImplementedError: TKT-012b A3: actualizar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:228: NotImplementedError
+_ test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[ACTIVA-SUSPENDIDA] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AB650>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BBA0FCE0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_1f31ea9609f1) at 0x1b8bb800320>
+origen = 'ACTIVA', destino = 'SUSPENDIDA'
+
+    @pytest.mark.parametrize(
+        ("origen", "destino"),
+        [
+            ("ACTIVA", "SUSPENDIDA"),
+            ("SUSPENDIDA", "ACTIVA"),
+            ("ACTIVA", "CERRADA"),
+            ("SUSPENDIDA", "CERRADA"),
+            ("PLANEACION", "CERRADA"),
+        ],
+    )
+    def test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        origen: str,
+        destino: str,
+    ) -> None:
+        """TC-15 · CA-8 — feliz: solo cambian `estado`, `actualizado_en` y `actualizado_por_id`.
+    
+        No toca otra obra y no confirma. El repositorio no valida el origen: eso ya lo hizo el dominio.
+        """
+        editor = datos_presupuesto.usuario()
+        obra_id = datos_presupuesto.obra(
+            codigo="AP-058-25", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila_obligatoria(lector, obra_id)
+        antes_de_la_otra = _fila_obligatoria(lector, otra)
+    
+        with sesion_bd.begin():
+>           cambiar_estado_obra(sesion_bd, obra_id, destino, AHORA, editor)
+
+tests\test_tkt012b_repositorio_obra.py:503: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AB650>
+obra_id = UUID('68571550-f8ca-4193-86a3-c587104bf832'), estado = 'SUSPENDIDA'
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('fda916da-c698-4d6f-ad95-f523ae15878f')
+
+    def cambiar_estado_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        estado: str,
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: cambiar_estado_obra")
+E       NotImplementedError: TKT-012b A3: cambiar_estado_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:239: NotImplementedError
+_ test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[SUSPENDIDA-ACTIVA] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84C350>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB84C450>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_92884994a4cf) at 0x1b8bb8014f0>
+origen = 'SUSPENDIDA', destino = 'ACTIVA'
+
+    @pytest.mark.parametrize(
+        ("origen", "destino"),
+        [
+            ("ACTIVA", "SUSPENDIDA"),
+            ("SUSPENDIDA", "ACTIVA"),
+            ("ACTIVA", "CERRADA"),
+            ("SUSPENDIDA", "CERRADA"),
+            ("PLANEACION", "CERRADA"),
+        ],
+    )
+    def test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        origen: str,
+        destino: str,
+    ) -> None:
+        """TC-15 · CA-8 — feliz: solo cambian `estado`, `actualizado_en` y `actualizado_por_id`.
+    
+        No toca otra obra y no confirma. El repositorio no valida el origen: eso ya lo hizo el dominio.
+        """
+        editor = datos_presupuesto.usuario()
+        obra_id = datos_presupuesto.obra(
+            codigo="AP-058-25", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila_obligatoria(lector, obra_id)
+        antes_de_la_otra = _fila_obligatoria(lector, otra)
+    
+        with sesion_bd.begin():
+>           cambiar_estado_obra(sesion_bd, obra_id, destino, AHORA, editor)
+
+tests\test_tkt012b_repositorio_obra.py:503: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84C350>
+obra_id = UUID('1e24e775-d07b-4b11-9f0a-c1065338eee8'), estado = 'ACTIVA'
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('55994b85-badd-41c0-adee-62a483ee2e18')
+
+    def cambiar_estado_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        estado: str,
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: cambiar_estado_obra")
+E       NotImplementedError: TKT-012b A3: cambiar_estado_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:239: NotImplementedError
+_ test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[ACTIVA-CERRADA] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84C850>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB84CE50>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_6a8a3b6f0795) at 0x1b8bb802990>
+origen = 'ACTIVA', destino = 'CERRADA'
+
+    @pytest.mark.parametrize(
+        ("origen", "destino"),
+        [
+            ("ACTIVA", "SUSPENDIDA"),
+            ("SUSPENDIDA", "ACTIVA"),
+            ("ACTIVA", "CERRADA"),
+            ("SUSPENDIDA", "CERRADA"),
+            ("PLANEACION", "CERRADA"),
+        ],
+    )
+    def test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        origen: str,
+        destino: str,
+    ) -> None:
+        """TC-15 · CA-8 — feliz: solo cambian `estado`, `actualizado_en` y `actualizado_por_id`.
+    
+        No toca otra obra y no confirma. El repositorio no valida el origen: eso ya lo hizo el dominio.
+        """
+        editor = datos_presupuesto.usuario()
+        obra_id = datos_presupuesto.obra(
+            codigo="AP-058-25", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila_obligatoria(lector, obra_id)
+        antes_de_la_otra = _fila_obligatoria(lector, otra)
+    
+        with sesion_bd.begin():
+>           cambiar_estado_obra(sesion_bd, obra_id, destino, AHORA, editor)
+
+tests\test_tkt012b_repositorio_obra.py:503: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84C850>
+obra_id = UUID('9818920d-875a-4872-bfcc-c2cdc0e1daf3'), estado = 'CERRADA'
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('e3dd46dd-9398-415b-b218-634f8307c189')
+
+    def cambiar_estado_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        estado: str,
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: cambiar_estado_obra")
+E       NotImplementedError: TKT-012b A3: cambiar_estado_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:239: NotImplementedError
+_ test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[SUSPENDIDA-CERRADA] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84DD50>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB8036B0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_4f632af4895c) at 0x1b8bb803980>
+origen = 'SUSPENDIDA', destino = 'CERRADA'
+
+    @pytest.mark.parametrize(
+        ("origen", "destino"),
+        [
+            ("ACTIVA", "SUSPENDIDA"),
+            ("SUSPENDIDA", "ACTIVA"),
+            ("ACTIVA", "CERRADA"),
+            ("SUSPENDIDA", "CERRADA"),
+            ("PLANEACION", "CERRADA"),
+        ],
+    )
+    def test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        origen: str,
+        destino: str,
+    ) -> None:
+        """TC-15 · CA-8 — feliz: solo cambian `estado`, `actualizado_en` y `actualizado_por_id`.
+    
+        No toca otra obra y no confirma. El repositorio no valida el origen: eso ya lo hizo el dominio.
+        """
+        editor = datos_presupuesto.usuario()
+        obra_id = datos_presupuesto.obra(
+            codigo="AP-058-25", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila_obligatoria(lector, obra_id)
+        antes_de_la_otra = _fila_obligatoria(lector, otra)
+    
+        with sesion_bd.begin():
+>           cambiar_estado_obra(sesion_bd, obra_id, destino, AHORA, editor)
+
+tests\test_tkt012b_repositorio_obra.py:503: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84DD50>
+obra_id = UUID('657baa8a-02a8-4cff-9af2-cd707400c405'), estado = 'CERRADA'
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('bfacce1f-326d-4e2a-bb10-4baec7c5d918')
+
+    def cambiar_estado_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        estado: str,
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: cambiar_estado_obra")
+E       NotImplementedError: TKT-012b A3: cambiar_estado_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:239: NotImplementedError
+_ test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[PLANEACION-CERRADA] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84E950>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB7ECB90>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_be8cbec57ed6) at 0x1b8bb7ec7d0>
+origen = 'PLANEACION', destino = 'CERRADA'
+
+    @pytest.mark.parametrize(
+        ("origen", "destino"),
+        [
+            ("ACTIVA", "SUSPENDIDA"),
+            ("SUSPENDIDA", "ACTIVA"),
+            ("ACTIVA", "CERRADA"),
+            ("SUSPENDIDA", "CERRADA"),
+            ("PLANEACION", "CERRADA"),
+        ],
+    )
+    def test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        origen: str,
+        destino: str,
+    ) -> None:
+        """TC-15 · CA-8 — feliz: solo cambian `estado`, `actualizado_en` y `actualizado_por_id`.
+    
+        No toca otra obra y no confirma. El repositorio no valida el origen: eso ya lo hizo el dominio.
+        """
+        editor = datos_presupuesto.usuario()
+        obra_id = datos_presupuesto.obra(
+            codigo="AP-058-25", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        otra = datos_presupuesto.obra(
+            codigo="AP-099-26", empresa_id=empresa_de_la_migracion, estado=origen
+        )
+        antes = _fila_obligatoria(lector, obra_id)
+        antes_de_la_otra = _fila_obligatoria(lector, otra)
+    
+        with sesion_bd.begin():
+>           cambiar_estado_obra(sesion_bd, obra_id, destino, AHORA, editor)
+
+tests\test_tkt012b_repositorio_obra.py:503: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB84E950>
+obra_id = UUID('e3a0ee38-c8ce-4b7b-8434-524e5c414245'), estado = 'CERRADA'
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('98db451e-b657-423b-83ed-8969600d7537')
+
+    def cambiar_estado_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        estado: str,
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: cambiar_estado_obra")
+E       NotImplementedError: TKT-012b A3: cambiar_estado_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:239: NotImplementedError
+__ test_tkt012b_car4_cambiar_estado_obra_no_toca_la_linea_base_ni_sus_copias __
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A9950>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB9AEDD0>
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_7dfac59bc01e) at 0x1b8bb8032f0>
+
+    def test_tkt012b_car4_cambiar_estado_obra_no_toca_la_linea_base_ni_sus_copias(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        lector: Conexion,
+    ) -> None:
+        """TC-15 · CA-R4 — regresión: cerrar una obra con línea base congelada no altera ese historial."""
+        copias = datos_presupuesto.linea_base_con_copias(estado="CONGELADA")
+        consulta = (
+            "SELECT estado, version, congelada_en, congelada_por_id, importe_venta "
+            "FROM linea_base WHERE id = %s"
+        )
+        antes = lector.execute(consulta, (copias.linea_base_id,)).fetchone()
+        assert antes is not None
+        assert antes[0] == "CONGELADA"
+    
+        with sesion_bd.begin():
+>           cambiar_estado_obra(
+                sesion_bd, copias.obra_id, "CERRADA", AHORA, datos_presupuesto.usuario()
+            )
+
+tests\test_tkt012b_repositorio_obra.py:530: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A9950>
+obra_id = UUID('5285855b-6218-4108-bbbc-5d65dce29862'), estado = 'CERRADA'
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('e528308e-b3bc-4fe4-8b97-ea8450ec4bb3')
+
+    def cambiar_estado_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        estado: str,
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: cambiar_estado_obra")
+E       NotImplementedError: TKT-012b A3: cambiar_estado_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:239: NotImplementedError
+_______ test_tkt012b_ca5_eliminar_obra_borra_la_fila_y_libera_el_codigo _______
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AAC50>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB9AFBD0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_08695e2c1787) at 0x1b8bb8023f0>
+
+    def test_tkt012b_ca5_eliminar_obra_borra_la_fila_y_libera_el_codigo(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-16 · CA-5 · HDU-001 esc. 20 — feliz: la fila desaparece, el código queda libre y nada más se borra.
+    
+        La función no confirma (la fila sigue visible desde otra conexión hasta el `commit`). Con el código
+        liberado, `uq_obra_codigo` ya no estorba un alta con el mismo código.
+        """
+        obra_id = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+        otra = datos_presupuesto.obra(codigo="AP-058-25", empresa_id=empresa_de_la_migracion)
+        antes_de_la_otra = _fila_obligatoria(lector, otra)
+    
+        with sesion_bd.begin():
+>           eliminar_obra(sesion_bd, obra_id)
+
+tests\test_tkt012b_repositorio_obra.py:565: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AAC50>
+obra_id = UUID('391d7b43-cf85-4480-99ca-1085ceebb586')
+
+    def eliminar_obra(sesion_bd: Session, obra_id: uuid.UUID) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: eliminar_obra")
+E       NotImplementedError: TKT-012b A3: eliminar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:244: NotImplementedError
+_ test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada[linea_base] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AA950>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB6554A0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_e7a6e5084b95) at 0x1b8bb801040>
+hija = <function <lambda> at 0x000001B8BBAC43B0>, tabla = 'linea_base'
+restriccion = 'fk_linea_base_obra_id'
+
+    @pytest.mark.parametrize(
+        ("hija", "tabla", "restriccion"),
+        [
+            (lambda d, o: d.linea_base(obra_id=o), "linea_base", "fk_linea_base_obra_id"),
+            (lambda d, o: d.importacion(obra_id=o), "importacion", "fk_importacion_obra_id"),
+            (lambda d, o: d.nivel(obra_id=o), "nivel", "fk_nivel_obra_id"),
+        ],
+        ids=["linea_base", "importacion", "nivel"],
+    )
+    def test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        hija: Callable[[DatosPresupuesto, uuid.UUID], object],
+        tabla: str,
+        restriccion: str,
+    ) -> None:
+        """TC-16 · CA-6 · CA-R3 · RN-01 — rechazo: con una hija, `DELETE` responde `23001` con su restricción.
+    
+        El error del motor sale tal cual (el caso de uso lo traduce a `OBRA_CON_HISTORIAL`). La obra, su
+        hija y su código siguen intactos: el rechazo no deja un borrado a medias.
+        """
+        obra_id = datos_presupuesto.obra(codigo="AP-058-25", empresa_id=empresa_de_la_migracion)
+        hija(datos_presupuesto, obra_id)
+        antes = _fila_obligatoria(lector, obra_id)
+        hijas_antes = _cuenta(lector, f"SELECT count(*) FROM {tabla} WHERE obra_id = %s", obra_id)  # noqa: S608
+        assert hijas_antes == 1
+    
+        with pytest.raises(DBAPIError) as info, sesion_bd.begin():
+>           eliminar_obra(sesion_bd, obra_id)
+
+tests\test_tkt012b_repositorio_obra.py:624: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AA950>
+obra_id = UUID('65afae62-f4c1-4e9e-b3c5-6f182c6c8e1a')
+
+    def eliminar_obra(sesion_bd: Session, obra_id: uuid.UUID) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: eliminar_obra")
+E       NotImplementedError: TKT-012b A3: eliminar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:244: NotImplementedError
+_ test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada[importacion] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AA650>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB667AD0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_32df130b8d62) at 0x1b8bb8c7e30>
+hija = <function <lambda> at 0x000001B8BBAC4460>, tabla = 'importacion'
+restriccion = 'fk_importacion_obra_id'
+
+    @pytest.mark.parametrize(
+        ("hija", "tabla", "restriccion"),
+        [
+            (lambda d, o: d.linea_base(obra_id=o), "linea_base", "fk_linea_base_obra_id"),
+            (lambda d, o: d.importacion(obra_id=o), "importacion", "fk_importacion_obra_id"),
+            (lambda d, o: d.nivel(obra_id=o), "nivel", "fk_nivel_obra_id"),
+        ],
+        ids=["linea_base", "importacion", "nivel"],
+    )
+    def test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        hija: Callable[[DatosPresupuesto, uuid.UUID], object],
+        tabla: str,
+        restriccion: str,
+    ) -> None:
+        """TC-16 · CA-6 · CA-R3 · RN-01 — rechazo: con una hija, `DELETE` responde `23001` con su restricción.
+    
+        El error del motor sale tal cual (el caso de uso lo traduce a `OBRA_CON_HISTORIAL`). La obra, su
+        hija y su código siguen intactos: el rechazo no deja un borrado a medias.
+        """
+        obra_id = datos_presupuesto.obra(codigo="AP-058-25", empresa_id=empresa_de_la_migracion)
+        hija(datos_presupuesto, obra_id)
+        antes = _fila_obligatoria(lector, obra_id)
+        hijas_antes = _cuenta(lector, f"SELECT count(*) FROM {tabla} WHERE obra_id = %s", obra_id)  # noqa: S608
+        assert hijas_antes == 1
+    
+        with pytest.raises(DBAPIError) as info, sesion_bd.begin():
+>           eliminar_obra(sesion_bd, obra_id)
+
+tests\test_tkt012b_repositorio_obra.py:624: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8AA650>
+obra_id = UUID('d14ad23d-9f2f-4743-a436-1917ab50cac8')
+
+    def eliminar_obra(sesion_bd: Session, obra_id: uuid.UUID) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: eliminar_obra")
+E       NotImplementedError: TKT-012b A3: eliminar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:244: NotImplementedError
+_ test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada[nivel] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8650>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB667290>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_99dcdd558911) at 0x1b8bb8c6a80>
+hija = <function <lambda> at 0x000001B8BBAC4510>, tabla = 'nivel'
+restriccion = 'fk_nivel_obra_id'
+
+    @pytest.mark.parametrize(
+        ("hija", "tabla", "restriccion"),
+        [
+            (lambda d, o: d.linea_base(obra_id=o), "linea_base", "fk_linea_base_obra_id"),
+            (lambda d, o: d.importacion(obra_id=o), "importacion", "fk_importacion_obra_id"),
+            (lambda d, o: d.nivel(obra_id=o), "nivel", "fk_nivel_obra_id"),
+        ],
+        ids=["linea_base", "importacion", "nivel"],
+    )
+    def test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        lector: Conexion,
+        hija: Callable[[DatosPresupuesto, uuid.UUID], object],
+        tabla: str,
+        restriccion: str,
+    ) -> None:
+        """TC-16 · CA-6 · CA-R3 · RN-01 — rechazo: con una hija, `DELETE` responde `23001` con su restricción.
+    
+        El error del motor sale tal cual (el caso de uso lo traduce a `OBRA_CON_HISTORIAL`). La obra, su
+        hija y su código siguen intactos: el rechazo no deja un borrado a medias.
+        """
+        obra_id = datos_presupuesto.obra(codigo="AP-058-25", empresa_id=empresa_de_la_migracion)
+        hija(datos_presupuesto, obra_id)
+        antes = _fila_obligatoria(lector, obra_id)
+        hijas_antes = _cuenta(lector, f"SELECT count(*) FROM {tabla} WHERE obra_id = %s", obra_id)  # noqa: S608
+        assert hijas_antes == 1
+    
+        with pytest.raises(DBAPIError) as info, sesion_bd.begin():
+>           eliminar_obra(sesion_bd, obra_id)
+
+tests\test_tkt012b_repositorio_obra.py:624: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8650>
+obra_id = UUID('940e51a9-26c5-4cf3-967f-8db239ce73bb')
+
+    def eliminar_obra(sesion_bd: Session, obra_id: uuid.UUID) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: eliminar_obra")
+E       NotImplementedError: TKT-012b A3: eliminar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:244: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_de_una_obra_sin_nada_es_cero_en_todo _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BBAE2350>
+obra_conocida = UUID('1a461c7b-2631-4331-9dba-86b6a83c6c80')
+
+    def test_tkt012b_ca6_contar_historial_propio_de_una_obra_sin_nada_es_cero_en_todo(
+        sesion_bd: Session,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-17 · CA-5 — feliz: una obra recién creada no tiene historial propio en ninguna tabla."""
+        with sesion_bd.begin():
+>           assert contar_historial_propio(sesion_bd, obra_conocida) == _ninguno()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BBAE2350>
+obra_id = UUID('1a461c7b-2631-4331-9dba-86b6a83c6c80')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[linea_base_borrador] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8350>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BBAEAD00>
+obra_conocida = UUID('0e087f49-0b8e-464a-970b-1e745689b1d5')
+construir = <function <lambda> at 0x000001B8BBAC49E0>
+esperado = {'lineas_base': 1, 'linea_base_congelada': False}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8350>
+obra_id = UUID('0e087f49-0b8e-464a-970b-1e745689b1d5')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[linea_base_congelada] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8D50>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB6B5BD0>
+obra_conocida = UUID('e6ee8ddc-b451-4a19-b9e6-2dbdd50ac873')
+construir = <function <lambda> at 0x000001B8BBAC4A90>
+esperado = {'lineas_base': 1, 'linea_base_congelada': True}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8D50>
+obra_id = UUID('e6ee8ddc-b451-4a19-b9e6-2dbdd50ac873')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[linea_base_supersedida] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A9D50>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB6B6D50>
+obra_conocida = UUID('d67d7de6-cf59-47a1-af3f-9a020aa740dd')
+construir = <function <lambda> at 0x000001B8BBAC4B40>
+esperado = {'lineas_base': 1, 'linea_base_congelada': False}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A9D50>
+obra_id = UUID('d67d7de6-cf59-47a1-af3f-9a020aa740dd')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[importacion] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8950>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB901010>
+obra_conocida = UUID('f3ebfc0d-20ef-4177-856e-a242bf9841ca')
+construir = <function <lambda> at 0x000001B8BBAC4BF0>
+esperado = {'importaciones': 1}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A8950>
+obra_id = UUID('f3ebfc0d-20ef-4177-856e-a242bf9841ca')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[nivel] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A9150>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB683C50>
+obra_conocida = UUID('6e6aa237-d542-4ade-a02b-5cd09f125cb3')
+construir = <function <lambda> at 0x000001B8BBAC4CA0>, esperado = {'niveles': 1}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB8A9150>
+obra_id = UUID('6e6aa237-d542-4ade-a02b-5cd09f125cb3')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[concepto] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98F650>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB9C5A50>
+obra_conocida = UUID('05c05704-2192-455a-836b-66bf7d43823e')
+construir = <function <lambda> at 0x000001B8BBAC4D50>
+esperado = {'conceptos': 1}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98F650>
+obra_id = UUID('05c05704-2192-455a-836b-66bf7d43823e')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[precio_insumo] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98F750>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB8BC210>
+obra_conocida = UUID('cd7b7a80-0dce-439b-8f96-b57915194429')
+construir = <function <lambda> at 0x000001B8BBAC4E00>
+esperado = {'precios_insumo': 1}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98F750>
+obra_id = UUID('cd7b7a80-0dce-439b-8f96-b57915194429')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[rendimiento_observado] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98E750>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB8BC1A0>
+obra_conocida = UUID('5db301ed-617a-491d-9f6c-7b63d28bd981')
+construir = <function <lambda> at 0x000001B8BBAC4EB0>
+esperado = {'rendimientos_observados': 1}
+
+    @pytest.mark.parametrize(
+        ("construir", "esperado"),
+        [
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="BORRADOR"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="CONGELADA"),
+                {"lineas_base": 1, "linea_base_congelada": True},
+            ),
+            (
+                lambda d, o: d.linea_base(obra_id=o, estado="SUPERSEDIDA"),
+                {"lineas_base": 1, "linea_base_congelada": False},
+            ),
+            (lambda d, o: d.importacion(obra_id=o), {"importaciones": 1}),
+            (lambda d, o: d.nivel(obra_id=o), {"niveles": 1}),
+            (lambda d, o: d.concepto(obra_id=o), {"conceptos": 1}),
+            (lambda d, o: d.precio_insumo(obra_id=o), {"precios_insumo": 1}),
+            (lambda d, o: d.rendimiento_observado(obra_id=o), {"rendimientos_observados": 1}),
+        ],
+        ids=[
+            "linea_base_borrador",
+            "linea_base_congelada",
+            "linea_base_supersedida",
+            "importacion",
+            "nivel",
+            "concepto",
+            "precio_insumo",
+            "rendimiento_observado",
+        ],
+    )
+    def test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        construir: Callable[[DatosPresupuesto, uuid.UUID], object],
+        esperado: dict[str, Any],
+    ) -> None:
+        """TC-17 · CA-6 · RN-01 — feliz: una fila en una sola tabla mueve solo su conteo.
+    
+        `linea_base_congelada` es verdadero solo con una línea base `CONGELADA`: ni `BORRADOR` ni
+        `SUPERSEDIDA` lo encienden, aunque las dos cuentan como línea base.
+        """
+        construir(datos_presupuesto, obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:709: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98E750>
+obra_id = UUID('5db301ed-617a-491d-9f6c-7b63d28bd981')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propio_filtra_por_obra_y_no_cuenta_el_precio_general _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98CF50>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB92C0B0>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+obra_conocida = UUID('6ff331b4-d5c9-43c1-a2ee-40bf6ead41ba')
+
+    def test_tkt012b_ca6_contar_historial_propio_filtra_por_obra_y_no_cuenta_el_precio_general(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-17 · CA-6 — feliz: conteos distintos por tabla, solo de esta obra, sin el precio general.
+    
+        Dos, tres, cuatro, cinco, seis y siete filas: un conteo cruzado entre tablas no pasa. Otra obra con
+        una fila en cada tabla y un precio general (`obra_id` nulo) no suman.
+        """
+        otra = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+        datos_presupuesto.linea_base(obra_id=otra, estado="BORRADOR")
+        datos_presupuesto.importacion(obra_id=otra)
+        datos_presupuesto.nivel(obra_id=otra)
+        datos_presupuesto.concepto(obra_id=otra)
+        datos_presupuesto.precio_insumo(obra_id=otra)
+        datos_presupuesto.rendimiento_observado(obra_id=otra)
+        datos_presupuesto.precio_insumo(obra_id=None)
+    
+        datos_presupuesto.linea_base(obra_id=obra_conocida, estado="SUPERSEDIDA", version=1)
+        datos_presupuesto.linea_base(obra_id=obra_conocida, estado="CONGELADA", version=2)
+        for _ in range(3):
+            datos_presupuesto.importacion(obra_id=obra_conocida)
+        for orden in range(1, 5):
+            datos_presupuesto.nivel(obra_id=obra_conocida, nombre=f"Nivel {orden}", orden=orden)
+        for numero in range(5):
+            datos_presupuesto.concepto(obra_id=obra_conocida, codigo=f"C{numero}")
+        for _ in range(6):
+            datos_presupuesto.precio_insumo(obra_id=obra_conocida)
+        for _ in range(7):
+            datos_presupuesto.rendimiento_observado(obra_id=obra_conocida)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial_propio(sesion_bd, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_repositorio_obra.py:748: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB98CF50>
+obra_id = UUID('6ff331b4-d5c9-43c1-a2ee-40bf6ead41ba')
+
+    def contar_historial_propio(sesion_bd: Session, obra_id: uuid.UUID) -> ConteosHistorialPropio:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: contar_historial_propio")
+E       NotImplementedError: TKT-012b A3: contar_historial_propio
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:249: NotImplementedError
+_ test_tkt012b_car3_actualizar_obra_con_un_porcentaje_fuera_de_rango_lo_rechaza_el_motor _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB924050>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB8DDA90>
+obra_conocida = UUID('9c577a70-ed2a-48ca-a905-b703859ffe3d')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_f9ed12c67abb) at 0x1b8bb7ede50>
+
+    def test_tkt012b_car3_actualizar_obra_con_un_porcentaje_fuera_de_rango_lo_rechaza_el_motor(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-18 · CA-R3 — rechazo: aunque el API valide antes, el `UPDATE` del repositorio no se salta el `CHECK`.
+    
+        El repositorio escribe lo que recibe (la validación de rango es del caso de uso); el motor es la
+        última barrera, y el cambio no deja nada a medias.
+        """
+        antes = _fila_obligatoria(lector, obra_conocida)
+    
+        with pytest.raises(DBAPIError) as info, sesion_bd.begin():
+>           actualizar_obra(
+                sesion_bd,
+                obra_conocida,
+                {"retencion_destajo_pct": Porcentaje("1.500000")},
+                AHORA,
+                datos_presupuesto.usuario(),
+            )
+
+tests\test_tkt012b_repositorio_obra.py:848: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB924050>
+obra_id = UUID('9c577a70-ed2a-48ca-a905-b703859ffe3d')
+campos = {'retencion_destajo_pct': Porcentaje(valor=Decimal('1.500000'))}
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('9af14a4c-be9a-4dcf-a1ec-af03e8674715')
+
+    def actualizar_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        campos: Mapping[str, object],
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: actualizar_obra")
+E       NotImplementedError: TKT-012b A3: actualizar_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:228: NotImplementedError
+_ test_tkt012b_car3_cambiar_estado_obra_a_un_estado_desconocido_lo_rechaza_el_motor _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB924150>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x000001B8BB8DE750>
+obra_conocida = UUID('26eb1706-1b67-4f60-82a5-bb37945b1987')
+lector = <psycopg.Connection [IDLE] (host=localhost port=62893 user=cimenta_aplicacion database=prueba_084e44e0c623) at 0x1b8bba20140>
+
+    def test_tkt012b_car3_cambiar_estado_obra_a_un_estado_desconocido_lo_rechaza_el_motor(
+        sesion_bd: Session,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-18 · CA-R3 — rechazo: `ck_obra_estado` frena un estado que el dominio no conoce."""
+        antes = _fila_obligatoria(lector, obra_conocida)
+    
+        with pytest.raises(DBAPIError) as info, sesion_bd.begin():
+>           cambiar_estado_obra(sesion_bd, obra_conocida, "BORRADA", AHORA, datos_presupuesto.usuario())
+
+tests\test_tkt012b_repositorio_obra.py:871: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x000001B8BB924150>
+obra_id = UUID('26eb1706-1b67-4f60-82a5-bb37945b1987'), estado = 'BORRADA'
+ahora = datetime.datetime(2026, 11, 17, 10, 0, tzinfo=datetime.timezone.utc)
+usuario_id = UUID('588698ed-17ce-4223-b855-1cb815074174')
+
+    def cambiar_estado_obra(
+        sesion_bd: Session,
+        obra_id: uuid.UUID,
+        estado: str,
+        ahora: datetime,
+        usuario_id: uuid.UUID,
+    ) -> None:
+        """Esqueleto de rojo (A3)."""
+>       raise NotImplementedError("TKT-012b A3: cambiar_estado_obra")
+E       NotImplementedError: TKT-012b A3: cambiar_estado_obra
+
+cimenta\presupuesto\infraestructura\repositorio_obra.py:239: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca12_bloquear_obra_completa_de_un_id_inexistente_devuelve_none
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca1_bloquear_obra_completa_devuelve_la_obra_con_su_linea_base_vigente
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca13_bloquear_obra_completa_toma_for_update_y_la_segunda_sesion_espera
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca1_actualizar_obra_escribe_solo_lo_indicado_y_sella_quien_y_cuando
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca1_actualizar_obra_con_todos_los_campos_cuantiza_con_half_up
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca1_actualizar_obra_con_umbral_none_lo_borra_y_un_campo_ausente_lo_conserva
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[ACTIVA-SUSPENDIDA]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[SUSPENDIDA-ACTIVA]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[ACTIVA-CERRADA]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[SUSPENDIDA-CERRADA]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca8_cambiar_estado_obra_escribe_el_estado_y_sella_quien_y_cuando[PLANEACION-CERRADA]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_car4_cambiar_estado_obra_no_toca_la_linea_base_ni_sus_copias
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca5_eliminar_obra_borra_la_fila_y_libera_el_codigo
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada[linea_base]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada[importacion]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_eliminar_obra_con_una_hija_responde_23001_y_no_borra_nada[nivel]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_de_una_obra_sin_nada_es_cero_en_todo
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[linea_base_borrador]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[linea_base_congelada]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[linea_base_supersedida]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[importacion]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[nivel]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[concepto]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[precio_insumo]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_cuenta_cada_tabla_por_separado[rendimiento_observado]
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_ca6_contar_historial_propio_filtra_por_obra_y_no_cuenta_el_precio_general
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_car3_actualizar_obra_con_un_porcentaje_fuera_de_rango_lo_rechaza_el_motor
+FAILED tests/test_tkt012b_repositorio_obra.py::test_tkt012b_car3_cambiar_estado_obra_a_un_estado_desconocido_lo_rechaza_el_motor
+28 failed, 11 passed in 7.49s

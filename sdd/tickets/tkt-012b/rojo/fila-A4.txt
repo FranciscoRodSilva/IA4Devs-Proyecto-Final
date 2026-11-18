@@ -1,0 +1,1108 @@
+FFFFFFFFFFFFFF......FFF.FFFFFFF....                                      [100%]
+================================== FAILURES ===================================
+__ test_tkt012b_ca6_contar_historial_suma_las_fuentes_inyectadas_y_la_propia __
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B4257FB60>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_747a05cd9011)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B4257FCB0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B4257FE00>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+obra_conocida = UUID('32dad08e-aa72-4d29-84b1-7dc2194ae741')
+
+    def test_tkt012b_ca6_contar_historial_suma_las_fuentes_inyectadas_y_la_propia(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-19 · CA-6 · RN-01 · HDU-001 esc. 20 — feliz: `movimientos` suma las fuentes; lo propio, la base.
+    
+        Dos fuentes con 2 y 5 movimientos de esta obra (y 100 de otra, que no cuentan): `movimientos` es 7.
+        Del lado propio, 2 líneas base (una congelada), 3 importaciones y `filas_propias` = 4 + 5 + 6 + 7 = 22.
+        """
+        otra = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+        _historial_propio_distinto(datos_presupuesto, obra_conocida)
+        datos_presupuesto.nivel(obra_id=otra)
+        compras = FuenteDeConteo("compras", {obra_conocida: 2, otra: 100})
+        almacen = FuenteDeConteo("almacen", {obra_conocida: 5, otra: 100})
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, compras, almacen)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:193: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B4257FB60>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B429B89E0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B4257FCB0>, fuentes_historial=())
+obra_id = UUID('32dad08e-aa72-4d29-84b1-7dc2194ae741')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[una] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A48410>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_85ee8efda95f)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42A48690>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42A487D0>
+obra_conocida = UUID('6f8cbb83-4b4a-4a3b-a2ed-0289c5536cd9'), por_fuente = (3,)
+esperado = 3
+
+    @pytest.mark.parametrize(
+        ("por_fuente", "esperado"),
+        [((3,), 3), ((3, 4), 7), ((0, 0), 0), ((0, 6), 6), ((1, 1, 1), 3)],
+        ids=["una", "dos", "dos_en_cero", "una_en_cero_y_otra_no", "tres"],
+    )
+    def test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        por_fuente: tuple[int, ...],
+        esperado: int,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: la suma ni se queda con la mayor, ni con la primera, ni cuenta fuentes.
+    
+        El lado propio vale una importación, para comprobar que los movimientos no se mezclan con él.
+        """
+        datos_presupuesto.importacion(obra_id=obra_conocida)
+        fuentes = tuple(FuenteDeConteo(f"fuente-{i}", n) for i, n in enumerate(por_fuente))
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A48410>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B429BAB90>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42A48690>, fuentes_historial=())
+obra_id = UUID('6f8cbb83-4b4a-4a3b-a2ed-0289c5536cd9')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[dos] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A49310>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_4bf12409b74e)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42A49450>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42A49590>
+obra_conocida = UUID('930e53e5-946d-4014-abbb-1827879bdd42')
+por_fuente = (3, 4), esperado = 7
+
+    @pytest.mark.parametrize(
+        ("por_fuente", "esperado"),
+        [((3,), 3), ((3, 4), 7), ((0, 0), 0), ((0, 6), 6), ((1, 1, 1), 3)],
+        ids=["una", "dos", "dos_en_cero", "una_en_cero_y_otra_no", "tres"],
+    )
+    def test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        por_fuente: tuple[int, ...],
+        esperado: int,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: la suma ni se queda con la mayor, ni con la primera, ni cuenta fuentes.
+    
+        El lado propio vale una importación, para comprobar que los movimientos no se mezclan con él.
+        """
+        datos_presupuesto.importacion(obra_id=obra_conocida)
+        fuentes = tuple(FuenteDeConteo(f"fuente-{i}", n) for i, n in enumerate(por_fuente))
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A49310>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B429BBED0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42A49450>, fuentes_historial=())
+obra_id = UUID('930e53e5-946d-4014-abbb-1827879bdd42')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[dos_en_cero] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42557CE0>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_6ff87a499275)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42557360>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42557950>
+obra_conocida = UUID('719f7601-0230-43e7-a1d6-ad4f12dff03d')
+por_fuente = (0, 0), esperado = 0
+
+    @pytest.mark.parametrize(
+        ("por_fuente", "esperado"),
+        [((3,), 3), ((3, 4), 7), ((0, 0), 0), ((0, 6), 6), ((1, 1, 1), 3)],
+        ids=["una", "dos", "dos_en_cero", "una_en_cero_y_otra_no", "tres"],
+    )
+    def test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        por_fuente: tuple[int, ...],
+        esperado: int,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: la suma ni se queda con la mayor, ni con la primera, ni cuenta fuentes.
+    
+        El lado propio vale una importación, para comprobar que los movimientos no se mezclan con él.
+        """
+        datos_presupuesto.importacion(obra_id=obra_conocida)
+        fuentes = tuple(FuenteDeConteo(f"fuente-{i}", n) for i, n in enumerate(por_fuente))
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42557CE0>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B425C03B0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42557360>, fuentes_historial=())
+obra_id = UUID('719f7601-0230-43e7-a1d6-ad4f12dff03d')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[una_en_cero_y_otra_no] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42556B10>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_6201e5f3a0aa)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42556190>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42555F30>
+obra_conocida = UUID('3ad863ac-f93e-4030-880e-a5e36d28741d')
+por_fuente = (0, 6), esperado = 6
+
+    @pytest.mark.parametrize(
+        ("por_fuente", "esperado"),
+        [((3,), 3), ((3, 4), 7), ((0, 0), 0), ((0, 6), 6), ((1, 1, 1), 3)],
+        ids=["una", "dos", "dos_en_cero", "una_en_cero_y_otra_no", "tres"],
+    )
+    def test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        por_fuente: tuple[int, ...],
+        esperado: int,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: la suma ni se queda con la mayor, ni con la primera, ni cuenta fuentes.
+    
+        El lado propio vale una importación, para comprobar que los movimientos no se mezclan con él.
+        """
+        datos_presupuesto.importacion(obra_id=obra_conocida)
+        fuentes = tuple(FuenteDeConteo(f"fuente-{i}", n) for i, n in enumerate(por_fuente))
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42556B10>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B425C3060>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42556190>, fuentes_historial=())
+obra_id = UUID('3ad863ac-f93e-4030-880e-a5e36d28741d')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[tres] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B425A69F0>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_f007e029ebad)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B425A67B0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B425A6450>
+obra_conocida = UUID('9a4a48b3-e079-4e4e-9860-846a7f61c353')
+por_fuente = (1, 1, 1), esperado = 3
+
+    @pytest.mark.parametrize(
+        ("por_fuente", "esperado"),
+        [((3,), 3), ((3, 4), 7), ((0, 0), 0), ((0, 6), 6), ((1, 1, 1), 3)],
+        ids=["una", "dos", "dos_en_cero", "una_en_cero_y_otra_no", "tres"],
+    )
+    def test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        por_fuente: tuple[int, ...],
+        esperado: int,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: la suma ni se queda con la mayor, ni con la primera, ni cuenta fuentes.
+    
+        El lado propio vale una importación, para comprobar que los movimientos no se mezclan con él.
+        """
+        datos_presupuesto.importacion(obra_id=obra_conocida)
+        fuentes = tuple(FuenteDeConteo(f"fuente-{i}", n) for i, n in enumerate(por_fuente))
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B425A69F0>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B4257B480>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B425A67B0>, fuentes_historial=())
+obra_id = UUID('9a4a48b3-e079-4e4e-9860-846a7f61c353')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_sin_fuentes_movimientos_es_cero_y_lo_propio_se_cuenta _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A456A0>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_1d62c080c85d)
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42A448D0>
+obra_conocida = UUID('6553142f-9409-46a3-9049-e7385b8a07f0')
+
+    def test_tkt012b_ca6_contar_historial_sin_fuentes_movimientos_es_cero_y_lo_propio_se_cuenta(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: con el contexto por omisión (sin `fuentes_historial`), `movimientos` es 0.
+    
+        Es el estado de hoy, cuando ningún módulo posterior publica su fuente. Lo propio sigue contándose.
+        """
+        _historial_propio_distinto(datos_presupuesto, obra_conocida)
+        contexto = construir_contexto(proveedor_motor=lambda: motor_aplicacion)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:252: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A456A0>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B42578A90>, reloj=<function _reloj_del_sistema at 0x0000017B421656F0>, fuentes_historial=())
+obra_id = UUID('6553142f-9409-46a3-9049-e7385b8a07f0')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca5_contar_historial_de_una_obra_vacia_sin_fuentes_es_cero_y_no_hay_historial _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A45AE0>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_ef5dc51a2470)
+obra_conocida = UUID('e9d6b800-286b-46b8-8e25-b9d5b56e4c45')
+
+    def test_tkt012b_ca5_contar_historial_de_una_obra_vacia_sin_fuentes_es_cero_y_no_hay_historial(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-19 · CA-5 · RN-01 — feliz: una obra recién creada, sin fuentes, queda en ceros y se puede borrar."""
+        contexto = construir_contexto(proveedor_motor=lambda: motor_aplicacion)
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:272: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42A45AE0>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B42531640>, reloj=<function _reloj_del_sistema at 0x0000017B421656F0>, fuentes_historial=())
+obra_id = UUID('e9d6b800-286b-46b8-8e25-b9d5b56e4c45')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_un_movimiento_externo_basta_para_que_haya_historial _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42960550>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_8435ab3daa95)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42A459D0>
+obra_conocida = UUID('f78ee903-ac09-41b8-a60a-7680941dcd96')
+
+    def test_tkt012b_ca6_contar_historial_un_movimiento_externo_basta_para_que_haya_historial(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-19 · CA-6 · RN-01 — rechazo: sin nada propio, una sola fuente con un movimiento ya impide borrar.
+    
+        Lo que el diseño pide: `hay_historial` no ignora los movimientos de las fuentes inyectadas.
+        """
+        contexto = _contexto(
+            motor_aplicacion,
+            reloj_de_prueba,
+            FuenteDeConteo("compras", 0),
+            FuenteDeConteo("almacen", 1),
+        )
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:302: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42960550>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B4251FC10>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42A459D0>, fuentes_historial=())
+obra_id = UUID('f78ee903-ac09-41b8-a60a-7680941dcd96')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio[BORRADOR-False] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42961250>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_982ee5295ff0)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42A467A0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42961450>
+obra_conocida = UUID('45ff5c0c-76f8-4f53-b018-72506452aea6')
+estado = 'BORRADOR', congelada = False
+
+    @pytest.mark.parametrize(
+        ("estado", "congelada"),
+        [("BORRADOR", False), ("CONGELADA", True), ("SUPERSEDIDA", False)],
+    )
+    def test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        estado: str,
+        congelada: bool,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: solo una línea base `CONGELADA` enciende `linea_base_congelada`.
+    
+        Alimenta el detalle del `409 OBRA_CON_HISTORIAL`; las tres cuentan como línea base.
+        """
+        datos_presupuesto.linea_base(obra_id=obra_conocida, estado=estado)
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, FuenteDeConteo("compras", 0))
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:332: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42961250>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B4251E090>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42A467A0>, fuentes_historial=())
+obra_id = UUID('45ff5c0c-76f8-4f53-b018-72506452aea6')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio[CONGELADA-True] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42960650>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_dfae59ff9b5d)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42962250>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42995E50>
+obra_conocida = UUID('a257ab6f-1612-4a6a-8bfc-36ec46b1bded')
+estado = 'CONGELADA', congelada = True
+
+    @pytest.mark.parametrize(
+        ("estado", "congelada"),
+        [("BORRADOR", False), ("CONGELADA", True), ("SUPERSEDIDA", False)],
+    )
+    def test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        estado: str,
+        congelada: bool,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: solo una línea base `CONGELADA` enciende `linea_base_congelada`.
+    
+        Alimenta el detalle del `409 OBRA_CON_HISTORIAL`; las tres cuentan como línea base.
+        """
+        datos_presupuesto.linea_base(obra_id=obra_conocida, estado=estado)
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, FuenteDeConteo("compras", 0))
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:332: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42960650>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B4251C250>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42962250>, fuentes_historial=())
+obra_id = UUID('a257ab6f-1612-4a6a-8bfc-36ec46b1bded')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio[SUPERSEDIDA-False] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42962B50>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_635978c629b1)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42962D50>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B42997200>
+obra_conocida = UUID('54a0ce02-d984-47d4-bfec-22f8946042e9')
+estado = 'SUPERSEDIDA', congelada = False
+
+    @pytest.mark.parametrize(
+        ("estado", "congelada"),
+        [("BORRADOR", False), ("CONGELADA", True), ("SUPERSEDIDA", False)],
+    )
+    def test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        estado: str,
+        congelada: bool,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: solo una línea base `CONGELADA` enciende `linea_base_congelada`.
+    
+        Alimenta el detalle del `409 OBRA_CON_HISTORIAL`; las tres cuentan como línea base.
+        """
+        datos_presupuesto.linea_base(obra_id=obra_conocida, estado=estado)
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, FuenteDeConteo("compras", 0))
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:332: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42962B50>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B429B9E80>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42962D50>, fuentes_historial=())
+obra_id = UUID('54a0ce02-d984-47d4-bfec-22f8946042e9')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_pregunta_a_cada_fuente_una_vez_con_su_sesion_y_su_obra _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42963950>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_5f69d6b55051)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B425B86E0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B425DC050>
+empresa_de_la_migracion = UUID('c1e0a010-0000-4000-8000-000000000001')
+obra_conocida = UUID('d980e274-81cd-4e95-ab4d-936eb1cbb2f0')
+
+    def test_tkt012b_ca6_contar_historial_pregunta_a_cada_fuente_una_vez_con_su_sesion_y_su_obra(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        empresa_de_la_migracion: uuid.UUID,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-19 · CA-6 — feliz: cada fuente recibe la sesión del llamador y el `obra_id` consultado, una vez.
+    
+        La sesión importa: la fuente cuenta dentro de la transacción que ya tiene la obra bloqueada.
+        """
+        otra = datos_presupuesto.obra(codigo="AP-099-26", empresa_id=empresa_de_la_migracion)
+        compras = FuenteDeConteo("compras", 1)
+        almacen = FuenteDeConteo("almacen", 1)
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, compras, almacen)
+    
+        with sesion_bd.begin():
+>           contar_historial(sesion_bd, contexto, obra_conocida)
+
+tests\test_tkt012b_historial.py:356: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42963950>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B42973740>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B425B86E0>, fuentes_historial=())
+obra_id = UUID('d980e274-81cd-4e95-ab4d-936eb1cbb2f0')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_trabaja_con_la_sesion_recibida_y_no_abre_otra _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42962C50>
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B429975C0>
+datos_presupuesto = <tests.conftest.DatosPresupuesto object at 0x0000017B425F98D0>
+obra_conocida = UUID('44a74328-3d30-4e17-ae65-6c50b71817c8')
+lector = <psycopg.Connection [IDLE] (host=localhost port=63028 user=cimenta_aplicacion database=prueba_c4e40c3d4721) at 0x17b429973e0>
+
+    def test_tkt012b_ca6_contar_historial_trabaja_con_la_sesion_recibida_y_no_abre_otra(
+        sesion_bd: Session,
+        reloj_de_prueba: RelojDePrueba,
+        datos_presupuesto: DatosPresupuesto,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-19 · CA-6 · regla 8 — feliz: ni pide el motor del contexto, ni confirma, ni escribe.
+    
+        El proveedor de motor falla si alguien lo usa: abrir otra sesión leería sin el bloqueo del llamador.
+        """
+        datos_presupuesto.importacion(obra_id=obra_conocida)
+        filas_antes = _cuenta(lector, "SELECT count(*) FROM bitacora")
+        contexto = construir_contexto(
+            proveedor_motor=_sin_motor,
+            reloj=reloj_de_prueba,
+            fuentes_historial=(FuenteDeConteo("compras", 1),),
+        )
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:385: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42962C50>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B4251E350>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B429975C0>, fuentes_historial=())
+obra_id = UUID('44a74328-3d30-4e17-ae65-6c50b71817c8')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_construir_contexto_guarda_las_fuentes_en_el_orden_recibido _
+
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_2abe0839cf21)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B425FADD0>
+
+    def test_tkt012b_ca6_construir_contexto_guarda_las_fuentes_en_el_orden_recibido(
+        motor_aplicacion: Engine, reloj_de_prueba: RelojDePrueba
+    ) -> None:
+        """TC-19 · CA-6 — feliz: el contexto lleva las fuentes inyectadas, las mismas y en ese orden."""
+        compras = FuenteDeConteo("compras", 1)
+        almacen = FuenteDeConteo("almacen", 1)
+    
+        contexto = construir_contexto(
+            proveedor_motor=lambda: motor_aplicacion,
+            reloj=reloj_de_prueba,
+            fuentes_historial=(compras, almacen),
+        )
+    
+        assert isinstance(contexto.fuentes_historial, tuple)
+>       assert len(contexto.fuentes_historial) == 2
+E       assert 0 == 2
+E        +  where 0 = len(())
+E        +    where () = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B4257AFB0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B425FADD0>, fuentes_historial=()).fuentes_historial
+
+tests\test_tkt012b_historial.py:479: AssertionError
+__ test_tkt012b_ca6_construir_contexto_con_fuentes_sigue_sin_abrir_el_motor ___
+
+    def test_tkt012b_ca6_construir_contexto_con_fuentes_sigue_sin_abrir_el_motor() -> None:
+        """TC-19 · CA-6 — regresión: inyectar fuentes no rompe la perezosa de la fábrica de sesiones."""
+        llamadas: list[str] = []
+    
+        def proveedor() -> Engine:
+            llamadas.append("motor")
+            raise AssertionError("El motor no se pide al construir el contexto")
+    
+        contexto = construir_contexto(
+            proveedor_motor=proveedor, fuentes_historial=(FuenteDeConteo("compras", 1),)
+        )
+    
+        assert llamadas == []
+>       assert len(contexto.fuentes_historial) == 1
+E       assert 0 == 1
+E        +  where 0 = len(())
+E        +    where () = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B42531B10>, reloj=<function _reloj_del_sistema at 0x0000017B421656F0>, fuentes_historial=()).fuentes_historial
+
+tests\test_tkt012b_historial.py:498: AssertionError
+_ test_tkt012b_ca6_montar_presupuesto_reenvia_las_fuentes_al_contexto_de_la_aplicacion _
+
+    def test_tkt012b_ca6_montar_presupuesto_reenvia_las_fuentes_al_contexto_de_la_aplicacion() -> None:
+        """TC-19 · CA-6 — feliz: `montar_presupuesto(..., fuentes_historial=…)` las deja en `app.state.presupuesto`.
+    
+        Es el único punto por el que `servidor/` inyectará la fuente de un módulo posterior.
+        """
+        compras = FuenteDeConteo("compras", 1)
+        almacen = FuenteDeConteo("almacen", 1)
+        aplicacion = FastAPI()
+    
+        montar_presupuesto(
+            aplicacion,
+            proveedor_motor=_sin_motor,
+            reloj=None,
+            fuentes_historial=(compras, almacen),
+        )
+    
+        contexto = aplicacion.state.presupuesto
+        assert isinstance(contexto, ContextoPresupuesto)
+>       assert len(contexto.fuentes_historial) == 2
+E       assert 0 == 2
+E        +  where 0 = len(())
+E        +    where () = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B429BAAE0>, reloj=<function _reloj_del_sistema at 0x0000017B421656F0>, fuentes_historial=()).fuentes_historial
+
+tests\test_tkt012b_historial.py:519: AssertionError
+_ test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_primera] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42960050>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_8e9aad0541ca)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42B74BB0>
+obra_conocida = UUID('86ca5784-5dc4-412e-89aa-5cd4def6386d')
+orden = 'cae_la_primera'
+
+    @pytest.mark.parametrize(
+        "orden",
+        ["cae_la_primera", "cae_la_de_en_medio", "cae_la_ultima", "cae_la_unica_con_las_demas_en_cero"],
+    )
+    def test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+        orden: str,
+    ) -> None:
+        """TC-20 · CA-6 · RN-01 — rechazo: si una fuente lanza, `contar_historial` lanza lo mismo.
+    
+        En cualquier posición, y aunque las demás fuentes digan 0 y la obra no tenga nada propio: una fuente
+        que no responde nunca se lee como «cero movimientos». Se propaga la misma excepción, sin envolver y
+        sin devolver un `ConteosHistorial`.
+        """
+        error = FalloDeFuente("la base de compras no responde")
+        caida = FuenteCaida("compras", error)
+        bien = [FuenteDeConteo("almacen", 0), FuenteDeConteo("avance", 0)]
+        fuentes: dict[str, tuple[FuenteHistorialObra, ...]] = {
+            "cae_la_primera": (caida, bien[0], bien[1]),
+            "cae_la_de_en_medio": (bien[0], caida, bien[1]),
+            "cae_la_ultima": (bien[0], bien[1], caida),
+            "cae_la_unica_con_las_demas_en_cero": (caida,),
+        }
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes[orden])
+    
+        with pytest.raises(FalloDeFuente) as info, sesion_bd.begin():
+>           contar_historial(sesion_bd, contexto, obra_conocida)
+
+tests\test_tkt012b_historial.py:565: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42960050>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B429721F0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42B74BB0>, fuentes_historial=())
+obra_id = UUID('86ca5784-5dc4-412e-89aa-5cd4def6386d')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_de_en_medio] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B424CB950>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_cc30535a04f6)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B429B4350>
+obra_conocida = UUID('986c7c54-030a-46c7-b044-30caab2d41a7')
+orden = 'cae_la_de_en_medio'
+
+    @pytest.mark.parametrize(
+        "orden",
+        ["cae_la_primera", "cae_la_de_en_medio", "cae_la_ultima", "cae_la_unica_con_las_demas_en_cero"],
+    )
+    def test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+        orden: str,
+    ) -> None:
+        """TC-20 · CA-6 · RN-01 — rechazo: si una fuente lanza, `contar_historial` lanza lo mismo.
+    
+        En cualquier posición, y aunque las demás fuentes digan 0 y la obra no tenga nada propio: una fuente
+        que no responde nunca se lee como «cero movimientos». Se propaga la misma excepción, sin envolver y
+        sin devolver un `ConteosHistorial`.
+        """
+        error = FalloDeFuente("la base de compras no responde")
+        caida = FuenteCaida("compras", error)
+        bien = [FuenteDeConteo("almacen", 0), FuenteDeConteo("avance", 0)]
+        fuentes: dict[str, tuple[FuenteHistorialObra, ...]] = {
+            "cae_la_primera": (caida, bien[0], bien[1]),
+            "cae_la_de_en_medio": (bien[0], caida, bien[1]),
+            "cae_la_ultima": (bien[0], bien[1], caida),
+            "cae_la_unica_con_las_demas_en_cero": (caida,),
+        }
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes[orden])
+    
+        with pytest.raises(FalloDeFuente) as info, sesion_bd.begin():
+>           contar_historial(sesion_bd, contexto, obra_conocida)
+
+tests\test_tkt012b_historial.py:565: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B424CB950>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B42971BC0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B429B4350>, fuentes_historial=())
+obra_id = UUID('986c7c54-030a-46c7-b044-30caab2d41a7')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_ultima] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42599350>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_d60f210bc6fe)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B429B4950>
+obra_conocida = UUID('ec4f3a38-e881-4df6-b12f-da5f8ad2efff')
+orden = 'cae_la_ultima'
+
+    @pytest.mark.parametrize(
+        "orden",
+        ["cae_la_primera", "cae_la_de_en_medio", "cae_la_ultima", "cae_la_unica_con_las_demas_en_cero"],
+    )
+    def test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+        orden: str,
+    ) -> None:
+        """TC-20 · CA-6 · RN-01 — rechazo: si una fuente lanza, `contar_historial` lanza lo mismo.
+    
+        En cualquier posición, y aunque las demás fuentes digan 0 y la obra no tenga nada propio: una fuente
+        que no responde nunca se lee como «cero movimientos». Se propaga la misma excepción, sin envolver y
+        sin devolver un `ConteosHistorial`.
+        """
+        error = FalloDeFuente("la base de compras no responde")
+        caida = FuenteCaida("compras", error)
+        bien = [FuenteDeConteo("almacen", 0), FuenteDeConteo("avance", 0)]
+        fuentes: dict[str, tuple[FuenteHistorialObra, ...]] = {
+            "cae_la_primera": (caida, bien[0], bien[1]),
+            "cae_la_de_en_medio": (bien[0], caida, bien[1]),
+            "cae_la_ultima": (bien[0], bien[1], caida),
+            "cae_la_unica_con_las_demas_en_cero": (caida,),
+        }
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes[orden])
+    
+        with pytest.raises(FalloDeFuente) as info, sesion_bd.begin():
+>           contar_historial(sesion_bd, contexto, obra_conocida)
+
+tests\test_tkt012b_historial.py:565: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42599350>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B429703B0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B429B4950>, fuentes_historial=())
+obra_id = UUID('ec4f3a38-e881-4df6-b12f-da5f8ad2efff')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_unica_con_las_demas_en_cero] _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42599850>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_50ba7a4f30f2)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B41E754F0>
+obra_conocida = UUID('a60db34c-7bfd-438e-ac4d-6a865aab5648')
+orden = 'cae_la_unica_con_las_demas_en_cero'
+
+    @pytest.mark.parametrize(
+        "orden",
+        ["cae_la_primera", "cae_la_de_en_medio", "cae_la_ultima", "cae_la_unica_con_las_demas_en_cero"],
+    )
+    def test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+        orden: str,
+    ) -> None:
+        """TC-20 · CA-6 · RN-01 — rechazo: si una fuente lanza, `contar_historial` lanza lo mismo.
+    
+        En cualquier posición, y aunque las demás fuentes digan 0 y la obra no tenga nada propio: una fuente
+        que no responde nunca se lee como «cero movimientos». Se propaga la misma excepción, sin envolver y
+        sin devolver un `ConteosHistorial`.
+        """
+        error = FalloDeFuente("la base de compras no responde")
+        caida = FuenteCaida("compras", error)
+        bien = [FuenteDeConteo("almacen", 0), FuenteDeConteo("avance", 0)]
+        fuentes: dict[str, tuple[FuenteHistorialObra, ...]] = {
+            "cae_la_primera": (caida, bien[0], bien[1]),
+            "cae_la_de_en_medio": (bien[0], caida, bien[1]),
+            "cae_la_ultima": (bien[0], bien[1], caida),
+            "cae_la_unica_con_las_demas_en_cero": (caida,),
+        }
+        contexto = _contexto(motor_aplicacion, reloj_de_prueba, *fuentes[orden])
+    
+        with pytest.raises(FalloDeFuente) as info, sesion_bd.begin():
+>           contar_historial(sesion_bd, contexto, obra_conocida)
+
+tests\test_tkt012b_historial.py:565: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B42599850>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B41E6E820>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B41E754F0>, fuentes_historial=())
+obra_id = UUID('a60db34c-7bfd-438e-ac4d-6a865aab5648')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca6_el_fallo_de_una_fuente_no_se_compensa_con_lo_que_dicen_las_otras _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B4259A350>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_19d7ff451d69)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B41E91F40>
+obra_conocida = UUID('0f4f3f85-4b0a-4c1b-af61-dfa10bd9e0db')
+
+    def test_tkt012b_ca6_el_fallo_de_una_fuente_no_se_compensa_con_lo_que_dicen_las_otras(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+    ) -> None:
+        """TC-20 · CA-6 — rechazo: ni una fuente con muchos movimientos ni una con historial propio lo ocultan.
+    
+        Otra fuente (que se consulta antes) dice 9 movimientos: el fallo igual manda, y no se devuelve un
+        conteo parcial que la persona leería como completo.
+        """
+        contexto = _contexto(
+            motor_aplicacion,
+            reloj_de_prueba,
+            FuenteDeConteo("almacen", 9),
+            FuenteCaida("compras", FalloDeFuente("sin respuesta")),
+        )
+    
+        with pytest.raises(FalloDeFuente), sesion_bd.begin():
+>           contar_historial(sesion_bd, contexto, obra_conocida)
+
+tests\test_tkt012b_historial.py:591: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B4259A350>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B41ED7270>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B41E91F40>, fuentes_historial=())
+obra_id = UUID('0f4f3f85-4b0a-4c1b-af61-dfa10bd9e0db')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+__ test_tkt012b_ca6_si_la_fuente_falla_el_llamador_no_llega_a_borrar_la_obra __
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B425F0050>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_86e905478bf4)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42AF6670>
+obra_conocida = UUID('9e26070f-2e2b-4c68-a7a6-9ee0f0b55d86')
+lector = <psycopg.Connection [IDLE] (host=localhost port=63028 user=cimenta_aplicacion database=prueba_86e905478bf4) at 0x17b425b9400>
+
+    def test_tkt012b_ca6_si_la_fuente_falla_el_llamador_no_llega_a_borrar_la_obra(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-20 · CA-6 · RN-01 — rechazo: con el patrón del caso de uso (contar, decidir, borrar), no se borra.
+    
+        La obra no tiene nada propio, así que sin fuentes sí se borraría. Con una fuente caída el error
+        sale de `contar_historial` antes del `eliminar_obra`: la obra y su código siguen intactos y no
+        se asienta nada. (El caso de uso real y su `409` se prueban en A5.)
+        """
+        contexto = _contexto(
+            motor_aplicacion, reloj_de_prueba, FuenteCaida("compras", FalloDeFuente("sin respuesta"))
+        )
+        asientos_antes = _cuenta(lector, "SELECT count(*) FROM bitacora")
+        borrado = False
+    
+        def intentar_borrar() -> None:
+            nonlocal borrado
+            with sesion_bd.begin():
+                conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                if not hay_historial(conteos):
+                    eliminar_obra(sesion_bd, obra_conocida)
+                    borrado = True
+    
+        with pytest.raises(FalloDeFuente):
+>           intentar_borrar()
+
+tests\test_tkt012b_historial.py:622: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_historial.py:616: in intentar_borrar
+    conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B425F0050>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B42B09170>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42AF6670>, fuentes_historial=())
+obra_id = UUID('9e26070f-2e2b-4c68-a7a6-9ee0f0b55d86')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+_ test_tkt012b_ca5_con_fuentes_sanas_y_sin_historial_el_mismo_patron_si_borra _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B425F0950>
+motor_aplicacion = Engine(postgresql+psycopg://cimenta_aplicacion:***@localhost:63028/prueba_2264276926ad)
+reloj_de_prueba = <tests.conftest.RelojDePrueba object at 0x0000017B42AF5C70>
+obra_conocida = UUID('47d00b71-894d-4ac2-8248-9c79d1743c97')
+lector = <psycopg.Connection [IDLE] (host=localhost port=63028 user=cimenta_aplicacion database=prueba_2264276926ad) at 0x17b425ba210>
+
+    def test_tkt012b_ca5_con_fuentes_sanas_y_sin_historial_el_mismo_patron_si_borra(
+        sesion_bd: Session,
+        motor_aplicacion: Engine,
+        reloj_de_prueba: RelojDePrueba,
+        obra_conocida: uuid.UUID,
+        lector: Conexion,
+    ) -> None:
+        """TC-20 · CA-5 — contraste: la misma secuencia con fuentes que responden 0 sí borra la obra.
+    
+        Sin este caso, «no borra» podría deberse a cualquier otra cosa y no al fallo de la fuente.
+        """
+        contexto = _contexto(
+            motor_aplicacion,
+            reloj_de_prueba,
+            FuenteDeConteo("compras", 0),
+            FuenteDeConteo("almacen", 0),
+        )
+    
+        with sesion_bd.begin():
+>           conteos = contar_historial(sesion_bd, contexto, obra_conocida)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_historial.py:648: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+sesion_bd = <sqlalchemy.orm.session.Session object at 0x0000017B425F0950>
+contexto = ContextoPresupuesto(fabrica_sesiones=<functools._lru_cache_wrapper object at 0x0000017B42B0AAE0>, reloj=<tests.conftest.RelojDePrueba object at 0x0000017B42AF5C70>, fuentes_historial=())
+obra_id = UUID('47d00b71-894d-4ac2-8248-9c79d1743c97')
+
+    def contar_historial(
+        sesion_bd: Session, contexto: ContextoPresupuesto, obra_id: uuid.UUID
+    ) -> ConteosHistorial:
+        """Esqueleto de rojo."""
+>       raise NotImplementedError("TKT-012b A4: contar_historial no está implementado")
+E       NotImplementedError: TKT-012b A4: contar_historial no está implementado
+
+cimenta\presupuesto\aplicacion\historial_obra.py:32: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_suma_las_fuentes_inyectadas_y_la_propia
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[una]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[dos]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[dos_en_cero]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[una_en_cero_y_otra_no]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_movimientos_es_la_suma_exacta_de_lo_que_dice_cada_fuente[tres]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_sin_fuentes_movimientos_es_cero_y_lo_propio_se_cuenta
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca5_contar_historial_de_una_obra_vacia_sin_fuentes_es_cero_y_no_hay_historial
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_un_movimiento_externo_basta_para_que_haya_historial
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio[BORRADOR-False]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio[CONGELADA-True]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_lleva_la_bandera_de_linea_base_congelada_del_repositorio[SUPERSEDIDA-False]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_pregunta_a_cada_fuente_una_vez_con_su_sesion_y_su_obra
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_trabaja_con_la_sesion_recibida_y_no_abre_otra
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_construir_contexto_guarda_las_fuentes_en_el_orden_recibido
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_construir_contexto_con_fuentes_sigue_sin_abrir_el_motor
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_montar_presupuesto_reenvia_las_fuentes_al_contexto_de_la_aplicacion
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_primera]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_de_en_medio]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_ultima]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_contar_historial_propaga_el_fallo_de_una_fuente_tal_cual[cae_la_unica_con_las_demas_en_cero]
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_el_fallo_de_una_fuente_no_se_compensa_con_lo_que_dicen_las_otras
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca6_si_la_fuente_falla_el_llamador_no_llega_a_borrar_la_obra
+FAILED tests/test_tkt012b_historial.py::test_tkt012b_ca5_con_fuentes_sanas_y_sin_historial_el_mismo_patron_si_borra
+24 failed, 11 passed in 8.70s

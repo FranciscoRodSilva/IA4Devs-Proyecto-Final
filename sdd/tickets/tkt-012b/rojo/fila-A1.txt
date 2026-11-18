@@ -1,0 +1,330 @@
+FFFFFFFF                                                                 [100%]
+================================== FAILURES ===================================
+_________ test_tkt012b_car3_0017_cuelga_de_0016_y_la_cabeza_es_unica __________
+
+    def test_tkt012b_car3_0017_cuelga_de_0016_y_la_cabeza_es_unica() -> None:
+        """CA-R3 — la cadena de migraciones tiene una sola cabeza y `0017` cuelga de `0016`.
+    
+        No afirma qué revisión es la cabeza: el siguiente ticket que migre debe poder hacerlo sin tocar
+        esta prueba. No usa base de datos. Mismo patrón que `test_tkt029b_car1_0016_cuelga_de_0015_…`.
+        """
+        guion = guion_de_alembic()
+        cabezas = guion.get_heads()
+        assert len(cabezas) == 1, cabezas
+    
+>       exigir_revision(REVISION_NUEVA)
+
+tests\test_tkt012b_migracion.py:264: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+revision = '0017'
+
+    def exigir_revision(revision: str) -> None:
+        """La cadena de Alembic debe conocer `revision` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision_.revision for revision_ in guion_de_alembic().walk_revisions()}
+>       assert revision in conocidas, (
+            f"Falta la migración {revision} (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce "
+            f"(TKT-012b, fila A1). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0017 (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce (TKT-012b, fila A1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016']
+E       assert '0017' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt012b_migracion.py:101: AssertionError
+____________ test_hdu001_esc20_ca5_el_tipo_gana_eliminar_al_final _____________
+
+base_de_prueba = 'prueba_913c18130db5'
+conectar = <function conectar.<locals>._conectar at 0x000001F1F2F61220>
+
+    def test_hdu001_esc20_ca5_el_tipo_gana_eliminar_al_final(
+        base_de_prueba: str, conectar: Conectar
+    ) -> None:
+        """TC-01 · HDU-001 esc. 20 · CA-5 — tras `upgrade head`, `ELIMINAR` es el verbo 24 y va al final.
+    
+        `pg_enum` de `accion_bitacora` es la lista de `0016` (los 22 de `0003` y `DAR_BAJA`) más
+        `ELIMINAR` al final, sin `BEFORE` ni `AFTER`. La primera mitad de `TC-01`; la segunda
+        (`AccionBitacora` coincide con el tipo) es la prueba siguiente.
+        """
+        with conectar("migracion", base_de_prueba) as administrador:
+>           assert verbos_de_la_base(administrador) == VERBOS_0017
+E           AssertionError: assert ['CREAR', 'AC...ECHAZAR', ...] == ['CREAR', 'AC...ECHAZAR', ...]
+E             
+E             Right contains one more item: 'ELIMINAR'
+E             Use -v to get more diff
+
+tests\test_tkt012b_migracion.py:283: AssertionError
+_ test_hdu001_esc20_ca5_accion_bitacora_tiene_eliminar_y_coincide_con_el_tipo _
+
+base_de_prueba = 'prueba_21fc82ec836f'
+conectar = <function conectar.<locals>._conectar at 0x000001F1F2F61900>
+
+    def test_hdu001_esc20_ca5_accion_bitacora_tiene_eliminar_y_coincide_con_el_tipo(
+        base_de_prueba: str, conectar: Conectar
+    ) -> None:
+        """TC-01 · HDU-001 esc. 20 · CA-5 — el enumerado de dominio `AccionBitacora` coincide con el tipo.
+    
+        `AccionBitacora.ELIMINAR` existe, es el último miembro y la lista de sus valores, en su orden,
+        es la de `accion_bitacora` en la base migrada a `head`: el asiento que arma el caso de uso se
+        puede escribir con un verbo que el tipo conoce.
+        """
+>       assert "ELIMINAR" in AccionBitacora.__members__, (
+            "Falta AccionBitacora.ELIMINAR en cimenta/auditoria/dominio/asiento.py (TKT-012b, A1)"
+        )
+E       AssertionError: Falta AccionBitacora.ELIMINAR en cimenta/auditoria/dominio/asiento.py (TKT-012b, A1)
+E       assert 'ELIMINAR' in mappingproxy({'CREAR': <AccionBitacora.CREAR: 'CREAR'>, 'ACTUALIZAR': <AccionBitacora.ACTUALIZAR: 'ACTUALIZAR'>, 'EVAL...ALIDAR: 'VALIDAR'>, 'DENEGAR': <AccionBitacora.DENEGAR: 'DENEGAR'>, 'DAR_BAJA': <AccionBitacora.DAR_BAJA: 'DAR_BAJA'>})
+E        +  where mappingproxy({'CREAR': <AccionBitacora.CREAR: 'CREAR'>, 'ACTUALIZAR': <AccionBitacora.ACTUALIZAR: 'ACTUALIZAR'>, 'EVAL...ALIDAR: 'VALIDAR'>, 'DENEGAR': <AccionBitacora.DENEGAR: 'DENEGAR'>, 'DAR_BAJA': <AccionBitacora.DAR_BAJA: 'DAR_BAJA'>}) = AccionBitacora.__members__
+
+tests\test_tkt012b_migracion.py:295: AssertionError
+_ test_hdu001_esc20_ca5_el_rol_de_aplicacion_asienta_eliminar_sin_ganar_permisos _
+
+base_de_prueba = 'prueba_a746feb6b364'
+conectar = <function conectar.<locals>._conectar at 0x000001F1F2F61F30>
+
+    def test_hdu001_esc20_ca5_el_rol_de_aplicacion_asienta_eliminar_sin_ganar_permisos(
+        base_de_prueba: str, conectar: Conectar
+    ) -> None:
+        """TC-01 · HDU-001 esc. 20 · CA-5 · invariante 10 — el rol de aplicación asienta `ELIMINAR`.
+    
+        Con el rol de aplicación, en una transacción nueva (la plantilla ya está confirmada, sin el
+        límite de `ADD VALUE` de `TC-02`), un `INSERT` con `accion = 'ELIMINAR'` se acepta. El rol sigue
+        sin `UPDATE`, `DELETE` ni `TRUNCATE` sobre `bitacora` (por `has_table_privilege` y con un `UPDATE`
+        y un `DELETE` reales, que responden `42501`) y conserva `USAGE` sobre el tipo.
+        """
+        with conectar("migracion", base_de_prueba) as administrador:
+            exigir_privilegios_de_la_aplicacion(administrador)
+    
+        aplicacion = conectar("aplicacion", base_de_prueba)
+        usuario = sembrar_usuario(aplicacion)
+>       asiento = insertar_asiento(aplicacion, usuario, "ELIMINAR")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_tkt012b_migracion.py:319: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_tkt012b_migracion.py:209: in insertar_asiento
+    conexion.execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <psycopg.Connection [IDLE] (host=localhost port=60587 user=cimenta_aplicacion database=prueba_a746feb6b364) at 0x1f1f2f02150>
+query = 'INSERT INTO bitacora (id, entidad_tipo, entidad_id, accion, usuario_id, ocurrido_en, motivo) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+params = (UUID('f866af62-b540-4ee6-a61c-0537a4e9a674'), 'obra', UUID('82cce332-217d-423a-8bf2-afd94e18c420'), 'ELIMINAR', UUID('1f952613-514f-404d-bde2-9a547d5c1077'), datetime.datetime(2026, 11, 17, 9, 0, tzinfo=datetime.timezone.utc), ...)
+prepare = None, binary = False
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            if isinstance(query, Template):
+                if params is not None:
+                    raise TypeError(
+                        "'execute()' with string template query doesn't support parameters"
+                    )
+                return cur.execute(query, prepare=prepare)
+            else:
+                return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InvalidTextRepresentation: invalid input value for enum accion_bitacora: "ELIMINAR"
+E           CONTEXT:  unnamed portal parameter $4 = '...'
+
+.venv\Lib\site-packages\psycopg\connection.py:304: InvalidTextRepresentation
+_ test_tkt012b_ca5_sonda_eliminar_no_se_usa_en_su_transaccion_y_la_subida_no_lo_usa _
+
+base_vacia = 'prueba_d72aeb09f593'
+migrar = <function migrar.<locals>._migrar at 0x000001F1F2E11430>
+conectar = <function conectar.<locals>._conectar at 0x000001F1F2F62980>
+
+    def test_tkt012b_ca5_sonda_eliminar_no_se_usa_en_su_transaccion_y_la_subida_no_lo_usa(
+        base_vacia: str, migrar: Migrar, conectar: Conectar
+    ) -> None:
+        """TC-02 · CA-5 · supuesto 1 — sonda del motor: `ADD VALUE 'ELIMINAR'` y su límite transaccional.
+    
+        Con la base en `0016`, en una transacción con el rol de migración, `ALTER TYPE accion_bitacora
+        ADD VALUE 'ELIMINAR'` seguido de un `INSERT` en `bitacora` con ese verbo falla con
+        `sqlstate == "55P04"` (`UnsafeNewEnumValueUsage`), igual que con `DAR_BAJA`; tras `ROLLBACK`,
+        `ELIMINAR` no existe y el tipo sigue con los 23 verbos de `0016`.
+    
+        La parte que ata la sonda al ticket: la subida de `0017` se aplica sin `55P04` (no usa el valor
+        en la transacción que lo añade) y deja `ELIMINAR` último, utilizable en una transacción nueva.
+        La primera mitad prueba el motor y por sí sola nacería en verde; la segunda exige `0017`, y es la
+        que pone la prueba en rojo hasta que la migración exista.
+        """
+        migrar(base_vacia, REVISION_ANTERIOR)
+        aplicacion = conectar("aplicacion", base_vacia)
+        usuario = sembrar_usuario(aplicacion)
+    
+        # (a) ADD VALUE y uso en la misma transacción.
+        with conectar("migracion", base_vacia, autocommit=False) as transaccion:
+            transaccion.execute("ALTER TYPE accion_bitacora ADD VALUE 'ELIMINAR'")
+            with pytest.raises(psycopg.Error) as uso_inseguro:
+                insertar_asiento(transaccion, usuario, "ELIMINAR")
+            assert uso_inseguro.value.sqlstate == "55P04", str(uso_inseguro.value)
+            transaccion.rollback()
+        with conectar("migracion", base_vacia) as lector:
+            assert verbos_de_la_base(lector) == VERBOS_0016, "Tras ROLLBACK, ELIMINAR no debía existir"
+    
+        # (b) La subida real de 0017 no cae en la trampa y deja el verbo usable después.
+>       exigir_revision(REVISION_NUEVA)
+
+tests\test_tkt012b_migracion.py:368: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+revision = '0017'
+
+    def exigir_revision(revision: str) -> None:
+        """La cadena de Alembic debe conocer `revision` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision_.revision for revision_ in guion_de_alembic().walk_revisions()}
+>       assert revision in conocidas, (
+            f"Falta la migración {revision} (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce "
+            f"(TKT-012b, fila A1). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0017 (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce (TKT-012b, fila A1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016']
+E       assert '0017' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt012b_migracion.py:101: AssertionError
+_ test_tkt012b_car3_la_bajada_devuelve_los_23_verbos_y_deja_la_bitacora_como_estaba _
+
+base_vacia = 'prueba_bbb1e86dfe2e'
+migrar = <function migrar.<locals>._migrar at 0x000001F1F2E11430>
+conectar = <function conectar.<locals>._conectar at 0x000001F1F342CEB0>
+
+    def test_tkt012b_car3_la_bajada_devuelve_los_23_verbos_y_deja_la_bitacora_como_estaba(
+        base_vacia: str, migrar: Migrar, conectar: Conectar
+    ) -> None:
+        """TC-03 · CA-R3 · invariante 10 — `upgrade 0017` y `downgrade 0016` no dejan rastro.
+    
+        Base en `0016` con tres asientos (`CREAR`, `DESACTIVAR` y `DAR_BAJA`: el último verbo que ya
+        existía, que la recreación del tipo debe conservar), escritos con el rol de aplicación.
+        Fotografía A del esquema completo, de `bitacora` y de sus filas. Se sube a `0017` y se baja a
+        `0016`: los verbos son exactamente los 23 de `0016` en su orden, la fotografía C es igual a la A,
+        las filas no cambiaron, `to_regtype('accion_bitacora_0017')` es nulo (la bajada borra el tipo
+        temporal) y `alembic_version` es `0016`. El rol de aplicación conserva sus privilegios y
+        `ELIMINAR` ya no existe: un `INSERT` con él responde `22P02`.
+        """
+>       exigir_revision(REVISION_NUEVA)
+
+tests\test_tkt012b_migracion.py:395: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+revision = '0017'
+
+    def exigir_revision(revision: str) -> None:
+        """La cadena de Alembic debe conocer `revision` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision_.revision for revision_ in guion_de_alembic().walk_revisions()}
+>       assert revision in conocidas, (
+            f"Falta la migración {revision} (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce "
+            f"(TKT-012b, fila A1). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0017 (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce (TKT-012b, fila A1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016']
+E       assert '0017' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt012b_migracion.py:101: AssertionError
+__________ test_tkt012b_ca5_la_bajada_se_niega_con_asientos_eliminar __________
+
+base_vacia = 'prueba_1b7b8af96f66'
+migrar = <function migrar.<locals>._migrar at 0x000001F1F2E11430>
+conectar = <function conectar.<locals>._conectar at 0x000001F1F344DDD0>
+
+    def test_tkt012b_ca5_la_bajada_se_niega_con_asientos_eliminar(
+        base_vacia: str, migrar: Migrar, conectar: Conectar
+    ) -> None:
+        """TC-04 · CA-5 · RN-04 — con un asiento `ELIMINAR`, `downgrade 0016` lanza y no destruye nada.
+    
+        El rechazo es el de la guarda de la migración (`RAISE EXCEPTION`, `P0001`) y no el
+        `invalid input value for enum` (`22P02`) de convertir la columna sin ella. El mensaje nombra
+        `ELIMINAR` y `0017`. Tras el rechazo, `alembic_version` sigue en `0017`, `ELIMINAR` sigue en el
+        tipo, el tipo temporal no existe y las filas de `bitacora` son las mismas: ningún asiento se
+        pierde.
+        """
+>       exigir_revision(REVISION_NUEVA)
+
+tests\test_tkt012b_migracion.py:453: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+revision = '0017'
+
+    def exigir_revision(revision: str) -> None:
+        """La cadena de Alembic debe conocer `revision` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision_.revision for revision_ in guion_de_alembic().walk_revisions()}
+>       assert revision in conocidas, (
+            f"Falta la migración {revision} (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce "
+            f"(TKT-012b, fila A1). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0017 (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce (TKT-012b, fila A1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016']
+E       assert '0017' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt012b_migracion.py:101: AssertionError
+_________ test_tkt012b_car3_sube_y_baja_conservan_el_esquema_de_0016 __________
+
+base_vacia = 'prueba_d8210204bcf8'
+migrar = <function migrar.<locals>._migrar at 0x000001F1F2E11430>
+conectar = <function conectar.<locals>._conectar at 0x000001F1F3477060>
+
+    def test_tkt012b_car3_sube_y_baja_conservan_el_esquema_de_0016(
+        base_vacia: str, migrar: Migrar, conectar: Conectar
+    ) -> None:
+        """TC-INV-1 · CA-R3 — `0017` solo cambia las etiquetas del tipo; el resto del esquema es el de `0016`.
+    
+        Fotografía A del esquema en `0016`. Tras `upgrade 0017`, la fotografía B es igual a la A (tablas,
+        columnas, restricciones, índices, privilegios, disparadores y funciones) y, en `bitacora`,
+        columnas, restricciones, índices y `relacl` no cambian: solo el quinto elemento, las etiquetas,
+        gana `ELIMINAR`. Tras `downgrade 0016`, la C es igual a la A; y tras volver a subir, la D es
+        igual a la B. Es la prueba de que la bajada no dejó nada que estorbe a la siguiente subida (por
+        ejemplo, un tipo temporal que choque al volver a renombrar).
+        """
+>       exigir_revision(REVISION_NUEVA)
+
+tests\test_tkt012b_migracion.py:503: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+revision = '0017'
+
+    def exigir_revision(revision: str) -> None:
+        """La cadena de Alembic debe conocer `revision` antes de intentar migrar hasta ella.
+    
+        `get_revision` lanza `ResolutionError` si no existe; recorrer la cadena da un fallo de
+        aserción con el motivo escrito, que es la razón esperada del rojo.
+        """
+        conocidas = {revision_.revision for revision_ in guion_de_alembic().walk_revisions()}
+>       assert revision in conocidas, (
+            f"Falta la migración {revision} (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce "
+            f"(TKT-012b, fila A1). Revisiones conocidas: {sorted(conocidas)}"
+        )
+E       AssertionError: Falta la migración 0017 (v0017_auditoria_verbo_eliminar.py): Alembic no la conoce (TKT-012b, fila A1). Revisiones conocidas: ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016']
+E       assert '0017' in {'0001', '0002', '0003', '0004', '0005', '0006', ...}
+
+tests\test_tkt012b_migracion.py:101: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_tkt012b_migracion.py::test_tkt012b_car3_0017_cuelga_de_0016_y_la_cabeza_es_unica
+FAILED tests/test_tkt012b_migracion.py::test_hdu001_esc20_ca5_el_tipo_gana_eliminar_al_final
+FAILED tests/test_tkt012b_migracion.py::test_hdu001_esc20_ca5_accion_bitacora_tiene_eliminar_y_coincide_con_el_tipo
+FAILED tests/test_tkt012b_migracion.py::test_hdu001_esc20_ca5_el_rol_de_aplicacion_asienta_eliminar_sin_ganar_permisos
+FAILED tests/test_tkt012b_migracion.py::test_tkt012b_ca5_sonda_eliminar_no_se_usa_en_su_transaccion_y_la_subida_no_lo_usa
+FAILED tests/test_tkt012b_migracion.py::test_tkt012b_car3_la_bajada_devuelve_los_23_verbos_y_deja_la_bitacora_como_estaba
+FAILED tests/test_tkt012b_migracion.py::test_tkt012b_ca5_la_bajada_se_niega_con_asientos_eliminar
+FAILED tests/test_tkt012b_migracion.py::test_tkt012b_car3_sube_y_baja_conservan_el_esquema_de_0016
+8 failed in 4.77s
