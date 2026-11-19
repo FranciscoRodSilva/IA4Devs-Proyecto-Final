@@ -32,7 +32,7 @@ jobs:
           gh pr view "$PR" --json title,body,files > .revision-pr/pr.json
           gh pr diff "$PR" > .revision-pr/pr.diff
       - id: claude
-        uses: anthropics/claude-code-action@6d5ae526d25ce88daa2200be073e1a373167f064 # v1.0.265
+        uses: anthropics/claude-code-action@f3b070c88125d33dbae5653df5f143101d4ea9dc # v1.0.276
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
